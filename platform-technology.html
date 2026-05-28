@@ -152,15 +152,15 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 /* The chain scrolls horizontally on small screens */
 .hflow-chain{display:flex;align-items:stretch;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;scrollbar-width:none}
 .hflow-chain::-webkit-scrollbar{display:none}
-/* Node */
-.hflow-node{flex-shrink:0;background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-md);padding:10px 14px;min-width:96px;max-width:120px;display:flex;flex-direction:column;gap:3px;justify-content:center}
+/* Node — chips live inside the node, no overflow issues */
+.hflow-node{flex-shrink:0;background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-md);padding:11px 14px;min-width:104px;display:flex;flex-direction:column;gap:4px;justify-content:center}
 .hflow-node.hp{background:rgba(30,78,128,.05);border-color:rgba(30,78,128,.16)}
-.hflow-node-name{font-size:12px;font-weight:600;color:var(--n800);line-height:1.3}
+.hflow-node-name{font-size:12px;font-weight:600;color:var(--n800);line-height:1.3;white-space:nowrap}
 .hflow-node-sub{font-size:10px;color:var(--ink3);line-height:1.3}
 .hflow-node-sub.hp{color:var(--n400)}
-/* Connector: flex:1 so HP connectors stretch wide, showing visual simplicity */
-.hflow-connector{flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 4px;position:relative}
-.hflow-chips{display:flex;flex-wrap:nowrap;gap:3px;justify-content:center}
+.hflow-node-chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
+/* Connector: pure arrow, flex:1 — HP connectors stretch wide naturally */
+.hflow-connector{flex:1;min-width:24px;display:flex;align-items:center;padding:0 4px}
 .hflow-arrow{display:flex;align-items:center;width:100%}
 .hflow-line{flex:1;height:1.5px;background:rgba(11,25,41,.14)}
 .hflow-line.hp{background:var(--n300)}
@@ -444,74 +444,44 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
             <div class="hflow-node-sub">Wire initiated</div>
           </div>
 
-          <div class="hflow-connector">
-            <div class="hflow-chips">
-              <span class="flow-chip">+0.20%</span>
-              <span class="flow-chip">+€25</span>
-            </div>
-            <div class="hflow-arrow">
-              <div class="hflow-line"></div>
-              <svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
             <div class="hflow-node-name">Correspondent 1</div>
-            <div class="hflow-node-sub">FX spread added</div>
+            <div class="hflow-node-chips">
+              <span class="flow-chip">+0.20%</span>
+              <span class="flow-chip">+€25</span>
+            </div>
           </div>
 
-          <div class="hflow-connector">
-            <div class="hflow-chips">
-              <span class="flow-chip">+0.15%</span>
-              <span class="flow-chip time">+1 day</span>
-            </div>
-            <div class="hflow-arrow">
-              <div class="hflow-line"></div>
-              <svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
             <div class="hflow-node-name">Correspondent 2</div>
-            <div class="hflow-node-sub">Margin applied</div>
-          </div>
-
-          <div class="hflow-connector">
-            <div class="hflow-chips" style="min-height:18px"></div>
-            <div class="hflow-arrow">
-              <div class="hflow-line"></div>
-              <svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="hflow-node-chips">
+              <span class="flow-chip">+0.15%</span>
+              <span class="flow-chip time">+1 day</span>
             </div>
           </div>
+
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
             <div class="hflow-node-name">SWIFT network</div>
             <div class="hflow-node-sub">Routing layer</div>
           </div>
 
-          <div class="hflow-connector">
-            <div class="hflow-chips">
-              <span class="flow-chip">+€30</span>
-              <span class="flow-chip time">+1–2 days</span>
-            </div>
-            <div class="hflow-arrow">
-              <div class="hflow-line"></div>
-              <svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
             <div class="hflow-node-name">Correspondent 3</div>
-            <div class="hflow-node-sub">Final leg fee</div>
-          </div>
-
-          <div class="hflow-connector">
-            <div class="hflow-chips" style="min-height:18px"></div>
-            <div class="hflow-arrow">
-              <div class="hflow-line"></div>
-              <svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="hflow-node-chips">
+              <span class="flow-chip">+€30</span>
+              <span class="flow-chip time">+1–2 days</span>
             </div>
           </div>
+
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
             <div class="hflow-node-name">Recipient bank</div>
@@ -537,26 +507,14 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
             <div class="hflow-node-sub hp">Rate locked instantly</div>
           </div>
 
-          <div class="hflow-connector">
-            <div class="hflow-chips" style="min-height:18px"></div>
-            <div class="hflow-arrow">
-              <div class="hflow-line hp"></div>
-              <svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line hp"></div><svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node hp">
             <div class="hflow-node-name">EMT settlement</div>
             <div class="hflow-node-sub hp">Atomic conversion</div>
           </div>
 
-          <div class="hflow-connector">
-            <div class="hflow-chips" style="min-height:18px"></div>
-            <div class="hflow-arrow">
-              <div class="hflow-line hp"></div>
-              <svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
+          <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line hp"></div><svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node hp">
             <div class="hflow-node-name">Recipient bank</div>
