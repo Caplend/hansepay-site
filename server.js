@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 4200;
+const PORT = process.env.PORT || 4200;
 const JWT_SECRET = 'hansepay-cms-secret-2024';
 const DATA_DIR = path.join(__dirname, 'data');
 
