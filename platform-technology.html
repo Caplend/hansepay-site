@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Technology — HansePay</title>
+<meta name="description" content="How HansePay moves money in minutes at a fraction of the cost. The infrastructure behind every transfer — E-Money Tokens, real-time settlement, and atomic FX execution." />
+<link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+  --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,80px)}
+
+.eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--n300)}
+.section-head{font-family:var(--font-display);font-size:clamp(28px,3.2vw,44px);font-weight:400;line-height:1.1;letter-spacing:-.02em;color:var(--n800)}
+.section-head em{font-style:italic;color:var(--n400)}
+.lede{font-size:16px;font-weight:300;color:var(--ink2);line-height:1.65}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--r-pill);font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s ease;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--n500);color:#fff}.btn-primary:hover{background:var(--n600)}
+.btn-ghost-white{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7)}.btn-ghost-white:hover{background:rgba(255,255,255,.1)}
+.btn-ghost-navy{background:transparent;color:var(--n600);border:1.5px solid rgba(11,25,41,.2)}.btn-ghost-navy:hover{background:var(--n050)}
+.btn-white-fill{background:#fff;color:var(--n500)}.btn-white-fill:hover{background:var(--n050)}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 clamp(20px,5vw,80px);height:68px;display:flex;align-items:center;transition:background .35s,box-shadow .35s}
+nav.scrolled{background:rgba(255,255,255,.97);box-shadow:0 1px 0 rgba(11,25,41,.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.nav-inner{max-width:1240px;margin:0 auto;width:100%;display:flex;align-items:center;gap:0}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;margin-right:40px}
+.nav-logo img{height:28px;width:28px;object-fit:contain;filter:brightness(0) invert(1);transition:filter .35s}
+nav.scrolled .nav-logo img{filter:none}
+.nav-logo-text{font-family:var(--font-logo);font-size:19px;font-weight:400;letter-spacing:-.02em;color:#fff;line-height:1;transition:color .25s}
+nav.scrolled .nav-logo-text{color:var(--n800)}
+.nav-links{display:flex;align-items:stretch;gap:0;list-style:none;flex:1;height:68px}
+.nav-item{position:relative;display:flex;align-items:center}
+.nav-link{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;color:rgba(255,255,255,.78);transition:color .15s;white-space:nowrap;padding:0 16px;height:100%;cursor:pointer}
+nav.scrolled .nav-link{color:rgba(11,25,41,.68)}
+.nav-link:hover,.nav-link.active-page{color:#fff}
+nav.scrolled .nav-link:hover,nav.scrolled .nav-link.active-page{color:var(--n700)}
+.nav-link svg{transition:transform .2s ease;flex-shrink:0}
+.nav-item:hover .nav-link svg{transform:rotate(180deg)}
+.nav-dropdown{position:absolute;top:calc(100% + 1px);left:50%;transform:translateX(-50%);width:260px;
+  background:rgba(12,22,38,.96);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.12);border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4),0 32px 80px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.18);
+  padding:10px;opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-6px);
+  transition:opacity .18s ease,transform .18s ease}
+.nav-item:hover .nav-dropdown{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.nav-dropdown-section{padding:6px 0 2px}
+.nav-dropdown-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.30);padding:4px 12px 8px;display:block}
+.nav-dd-link{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;text-decoration:none;transition:background .14s}
+.nav-dd-link:hover{background:rgba(255,255,255,.07)}
+.nav-dd-icon{width:32px;height:32px;border-radius:8px;background:rgba(141,189,230,.10);border:1px solid rgba(141,189,230,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-dd-icon svg{width:14px;height:14px;color:var(--n200)}
+.nav-dd-text{flex:1;min-width:0}
+.nav-dd-title{font-size:13px;font-weight:600;color:#fff;line-height:1.2}
+.nav-dd-sub{font-size:11px;color:rgba(255,255,255,.40);margin-top:1px;line-height:1.3}
+.nav-dd-active .nav-dd-icon{background:rgba(201,169,97,.14);border-color:rgba(201,169,97,.24)}
+.nav-dd-active .nav-dd-icon svg{color:var(--gold)}
+.nav-dd-active .nav-dd-title{color:var(--gold)}
+.nav-dropdown-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
+.nav-right{display:flex;align-items:center;gap:8px;margin-left:16px;flex-shrink:0}
+.nav-cta{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.28);padding:8px 20px;font-size:13px;border-radius:var(--r-pill);backdrop-filter:blur(8px)}
+.nav-cta:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45)}
+nav.scrolled .nav-cta{background:var(--n500);border-color:var(--n500);backdrop-filter:none}
+nav.scrolled .nav-cta:hover{background:var(--n600)}
+.nav-burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:none}
+.nav-burger span{display:block;width:22px;height:2px;border-radius:2px;background:rgba(255,255,255,.85);transition:all .22s ease}
+nav.scrolled .nav-burger span{background:var(--n700)}
+.nav-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-burger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:68px;left:0;right:0;background:rgba(12,22,38,.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.07);padding:24px clamp(20px,5vw,80px);z-index:199;flex-direction:column;gap:4px}
+.mobile-menu.open{display:flex}
+.mobile-menu-link{font-size:16px;font-weight:500;color:rgba(255,255,255,.7);padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.mobile-menu-sub{font-size:14px;color:rgba(255,255,255,.45);padding:8px 0 8px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+.mobile-menu-link:last-of-type,.mobile-menu-sub:last-of-type{border-bottom:none}
+.mobile-menu-cta{margin-top:16px}
+@media(max-width:768px){.nav-links{display:none}.nav-burger{display:flex}.nav-inner{justify-content:space-between}.nav-logo{margin-right:0}.nav-cta{display:none}}
+
+/* ── HERO (dark) ── */
+.tech-hero{background:radial-gradient(ellipse at 16% 38%,#0F2540 0%,transparent 52%),radial-gradient(ellipse at 80% 20%,#1a3a6b 0%,transparent 48%),#060D1A;padding:160px 0 96px;position:relative;overflow:hidden}
+.tech-hero::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238DBDE6' fill-opacity='0.025'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.tech-hero .container{position:relative;z-index:1}
+.tech-hero-tag{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:var(--r-pill);background:rgba(141,189,230,.1);border:1px solid rgba(141,189,230,.2);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--n200);margin-bottom:28px}
+.tech-hero-tag-dot{width:5px;height:5px;border-radius:50%;background:var(--n200);flex-shrink:0}
+.tech-hero h1{font-family:var(--font-display);font-size:clamp(42px,5.5vw,76px);font-weight:400;line-height:1.03;letter-spacing:-.03em;color:#fff;margin-bottom:22px;max-width:820px}
+.tech-hero h1 em{font-style:italic;color:var(--n200)}
+.tech-hero-sub{font-size:clamp(15px,1.4vw,17px);font-weight:300;color:rgba(255,255,255,.62);line-height:1.75;max-width:560px;margin-bottom:40px}
+.tech-hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+@media(max-width:600px){.tech-hero{padding:120px 0 72px}.tech-hero-actions{flex-direction:column;align-items:flex-start}.tech-hero-actions .btn{width:100%;justify-content:center}}
+
+/* ── SECTION SPACING ── */
+.section{padding:96px 0}
+.section-alt{background:#f7f8fc}
+.section-dark{background:var(--n800)}
+@media(max-width:768px){.section{padding:60px 0}}
+
+/* ── SECTION INTRO ── */
+.sec-intro{max-width:820px;margin-bottom:56px}
+.sec-intro .eyebrow{margin-bottom:14px;display:block}
+.sec-intro .lede{margin-top:18px}
+@media(max-width:768px){.sec-intro{margin-bottom:40px}}
+
+/* ── EMT EXPLAINED ── */
+.emt-equation{display:flex;align-items:center;justify-content:space-between;gap:0;padding:28px 40px;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);background:#fff;box-shadow:0 2px 20px rgba(11,25,41,.06);margin-bottom:0}
+.emt-equation-value{font-family:var(--font-display);font-size:clamp(32px,4vw,52px);font-weight:400;letter-spacing:-.03em;color:var(--n800);line-height:1}
+.emt-equation-eq{font-family:var(--font-display);font-size:clamp(28px,3.5vw,44px);font-weight:400;color:var(--ink3);line-height:1}
+.emt-connectors{display:grid;grid-template-columns:repeat(3,1fr);height:40px;margin-top:0}
+.emt-connector{display:flex;justify-content:center}
+.emt-connector-line{width:1px;background:rgba(11,25,41,.1);height:100%}
+.emt-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(11,25,41,.06);border-radius:var(--r-lg);overflow:hidden;margin-top:0}
+.emt-pillar{background:#fff;padding:32px 28px;display:flex;flex-direction:column;gap:14px;transition:background .2s}
+.emt-pillar:hover{background:var(--n050)}
+.emt-pillar-icon{width:40px;height:40px;border-radius:var(--r-md);background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.emt-pillar:hover .emt-pillar-icon{background:var(--n500)}
+.emt-pillar-icon svg{width:18px;height:18px;color:var(--n400);transition:color .2s}
+.emt-pillar:hover .emt-pillar-icon svg{color:#fff}
+.emt-pillar-title{font-size:15px;font-weight:600;color:var(--n800)}
+.emt-pillar-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+@media(max-width:720px){
+  .emt-equation{padding:20px 24px}
+  .emt-pillars{grid-template-columns:1fr}
+  .emt-connectors{display:none}
+}
+
+/* ── FLOW COMPARISON ── */
+.flow-section-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px}
+.flow-section-label.muted{color:var(--ink3)}
+.flow-section-label.navy{color:var(--n400)}
+.flow-box-grid{display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding:28px 32px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);background:#fff}
+.flow-box{display:flex;align-items:center;gap:7px;padding:10px 16px;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-md);background:#fff;font-size:12px;font-weight:600;color:var(--n800);white-space:nowrap;flex-shrink:0}
+.flow-box svg{width:13px;height:13px;color:var(--n400);flex-shrink:0}
+.flow-box.active{background:var(--n500);border-color:var(--n500);color:#fff}
+.flow-box.active svg{color:rgba(255,255,255,.7)}
+.flow-arrow{color:rgba(11,25,41,.2);font-size:12px;font-weight:600;flex-shrink:0}
+.flow-tag{font-size:10px;font-weight:600;color:var(--ink3);background:rgba(11,25,41,.04);border:1px solid rgba(11,25,41,.06);border-radius:var(--r-pill);padding:3px 8px;flex-shrink:0;white-space:nowrap}
+.flow-summary{font-size:14px;font-weight:600;color:var(--ink3);margin-top:16px;padding-top:16px;border-top:1px solid rgba(11,25,41,.06)}
+.flow-summary.navy{color:var(--n500)}
+.flow-divider{height:1px;background:rgba(11,25,41,.07);margin:32px 0}
+@media(max-width:600px){
+  .flow-box-grid{gap:4px;padding:20px}
+  .flow-box{padding:8px 12px}
+}
+
+/* ── FAMILIAR TERRITORY ── */
+.money-spectrum{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:rgba(11,25,41,.06);border-radius:var(--r-lg);overflow:hidden;margin-top:40px}
+.money-type{background:#fff;padding:24px 20px;text-align:center;transition:background .2s}
+.money-type.highlight{background:var(--n050)}
+.money-type:hover{background:var(--n050)}
+.money-type.highlight:hover{background:#e3eef9}
+.money-type-de{font-size:14px;font-weight:600;color:var(--n800);margin-bottom:4px}
+.money-type-de.highlight-text{color:var(--n500)}
+.money-type-en{font-size:12px;color:var(--ink3);line-height:1.4}
+@media(max-width:640px){.money-spectrum{grid-template-columns:1fr 1fr}}
+
+/* ── COST STACK ── */
+.cost-comparison{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(11,25,41,.06);border-radius:var(--r-lg);overflow:hidden;margin-top:48px}
+@media(max-width:640px){.cost-comparison{grid-template-columns:1fr}}
+.cost-col{background:#fff;padding:40px 36px}
+.cost-col-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:20px}
+.cost-col-label.muted{color:var(--ink3)}
+.cost-col-label.navy{color:var(--n400)}
+.cost-total{font-family:var(--font-display);font-size:clamp(36px,4vw,52px);font-weight:400;letter-spacing:-.03em;margin-bottom:28px}
+.cost-total.muted{color:var(--ink3)}
+.cost-total.navy{color:var(--n700)}
+.cost-items{display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(11,25,41,.06)}
+.cost-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(11,25,41,.06);gap:16px}
+.cost-item-label{font-size:13px;color:var(--ink2)}
+.cost-item-pct{font-size:13px;font-weight:700;color:var(--n800);white-space:nowrap}
+.cost-delta{margin-top:24px;padding:16px 20px;border-radius:var(--r-md);background:rgba(30,78,128,.06);border:1px solid rgba(30,78,128,.12);font-size:13px;font-weight:600;color:var(--n500)}
+@media(max-width:768px){.cost-col{padding:28px 24px}}
+
+/* ── RATE CARDS ── */
+.rate-cards{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(11,25,41,.06);border-radius:var(--r-lg);overflow:hidden;margin-top:48px}
+@media(max-width:580px){.rate-cards{grid-template-columns:1fr}}
+.rate-card{background:#fff;padding:40px 36px;display:flex;flex-direction:column}
+.rate-card-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:32px}
+.rate-card-label.muted{color:var(--ink3)}
+.rate-card-label.navy{color:var(--n400)}
+.rate-row{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.rate-row-label{font-size:12px;font-weight:500;color:var(--ink3);letter-spacing:.04em;text-transform:uppercase}
+.rate-value{font-family:'Courier New',monospace;font-size:clamp(28px,3vw,40px);font-weight:700;letter-spacing:-.01em;line-height:1}
+.rate-value.neutral{color:var(--n800)}
+.rate-value.bad{color:#c0392b}
+.rate-value.good{color:var(--n500)}
+.rate-arrow{display:flex;justify-content:center;padding:14px 0}
+.rate-arrow svg{width:20px;height:20px}
+.rate-arrow svg.muted-arrow{color:var(--ink3)}
+.rate-arrow svg.navy-arrow{color:var(--n400)}
+.rate-caption{font-size:12px;font-style:italic;color:var(--ink3);text-align:center;margin-top:20px;line-height:1.55;flex:1;display:flex;align-items:flex-end;justify-content:center}
+.rate-slip-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.14);font-size:11px;font-weight:600;color:#c0392b}
+.rate-locked-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(30,78,128,.07);border:1px solid rgba(30,78,128,.16);font-size:11px;font-weight:600;color:var(--n500)}
+@media(max-width:768px){.rate-card{padding:28px 24px}}
+
+/* ── WHY IT MATTERS ── */
+.outcomes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:rgba(11,25,41,.06);border-radius:var(--r-lg);overflow:hidden;margin-top:48px}
+@media(max-width:900px){.outcomes-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.outcomes-grid{grid-template-columns:1fr}}
+.outcome-card{background:#fff;padding:36px 32px;display:flex;flex-direction:column;gap:16px;transition:background .2s}
+.outcome-card:hover{background:var(--n050)}
+.outcome-card:hover .outcome-icon{background:var(--n500)}
+.outcome-card:hover .outcome-icon svg{color:#fff}
+.outcome-icon{width:44px;height:44px;border-radius:var(--r-md);background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.outcome-icon svg{width:20px;height:20px;color:var(--n400);transition:color .2s}
+.outcome-title{font-size:15px;font-weight:600;color:var(--n800);line-height:1.3}
+.outcome-desc{font-size:13px;color:var(--ink2);line-height:1.65;flex:1}
+@media(max-width:768px){.outcome-card{padding:24px 20px}}
+
+/* ── REGULATORY STACK ── */
+.reg-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:start;margin-top:48px}
+@media(max-width:900px){.reg-layout{grid-template-columns:1fr;gap:40px}}
+.reg-pyramid{display:flex;flex-direction:column;align-items:center;gap:10px}
+.reg-layer{border:1px solid rgba(255,255,255,.14);border-radius:var(--r-md);padding:16px 20px;text-align:center;transition:border-color .2s,background .2s;cursor:default}
+.reg-layer:hover{border-color:rgba(141,189,230,.3);background:rgba(141,189,230,.05)}
+.reg-layer-label{font-size:13px;font-weight:600;color:rgba(255,255,255,.85);line-height:1.3}
+.reg-layer-sub{font-size:11px;color:rgba(255,255,255,.38);margin-top:3px}
+.reg-text{color:rgba(255,255,255,.58);font-size:15px;font-weight:300;line-height:1.75}
+.reg-link{display:inline-flex;align-items:center;gap:5px;margin-top:20px;font-size:13px;font-weight:600;color:var(--n200);transition:color .15s}
+.reg-link:hover{color:#fff}
+.reg-link svg{width:14px;height:14px}
+.section-dark .eyebrow{color:var(--n200)}
+.section-dark .section-head{color:#fff}
+.section-dark .section-head em{color:var(--n200)}
+.section-dark .lede{color:rgba(255,255,255,.55)}
+
+/* ── FAQ ── */
+.faq-list{border-top:1px solid rgba(11,25,41,.08);margin-top:48px}
+.faq-item{border-bottom:1px solid rgba(11,25,41,.08)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:22px 0;cursor:pointer;gap:24px;user-select:none}
+.faq-q-text{font-size:15px;font-weight:500;color:var(--n800);line-height:1.4}
+.faq-icon{width:20px;height:20px;flex-shrink:0;color:var(--n400);transition:transform .22s ease}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-a{font-size:14px;color:var(--ink2);line-height:1.72;max-height:0;overflow:hidden;transition:max-height .32s ease,padding .2s ease;padding-bottom:0}
+.faq-item.open .faq-a{max-height:320px;padding-bottom:22px}
+
+/* ── CTA BAND ── */
+.cta-band{padding:120px 0;text-align:center;position:relative;overflow:hidden;background:radial-gradient(ellipse at 18% 40%,#0F2540 0%,transparent 55%),radial-gradient(ellipse at 82% 25%,#2E6BAD 0%,transparent 50%),#060D1A}
+.cta-inner{position:relative;z-index:1;max-width:680px;margin:0 auto}
+.cta-head{font-family:var(--font-display);font-size:clamp(30px,3.8vw,50px);font-weight:400;line-height:1.1;letter-spacing:-.025em;color:#fff;margin:16px 0 18px}
+.cta-head em{font-style:italic;color:var(--n100)}
+.cta-sub{font-size:16px;font-weight:300;color:rgba(255,255,255,.6);line-height:1.65;margin-bottom:44px}
+.cta-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px}
+@media(max-width:600px){.cta-band{padding:72px 0}.cta-actions{flex-direction:column;align-items:center}}
+
+/* ── FOOTER ── */
+footer{background:#060D1A;padding:80px 0 44px;border-top:1px solid rgba(255,255,255,.07)}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:56px;margin-bottom:64px}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;gap:40px}}
+@media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.footer-logo img{height:26px;width:26px;object-fit:contain}
+.footer-logo-text{font-family:var(--font-logo);font-size:17px;font-weight:400;color:#fff;letter-spacing:-.02em}
+.footer-tagline{font-size:13px;color:rgba(255,255,255,.4);line-height:1.6;max-width:220px;margin-bottom:10px}
+.footer-legal{font-size:11px;color:rgba(255,255,255,.22);line-height:1.6}
+.footer-col-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;margin-bottom:18px}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:9px}
+.footer-link{font-size:13px;color:rgba(255,255,255,.4);transition:color .15s}.footer-link:hover{color:rgba(255,255,255,.9)}
+.footer-hr{height:1px;background:rgba(255,255,255,.07);margin-bottom:24px}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.footer-copy{font-size:12px;color:rgba(255,255,255,.22)}
+.bafin-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.32);padding:5px 12px;border:1px solid rgba(255,255,255,.1);border-radius:var(--r-pill)}
+.bafin-badge svg{width:12px;height:12px;color:var(--n200)}
+@media(max-width:768px){footer{padding:56px 0 36px}.footer-grid{margin-bottom:40px}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/hansepay-mark-uploaded.png" alt="HansePay" />
+      <span class="nav-logo-text">HansePay</span>
+    </a>
+    <ul class="nav-links">
+      <li class="nav-item">
+        <span class="nav-link">
+          Product
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-section">
+            <span class="nav-dropdown-label">Features</span>
+            <a href="index.html#product" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">FX Execution</div><div class="nav-dd-sub">Mid-market rates, zero markup</div></div>
+            </a>
+            <a href="index.html#transfers" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Global Payments</div><div class="nav-dd-sub">Send to 35+ currencies in minutes</div></div>
+            </a>
+            <a href="index.html#solutions" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Recipient Management</div><div class="nav-dd-sub">Manage payees across the world</div></div>
+            </a>
+          </div>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active-page" href="platform.html">
+          Platform
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-section">
+            <span class="nav-dropdown-label">Platform</span>
+            <a href="platform.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Overview</div><div class="nav-dd-sub">See the full platform at a glance</div></div>
+            </a>
+            <a href="platform-technology.html" class="nav-dd-link nav-dd-active">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Technology</div><div class="nav-dd-sub">The infrastructure behind every transfer</div></div>
+            </a>
+            <a href="platform.html#transfers" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Real-time Tracking</div><div class="nav-dd-sub">Watch payments move live</div></div>
+            </a>
+          </div>
+        </div>
+      </li>
+      <li class="nav-item"><a class="nav-link" href="index.html#calculator">Pricing</a></li>
+      <li class="nav-item"><a class="nav-link" href="index.html#solutions">Solutions</a></li>
+      <li class="nav-item"><a class="nav-link" href="/hansepay/blog.html">Insights</a></li>
+      <li class="nav-item"><a class="nav-link" href="index.html#about">About</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="index.html#contact" class="btn nav-cta">Open an account</a>
+      <button class="nav-burger" id="nav-burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a class="mobile-menu-link" href="index.html#product" onclick="closeMobileMenu()">Product</a>
+  <a class="mobile-menu-sub" href="index.html#transfers" onclick="closeMobileMenu()">FX Execution</a>
+  <a class="mobile-menu-sub" href="index.html#solutions" onclick="closeMobileMenu()">Payments</a>
+  <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()">Platform</a>
+  <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()">Technology</a>
+  <a class="mobile-menu-link" href="index.html#calculator" onclick="closeMobileMenu()">Pricing</a>
+  <a class="mobile-menu-link" href="index.html#solutions" onclick="closeMobileMenu()">Solutions</a>
+  <a class="mobile-menu-link" href="/hansepay/blog.html" onclick="closeMobileMenu()">Insights</a>
+  <a class="mobile-menu-link" href="index.html#about" onclick="closeMobileMenu()">About</a>
+  <a href="index.html#contact" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()">Open an account</a>
+</div>
+
+<!-- HERO -->
+<section class="tech-hero">
+  <div class="container">
+    <div class="tech-hero-tag"><span class="tech-hero-tag-dot"></span>Platform &middot; Technology</div>
+    <h1>The infrastructure behind<br><em>every transfer.</em></h1>
+    <p class="tech-hero-sub">How HansePay moves money in minutes at a fraction of the cost. The technology is hidden by design — but here is what runs underneath when you need to know.</p>
+    <div class="tech-hero-actions">
+      <a href="index.html#contact" class="btn btn-white-fill">Open a business account</a>
+      <a href="index.html#contact" class="btn btn-ghost-white">Talk to a specialist</a>
+    </div>
+  </div>
+</section>
+
+<!-- 1. WHAT IT IS — EMT Explained -->
+<section class="section" id="emt">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">What it is</span>
+      <h2 class="section-head">The euro, on different rails.</h2>
+      <p class="lede">An E-Money Token is a regulated digital version of the euro, issued by a licensed financial institution. One token equals one euro, always. It exists so money can settle the way information already does: instantly, programmatically, across borders.</p>
+    </div>
+    <div class="emt-equation">
+      <span class="emt-equation-value">1 EMT</span>
+      <span class="emt-equation-eq">=</span>
+      <span class="emt-equation-value">1 EUR</span>
+    </div>
+    <div class="emt-connectors" aria-hidden="true">
+      <div class="emt-connector"><div class="emt-connector-line"></div></div>
+      <div class="emt-connector"><div class="emt-connector-line"></div></div>
+      <div class="emt-connector"><div class="emt-connector-line"></div></div>
+    </div>
+    <div class="emt-pillars">
+      <div class="emt-pillar">
+        <div class="emt-pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="emt-pillar-title">Backed 1:1</div>
+        <div class="emt-pillar-desc">Held in segregated reserves at regulated banks. Not on the issuer's balance sheet. Your euro stays a euro.</div>
+      </div>
+      <div class="emt-pillar">
+        <div class="emt-pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="emt-pillar-title">Issued under MiCAR</div>
+        <div class="emt-pillar-desc">The EU's framework for regulated digital money — the strictest in the world. Same oversight as traditional finance, faster infrastructure.</div>
+      </div>
+      <div class="emt-pillar">
+        <div class="emt-pillar-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+        </div>
+        <div class="emt-pillar-title">Redeemable on demand</div>
+        <div class="emt-pillar-desc">Convert back to fiat anytime. 1:1, no fees, no waiting. The exit is always open — that is the design.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. HOW IT WORKS — Flow comparison -->
+<section class="section section-alt" id="flow">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">How it works</span>
+      <h2 class="section-head">From your invoice to your supplier <em>in three steps.</em></h2>
+    </div>
+
+    <!-- Bank route -->
+    <div class="flow-section-label muted">Today, with a bank</div>
+    <div class="flow-box-grid">
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Sender bank
+      </div>
+      <span class="flow-arrow">→</span>
+      <span class="flow-tag">+ FX spread</span>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Correspondent 1
+      </div>
+      <span class="flow-arrow">→</span>
+      <span class="flow-tag">+ wire fee</span>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Correspondent 2
+      </div>
+      <span class="flow-arrow">→</span>
+      <span class="flow-tag">+ 1 day</span>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        SWIFT
+      </div>
+      <span class="flow-arrow">→</span>
+      <span class="flow-tag">+ FX spread</span>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Correspondent 3
+      </div>
+      <span class="flow-arrow">→</span>
+      <span class="flow-tag">+ wire fee</span>
+      <span class="flow-arrow">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Recipient bank
+      </div>
+      <div class="flow-summary" style="width:100%">3 to 5 days &middot; €60 to €180 in fees &middot; 1.2% spread typical</div>
+    </div>
+
+    <div class="flow-divider"></div>
+
+    <!-- HansePay route -->
+    <div class="flow-section-label navy">With HansePay</div>
+    <div class="flow-box-grid">
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Sender bank
+      </div>
+      <span class="flow-arrow" style="color:var(--n300)">→</span>
+      <div class="flow-box active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        EMT Settlement
+      </div>
+      <span class="flow-arrow" style="color:var(--n300)">→</span>
+      <div class="flow-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Recipient bank
+      </div>
+      <div class="flow-summary navy" style="width:100%">Minutes &middot; ~0.1% all-in &middot; FX locked upfront</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. FAMILIAR TERRITORY -->
+<section class="section" id="familiar">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">Familiar territory</span>
+      <h2 class="section-head">You already use e-money <em>without knowing it.</em></h2>
+      <p class="lede">PayPal is the most familiar e-money institution in Europe. Every PayPal balance you hold is e-money, regulated under the same EU legal category as a HansePay EMT, supervised under the same rulebook, held under similar custody rules. You are not sending crypto when you pay with PayPal — you are sending e-money. HansePay operates inside the same regulatory framework. Same legal category as PayPal, very different use case: real-time cross-border settlement at a fraction of the cost.</p>
+    </div>
+    <div class="money-spectrum">
+      <div class="money-type">
+        <div class="money-type-de">Bargeld</div>
+        <div class="money-type-en">Cash</div>
+      </div>
+      <div class="money-type">
+        <div class="money-type-de">Giralgeld</div>
+        <div class="money-type-en">Book money</div>
+      </div>
+      <div class="money-type highlight">
+        <div class="money-type-de highlight-text">E-Geld</div>
+        <div class="money-type-en">E-money<br>PayPal · HansePay EMT</div>
+      </div>
+      <div class="money-type">
+        <div class="money-type-de">Krypto-Assets</div>
+        <div class="money-type-en">Bitcoin</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. COST STACK -->
+<section class="section section-alt" id="cost">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">The cost stack</span>
+      <h2 class="section-head">The bank charges 1.2%. We charge 0.1%.<br><em>Here is where the difference goes.</em></h2>
+      <p class="lede">Every fee in cross-border banking maps to a layer of infrastructure the system was forced to build around its own latency. Remove the latency, and most of those layers disappear.</p>
+    </div>
+    <div class="cost-comparison">
+      <div class="cost-col">
+        <div class="cost-col-label muted">Bank wire</div>
+        <div class="cost-total muted">1.20%</div>
+        <div class="cost-items">
+          <div class="cost-item">
+            <span class="cost-item-label">FX spread (bid/ask + margin)</span>
+            <span class="cost-item-pct">0.55%</span>
+          </div>
+          <div class="cost-item">
+            <span class="cost-item-label">Correspondent bank fees (3 hops)</span>
+            <span class="cost-item-pct">0.30%</span>
+          </div>
+          <div class="cost-item">
+            <span class="cost-item-label">Settlement risk buffer</span>
+            <span class="cost-item-pct">0.20%</span>
+          </div>
+          <div class="cost-item">
+            <span class="cost-item-label">SWIFT fees (normalised)</span>
+            <span class="cost-item-pct">0.10%</span>
+          </div>
+          <div class="cost-item">
+            <span class="cost-item-label">Lift fee (sender bank)</span>
+            <span class="cost-item-pct">0.05%</span>
+          </div>
+        </div>
+      </div>
+      <div class="cost-col" style="border-left:2px solid var(--n050)">
+        <div class="cost-col-label navy">HansePay</div>
+        <div class="cost-total navy">0.10%</div>
+        <div class="cost-items">
+          <div class="cost-item">
+            <span class="cost-item-label">FX spread (deterministic, atomic)</span>
+            <span class="cost-item-pct" style="color:var(--n500)">0.08%</span>
+          </div>
+          <div class="cost-item">
+            <span class="cost-item-label">Network fee (on-chain settlement)</span>
+            <span class="cost-item-pct" style="color:var(--n500)">0.02%</span>
+          </div>
+        </div>
+        <div class="cost-delta">
+          Delta ~1.1% &mdash; structurally lower, not promotional
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:20px;font-size:11px;color:var(--ink3);line-height:1.6;max-width:720px">Indicative breakdown of typical bank pricing on a small to mid cross-border wire. Actual bank costs vary by corridor, volume, and customer relationship.</p>
+  </div>
+</section>
+
+<!-- 5. LOCKED RATES -->
+<section class="section" id="rates">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">Locked rates</span>
+      <h2 class="section-head">How we make sure the recipient gets <em>exactly what you sent.</em></h2>
+      <p class="lede">When you confirm a transfer at HansePay, the recipient receives the exact amount you saw in your quote. The rate is locked at the moment of execution, the settlement is atomic, and the value that leaves your account matches the value that arrives at the recipient bank. No slippage between quote and settlement.</p>
+    </div>
+    <div class="rate-cards">
+      <div class="rate-card">
+        <div class="rate-card-label muted">Bank FX</div>
+        <div class="rate-row">
+          <div class="rate-row-label">Rate quoted</div>
+          <div class="rate-value neutral">1.0850</div>
+        </div>
+        <div class="rate-arrow">
+          <svg class="muted-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </div>
+        <div class="rate-row">
+          <div class="rate-row-label">Rate executed</div>
+          <div class="rate-value bad">1.0843</div>
+        </div>
+        <div style="display:flex;justify-content:center">
+          <span class="rate-slip-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg>
+            7 pip slippage
+          </span>
+        </div>
+        <div class="rate-caption">Rate moved 7 pips during the execution gap. You absorb the difference.</div>
+      </div>
+      <div class="rate-card" style="border-left:2px solid var(--n050)">
+        <div class="rate-card-label navy">HansePay</div>
+        <div class="rate-row">
+          <div class="rate-row-label">Rate quoted</div>
+          <div class="rate-value neutral">1.0850</div>
+        </div>
+        <div class="rate-arrow">
+          <svg class="navy-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </div>
+        <div class="rate-row">
+          <div class="rate-row-label">Rate executed</div>
+          <div class="rate-value good">1.0850</div>
+        </div>
+        <div style="display:flex;justify-content:center">
+          <span class="rate-locked-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Locked atomically
+          </span>
+        </div>
+        <div class="rate-caption">Rate locked at quote, execution, and settlement. One rate, three moments.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. WHY IT MATTERS -->
+<section class="section section-alt" id="outcomes">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">Why it matters</span>
+      <h2 class="section-head">What changes when settlement and <em>payment become one thing.</em></h2>
+    </div>
+    <div class="outcomes-grid">
+      <div class="outcome-card">
+        <div class="outcome-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="outcome-title">Settlement in minutes, not days</div>
+        <div class="outcome-desc">Your supplier gets paid the same day. Reconciliation lands in your accounting system before your AP team has finished their coffee.</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="outcome-title">Same-day reconciliation</div>
+        <div class="outcome-desc">Final settlement in minutes means the confirmation hits your accounting system on the same day, not the same week. AP work compresses from days to hours.</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="outcome-title">FX locked before execution</div>
+        <div class="outcome-desc">Deterministic pricing. The rate you see is the rate you get. No slippage, no surprises on settlement date, no need to build buffers around bank execution lag.</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        </div>
+        <div class="outcome-title">Structurally lower cost</div>
+        <div class="outcome-desc">Without correspondent banks, SWIFT fees, or settlement-risk premiums, the cost stack collapses to network fee plus FX spread. The savings are in the architecture.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. REGULATORY STACK -->
+<section class="section section-dark" id="regulatory">
+  <div class="container">
+    <div class="sec-intro">
+      <span class="eyebrow">The regulatory stack</span>
+      <h2 class="section-head">Built on the strictest digital money <em>framework in the world.</em></h2>
+    </div>
+    <div class="reg-layout">
+      <div class="reg-pyramid">
+        <div class="reg-layer" style="width:50%">
+          <div class="reg-layer-label">Customer</div>
+          <div class="reg-layer-sub">sees only fiat in and fiat out</div>
+        </div>
+        <div class="reg-layer" style="width:65%">
+          <div class="reg-layer-label">HansePay &middot; Germany</div>
+          <div class="reg-layer-sub">BaFin oversight</div>
+        </div>
+        <div class="reg-layer" style="width:80%">
+          <div class="reg-layer-label">Atrya Technologies SIA</div>
+          <div class="reg-layer-sub">MiCAR-authorised under EU law</div>
+        </div>
+        <div class="reg-layer" style="width:100%;background:rgba(141,189,230,.06);border-color:rgba(141,189,230,.2)">
+          <div class="reg-layer-label">EU regulators &middot; MiCAR framework &middot; EBA &middot; ECB</div>
+          <div class="reg-layer-sub">primary legislative authority</div>
+        </div>
+      </div>
+      <div>
+        <p class="reg-text">Every euro you send through HansePay sits inside this stack. Customer funds are segregated, the licensed entity is MiCAR-authorised, and our German operation is supervised under BaFin.</p>
+        <p class="reg-text" style="margin-top:20px">You never touch a token. You never see a wallet. The infrastructure does what infrastructure should do: it disappears.</p>
+        <a href="#" class="reg-link">
+          Read more about our licences
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. FAQ -->
+<section class="section" id="faq">
+  <div class="container">
+    <div style="max-width:800px;margin:0 auto">
+      <div style="margin-bottom:0">
+        <span class="eyebrow">FAQ</span>
+        <h2 class="section-head" style="margin-top:14px">Questions CFOs ask us first.</h2>
+      </div>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">Are EMTs crypto?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">No. Crypto assets like Bitcoin have a market price that fluctuates. EMTs have a fixed value of one euro per token, backed 1:1 by reserves at regulated banks. The asset behaves like the euro because it is the euro — just in digital form, regulated under MiCAR.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">How is this different from PayPal?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">PayPal is also an e-money institution under EU law — same legal framework. The difference is scope and economics. PayPal optimises for consumer payments at around 3 percent per transaction. HansePay optimises for cross-border business payments at around 0.1 percent.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">What happens to my money if HansePay fails?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">Customer funds sit in segregated accounts at tier-1 European banks, ring-fenced from HansePay's operating capital. In an insolvency, those funds are not part of the insolvency estate — they are legally protected under MiCAR Article 75 and returned to clients at par value.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">How does my auditor classify EMT holdings?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">As a cash equivalent — same balance-sheet line as your operating account. EMTs are treated as electronic money under EU law, not as crypto-assets. No special tax treatment, no capital-gains tracking, no mark-to-market on every transaction.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">What is the actual settlement medium? Am I sending crypto?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">No. You send euros and the recipient receives euros. The settlement layer underneath uses regulated digital infrastructure that lets value transfer atomically. As a customer, you never see a token, you never touch a wallet, you never deal with anything that resembles crypto.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">
+            <span class="faq-q-text">What if the on-chain network has issues?</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="faq-a">The settlement infrastructure is multi-rail. If a primary network is congested or unavailable, transactions route through redundant rails. The user experience is unchanged. Settlement may take slightly longer in the rare fallback case, but the rate-lock and cost economics are preserved.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <div class="container">
+    <div class="cta-inner">
+      <span class="eyebrow" style="color:var(--n200)">Get started</span>
+      <h2 class="cta-head" style="margin-top:16px">Ready for a real <em>FX team?</em></h2>
+      <p class="cta-sub">Open an account in minutes or speak directly with a foreign exchange specialist. No minimum volumes, no contract lock-in.</p>
+      <div class="cta-actions">
+        <a href="index.html#contact" class="btn btn-white-fill">Open a business account</a>
+        <a href="index.html#contact" class="btn btn-ghost-white">Talk to a specialist</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo"><img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay" /><span class="footer-logo-text">HansePay</span></div>
+        <p class="footer-tagline">Commercial FX, made in Hamburg.</p>
+        <p class="footer-legal">&#169; 2026 Caplend Technologies GmbH<br>HansePay is a brand of Caplend Technologies GmbH</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Product</div>
+        <ul class="footer-links">
+          <li><a class="footer-link" href="#">Payments</a></li>
+          <li><a class="footer-link" href="#">Rate Hedging</a></li>
+          <li><a class="footer-link" href="#">Spot FX</a></li>
+          <li><a class="footer-link" href="#">Bulk Payments</a></li>
+          <li><a class="footer-link" href="#">API</a></li>
+          <li><a class="footer-link" href="#">Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a class="footer-link" href="#">About</a></li>
+          <li><a class="footer-link" href="#">Team</a></li>
+          <li><a class="footer-link" href="#">Insights</a></li>
+          <li><a class="footer-link" href="#">Careers</a></li>
+          <li><a class="footer-link" href="#">Contact</a></li>
+          <li><a class="footer-link" href="#">Press</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a class="footer-link" href="#">Imprint</a></li>
+          <li><a class="footer-link" href="#">Privacy</a></li>
+          <li><a class="footer-link" href="#">Terms</a></li>
+          <li><a class="footer-link" href="#">Complaints</a></li>
+          <li><a class="footer-link" href="#">Regulatory</a></li>
+          <li><a class="footer-link" href="#">Licences</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-hr"></div>
+    <div class="footer-bottom">
+      <span class="footer-copy">HansePay &middot; Hamburg, Germany &middot; Regulated by BaFin</span>
+      <span class="bafin-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        BaFin-regulated &middot; EU E-Money Institution
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* NAV */
+var nav = document.getElementById('main-nav');
+window.addEventListener('scroll', function() {
+  nav.classList.toggle('scrolled', scrollY > 20);
+}, { passive: true });
+
+/* MOBILE MENU */
+var burger = document.getElementById('nav-burger');
+var mobileMenu = document.getElementById('mobile-menu');
+burger.addEventListener('click', function() {
+  var open = mobileMenu.classList.toggle('open');
+  burger.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+});
+function closeMobileMenu() {
+  mobileMenu.classList.remove('open');
+  burger.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* FAQ ACCORDION */
+document.querySelectorAll('.faq-q').forEach(function(q) {
+  q.addEventListener('click', function() {
+    var item = q.closest('.faq-item');
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+/* SMOOTH SCROLL */
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    var t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+</script>
+</body>
+</html>
