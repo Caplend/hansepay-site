@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HansePay — Cross-border payments, reimagined.</title>
 <meta name="description" content="Global payment infrastructure for modern business. Mid-market rates, BaFin-regulated, dedicated expert service." />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230B1929'/><text x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='400' fill='%238DBDE6' text-anchor='middle'>H</text></svg>">
-<link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230B1929'/><text x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='400' fill='%238DBDE6' text-anchor='middle'>H</text></svg>">
+<link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
@@ -133,8 +132,8 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 }
 
 /* Content sits above overlay */
-.hero-layout{display:flex;flex-direction:column;justify-content:center;min-height:100vh;padding:108px clamp(24px,5vw,88px) 88px;max-width:1440px;margin:0 auto;width:100%;position:relative;z-index:2}
-@media(max-width:768px){.hero-layout{padding:96px clamp(20px,5vw,80px) 72px}}
+.hero-layout{display:flex;flex-direction:column;justify-content:center;min-height:100vh;padding:140px clamp(24px,5vw,88px) 72px;max-width:1440px;margin:0 auto;width:100%;position:relative;z-index:2}
+@media(max-width:768px){.hero-layout{padding:104px clamp(20px,5vw,80px) 64px}}
 .hero-content{max-width:640px;position:relative;z-index:2}
 
 /* Badge */
@@ -293,7 +292,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 .cta-sub{font-size:16px;font-weight:300;color:rgba(255,255,255,.65);line-height:1.65;margin-bottom:48px}
 .cta-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px}
 
-footer{background:#0A0A0A;padding:96px 0 48px}
+footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,255,.07)}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:64px;margin-bottom:80px}
 @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;gap:48px}}
 @media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
@@ -344,7 +343,7 @@ footer{background:#0A0A0A;padding:96px 0 48px}
 .ccy-flag{font-size:15px;line-height:1}
 .ccy-code{font-size:12px;font-weight:700;color:var(--n600)}
 .ccy-name{font-size:12px;color:var(--ink3)}
-.corridor-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:28px}
+.corridor-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin-top:28px}
 .corridor-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-pill);background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);font-size:11px;font-weight:600;color:#15803d;letter-spacing:.03em}
 .corridor-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
 
@@ -522,7 +521,7 @@ footer{background:#0A0A0A;padding:96px 0 48px}
 </div>
 
 <!-- CALCULATOR -->
-<section class="section calc-section" id="calculator" style="padding-top:48px">
+<section class="section calc-section" id="calculator" style="padding-top:72px">
   <div class="container">
     <div class="calc-layout">
       <div class="calc-intro">
@@ -816,12 +815,12 @@ footer{background:#0A0A0A;padding:96px 0 48px}
 </section>
 
 <!-- INSIGHTS / BLOG -->
-<section class="section" id="insights" style="background:#f7f8fc">
+<section class="section" id="insights" style="background:#fff">
   <div class="container">
     <div class="insights-header">
       <div>
         <span class="eyebrow reveal">HANSEPAY INSIGHTS</span>
-        <h2 class="section-title reveal" style="margin-top:10px;margin-bottom:0">FX knowledge that moves<br><em>your business forward.</em></h2>
+        <h2 class="section-head reveal" style="margin-top:10px;margin-bottom:0">FX knowledge that moves<br><em>your business forward.</em></h2>
       </div>
       <a href="/hansepay/blog.html" class="btn-outline reveal" style="flex-shrink:0">All articles →</a>
     </div>
