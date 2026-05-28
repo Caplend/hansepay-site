@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HansePay — Logistics &amp; Freight</title>
+<meta name="description" content="FX and time-critical payments for logistics providers. Same-day execution, 45+ markets, bulk agent payments. BaFin-licensed." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+<style>
+:root{--n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;--n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;--n100:#C4DDEF;--n050:#EBF4FB;--gold:#C9A961;--ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;--font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--font-display:Georgia,'Times New Roman',serif;--r-pill:100px;--r-lg:16px;--r-md:10px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,80px)}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--r-pill);font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s ease;text-decoration:none;white-space:nowrap}
+.btn-white-fill{background:#fff;color:var(--n500)}.btn-white-fill:hover{background:var(--n050)}
+.btn-ghost-white{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.32)}.btn-ghost-white:hover{background:rgba(255,255,255,.08)}
+.hero{min-height:72vh;display:flex;align-items:center;background:var(--n900);position:relative;overflow:hidden;padding:100px 0 80px}
+.hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 70% at 75% 50%,rgba(46,107,173,.28) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 10% 80%,rgba(22,54,120,.24) 0%,transparent 55%)}
+.hero-layout{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1}
+@media(max-width:960px){.hero-layout{grid-template-columns:1fr}.hero-vis{display:none}}
+.hero-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:var(--r-pill);background:rgba(141,189,230,.10);border:1px solid rgba(141,189,230,.18);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--n200);margin-bottom:28px}
+.hero-chip-dot{width:5px;height:5px;border-radius:50%;background:var(--n300)}
+.hero-h1{font-family:var(--font-display);font-size:clamp(40px,4.8vw,66px);font-weight:400;line-height:1.04;letter-spacing:-.03em;color:#fff;margin-bottom:24px}
+.hero-h1 em{font-style:italic;color:var(--n200)}
+.hero-sub{font-size:clamp(15px,1.4vw,17px);font-weight:300;color:rgba(255,255,255,.60);line-height:1.72;max-width:480px;margin-bottom:36px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+.screen-frame-light{border-radius:20px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.12);box-shadow:0 1px 3px rgba(0,0,0,.10),0 8px 24px rgba(0,0,0,.20),0 32px 72px rgba(0,0,0,.22)}
+.trust-strip{background:var(--n050);border-bottom:1px solid rgba(11,25,41,.08);padding:22px 0}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+@media(max-width:700px){.trust-grid{grid-template-columns:1fr 1fr;gap:14px}}
+.trust-item{display:flex;align-items:center;gap:10px}
+.trust-item svg{width:18px;height:18px;flex-shrink:0;color:var(--n400)}
+.trust-item span{font-size:13px;font-weight:500;color:var(--n800);line-height:1.35}
+.eyebrow{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--n400)}
+.section-head{font-family:var(--font-display);font-size:clamp(28px,3vw,42px);font-weight:400;line-height:1.08;letter-spacing:-.025em;color:var(--n800);margin:14px 0 18px}
+.section-head em{font-style:italic;color:var(--n400)}
+.section-sub{font-size:16px;font-weight:300;color:var(--ink2);line-height:1.68;max-width:640px}
+.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+@media(max-width:860px){.pain-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.pain-grid{grid-template-columns:1fr}}
+.pain-card{background:#FAFAFA;border:1px solid rgba(11,25,41,.06);border-radius:var(--r-lg);padding:28px}
+.pain-icon{width:38px;height:38px;border-radius:var(--r-md);background:#EDEEF2;border:1px solid rgba(11,25,41,.08);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.pain-icon svg{width:18px;height:18px;color:var(--n700)}
+.pain-title{font-size:14px;font-weight:600;color:var(--n800);margin-bottom:8px}
+.pain-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+.sol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+@media(max-width:860px){.sol-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.sol-grid{grid-template-columns:1fr}}
+.ftile{background:#fff;border:1px solid rgba(11,25,41,.07);border-radius:var(--r-lg);padding:32px 28px;transition:box-shadow .2s}
+.ftile:hover{box-shadow:0 8px 32px rgba(11,25,41,.08)}
+.ftile-icon{width:40px;height:40px;border-radius:var(--r-md);background:var(--n050);border:1px solid var(--n100);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.ftile-icon svg{width:20px;height:20px;color:var(--n500)}
+.ftile-title{font-size:15px;font-weight:600;color:var(--n800);margin-bottom:10px}
+.ftile-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+.persona-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:44px}
+@media(max-width:900px){.persona-grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.persona-grid-4{grid-template-columns:1fr}}
+.persona-card{background:#fff;border:1px solid rgba(11,25,41,.07);border-radius:var(--r-lg);padding:28px}
+.persona-icon{width:42px;height:42px;border-radius:var(--r-md);background:var(--n050);border:1px solid var(--n100);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.persona-icon svg{width:20px;height:20px;color:var(--n500)}
+.persona-name{font-size:15px;font-weight:600;color:var(--n800);margin-bottom:8px}
+.persona-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+.faq-list{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid rgba(11,25,41,.10)}
+.faq-item:first-child{border-top:1px solid rgba(11,25,41,.10)}
+.faq-item summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:20px 0;font-size:15px;font-weight:600;color:var(--n800);gap:16px;-webkit-user-select:none;user-select:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-chevron{width:18px;height:18px;flex-shrink:0;color:var(--ink3);transition:transform .22s ease}
+.faq-item[open] .faq-chevron{transform:rotate(180deg)}
+.faq-item[open] summary{color:var(--n500)}
+.faq-body{padding:0 0 20px;font-size:14px;color:var(--ink2);line-height:1.7}
+.cta-band{padding:128px 0;text-align:center;position:relative;overflow:hidden;background:radial-gradient(ellipse at 18% 40%,#163348 0%,transparent 55%),radial-gradient(ellipse at 82% 25%,#2E6BAD 0%,transparent 50%),#0D1829}
+.cta-inner{position:relative;z-index:1;max-width:680px;margin:0 auto}
+.cta-head{font-family:var(--font-display);font-size:clamp(32px,4vw,52px);font-weight:400;line-height:1.1;letter-spacing:-.025em;color:#fff;margin-bottom:20px}
+.cta-head em{font-style:italic;color:var(--n100)}
+.cta-sub{font-size:16px;font-weight:300;color:rgba(255,255,255,.65);line-height:1.65;margin-bottom:48px}
+.cta-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:12px}
+@media(max-width:768px){.hero{min-height:auto;padding:80px 0 60px}.cta-band{padding:80px 0}}
+</style>
+</head>
+<body>
+
+<script src="assets/nav.js"></script>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="blob" style="width:500px;height:500px;top:-100px;right:-60px;background:rgba(46,107,173,.20);z-index:0"></div>
+  <div class="blob" style="width:320px;height:320px;bottom:-80px;left:-40px;background:rgba(60,40,140,.14);z-index:0"></div>
+  <div class="container" style="width:100%">
+    <div class="hero-layout">
+      <div>
+        <div class="hero-chip"><span class="hero-chip-dot"></span>Logistics &amp; Freight</div>
+        <h1 class="hero-h1">FX built for<br><em>logistics and freight.</em></h1>
+        <p class="hero-sub">FX and time-critical execution for forwarders, carriers, customs brokers, and shipping operators. Pay carriers, ports, and agents in any market, same day, at the spreads your margin actually requires.</p>
+        <div class="hero-actions">
+          <a href="index.html#contact" class="btn btn-white-fill">Open an account</a>
+          <a href="index.html#contact" class="btn btn-ghost-white">Talk to a specialist</a>
+        </div>
+      </div>
+      <div class="hero-vis">
+        <div class="screen-frame-light" style="position:relative">
+          <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" alt="Container port at dusk" style="width:100%;height:440px;object-fit:cover;display:block" />
+          <div style="position:absolute;bottom:16px;left:16px;right:16px;background:rgba(11,25,41,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;font-weight:600;color:#fff">Same-day settlement</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.55)">45+ markets</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Same-day execution</span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>45+ markets worldwide</span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="12" y1="13" x2="12" y2="17"/></svg>
+        <span>Bulk payments via spreadsheet upload</span>
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        <span>Approved by BaFin</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAIN POINTS -->
+<section style="padding:96px 0;background:#fff">
+  <div class="container">
+    <span class="eyebrow">The hidden cost</span>
+    <h2 class="section-head">Where logistics providers<br>lose margin to FX.</h2>
+    <p class="section-sub">Logistics runs on tight margins and tighter timelines. Cross-border FX hits both, every shipment.</p>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
+        <div class="pain-title">Tight margins, spread-amplified</div>
+        <div class="pain-desc">Logistics runs on 3% to 8% margins. A 1.5% bank spread on every USD carrier payment is not a nuisance — it is a meaningful share of your gross margin.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg></div>
+        <div class="pain-title">Currency mismatch on every shipment</div>
+        <div class="pain-desc">Clients invoice in EUR, carriers paid in USD, port fees in local currency. The mismatch eats into rates you have already quoted.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="pain-title">Slow payments delay cargo</div>
+        <div class="pain-desc">Customs broker needs payment to release the shipment. Carrier will not book without prepayment. Bank wires take 24 to 48 hours. Cargo waits, demurrage runs.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+        <div class="pain-title">Hundreds of small payments per shipment</div>
+        <div class="pain-desc">Each move touches multiple counterparties: broker, port agent, carrier, drayage, last-mile. Each conversion eats spread, each wire adds fees.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="pain-title">Local currency exposure at every node</div>
+        <div class="pain-desc">Port fees in MXN, customs in BRL, agent commissions in INR. Most banks either refuse or charge punishing spreads.</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><rect x="14" y="8" width="8" height="8" rx="1"/><circle cx="18" cy="12" r="1"/></svg></div>
+        <div class="pain-title">Working capital squeeze</div>
+        <div class="pain-desc">Carriers demand prepayment. Clients pay Net 30 to 60. Currency moves between outflow and inflow eat the gap.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTIONS -->
+<section style="padding:96px 0;background:var(--n050)">
+  <div class="container">
+    <div style="text-align:center;max-width:720px;margin:0 auto">
+      <span class="eyebrow">What we do</span>
+      <h2 class="section-head">FX built for the way logistics<br>providers actually move goods.</h2>
+      <p style="font-size:15px;font-weight:300;color:var(--ink2);line-height:1.65;margin-top:-4px">Six tools, one platform, built around the cargo timeline.</p>
+    </div>
+    <div class="sol-grid">
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+        <div class="ftile-title">Wholesale FX pricing</div>
+        <div class="ftile-desc">Convert at competitive interbank exchange rates with a fair, transparent fee disclosed before the trade. No hidden costs, no spread games on carrier payments.</div>
+      </div>
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="ftile-title">Worldwide local payments</div>
+        <div class="ftile-desc">Pay counterparties in their local currency across 45+ markets worldwide, including emerging markets where standard banks frequently block or surcharge.</div>
+      </div>
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="ftile-title">Same-day payments to ports, customs, and agents</div>
+        <div class="ftile-desc">Payments settle same day in most corridors via local networks. When cargo cannot wait, neither does your treasury.</div>
+      </div>
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="12" y1="13" x2="12" y2="17"/></svg></div>
+        <div class="ftile-title">Bulk payments via spreadsheet upload</div>
+        <div class="ftile-desc">Pay multiple counterparties across different currencies in a single batch upload. Reconciliation files integrate with standard accounting workflows.</div>
+      </div>
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg></div>
+        <div class="ftile-title">Local payment rails, not SWIFT</div>
+        <div class="ftile-desc">Payments route through local express networks like SEPA and ACH rather than SWIFT correspondent banking. Lower cost, faster settlement, no hidden intermediary fees.</div>
+      </div>
+      <div class="ftile">
+        <div class="ftile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <div class="ftile-title">API access</div>
+        <div class="ftile-desc">API access for institutional customers. Custom integrations available on request. Standard format exports for accounting workflows.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONAS -->
+<section style="padding:96px 0;background:#fff">
+  <div class="container">
+    <span class="eyebrow">Built for</span>
+    <h2 class="section-head">Built for the way logistics<br>providers actually move goods.</h2>
+    <p class="section-sub">Four patterns we see most often across logistics and freight.</p>
+    <div class="persona-grid-4">
+      <div class="persona-card">
+        <div class="persona-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+        <div class="persona-name">Freight forwarders and 3PL/4PL</div>
+        <div class="persona-desc">International shipments across multiple modes, agent networks worldwide, cross-border invoicing and carrier settlement at quote-locked rates.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg></div>
+        <div class="persona-name">Customs brokers and clearing agents</div>
+        <div class="persona-desc">Time-critical local-currency payments at ports and customs. Same-day execution and emerging-market reach where banks slow you down.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg></div>
+        <div class="persona-name">Port operators and terminal services</div>
+        <div class="persona-desc">Equipment finance in USD, operations in EUR, fees in local currency. Wholesale pricing, locked at the moment of execution.</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/><path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/><path d="M12 10v4"/></svg></div>
+        <div class="persona-name">Maritime and shipping operators</div>
+        <div class="persona-desc">Reedereien with charter parties, bunker exposure, port calls, and global crew payroll. A Hamburg-rooted dealing desk that knows the maritime calendar.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="padding:96px 0;background:var(--n050)">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:52px">
+      <span class="eyebrow">FAQ</span>
+      <h2 class="section-head" style="max-width:560px;margin-left:auto;margin-right:auto">Questions logistics providers ask us first.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>How fast can you pay a carrier or port agent in Singapore, Houston, or Rotterdam?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">Payments settle same day in most corridors via local networks. Settlement timing depends on the destination bank, but we do not add days of internal queueing to your trade. Talk to our specialist about your typical destinations.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can I pay counterparties in their local currency?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">Yes. Sending base currency is EUR. We pay out into the local currency (or USD where commonly used locally) across 45+ markets worldwide. Local payment rails where available, which is why most payments land same day.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do you support bulk payments across our agent network?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">Yes. Pay multiple counterparties across different currencies in a single batch upload. Reconciliation files integrate with standard accounting workflows. Useful for agent networks where dozens of small payments compound the bank spread.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do you handle local currencies at ports and customs in emerging markets?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">Yes. Coverage includes major emerging-market currencies across Asia, Africa, the Middle East, and Latin America. Settlement happens through local payment networks where available. Talk to our specialist about your specific corridor.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can I integrate HansePay with my systems?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">API access is available for institutional customers. Standard format exports work with most accounting workflows. Talk to our specialist about your specific integration needs.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do you serve maritime operators with crew payroll across multiple currencies?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">Yes. Crew payroll is one of the classic logistics use cases for us. Bulk payments via spreadsheet upload handle the operational volume, and local currency payment reaches crew members directly in their home market.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Is there a minimum volume to work with you?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <div class="faq-body">No fixed minimum. HansePay works with logistics providers from regional forwarders to international operators. The products and the service level adapt to your volume.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band">
+  <div class="container">
+    <div class="cta-inner">
+      <h2 class="cta-head">Stop letting FX margins eat<br><em>into your freight margins.</em></h2>
+      <p class="cta-sub">Same-day payments, 45+ markets, wholesale FX pricing. Built for the cargo timeline.</p>
+      <div class="cta-actions">
+        <a href="index.html#contact" class="btn btn-white-fill">Open an account</a>
+        <a href="index.html#contact" class="btn btn-ghost-white">Talk to a dealer</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/footer.js"></script>
+</body>
+</html>

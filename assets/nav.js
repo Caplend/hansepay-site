@@ -113,7 +113,40 @@ nav.scrolled .nav-burger span{background:var(--n700)}
         </div>
       </li>
       <li class="nav-item"><a class="nav-link" href="index.html#calculator">Pricing</a></li>
-      <li class="nav-item"><a class="nav-link" href="index.html#solutions">Solutions</a></li>
+      <li class="nav-item">
+        <span class="nav-link">Solutions
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+        <div class="nav-dropdown" style="width:300px">
+          <div class="nav-dropdown-section">
+            <span class="nav-dropdown-label">By Industry</span>
+            <a href="solutions-ecommerce.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">E-Commerce &amp; Retail</div><div class="nav-dd-sub">Supplier payments, bulk FX, emerging markets</div></div>
+            </a>
+            <a href="solutions-manufacturing.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Import &amp; Manufacturing</div><div class="nav-dd-sub">Industrial FX, big-ticket execution, supply chain</div></div>
+            </a>
+            <a href="solutions-logistics.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Logistics &amp; Freight</div><div class="nav-dd-sub">Same-day execution, agent networks, maritime</div></div>
+            </a>
+          </div>
+          <div class="nav-dropdown-sep"></div>
+          <div class="nav-dropdown-section">
+            <span class="nav-dropdown-label">By Business Size</span>
+            <a href="solutions-corporate.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Mid &amp; Large Business</div><div class="nav-dd-sub">Institutional pricing, named expert, &gt;€2M</div></div>
+            </a>
+            <a href="solutions-sme.html" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title">Small Business</div><div class="nav-dd-sub">No minimum volume, same-day, interbank rates</div></div>
+            </a>
+          </div>
+        </div>
+      </li>
       <li class="nav-item"><a class="nav-link" href="blog.html">Insights</a></li>
       <li class="nav-item"><a class="nav-link" href="index.html#about">About</a></li>
     </ul>
@@ -128,6 +161,12 @@ nav.scrolled .nav-burger span{background:var(--n700)}
   <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()">Platform</a>
   <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()">Technology</a>
   <a class="mobile-menu-link" href="index.html#calculator" onclick="closeMobileMenu()">Pricing</a>
+  <a class="mobile-menu-link" href="solutions-ecommerce.html" onclick="closeMobileMenu()">Solutions</a>
+  <a class="mobile-menu-sub" href="solutions-ecommerce.html" onclick="closeMobileMenu()">E-Commerce &amp; Retail</a>
+  <a class="mobile-menu-sub" href="solutions-manufacturing.html" onclick="closeMobileMenu()">Import &amp; Manufacturing</a>
+  <a class="mobile-menu-sub" href="solutions-logistics.html" onclick="closeMobileMenu()">Logistics &amp; Freight</a>
+  <a class="mobile-menu-sub" href="solutions-corporate.html" onclick="closeMobileMenu()">Mid &amp; Large Business</a>
+  <a class="mobile-menu-sub" href="solutions-sme.html" onclick="closeMobileMenu()">Small Business</a>
   <a class="mobile-menu-link" href="blog.html" onclick="closeMobileMenu()">Insights</a>
   <a href="index.html#contact" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()">Open an account</a>
 </div>
@@ -166,6 +205,12 @@ nav.scrolled .nav-burger span{background:var(--n700)}
     if (file.startsWith('blog-post') || file.startsWith('post-')) {
       document.querySelectorAll('a.nav-link[href="blog.html"]').forEach(function(a){
         a.classList.add('active-page');
+      });
+    }
+    // Special: solutions-*.html -> activate Solutions nav-link
+    if (file.startsWith('solutions-')) {
+      document.querySelectorAll('.nav-item .nav-link').forEach(function(el){
+        if (el.textContent.trim().startsWith('Solutions')) el.classList.add('active-page');
       });
     }
   })();
