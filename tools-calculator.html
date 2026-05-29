@@ -243,40 +243,54 @@ a{color:inherit;text-decoration:none}
   var PER_PAYMENT_HP = 10;
   // Currencies (region + category)
   var CURRENCIES = [
+    // Major
     {code:'USD',name:'United States',flag:'🇺🇸',cat:'major',region:'major'},
     {code:'GBP',name:'United Kingdom',flag:'🇬🇧',cat:'major',region:'major'},
     {code:'CAD',name:'Canada',flag:'🇨🇦',cat:'major',region:'major'},
     {code:'AUD',name:'Australia',flag:'🇦🇺',cat:'major',region:'major'},
     {code:'JPY',name:'Japan',flag:'🇯🇵',cat:'major',region:'major'},
-    {code:'CHF',name:'Switzerland',flag:'🇨🇭',cat:'major',region:'major'},
+    {code:'HKD',name:'Hong Kong',flag:'🇭🇰',cat:'major',region:'major'},
+    {code:'SGD',name:'Singapore',flag:'🇸🇬',cat:'major',region:'major'},
+    // Americas
+    {code:'BRL',name:'Brazil',flag:'🇧🇷',cat:'minor',region:'americas'},
     {code:'MXN',name:'Mexico',flag:'🇲🇽',cat:'minor',region:'americas'},
     {code:'COP',name:'Colombia',flag:'🇨🇴',cat:'minor',region:'americas'},
     {code:'CLP',name:'Chile',flag:'🇨🇱',cat:'minor',region:'americas'},
     {code:'PEN',name:'Peru',flag:'🇵🇪',cat:'minor',region:'americas'},
-    {code:'SVC',name:'El Salvador',flag:'🇸🇻',cat:'exotic',region:'americas'},
+    {code:'ARS',name:'Argentina',flag:'🇦🇷',cat:'exotic',region:'americas'},
+    {code:'BOB',name:'Bolivia',flag:'🇧🇴',cat:'exotic',region:'americas'},
+    {code:'DOP',name:'Dominican Republic',flag:'🇩🇴',cat:'exotic',region:'americas'},
     {code:'CRC',name:'Costa Rica',flag:'🇨🇷',cat:'exotic',region:'americas'},
     {code:'GTQ',name:'Guatemala',flag:'🇬🇹',cat:'exotic',region:'americas'},
+    {code:'HNL',name:'Honduras',flag:'🇭🇳',cat:'exotic',region:'americas'},
+    {code:'JMD',name:'Jamaica',flag:'🇯🇲',cat:'exotic',region:'americas'},
+    // Africa
     {code:'ZAR',name:'South Africa',flag:'🇿🇦',cat:'minor',region:'africa'},
-    {code:'GHS',name:'Ghana',flag:'🇬🇭',cat:'exotic',region:'africa'},
-    {code:'KES',name:'Kenya',flag:'🇰🇪',cat:'exotic',region:'africa'},
     {code:'NGN',name:'Nigeria',flag:'🇳🇬',cat:'exotic',region:'africa'},
-    {code:'EGP',name:'Egypt',flag:'🇪🇬',cat:'exotic',region:'africa'},
-    {code:'TRY',name:'Turkey',flag:'🇹🇷',cat:'minor',region:'meap'},
-    {code:'ILS',name:'Israel',flag:'🇮🇱',cat:'minor',region:'meap'},
-    {code:'QAR',name:'Qatar',flag:'🇶🇦',cat:'minor',region:'meap'},
-    {code:'SAR',name:'Saudi Arabia',flag:'🇸🇦',cat:'minor',region:'meap'},
+    {code:'KES',name:'Kenya',flag:'🇰🇪',cat:'exotic',region:'africa'},
+    {code:'GHS',name:'Ghana',flag:'🇬🇭',cat:'exotic',region:'africa'},
+    {code:'EGP',name:'Egypt',flag:'🇪🇬',cat:'minor',region:'africa'},
+    {code:'MAD',name:'Morocco',flag:'🇲🇦',cat:'minor',region:'africa'},
+    {code:'TND',name:'Tunisia',flag:'🇹🇳',cat:'exotic',region:'africa'},
+    // Middle East & Asia-Pacific
     {code:'AED',name:'UAE',flag:'🇦🇪',cat:'minor',region:'meap'},
-    {code:'INR',name:'India',flag:'🇮🇳',cat:'minor',region:'meap'},
+    {code:'SAR',name:'Saudi Arabia',flag:'🇸🇦',cat:'minor',region:'meap'},
+    {code:'QAR',name:'Qatar',flag:'🇶🇦',cat:'minor',region:'meap'},
+    {code:'ILS',name:'Israel',flag:'🇮🇱',cat:'minor',region:'meap'},
+    {code:'TRY',name:'Turkey',flag:'🇹🇷',cat:'minor',region:'meap'},
+    {code:'JOD',name:'Jordan',flag:'🇯🇴',cat:'minor',region:'meap'},
     {code:'CNY',name:'China',flag:'🇨🇳',cat:'minor',region:'meap'},
-    {code:'HKD',name:'Hong Kong',flag:'🇭🇰',cat:'major',region:'meap'},
-    {code:'SGD',name:'Singapore',flag:'🇸🇬',cat:'major',region:'meap'},
+    {code:'INR',name:'India',flag:'🇮🇳',cat:'minor',region:'meap'},
+    {code:'KRW',name:'South Korea',flag:'🇰🇷',cat:'minor',region:'meap'},
     {code:'MYR',name:'Malaysia',flag:'🇲🇾',cat:'minor',region:'meap'},
     {code:'THB',name:'Thailand',flag:'🇹🇭',cat:'minor',region:'meap'},
-    {code:'PHP',name:'Philippines',flag:'🇵🇭',cat:'exotic',region:'meap'},
     {code:'IDR',name:'Indonesia',flag:'🇮🇩',cat:'exotic',region:'meap'},
+    {code:'PHP',name:'Philippines',flag:'🇵🇭',cat:'exotic',region:'meap'},
+    {code:'VND',name:'Vietnam',flag:'🇻🇳',cat:'exotic',region:'meap'},
     {code:'PKR',name:'Pakistan',flag:'🇵🇰',cat:'exotic',region:'meap'},
     {code:'BDT',name:'Bangladesh',flag:'🇧🇩',cat:'exotic',region:'meap'},
-    {code:'VND',name:'Vietnam',flag:'🇻🇳',cat:'exotic',region:'meap'}
+    {code:'LKR',name:'Sri Lanka',flag:'🇱🇰',cat:'exotic',region:'meap'},
+    {code:'NPR',name:'Nepal',flag:'🇳🇵',cat:'exotic',region:'meap'}
   ];
   var REGIONS = {major:'Major currencies',americas:'Americas',africa:'Africa',meap:'Middle East & Asia-Pacific'};
 
