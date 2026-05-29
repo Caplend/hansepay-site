@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const cal = (() => { try { return require('./lib/calendar'); } catch(e) { return null; } })();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -345,6 +346,71 @@ app.put('/api/settings', authenticateToken, requireAdmin, (req, res) => {
   const updated = Object.assign({}, current, req.body);
   writeData('settings.json', updated);
   res.json(updated);
+});
+
+// ─── Booking routes ───────────────────────────────────────────────────────────
+
+// GET /api/booking/config — public config for the frontend
+app.get('/api/booking/config', (req, res) => {
+  if (!cal) return res.json({ configured: false, timezone: 'Europe/Berlin', daysAhead: 30, hoursStart: 9, hoursEnd: 17, slotMinutes: 30 });
+  res.json(cal.getBookingConfig());
+});
+
+// GET /api/booking/availability?date=YYYY-MM-DD
+app.get('/api/booking/availability', async (req, res) => {
+  const { date } = req.query;
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'date param required (YYYY-MM-DD)' });
+  }
+  // Reject weekends
+  const d = new Date(date + 'T12:00:00Z');
+  const dow = d.getUTCDay(); // 0=Sun, 6=Sat
+  if (dow === 0 || dow === 6) return res.json({ slots: [] });
+
+  try {
+    const slots = cal ? await cal.getAvailableSlots(date) : [];
+    res.json({ slots });
+  } catch (err) {
+    console.error('[booking] availability error:', err.message);
+    res.status(500).json({ error: 'Could not fetch availability', detail: err.message });
+  }
+});
+
+// POST /api/booking — create a booking
+app.post('/api/booking', async (req, res) => {
+  const { slot, lead } = req.body;
+
+  // Validate required fields
+  const required = ['firstName', 'lastName', 'email', 'industry', 'fxVolume', 'companySize'];
+  const missing = required.filter(k => !lead?.[k]);
+  if (missing.length) return res.status(400).json({ error: `Missing fields: ${missing.join(', ')}` });
+  if (!slot?.startISO || !slot?.endISO) return res.status(400).json({ error: 'slot.startISO and slot.endISO required' });
+
+  // Basic email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+
+  // Reject past slots
+  if (new Date(slot.startISO) < new Date()) {
+    return res.status(400).json({ error: 'That slot is in the past. Please select another time.' });
+  }
+
+  try {
+    const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'unconfigured', htmlLink: '#', hangoutLink: null };
+    console.log(`[booking] created: ${lead.email} @ ${slot.startISO} — event ${event.id}`);
+    res.json({
+      success: true,
+      eventId:     event.id,
+      meetLink:    event.hangoutLink || null,
+      calendarUrl: event.htmlLink    || null,
+    });
+  } catch (err) {
+    console.error('[booking] create error:', err.message);
+    // Specific Google API errors
+    if (err.code === 409) return res.status(409).json({ error: 'That slot was just taken. Please choose another time.' });
+    res.status(500).json({ error: 'Could not create booking. Please try again or contact us directly.', detail: err.message });
+  }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

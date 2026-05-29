@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Book a Discovery Call — HansePay</title>
+<meta name="description" content="Book a 30-minute discovery call with a HansePay FX specialist. We'll map your cross-border payment flows and show you exactly what you'd save."/>
+<link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ── tokens ── */
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:rgba(11,25,41,.45);
+  --surface:#F6F9FC;--white:#FFFFFF;
+  --success:#1A7F5A;--error:#B91C1C;--error-bg:#FEF2F2;
+  --border:rgba(11,25,41,.08);--border-strong:rgba(11,25,41,.15);
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+  --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:8px;
+  --shadow-card:0 4px 24px rgba(11,25,41,.09),0 1px 4px rgba(11,25,41,.05);
+  --shadow-raised:0 8px 40px rgba(11,25,41,.13),0 2px 8px rgba(11,25,41,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-ui);color:var(--ink);background:var(--surface);-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:var(--font-ui)}
+
+/* ── layout ── */
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+
+/* ── hero ── */
+.booking-hero{background:var(--n800);padding:80px 0 56px;text-align:center}
+.booking-hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--n200);margin-bottom:16px}
+.booking-hero h1{font-family:var(--font-display);font-size:clamp(34px,4.5vw,54px);font-weight:400;color:#fff;line-height:1.08;letter-spacing:-.025em;margin-bottom:16px}
+.booking-hero h1 em{font-style:italic;color:var(--n200)}
+.booking-hero p{font-size:16px;color:rgba(255,255,255,.55);max-width:480px;margin:0 auto;line-height:1.65}
+
+/* ── booking card ── */
+.booking-wrap{padding:48px 24px 80px;max-width:700px;margin:0 auto}
+
+.booking-card{background:#fff;border-radius:var(--r-lg);box-shadow:var(--shadow-raised);border:1px solid var(--border);overflow:hidden}
+
+/* ── progress bar ── */
+.booking-progress{display:flex;align-items:center;padding:24px 32px 0;gap:0}
+.bp-step{display:flex;align-items:center;gap:8px;flex:1}
+.bp-step:last-child{flex:none}
+.bp-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;transition:all .25s}
+.bp-dot.done{background:var(--n500);color:#fff}
+.bp-dot.active{background:var(--n500);color:#fff;box-shadow:0 0 0 4px rgba(30,78,128,.18)}
+.bp-dot.pending{background:transparent;border:1.5px solid var(--border-strong);color:var(--ink3)}
+.bp-label{font-size:12px;font-weight:500;color:var(--ink3);white-space:nowrap;transition:color .25s}
+.bp-label.active{color:var(--ink);font-weight:600}
+.bp-line{flex:1;height:1px;background:var(--border);margin:0 8px}
+.bp-line.done{background:var(--n500)}
+@media(max-width:500px){.bp-label{display:none}.bp-line{margin:0 4px}}
+
+/* ── steps ── */
+.booking-step{display:none;padding:32px;animation:stepIn .22s ease}
+.booking-step.active{display:block}
+@keyframes stepIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.step-title{font-family:var(--font-display);font-size:22px;font-weight:400;color:var(--ink);letter-spacing:-.02em;margin-bottom:4px}
+.step-subtitle{font-size:13px;color:var(--ink2);margin-bottom:28px;line-height:1.5}
+
+/* ── calendar ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-month{font-size:15px;font-weight:600;color:var(--ink)}
+.cal-arrow{width:32px;height:32px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);background:#fff;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s}
+.cal-arrow:hover{border-color:var(--n400);background:var(--n050)}
+.cal-arrow svg{width:14px;height:14px;stroke:var(--ink2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:center;padding:0 0 8px}
+.cal-day{height:40px;width:100%;border:none;background:transparent;border-radius:var(--r-sm);font-size:14px;font-weight:500;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.cal-day:not(:disabled):not(.cal-day-empty):hover{background:var(--n050);color:var(--n500);cursor:pointer}
+.cal-day.selected{background:var(--n500);color:#fff!important;font-weight:600}
+.cal-day:disabled,.cal-day.weekend,.cal-day.past{color:var(--border-strong);cursor:default;pointer-events:none}
+.cal-day.weekend{color:rgba(11,25,41,.2)}
+.cal-day.today{color:var(--n500);font-weight:700}
+.cal-day.today.selected{color:#fff}
+.cal-day-empty{pointer-events:none}
+
+/* ── time slots ── */
+.slots-date-label{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:440px){.slots-grid{grid-template-columns:repeat(2,1fr)}}
+.slot-btn{padding:10px 8px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);background:#fff;font-size:13px;font-weight:500;color:var(--ink);transition:all .15s;text-align:center}
+.slot-btn:hover{border-color:var(--n400);color:var(--n500);background:var(--n050)}
+.slot-btn.selected{border-color:var(--n500);background:var(--n500);color:#fff;font-weight:600}
+.slots-loading{display:flex;align-items:center;gap:10px;color:var(--ink3);font-size:14px;padding:24px 0}
+.slots-loading svg{animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.slots-empty{text-align:center;padding:32px 0;color:var(--ink2);font-size:14px}
+.slots-empty strong{display:block;font-size:16px;color:var(--ink);margin-bottom:6px}
+
+/* ── form ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:460px){.form-row{grid-template-columns:1fr}}
+.form-group{margin-bottom:12px;display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:600;color:var(--ink2);letter-spacing:.03em}
+.form-label span{font-weight:400;color:var(--ink3)}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r-sm);font-family:var(--font-ui);font-size:14px;font-weight:400;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;appearance:none}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--ink3)}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--n400);box-shadow:0 0 0 3px rgba(30,78,128,.10)}
+.form-select-wrap{position:relative}
+.form-select-wrap::after{content:'';position:absolute;right:14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--ink2);pointer-events:none}
+.form-textarea{resize:vertical;min-height:88px;line-height:1.55}
+.form-error{font-size:12px;color:var(--error);display:none}
+.form-group.has-error .form-input,.form-group.has-error .form-select,.form-group.has-error .form-textarea{border-color:var(--error)}
+.form-group.has-error .form-error{display:block}
+
+/* ── confirm card ── */
+.confirm-slot{background:var(--n800);border-radius:var(--r-md);padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px}
+.confirm-slot-icon{width:40px;height:40px;background:rgba(141,189,230,.15);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.confirm-slot-icon svg{width:18px;height:18px;stroke:var(--n200)}
+.confirm-slot-time{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.01em;margin-bottom:2px}
+.confirm-slot-meta{font-size:12px;color:rgba(255,255,255,.45)}
+
+.confirm-lead{background:var(--surface);border-radius:var(--r-md);padding:18px 20px;margin-bottom:24px;border:1px solid var(--border)}
+.confirm-lead-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;font-size:14px}
+.confirm-lead-row:last-child{margin-bottom:0}
+.confirm-lead-key{font-weight:600;color:var(--ink2);min-width:80px;font-size:12px;letter-spacing:.02em;text-transform:uppercase;flex-shrink:0}
+.confirm-lead-val{color:var(--ink)}
+
+.privacy-note{font-size:12px;color:var(--ink3);line-height:1.55;margin-bottom:20px}
+.privacy-note a{color:var(--n400);text-decoration:underline;text-underline-offset:2px}
+
+/* ── success ── */
+.success-icon{width:56px;height:56px;background:#ECFDF5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.success-icon svg{width:26px;height:26px;stroke:var(--success)}
+.success-title{font-family:var(--font-display);font-size:26px;font-weight:400;color:var(--ink);text-align:center;letter-spacing:-.02em;margin-bottom:8px}
+.success-subtitle{font-size:14px;color:var(--ink2);text-align:center;line-height:1.65;margin-bottom:28px;max-width:380px;margin-left:auto;margin-right:auto}
+.success-card{background:var(--n800);border-radius:var(--r-md);padding:20px 24px;margin-bottom:24px}
+.success-card-time{font-size:17px;font-weight:600;color:#fff;margin-bottom:4px}
+.success-card-detail{font-size:13px;color:rgba(255,255,255,.5)}
+.success-actions{display:flex;flex-direction:column;gap:10px}
+.success-meet-link{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;background:var(--n050);border:1.5px solid var(--n100);border-radius:var(--r-sm);font-size:14px;font-weight:500;color:var(--n500);transition:all .15s}
+.success-meet-link:hover{background:var(--n100);border-color:var(--n200)}
+.success-meet-link svg{width:16px;height:16px;stroke:currentColor}
+
+/* ── buttons ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--r-pill);font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s;text-decoration:none;white-space:nowrap;letter-spacing:.01em}
+.btn-primary{background:var(--n500);color:#fff}
+.btn-primary:hover{background:var(--n600);transform:translateY(-1px);box-shadow:0 4px 16px rgba(30,78,128,.25)}
+.btn-primary:disabled{background:var(--n100);color:var(--ink3);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid var(--border-strong)}
+.btn-ghost:hover{border-color:var(--n400);color:var(--n500);background:var(--n050)}
+.btn-full{width:100%;justify-content:center}
+
+/* ── step actions ── */
+.step-actions{display:flex;align-items:center;justify-content:space-between;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
+.step-actions.single{justify-content:flex-end}
+
+/* ── error banner ── */
+.error-banner{background:var(--error-bg);border:1px solid rgba(185,28,28,.2);border-radius:var(--r-sm);padding:12px 16px;font-size:13px;color:var(--error);margin-bottom:16px;display:none}
+.error-banner.visible{display:flex;align-items:center;gap:8px}
+.error-banner svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0}
+
+/* ── back link ── */
+.back-to-site{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink3);margin-bottom:24px;transition:color .15s;padding:0 32px}
+.back-to-site:hover{color:var(--n500)}
+.back-to-site svg{width:14px;height:14px;stroke:currentColor}
+
+/* ── loading overlay ── */
+.submit-loading{display:none;position:fixed;inset:0;background:rgba(11,25,41,.35);z-index:999;align-items:center;justify-content:center}
+.submit-loading.visible{display:flex}
+.submit-spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+</style>
+</head>
+<body>
+
+<script src="assets/nav.js"></script>
+
+<!-- HERO -->
+<section class="booking-hero">
+  <div class="container">
+    <p class="booking-hero-eyebrow">Discovery Call</p>
+    <h1>Talk to our<br><em>FX specialists.</em></h1>
+    <p>30 minutes. We map your payment flows and show you exactly what you'd save moving to HansePay.</p>
+  </div>
+</section>
+
+<!-- BOOKING WIDGET -->
+<div class="booking-wrap">
+  <a class="back-to-site" href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to hansepay.com
+  </a>
+
+  <div class="booking-card" id="bookingCard">
+
+    <!-- Progress -->
+    <div class="booking-progress" id="progressBar">
+      <div class="bp-step">
+        <div class="bp-dot active" id="dot1">1</div>
+        <span class="bp-label active" id="lbl1">Date</span>
+      </div>
+      <div class="bp-line" id="line1"></div>
+      <div class="bp-step">
+        <div class="bp-dot pending" id="dot2">2</div>
+        <span class="bp-label" id="lbl2">Time</span>
+      </div>
+      <div class="bp-line" id="line2"></div>
+      <div class="bp-step">
+        <div class="bp-dot pending" id="dot3">3</div>
+        <span class="bp-label" id="lbl3">Details</span>
+      </div>
+      <div class="bp-line" id="line3"></div>
+      <div class="bp-step">
+        <div class="bp-dot pending" id="dot4">4</div>
+        <span class="bp-label" id="lbl4">Confirm</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: DATE ─────────────────────────────────────── -->
+    <div class="booking-step active" id="step1">
+      <h2 class="step-title">Select a date</h2>
+      <p class="step-subtitle">Monday – Friday · Europe/Berlin time · Next <span id="daysAheadLabel">30</span> days</p>
+
+      <div class="cal-nav">
+        <button class="cal-arrow" id="calPrev" aria-label="Previous month">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="cal-month" id="calMonthLabel"></span>
+        <button class="cal-arrow" id="calNext" aria-label="Next month">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="cal-grid" id="calGrid">
+        <div class="cal-dow">Mo</div>
+        <div class="cal-dow">Tu</div>
+        <div class="cal-dow">We</div>
+        <div class="cal-dow">Th</div>
+        <div class="cal-dow">Fr</div>
+        <div class="cal-dow">Sa</div>
+        <div class="cal-dow">Su</div>
+      </div>
+
+      <div class="step-actions single" style="margin-top:24px">
+        <button class="btn btn-primary" id="toStep2" disabled>Continue
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: TIME ─────────────────────────────────────── -->
+    <div class="booking-step" id="step2">
+      <h2 class="step-title">Select a time</h2>
+      <p class="step-subtitle" id="step2Subtitle">Available 30-minute slots</p>
+
+      <div id="slotsArea">
+        <div class="slots-loading" id="slotsLoading">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+          Checking availability…
+        </div>
+        <div class="slots-grid" id="slotsGrid" style="display:none"></div>
+        <div class="slots-empty" id="slotsEmpty" style="display:none">
+          <strong>No slots available</strong>
+          No open times on this day. Please pick another date.
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" id="backTo1">← Back</button>
+        <button class="btn btn-primary" id="toStep3" disabled>Continue
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: DETAILS ──────────────────────────────────── -->
+    <div class="booking-step" id="step3">
+      <h2 class="step-title">Your details</h2>
+      <p class="step-subtitle">So we can prepare for your call.</p>
+
+      <div class="error-banner" id="formErrorBanner">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="formErrorText">Please fix the errors below.</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fg-firstName">
+          <label class="form-label" for="firstName">First name</label>
+          <input class="form-input" id="firstName" type="text" placeholder="Alex" autocomplete="given-name"/>
+          <span class="form-error">Required</span>
+        </div>
+        <div class="form-group" id="fg-lastName">
+          <label class="form-label" for="lastName">Last name</label>
+          <input class="form-input" id="lastName" type="text" placeholder="Mertens" autocomplete="family-name"/>
+          <span class="form-error">Required</span>
+        </div>
+      </div>
+
+      <div class="form-group" id="fg-email">
+        <label class="form-label" for="bookEmail">Work email</label>
+        <input class="form-input" id="bookEmail" type="email" placeholder="a.mertens@company.com" autocomplete="email"/>
+        <span class="form-error" id="emailError">Valid email required</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fg-company">
+          <label class="form-label" for="company">Company <span>(optional)</span></label>
+          <input class="form-input" id="company" type="text" placeholder="Meridian Trade GmbH" autocomplete="organization"/>
+        </div>
+        <div class="form-group" id="fg-role">
+          <label class="form-label" for="role">Your role <span>(optional)</span></label>
+          <input class="form-input" id="role" type="text" placeholder="CFO, Treasury Manager…"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" id="fg-industry">
+          <label class="form-label" for="industry">Industry</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="industry">
+              <option value="">Select…</option>
+              <option value="eCommerce">eCommerce &amp; Retail</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Logistics">Logistics &amp; Freight</option>
+              <option value="Professional Services">Professional Services</option>
+              <option value="Financial Services">Financial Services</option>
+              <option value="Technology">Technology &amp; SaaS</option>
+              <option value="Healthcare">Healthcare &amp; Pharma</option>
+              <option value="Real Estate">Real Estate</option>
+              <option value="Energy">Energy &amp; Resources</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <span class="form-error">Please select an industry</span>
+        </div>
+        <div class="form-group" id="fg-companySize">
+          <label class="form-label" for="companySize">Company size</label>
+          <div class="form-select-wrap">
+            <select class="form-select" id="companySize">
+              <option value="">Select…</option>
+              <option value="1–10">1 – 10 employees</option>
+              <option value="11–50">11 – 50 employees</option>
+              <option value="51–200">51 – 200 employees</option>
+              <option value="201–1000">201 – 1,000 employees</option>
+              <option value="1000+">1,000+ employees</option>
+            </select>
+          </div>
+          <span class="form-error">Please select company size</span>
+        </div>
+      </div>
+
+      <div class="form-group" id="fg-fxVolume">
+        <label class="form-label" for="fxVolume">Monthly FX / cross-border volume</label>
+        <div class="form-select-wrap">
+          <select class="form-select" id="fxVolume">
+            <option value="">Select…</option>
+            <option value="Under €50k">Under €50k per month</option>
+            <option value="€50k – €200k">€50k – €200k per month</option>
+            <option value="€200k – €500k">€200k – €500k per month</option>
+            <option value="€500k – €2M">€500k – €2M per month</option>
+            <option value="Over €2M">Over €2M per month</option>
+          </select>
+        </div>
+        <span class="form-error">Please select your FX volume</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="notes">Notes <span>(optional)</span></label>
+        <textarea class="form-textarea" id="notes" placeholder="Anything you'd like us to know before the call — currencies, current providers, pain points…"></textarea>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" id="backTo2">← Back</button>
+        <button class="btn btn-primary" id="toStep4">Review booking
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: CONFIRM ──────────────────────────────────── -->
+    <div class="booking-step" id="step4">
+      <h2 class="step-title">Confirm your booking</h2>
+      <p class="step-subtitle">Review the details below, then confirm.</p>
+
+      <div class="error-banner" id="submitErrorBanner">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="submitErrorText">Something went wrong. Please try again.</span>
+      </div>
+
+      <div class="confirm-slot">
+        <div class="confirm-slot-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+          <div class="confirm-slot-time" id="confirmSlotTime">—</div>
+          <div class="confirm-slot-meta">30 minutes · Video call · Europe/Berlin</div>
+        </div>
+      </div>
+
+      <div class="confirm-lead" id="confirmLeadCard"></div>
+
+      <p class="privacy-note">
+        By confirming, you agree to receive a calendar invite at the email address provided.
+        Your details are used solely to prepare for your call and are handled in accordance with our
+        <a href="imprint.html">privacy policy</a>.
+      </p>
+
+      <div class="step-actions">
+        <button class="btn btn-ghost" id="backTo3">← Back</button>
+        <button class="btn btn-primary" id="confirmBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirm booking
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: SUCCESS ──────────────────────────────────── -->
+    <div class="booking-step" id="step5">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="success-title">You're booked.</h2>
+      <p class="success-subtitle">A calendar invitation has been sent to <strong id="successEmail">you</strong>. You'll find the video call link inside the invite.</p>
+
+      <div class="success-card">
+        <div class="success-card-time" id="successTime">—</div>
+        <div class="success-card-detail">30-minute discovery call · HansePay FX Specialist</div>
+      </div>
+
+      <div class="success-actions">
+        <a class="success-meet-link" id="meetLinkBtn" href="#" target="_blank" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.361a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+          Open Google Meet
+        </a>
+        <a class="btn btn-ghost btn-full" href="index.html">← Back to HansePay</a>
+      </div>
+    </div>
+
+  </div><!-- /booking-card -->
+</div><!-- /booking-wrap -->
+
+<div class="submit-loading" id="submitLoading">
+  <div class="submit-spinner"></div>
+</div>
+
+<script src="assets/footer.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+// ── State ──────────────────────────────────────────────────────
+var state = {
+  currentStep: 1,
+  selectedDate: null,   // "YYYY-MM-DD"
+  selectedSlot: null,   // { label, startISO, endISO }
+  lead: {},
+  config: { daysAhead: 30, hoursStart: 9, hoursEnd: 17, timezone: 'Europe/Berlin' },
+  calYear:  new Date().getFullYear(),
+  calMonth: new Date().getMonth(),  // 0-indexed
+};
+
+// Fetch booking config from server
+fetch('/api/booking/config').then(function(r){ return r.json(); }).then(function(cfg){
+  state.config = cfg;
+  document.getElementById('daysAheadLabel').textContent = cfg.daysAhead;
+}).catch(function(){});
+
+// ── Calendar rendering ─────────────────────────────────────────
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var today = new Date();
+today.setHours(0,0,0,0);
+
+function renderCalendar(){
+  var y = state.calYear, m = state.calMonth;
+  document.getElementById('calMonthLabel').textContent = MONTHS[m] + ' ' + y;
+
+  // First day of month (0=Sun…6=Sat) → convert to Mon-based (0=Mon…6=Sun)
+  var firstDow = new Date(y, m, 1).getDay();
+  var monFirst = (firstDow + 6) % 7; // 0=Mon
+  var daysInMonth = new Date(y, m+1, 0).getDate();
+
+  var maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + state.config.daysAhead);
+
+  var grid = document.getElementById('calGrid');
+  // Remove all day cells (keep 7 DOW headers)
+  while(grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  // Leading empty cells
+  for(var i = 0; i < monFirst; i++){
+    var empty = document.createElement('div');
+    empty.className = 'cal-day cal-day-empty';
+    grid.appendChild(empty);
+  }
+
+  for(var day = 1; day <= daysInMonth; day++){
+    var btn = document.createElement('button');
+    btn.textContent = day;
+    btn.className = 'cal-day';
+    var thisDate = new Date(y, m, day);
+    var dateStr = y + '-' + pad(m+1) + '-' + pad(day);
+
+    // Weekend check
+    var dow = thisDate.getDay(); // 0=Sun, 6=Sat
+    if(dow === 0 || dow === 6){
+      btn.className += ' weekend';
+      btn.disabled = true;
+    } else if(thisDate < today || thisDate > maxDate){
+      btn.className += ' past';
+      btn.disabled = true;
+    } else {
+      if(thisDate.getTime() === today.getTime()) btn.className += ' today';
+      if(state.selectedDate === dateStr) btn.className += ' selected';
+      btn.dataset.date = dateStr;
+      btn.addEventListener('click', function(){
+        state.selectedDate = this.dataset.date;
+        document.getElementById('toStep2').disabled = false;
+        renderCalendar();
+      });
+    }
+    grid.appendChild(btn);
+  }
+}
+
+// Prev/next month navigation
+document.getElementById('calPrev').addEventListener('click', function(){
+  state.calMonth--;
+  if(state.calMonth < 0){ state.calMonth = 11; state.calYear--; }
+  renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', function(){
+  state.calMonth++;
+  if(state.calMonth > 11){ state.calMonth = 0; state.calYear++; }
+  renderCalendar();
+});
+
+renderCalendar();
+
+// ── Slot fetching & rendering ──────────────────────────────────
+function loadSlots(dateStr){
+  document.getElementById('slotsLoading').style.display = 'flex';
+  document.getElementById('slotsGrid').style.display    = 'none';
+  document.getElementById('slotsEmpty').style.display   = 'none';
+  document.getElementById('toStep3').disabled = true;
+
+  fetch('/api/booking/availability?date=' + dateStr)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      document.getElementById('slotsLoading').style.display = 'none';
+      var slots = data.slots || [];
+      if(!slots.length){
+        document.getElementById('slotsEmpty').style.display = 'block';
+        return;
+      }
+      var grid = document.getElementById('slotsGrid');
+      grid.innerHTML = '';
+      grid.style.display = 'grid';
+      slots.forEach(function(slot){
+        var btn = document.createElement('button');
+        btn.className = 'slot-btn' + (state.selectedSlot && state.selectedSlot.startISO === slot.startISO ? ' selected' : '');
+        btn.textContent = slot.label;
+        btn.addEventListener('click', function(){
+          state.selectedSlot = slot;
+          grid.querySelectorAll('.slot-btn').forEach(function(b){ b.classList.remove('selected'); });
+          btn.classList.add('selected');
+          document.getElementById('toStep3').disabled = false;
+        });
+        grid.appendChild(btn);
+      });
+    })
+    .catch(function(){
+      document.getElementById('slotsLoading').style.display = 'none';
+      document.getElementById('slotsEmpty').innerHTML = '<strong>Couldn\'t load slots</strong>Please check your connection and try again.';
+      document.getElementById('slotsEmpty').style.display = 'block';
+    });
+}
+
+// ── Step navigation ────────────────────────────────────────────
+function goTo(step){
+  document.querySelectorAll('.booking-step').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('step' + step).classList.add('active');
+  state.currentStep = step;
+  updateProgress(step);
+  // hide progress on success
+  document.getElementById('progressBar').style.display = step === 5 ? 'none' : 'flex';
+  window.scrollTo({ top: document.getElementById('bookingCard').offsetTop - 80, behavior: 'smooth' });
+}
+
+function updateProgress(step){
+  for(var i = 1; i <= 4; i++){
+    var dot   = document.getElementById('dot'  + i);
+    var label = document.getElementById('lbl'  + i);
+    var line  = document.getElementById('line' + i);
+    dot.className   = 'bp-dot ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
+    label.className = 'bp-label' + (i === step ? ' active' : '');
+    if(line) line.className = 'bp-line' + (i < step ? ' done' : '');
+    // replace numbers with checkmarks for done steps
+    dot.textContent = i < step ? '✓' : String(i);
+  }
+}
+
+// Step 1 → 2
+document.getElementById('toStep2').addEventListener('click', function(){
+  if(!state.selectedDate) return;
+  var d = new Date(state.selectedDate + 'T12:00:00Z');
+  var monthStr = MONTHS[d.getUTCMonth()];
+  var dayStr   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getUTCDay()];
+  document.getElementById('step2Subtitle').textContent =
+    dayStr + ', ' + d.getUTCDate() + ' ' + monthStr + ' — available 30-minute slots';
+  goTo(2);
+  loadSlots(state.selectedDate);
+});
+
+// Step 2 → 1
+document.getElementById('backTo1').addEventListener('click', function(){ goTo(1); });
+
+// Step 2 → 3
+document.getElementById('toStep3').addEventListener('click', function(){
+  if(!state.selectedSlot) return;
+  goTo(3);
+});
+
+// Step 3 → 2
+document.getElementById('backTo2').addEventListener('click', function(){ goTo(2); });
+
+// Step 3 → 4 (validate)
+document.getElementById('toStep4').addEventListener('click', function(){
+  if(!validateForm()) return;
+  buildConfirmStep();
+  goTo(4);
+});
+
+// Step 4 → 3
+document.getElementById('backTo3').addEventListener('click', function(){ goTo(3); });
+
+// ── Form validation ────────────────────────────────────────────
+function validateForm(){
+  var ok = true;
+
+  function checkRequired(id, groupId){
+    var el = document.getElementById(id);
+    var fg = document.getElementById(groupId || ('fg-' + id));
+    var val = el ? el.value.trim() : '';
+    if(!val){ if(fg) fg.classList.add('has-error'); ok = false; }
+    else { if(fg) fg.classList.remove('has-error'); }
+    return val;
+  }
+
+  checkRequired('firstName');
+  checkRequired('lastName');
+
+  // Email
+  var emailEl = document.getElementById('bookEmail');
+  var emailFg = document.getElementById('fg-email');
+  var email   = emailEl.value.trim();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    emailFg.classList.add('has-error');
+    ok = false;
+  } else {
+    emailFg.classList.remove('has-error');
+  }
+
+  checkRequired('industry');
+  checkRequired('fxVolume');
+  checkRequired('companySize');
+
+  var banner = document.getElementById('formErrorBanner');
+  if(!ok){
+    banner.classList.add('visible');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    banner.classList.remove('visible');
+    state.lead = {
+      firstName:   document.getElementById('firstName').value.trim(),
+      lastName:    document.getElementById('lastName').value.trim(),
+      email:       document.getElementById('bookEmail').value.trim(),
+      company:     document.getElementById('company').value.trim(),
+      role:        document.getElementById('role').value.trim(),
+      industry:    document.getElementById('industry').value,
+      fxVolume:    document.getElementById('fxVolume').value,
+      companySize: document.getElementById('companySize').value,
+      notes:       document.getElementById('notes').value.trim(),
+    };
+  }
+  return ok;
+}
+
+// ── Confirm step rendering ─────────────────────────────────────
+function buildConfirmStep(){
+  // Slot display
+  var slotLabel = state.selectedSlot.label;
+  var d = new Date(state.selectedDate + 'T12:00:00Z');
+  var dStr = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()] + ', ' +
+             d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()].slice(0,3) + ' ' + d.getUTCFullYear();
+  document.getElementById('confirmSlotTime').textContent = dStr + ' · ' + slotLabel;
+
+  // Lead card
+  var lead = state.lead;
+  var rows = [
+    ['Name',     lead.firstName + ' ' + lead.lastName],
+    ['Email',    lead.email],
+    ['Company',  lead.company  || '—'],
+    ['Role',     lead.role     || '—'],
+    ['Industry', lead.industry],
+    ['Volume',   lead.fxVolume],
+    ['Size',     lead.companySize],
+  ];
+  if(lead.notes){
+    rows.push(['Notes', lead.notes]);
+  }
+  document.getElementById('confirmLeadCard').innerHTML = rows.map(function(r){
+    return '<div class="confirm-lead-row"><span class="confirm-lead-key">' + r[0] + '</span>' +
+           '<span class="confirm-lead-val">' + escapeHtml(r[1]) + '</span></div>';
+  }).join('');
+}
+
+// ── Confirm & submit ───────────────────────────────────────────
+document.getElementById('confirmBtn').addEventListener('click', function(){
+  var btn     = this;
+  var loading = document.getElementById('submitLoading');
+  var banner  = document.getElementById('submitErrorBanner');
+  var errText = document.getElementById('submitErrorText');
+
+  btn.disabled = true;
+  loading.classList.add('visible');
+  banner.classList.remove('visible');
+
+  fetch('/api/booking', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ slot: state.selectedSlot, lead: state.lead }),
+  })
+  .then(function(r){
+    return r.json().then(function(body){ return { ok: r.ok, body: body }; });
+  })
+  .then(function(result){
+    loading.classList.remove('visible');
+    btn.disabled = false;
+
+    if(!result.ok){
+      errText.textContent = result.body.error || 'Something went wrong. Please try again.';
+      banner.classList.add('visible');
+      return;
+    }
+
+    // Success!
+    var d = new Date(state.selectedDate + 'T12:00:00Z');
+    var dStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getUTCDay()] + ', ' +
+               d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    document.getElementById('successTime').textContent = dStr + ' · ' + state.selectedSlot.label;
+    document.getElementById('successEmail').textContent = state.lead.email;
+
+    if(result.body.meetLink){
+      var ml = document.getElementById('meetLinkBtn');
+      ml.href = result.body.meetLink;
+      ml.style.display = 'flex';
+    }
+    goTo(5);
+  })
+  .catch(function(){
+    loading.classList.remove('visible');
+    btn.disabled = false;
+    errText.textContent = 'Network error. Please check your connection and try again.';
+    banner.classList.add('visible');
+  });
+});
+
+// ── Helpers ────────────────────────────────────────────────────
+function pad(n){ return String(n).padStart(2, '0'); }
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+})();
+</script>
+</body>
+</html>
