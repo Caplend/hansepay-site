@@ -1312,6 +1312,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 function resetAiModal() {
+  aiMeta = null;
   document.getElementById('ai-form').style.display = '';
   document.getElementById('ai-output').classList.remove('visible');
   document.getElementById('ai-error-wrap').style.display = 'none';
@@ -1376,10 +1377,38 @@ function runAiGenerate() {
     var reader = r.body.getReader();
     var decoder = new TextDecoder();
     var buffer = '';
+    // Accumulates raw stream text until the META block has been extracted
+    var rawAccum    = '';
+    var metaParsed  = false;
+    aiMeta          = null;
+
+    function tryParseMeta() {
+      // Try to extract <<<META>>>...<<<END-META>>> from rawAccum
+      var startTag = '<<<META>>>';
+      var endTag   = '<<<END-META>>>';
+      var si = rawAccum.indexOf(startTag);
+      var ei = rawAccum.indexOf(endTag);
+      if (si === -1 || ei === -1) return false;
+      var jsonStr = rawAccum.slice(si + startTag.length, ei).trim();
+      try {
+        aiMeta = JSON.parse(jsonStr);
+        // Update status line to show title was found
+        document.getElementById('ai-status-text').textContent =
+          'Writing: ' + (aiMeta.title ? '"' + aiMeta.title.slice(0, 40) + '…"' : 'article…');
+      } catch(e) { aiMeta = null; }
+      // The body starts after <<<END-META>>>
+      var bodyStart = rawAccum.slice(ei + endTag.length);
+      // Strip leading newlines
+      bodyStart = bodyStart.replace(/^\n+/, '');
+      streamEl.value = bodyStart;
+      metaParsed = true;
+      return true;
+    }
 
     function pump() {
       return reader.read().then(function(result) {
         if (result.done) {
+          if (!metaParsed) tryParseMeta();
           onStreamDone(streamEl.value);
           return;
         }
@@ -1390,10 +1419,22 @@ function runAiGenerate() {
           line = line.trim();
           if (!line || !line.startsWith('data:')) return;
           var data = line.slice(5).trim();
-          if (data === '[DONE]') { onStreamDone(streamEl.value); return; }
+          if (data === '[DONE]') { if (!metaParsed) tryParseMeta(); onStreamDone(streamEl.value); return; }
           try {
             var parsed = JSON.parse(data);
-            if (parsed.text) { streamEl.value += parsed.text; }
+            if (parsed.text) {
+              rawAccum += parsed.text;
+              if (!metaParsed) {
+                // Try to parse META; if done, body text goes to textarea
+                if (!tryParseMeta()) {
+                  // Still in META block — don't show raw JSON to user yet
+                  document.getElementById('ai-status-text').textContent = 'Planning article…';
+                }
+              } else {
+                // META already extracted — append directly to body textarea
+                streamEl.value += parsed.text;
+              }
+            }
           } catch(e) {}
         });
         return pump();
@@ -1420,13 +1461,36 @@ function runAiGenerate() {
   });
 }
 
+// Stores structured metadata emitted by Claude before the article body
+var aiMeta = null;
+
 function onStreamDone(content) {
   var words = content.trim().split(/\s+/).filter(Boolean).length;
   document.getElementById('ai-spinner').style.display = 'none';
   document.getElementById('ai-status-text').textContent = 'Done';
+
   var doneEl = document.getElementById('ai-done-msg');
   doneEl.style.display = 'flex';
-  doneEl.textContent = '✅ Done — ' + words.toLocaleString() + ' words';
+
+  // Show a preview card of what will be populated
+  var metaPreview = '';
+  if (aiMeta) {
+    var imgUrl = aiMeta.imageQuery
+      ? 'https://source.unsplash.com/800x400/?' + encodeURIComponent(aiMeta.imageQuery)
+      : '';
+    metaPreview =
+      '<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin:12px 0;font-size:12px;line-height:1.7">' +
+      '<div style="font-weight:700;color:#1e3a8a;margin-bottom:6px">✅ ' + words.toLocaleString() + ' words · Fields ready to fill</div>' +
+      '<div><strong>Title:</strong> ' + (aiMeta.title || '—') + '</div>' +
+      '<div><strong>Slug:</strong> ' + (aiMeta.slug || '—') + '</div>' +
+      '<div><strong>Category:</strong> ' + (aiMeta.category || '—') + ' &nbsp;|&nbsp; <strong>Read time:</strong> ' + (aiMeta.readTime || '?') + ' min</div>' +
+      '<div><strong>Tags:</strong> ' + ((aiMeta.tags || []).join(', ') || '—') + '</div>' +
+      (imgUrl ? '<div style="margin-top:10px"><strong>Image:</strong><br><img src="' + imgUrl + '" style="margin-top:6px;width:100%;height:80px;object-fit:cover;border-radius:6px" alt="preview"></div>' : '') +
+      '</div>';
+    doneEl.innerHTML = metaPreview;
+  } else {
+    doneEl.textContent = '✅ Done — ' + words.toLocaleString() + ' words';
+  }
 
   var footer = document.getElementById('ai-modal-footer');
   footer.innerHTML =
@@ -1438,8 +1502,49 @@ function insertAiContent() {
   var content = document.getElementById('ai-stream-content').value;
   document.getElementById('f-content').value = content;
   onContentInput();
+
+  // Populate all fields from Claude's metadata
+  if (aiMeta) {
+    if (aiMeta.title) {
+      document.getElementById('f-title').value = aiMeta.title;
+      slugUserEdited = false; // allow slug to be set
+    }
+    if (aiMeta.slug) {
+      document.getElementById('f-slug').value = aiMeta.slug;
+      slugUserEdited = true; // lock slug after setting
+    }
+    if (aiMeta.excerpt)  document.getElementById('f-excerpt').value  = aiMeta.excerpt;
+    if (aiMeta.category) {
+      var catEl = document.getElementById('f-category');
+      // Try to match; fallback to first option
+      for (var i = 0; i < catEl.options.length; i++) {
+        if (catEl.options[i].value === aiMeta.category) { catEl.selectedIndex = i; break; }
+      }
+    }
+    if (aiMeta.tags && aiMeta.tags.length) {
+      document.getElementById('f-tags').value = aiMeta.tags.join(', ');
+    }
+    if (aiMeta.readTime) {
+      document.getElementById('f-readtime').value = aiMeta.readTime;
+    }
+    // Featured image from Unsplash based on imageQuery
+    if (aiMeta.imageQuery) {
+      var imgUrl = 'https://source.unsplash.com/1200x630/?' + encodeURIComponent(aiMeta.imageQuery);
+      document.getElementById('f-image-url').value = imgUrl;
+      document.getElementById('f-image-url-input').value = imgUrl;
+      setImagePreview(imgUrl);
+    }
+    // Store SEO fields for when the SEO manager is updated
+    if (aiMeta.seoTitle || aiMeta.seoDescription) {
+      document.getElementById('f-title').dataset.seoTitle = aiMeta.seoTitle || '';
+      document.getElementById('f-title').dataset.seoDesc  = aiMeta.seoDescription || '';
+    }
+    // Sync author display in case it was auto-populated before
+    if (typeof syncAuthorDisplay === 'function') syncAuthorDisplay();
+  }
+
   closeAiModal();
-  showToast('Content inserted into editor.', 'success');
+  showToast('Article + all fields inserted ✓', 'success');
 }
 </script>
 </body>

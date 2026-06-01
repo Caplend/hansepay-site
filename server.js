@@ -341,19 +341,35 @@ app.post('/api/ai/generate-post', authenticateToken, async (req, res) => {
   const toneMap = { professional: 'professional and authoritative', conversational: 'conversational and engaging', technical: 'technical and precise', comparative: 'analytical and comparative' };
   const toneStr = toneMap[tone] || 'professional';
 
-  const userPrompt = `Write a ${wordTarget}-word blog article about: "${topic}"
+  const userPrompt = `Write a complete, publish-ready blog article about: "${topic}"
 
 Tone: ${toneStr}
+Target length: ${wordTarget} words
 Required sections: ${sectionList.join(', ')}
 
-Format the article in Markdown:
-- Use ## for main headings, ### for sub-headings
-- Include a comparison table if comparing products/providers (use standard Markdown table syntax)
-- Use HTML callout divs for key tips:
-  <div class="callout callout-info"><strong>💡 Pro tip:</strong> ...</div>
-- End with a CTA block:
-  <div class="cta-block"><strong>Ready to optimise your FX costs?</strong><br>Book a free discovery call with a HansePay specialist — no commitment required.\n\n[Talk to our team →](booking.html)</div>
-- Write the full article body only (no meta description, no front matter)`;
+STEP 1 — Output ONLY the following JSON block first, enclosed exactly in <<<META>>> and <<<END-META>>> tags. No text before or after these tags until the article body.
+
+<<<META>>>
+{
+  "title": "Compelling SEO article title, 50-70 chars",
+  "slug": "url-friendly-slug-max-6-words",
+  "excerpt": "2-3 sentence summary for blog listing, 140-160 chars, no quotes",
+  "category": "one of: FX Education, Treasury, Compliance, Market Analysis, General",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "readTime": 7,
+  "seoTitle": "SEO <title> tag, 50-60 chars, includes primary keyword",
+  "seoDescription": "SEO meta description, 145-155 chars, ends with call to action",
+  "imageQuery": "3-5 word Unsplash photo search query (e.g. 'business finance europe currency')"
+}
+<<<END-META>>>
+
+STEP 2 — Write the full article body in Markdown immediately after the closing tag:
+- ## for main headings, ### for sub-headings
+- Comparison tables using standard Markdown table syntax when comparing providers
+- Key tips using: <div class="callout callout-info"><strong>💡 Pro tip:</strong> ...</div>
+- Warnings using: <div class="callout callout-warning"><strong>⚠️ Note:</strong> ...</div>
+- End with: <div class="cta-block"><strong>Ready to optimise your FX costs?</strong><br>Book a free 30-minute discovery call with a HansePay FX specialist.\n\n[Talk to our team →](booking.html)</div>
+- Do NOT repeat the title as an H1 — start directly with the introduction paragraph`;
 
   // Set up SSE streaming
   res.setHeader('Content-Type', 'text/event-stream');
