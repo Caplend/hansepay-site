@@ -388,7 +388,15 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable Nginx/Railway proxy buffering
   res.flushHeaders();
+
+  // Send a keep-alive comment every 20 s so Railway's proxy doesn't drop the connection
+  const keepAlive = setInterval(() => {
+    try { res.write(': ping\n\n'); } catch (_) {}
+  }, 20000);
+
+  const maxTokens = { short: 2048, medium: 4096, long: 8192 };
 
   try {
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -400,7 +408,7 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
       },
       body: JSON.stringify({
         model,
-        max_tokens: 4096,
+        max_tokens: maxTokens[length] || 4096,
         stream:     true,
         system:     systemPrompt,
         messages:   [{ role: 'user', content: userPrompt }],
@@ -409,6 +417,7 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
 
     if (!anthropicRes.ok) {
       const errBody = await anthropicRes.text();
+      clearInterval(keepAlive);
       res.write(`data: ${JSON.stringify({ error: 'Anthropic API error: ' + anthropicRes.status + ' ' + errBody.slice(0, 200) })}\n\n`);
       return res.end();
     }
@@ -429,13 +438,19 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
           if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
             res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
           }
+          // Surface stop_reason so client knows if we hit the token limit
+          if (parsed.type === 'message_delta' && parsed.delta?.stop_reason === 'max_tokens') {
+            res.write(`data: ${JSON.stringify({ warning: 'max_tokens_reached' })}\n\n`);
+          }
         } catch (_) {}
       }
     }
 
+    clearInterval(keepAlive);
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (err) {
+    clearInterval(keepAlive);
     console.error('[ai] generate error:', err.message);
     res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
     res.end();

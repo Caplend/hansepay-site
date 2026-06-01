@@ -1360,7 +1360,7 @@ function runAiGenerate() {
   streamEl.value = '';
 
   var tok2 = localStorage.getItem('hp_token');
-  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/ai/generate-post', {
+  fetch('/api/ai/generate-post', {
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + tok2,
@@ -1434,6 +1434,9 @@ function runAiGenerate() {
                 // META already extracted — append directly to body textarea
                 streamEl.value += parsed.text;
               }
+            }
+            if (parsed.warning === 'max_tokens_reached') {
+              document.getElementById('ai-status-text').textContent = 'Article truncated (token limit reached) — you can still use and edit the content below.';
             }
           } catch(e) {}
         });
