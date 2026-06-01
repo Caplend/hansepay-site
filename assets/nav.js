@@ -1576,38 +1576,103 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       }
     },
     apply: function() {
+      var lang = window.HP.lang;
       var t = window.HP.t.bind(window.HP);
+
+      // ── data-i18n (text) ──────────────────────────────────────────────────
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         var key = el.getAttribute('data-i18n');
-        var val = t(key);
-        if (val === key) return;
-        var hasChildEls = false;
-        for (var ci = 0; ci < el.childNodes.length; ci++) {
-          if (el.childNodes[ci].nodeType === 1) { hasChildEls = true; break; }
+
+        // Snapshot original English content the very first time we touch this element
+        if (!el.hasAttribute('data-i18n-orig')) {
+          var hasChildEls = false;
+          for (var ci = 0; ci < el.childNodes.length; ci++) {
+            if (el.childNodes[ci].nodeType === 1) { hasChildEls = true; break; }
+          }
+          if (!hasChildEls) {
+            el.setAttribute('data-i18n-orig', el.textContent);
+          } else {
+            // Find the last text node
+            for (var si = el.childNodes.length - 1; si >= 0; si--) {
+              var sn = el.childNodes[si];
+              if (sn.nodeType === 3 && sn.textContent.trim()) {
+                el.setAttribute('data-i18n-orig', sn.textContent.trim());
+                break;
+              }
+            }
+          }
         }
-        if (!hasChildEls) {
+
+        if (lang === 'en') {
+          // Restore original English
+          var orig = el.getAttribute('data-i18n-orig') || '';
+          var hasChildElsR = false;
+          for (var ri = 0; ri < el.childNodes.length; ri++) {
+            if (el.childNodes[ri].nodeType === 1) { hasChildElsR = true; break; }
+          }
+          if (!hasChildElsR) {
+            el.textContent = orig;
+          } else {
+            for (var rj = el.childNodes.length - 1; rj >= 0; rj--) {
+              var rn = el.childNodes[rj];
+              if (rn.nodeType === 3 && rn.textContent.trim()) {
+                rn.textContent = ' ' + orig;
+                break;
+              }
+            }
+          }
+          return;
+        }
+
+        var val = t(key);
+        if (val === key) return; // no DE translation, leave as-is
+        var hasChildEls2 = false;
+        for (var ci2 = 0; ci2 < el.childNodes.length; ci2++) {
+          if (el.childNodes[ci2].nodeType === 1) { hasChildEls2 = true; break; }
+        }
+        if (!hasChildEls2) {
           el.textContent = val;
         } else {
-          // Update the last direct text node (preserves child elements like dot spans)
           for (var ti = el.childNodes.length - 1; ti >= 0; ti--) {
             var node = el.childNodes[ti];
             if (node.nodeType === 3 && node.textContent.trim()) {
-              node.textContent = " " + val;
+              node.textContent = ' ' + val;
               break;
             }
           }
         }
       });
+
+      // ── data-i18n-html (innerHTML) ────────────────────────────────────────
       document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-html');
-        // Try key+'.html' first (HTML-tagged translation), fall back to plain key
+
+        // Snapshot original English HTML on first touch
+        if (!el.hasAttribute('data-i18n-html-orig')) {
+          el.setAttribute('data-i18n-html-orig', el.innerHTML);
+        }
+
+        if (lang === 'en') {
+          el.innerHTML = el.getAttribute('data-i18n-html-orig') || el.innerHTML;
+          return;
+        }
+
         var htmlKey = key + '.html';
         var val = t(htmlKey);
-        if (val === htmlKey) val = t(key); // no .html variant, use plain
+        if (val === htmlKey) val = t(key);
         if (val !== key && val !== htmlKey) el.innerHTML = val;
       });
+
+      // ── data-i18n-ph (placeholder) ────────────────────────────────────────
       document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-ph');
+        if (!el.hasAttribute('data-i18n-ph-orig')) {
+          el.setAttribute('data-i18n-ph-orig', el.placeholder || '');
+        }
+        if (lang === 'en') {
+          el.placeholder = el.getAttribute('data-i18n-ph-orig') || '';
+          return;
+        }
         var val = t(key);
         if (val !== key) el.placeholder = val;
       });
