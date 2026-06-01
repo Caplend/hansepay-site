@@ -336,6 +336,11 @@ function setLang(lang) {
     else { el.textContent = t[key]; }
   });
   try { localStorage.setItem('hp_lang', lang); } catch(e) {}
+  // If booking modal is open, tell the iframe to switch too
+  var iframe = document.getElementById('hp-bm-iframe');
+  if (iframe && iframe.src && iframe.contentWindow) {
+    try { iframe.contentWindow.postMessage({ type: 'setLang', lang: lang }, '*'); } catch(e) {}
+  }
 }
 
 // Init — default DE, respect saved preference
@@ -353,7 +358,7 @@ document.getElementById('waitlist-modal').addEventListener('click', function(e) 
 // ── Booking ──
 function openBooking() {
   var overlay = document.getElementById('hp-bm-overlay');
-  document.getElementById('hp-bm-iframe').src = '/booking.html?modal=1';
+  document.getElementById('hp-bm-iframe').src = '/booking.html?modal=1&lang=' + currentLang;
   overlay.classList.add('hp-bm-open');
   document.body.style.overflow = 'hidden';
 }

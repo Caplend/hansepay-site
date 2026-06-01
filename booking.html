@@ -198,9 +198,9 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 <!-- HERO -->
 <section class="booking-hero">
   <div class="container">
-    <p class="booking-hero-eyebrow">Discovery Call</p>
-    <h1>Talk to our<br><em>FX specialists.</em></h1>
-    <p>30 minutes. We map your payment flows and show you exactly what you'd save moving to HansePay.</p>
+    <p class="booking-hero-eyebrow" data-bki18n="hero-eyebrow">Discovery Call</p>
+    <h1 data-bki18n-html="hero-h1">Talk to our<br><em>FX specialists.</em></h1>
+    <p data-bki18n="hero-sub">30 minutes. We map your payment flows and show you exactly what you'd save moving to HansePay.</p>
   </div>
 </section>
 
@@ -208,7 +208,7 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 <div class="booking-wrap">
   <a class="back-to-site" href="index.html">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to hansepay.com
+    <span data-bki18n="back-link">Back to hansepay.com</span>
   </a>
 
   <div class="booking-card" id="bookingCard">
@@ -217,29 +217,29 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
     <div class="booking-progress" id="progressBar">
       <div class="bp-step">
         <div class="bp-dot active" id="dot1">1</div>
-        <span class="bp-label active" id="lbl1">Date</span>
+        <span class="bp-label active" id="lbl1" data-bki18n="lbl1">Date</span>
       </div>
       <div class="bp-line" id="line1"></div>
       <div class="bp-step">
         <div class="bp-dot pending" id="dot2">2</div>
-        <span class="bp-label" id="lbl2">Time</span>
+        <span class="bp-label" id="lbl2" data-bki18n="lbl2">Time</span>
       </div>
       <div class="bp-line" id="line2"></div>
       <div class="bp-step">
         <div class="bp-dot pending" id="dot3">3</div>
-        <span class="bp-label" id="lbl3">Details</span>
+        <span class="bp-label" id="lbl3" data-bki18n="lbl3">Details</span>
       </div>
       <div class="bp-line" id="line3"></div>
       <div class="bp-step">
         <div class="bp-dot pending" id="dot4">4</div>
-        <span class="bp-label" id="lbl4">Confirm</span>
+        <span class="bp-label" id="lbl4" data-bki18n="lbl4">Confirm</span>
       </div>
     </div>
 
     <!-- ── STEP 1: DATE ─────────────────────────────────────── -->
     <div class="booking-step active" id="step1">
-      <h2 class="step-title">Select a date</h2>
-      <p class="step-subtitle">Monday – Friday · Europe/Berlin time · Next <span id="daysAheadLabel">30</span> days</p>
+      <h2 class="step-title" data-bki18n="step1-title">Select a date</h2>
+      <p class="step-subtitle" id="step1-sub">Monday – Friday · Europe/Berlin time · Next <span id="daysAheadLabel">30</span> days</p>
 
       <div class="cal-nav">
         <button class="cal-arrow" id="calPrev" aria-label="Previous month">
@@ -262,7 +262,7 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
       </div>
 
       <div class="step-actions single" style="margin-top:24px">
-        <button class="btn btn-primary" id="toStep2" disabled>Continue
+        <button class="btn btn-primary" id="toStep2" disabled><span data-bki18n="btn-continue">Continue</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
@@ -270,8 +270,8 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 
     <!-- ── STEP 2: TIME ─────────────────────────────────────── -->
     <div class="booking-step" id="step2">
-      <h2 class="step-title">Select a time</h2>
-      <p class="step-subtitle" id="step2Subtitle">Available 30-minute slots</p>
+      <h2 class="step-title" data-bki18n="step2-title">Select a time</h2>
+      <p class="step-subtitle" id="step2Subtitle" data-bki18n="step2-sub">Available 30-minute slots</p>
 
       <div id="slotsArea">
         <div class="slots-loading" id="slotsLoading">
@@ -286,8 +286,8 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
       </div>
 
       <div class="step-actions">
-        <button class="btn btn-ghost" id="backTo1">← Back</button>
-        <button class="btn btn-primary" id="toStep3" disabled>Continue
+        <button class="btn btn-ghost" id="backTo1"><span data-bki18n="btn-back">← Back</span></button>
+        <button class="btn btn-primary" id="toStep3" disabled><span data-bki18n="btn-continue">Continue</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
@@ -295,8 +295,8 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 
     <!-- ── STEP 3: DETAILS ──────────────────────────────────── -->
     <div class="booking-step" id="step3">
-      <h2 class="step-title">Your details</h2>
-      <p class="step-subtitle">So we can prepare for your call.</p>
+      <h2 class="step-title" data-bki18n="step3-title">Your details</h2>
+      <p class="step-subtitle" data-bki18n="step3-sub">So we can prepare for your call.</p>
 
       <div class="error-banner" id="formErrorBanner">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -305,39 +305,39 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 
       <div class="form-row">
         <div class="form-group" id="fg-firstName">
-          <label class="form-label" for="firstName">First name</label>
-          <input class="form-input" id="firstName" type="text" placeholder="Alex" autocomplete="given-name"/>
-          <span class="form-error">Required</span>
+          <label class="form-label" for="firstName" data-bki18n="lbl-fname">First name</label>
+          <input class="form-input" id="firstName" type="text" placeholder="Alex" data-bki18n-ph="ph-fname" autocomplete="given-name"/>
+          <span class="form-error" data-bki18n="err-required">Required</span>
         </div>
         <div class="form-group" id="fg-lastName">
-          <label class="form-label" for="lastName">Last name</label>
-          <input class="form-input" id="lastName" type="text" placeholder="Mertens" autocomplete="family-name"/>
-          <span class="form-error">Required</span>
+          <label class="form-label" for="lastName" data-bki18n="lbl-lname">Last name</label>
+          <input class="form-input" id="lastName" type="text" placeholder="Mertens" data-bki18n-ph="ph-lname" autocomplete="family-name"/>
+          <span class="form-error" data-bki18n="err-required">Required</span>
         </div>
       </div>
 
       <div class="form-group" id="fg-email">
-        <label class="form-label" for="bookEmail">Work email</label>
+        <label class="form-label" for="bookEmail" data-bki18n="lbl-email">Work email</label>
         <input class="form-input" id="bookEmail" type="email" placeholder="a.mertens@company.com" autocomplete="email"/>
-        <span class="form-error" id="emailError">Valid email required</span>
+        <span class="form-error" id="emailError" data-bki18n="err-email">Valid email required</span>
       </div>
 
       <div class="form-row">
         <div class="form-group" id="fg-company">
-          <label class="form-label" for="company">Company <span>(optional)</span></label>
-          <input class="form-input" id="company" type="text" placeholder="Meridian Trade GmbH" autocomplete="organization"/>
+          <label class="form-label" for="company"><span data-bki18n="lbl-company">Company</span> <span data-bki18n="lbl-company-opt">(optional)</span></label>
+          <input class="form-input" id="company" type="text" placeholder="Meridian Trade GmbH" data-bki18n-ph="ph-company" autocomplete="organization"/>
         </div>
         <div class="form-group" id="fg-role">
-          <label class="form-label" for="role">Your role <span>(optional)</span></label>
-          <input class="form-input" id="role" type="text" placeholder="CFO, Treasury Manager…"/>
+          <label class="form-label" for="role"><span data-bki18n="lbl-role">Your role</span> <span data-bki18n="lbl-role-opt">(optional)</span></label>
+          <input class="form-input" id="role" type="text" placeholder="CFO, Treasury Manager…" data-bki18n-ph="ph-role"/>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group" id="fg-industry">
-          <label class="form-label" for="industry">Industry</label>
+          <label class="form-label" for="industry" data-bki18n="lbl-industry">Industry</label>
           <div class="form-select-wrap">
-            <select class="form-select" id="industry">
+            <select class="form-select" id="industry" data-bki18n-opts="opt-ind">
               <option value="">Select…</option>
               <option value="eCommerce">eCommerce &amp; Retail</option>
               <option value="Manufacturing">Manufacturing</option>
@@ -351,12 +351,12 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
               <option value="Other">Other</option>
             </select>
           </div>
-          <span class="form-error">Please select an industry</span>
+          <span class="form-error" data-bki18n="err-industry">Please select an industry</span>
         </div>
         <div class="form-group" id="fg-companySize">
-          <label class="form-label" for="companySize">Company size</label>
+          <label class="form-label" for="companySize" data-bki18n="lbl-size">Company size</label>
           <div class="form-select-wrap">
-            <select class="form-select" id="companySize">
+            <select class="form-select" id="companySize" data-bki18n-opts="opt-size">
               <option value="">Select…</option>
               <option value="1–10">1 – 10 employees</option>
               <option value="11–50">11 – 50 employees</option>
@@ -365,14 +365,14 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
               <option value="1000+">1,000+ employees</option>
             </select>
           </div>
-          <span class="form-error">Please select company size</span>
+          <span class="form-error" data-bki18n="err-size">Please select company size</span>
         </div>
       </div>
 
       <div class="form-group" id="fg-fxVolume">
-        <label class="form-label" for="fxVolume">Monthly FX / cross-border volume</label>
+        <label class="form-label" for="fxVolume" data-bki18n="lbl-volume">Monthly FX / cross-border volume</label>
         <div class="form-select-wrap">
-          <select class="form-select" id="fxVolume">
+          <select class="form-select" id="fxVolume" data-bki18n-opts="opt-vol">
             <option value="">Select…</option>
             <option value="Under €50k">Under €50k per month</option>
             <option value="€50k – €200k">€50k – €200k per month</option>
@@ -381,17 +381,17 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
             <option value="Over €2M">Over €2M per month</option>
           </select>
         </div>
-        <span class="form-error">Please select your FX volume</span>
+        <span class="form-error" data-bki18n="err-volume">Please select your FX volume</span>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="notes">Notes <span>(optional)</span></label>
-        <textarea class="form-textarea" id="notes" placeholder="Anything you'd like us to know before the call — currencies, current providers, pain points…"></textarea>
+        <label class="form-label" for="notes"><span data-bki18n="lbl-notes">Notes</span> <span data-bki18n="lbl-notes-opt">(optional)</span></label>
+        <textarea class="form-textarea" id="notes" placeholder="Anything you'd like us to know…" data-bki18n-ph="ph-notes"></textarea>
       </div>
 
       <div class="step-actions">
-        <button class="btn btn-ghost" id="backTo2">← Back</button>
-        <button class="btn btn-primary" id="toStep4">Review booking
+        <button class="btn btn-ghost" id="backTo2"><span data-bki18n="btn-back">← Back</span></button>
+        <button class="btn btn-primary" id="toStep4"><span data-bki18n="btn-review">Review booking</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
@@ -399,8 +399,8 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
 
     <!-- ── STEP 4: CONFIRM ──────────────────────────────────── -->
     <div class="booking-step" id="step4">
-      <h2 class="step-title">Confirm your booking</h2>
-      <p class="step-subtitle">Review the details below, then confirm.</p>
+      <h2 class="step-title" data-bki18n="step4-title">Confirm your booking</h2>
+      <p class="step-subtitle" data-bki18n="step4-sub">Review the details below, then confirm.</p>
 
       <div class="error-banner" id="submitErrorBanner">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -413,23 +413,22 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
         </div>
         <div>
           <div class="confirm-slot-time" id="confirmSlotTime">—</div>
-          <div class="confirm-slot-meta">30 minutes · Video call · Europe/Berlin</div>
+          <div class="confirm-slot-meta" data-bki18n="slot-meta">30 minutes · Video call · Europe/Berlin</div>
         </div>
       </div>
 
       <div class="confirm-lead" id="confirmLeadCard"></div>
 
       <p class="privacy-note">
-        By confirming, you agree to receive a calendar invite at the email address provided.
-        Your details are used solely to prepare for your call and are handled in accordance with our
-        <a href="imprint.html">privacy policy</a>.
+        <span data-bki18n="privacy">By confirming, you agree to receive a calendar invite at the email address provided. Your details are used solely to prepare for your call and are handled in accordance with our</span>
+        <a href="imprint.html" data-bki18n="privacy-link">privacy policy</a>.
       </p>
 
       <div class="step-actions">
-        <button class="btn btn-ghost" id="backTo3">← Back</button>
+        <button class="btn btn-ghost" id="backTo3"><span data-bki18n="btn-back">← Back</span></button>
         <button class="btn btn-primary" id="confirmBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Confirm booking
+          <span data-bki18n="btn-confirm">Confirm booking</span>
         </button>
       </div>
     </div>
@@ -439,20 +438,20 @@ body.modal-mode .form-row{gap:10px;margin-bottom:10px}
       <div class="success-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-      <h2 class="success-title">You're booked.</h2>
-      <p class="success-subtitle">A calendar invitation has been sent to <strong id="successEmail">you</strong>. You'll find the video call link inside the invite.</p>
+      <h2 class="success-title" data-bki18n="success-title">You're booked.</h2>
+      <p class="success-subtitle" id="success-sub-p">A calendar invitation has been sent to <strong id="successEmail">you</strong>. You'll find the video call link inside the invite.</p>
 
       <div class="success-card">
         <div class="success-card-time" id="successTime">—</div>
-        <div class="success-card-detail">30-minute discovery call · HansePay FX Specialist</div>
+        <div class="success-card-detail" data-bki18n="success-detail">30-minute discovery call · HansePay FX Specialist</div>
       </div>
 
       <div class="success-actions">
         <a class="success-meet-link" id="meetLinkBtn" href="#" target="_blank" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.361a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
-          Open Google Meet
+          <span data-bki18n="btn-meet">Open Google Meet</span>
         </a>
-        <a class="btn btn-ghost btn-full" href="index.html">← Back to HansePay</a>
+        <a class="btn btn-ghost btn-full" href="index.html" data-bki18n="btn-back-site">← Back to HansePay</a>
       </div>
     </div>
 
@@ -473,6 +472,193 @@ if (new URLSearchParams(window.location.search).get('modal') === '1') {
     document.body.classList.add('modal-mode');
   });
 }
+</script>
+<script>
+// ── i18n ─────────────────────────────────────────────────────────────────────
+var BK_TRANSLATIONS = {
+  en: {
+    'hero-eyebrow':   'Discovery Call',
+    'hero-h1':        'Talk to our<br><em>FX specialists.</em>',
+    'hero-sub':       '30 minutes. We map your payment flows and show you exactly what you\'d save moving to HansePay.',
+    'back-link':      'Back to hansepay.com',
+    'lbl1':'Date','lbl2':'Time','lbl3':'Details','lbl4':'Confirm',
+    'step1-title':    'Select a date',
+    'step1-sub':      'Monday – Friday · Europe/Berlin time · Next {days} days',
+    'step2-title':    'Select a time',
+    'step2-sub':      'Available 30-minute slots',
+    'step3-title':    'Your details',
+    'step3-sub':      'So we can prepare for your call.',
+    'lbl-fname':      'First name','lbl-lname':'Last name',
+    'lbl-email':      'Work email',
+    'lbl-company':    'Company','lbl-company-opt':'(optional)',
+    'lbl-role':       'Your role','lbl-role-opt':'(optional)',
+    'lbl-industry':   'Industry',
+    'lbl-size':       'Company size',
+    'lbl-volume':     'Monthly FX / cross-border volume',
+    'lbl-notes':      'Notes','lbl-notes-opt':'(optional)',
+    'ph-fname':       'Alex','ph-lname':'Mertens',
+    'ph-company':     'Meridian Trade GmbH',
+    'ph-role':        'CFO, Treasury Manager…',
+    'ph-notes':       'Anything you\'d like us to know before the call — currencies, current providers, pain points…',
+    'opt-select':     'Select…',
+    'opt-ind-0':      'eCommerce & Retail','opt-ind-1':'Manufacturing','opt-ind-2':'Logistics & Freight',
+    'opt-ind-3':      'Professional Services','opt-ind-4':'Financial Services','opt-ind-5':'Technology & SaaS',
+    'opt-ind-6':      'Healthcare & Pharma','opt-ind-7':'Real Estate','opt-ind-8':'Energy & Resources','opt-ind-9':'Other',
+    'opt-size-0':     '1 – 10 employees','opt-size-1':'11 – 50 employees','opt-size-2':'51 – 200 employees',
+    'opt-size-3':     '201 – 1,000 employees','opt-size-4':'1,000+ employees',
+    'opt-vol-0':      'Under €50k per month','opt-vol-1':'€50k – €200k per month',
+    'opt-vol-2':      '€200k – €500k per month','opt-vol-3':'€500k – €2M per month','opt-vol-4':'Over €2M per month',
+    'btn-continue':   'Continue','btn-back':'← Back',
+    'btn-review':     'Review booking','btn-confirm':'Confirm booking',
+    'step4-title':    'Confirm your booking',
+    'step4-sub':      'Review the details below, then confirm.',
+    'slot-meta':      '30 minutes · Video call · Europe/Berlin',
+    'privacy':        'By confirming, you agree to receive a calendar invite at the email address provided. Your details are used solely to prepare for your call and are handled in accordance with our',
+    'privacy-link':   'privacy policy',
+    'success-title':  'You\'re booked.',
+    'success-sub':    'A calendar invitation has been sent to {email}. You\'ll find the video call link inside the invite.',
+    'success-detail': '30-minute discovery call · HansePay FX Specialist',
+    'btn-meet':       'Open Google Meet',
+    'btn-back-site':  '← Back to HansePay',
+    'err-required':   'Required',
+    'err-email':      'Valid email required',
+    'err-industry':   'Please select an industry',
+    'err-size':       'Please select company size',
+    'err-volume':     'Please select your FX volume',
+    'err-submit':     'Something went wrong. Please try again.',
+    'err-network':    'Network error. Please check your connection and try again.',
+    'confirm-name':   'Name','confirm-email':'Email','confirm-company':'Company',
+    'confirm-role':   'Role','confirm-industry':'Industry','confirm-volume':'Volume',
+    'confirm-size':   'Size','confirm-notes':'Notes',
+    'months':         ['January','February','March','April','May','June','July','August','September','October','November','December'],
+    'days-short':     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    'days-long':      ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    'slots-sub':      '{day}, {date} {month} — available 30-minute slots',
+  },
+  de: {
+    'hero-eyebrow':   'Erstgespräch',
+    'hero-h1':        'Sprechen Sie mit unseren<br><em>FX-Experten.</em>',
+    'hero-sub':       '30 Minuten. Wir analysieren Ihre Zahlungsströme und zeigen Ihnen genau, was Sie mit HansePay sparen würden.',
+    'back-link':      'Zurück zu hansepay.de',
+    'lbl1':'Datum','lbl2':'Uhrzeit','lbl3':'Details','lbl4':'Bestätigen',
+    'step1-title':    'Datum wählen',
+    'step1-sub':      'Mo – Fr · Zeitzone Europa/Berlin · Nächste {days} Tage',
+    'step2-title':    'Uhrzeit wählen',
+    'step2-sub':      'Verfügbare 30-Minuten-Slots',
+    'step3-title':    'Ihre Angaben',
+    'step3-sub':      'Damit wir uns optimal vorbereiten können.',
+    'lbl-fname':      'Vorname','lbl-lname':'Nachname',
+    'lbl-email':      'Geschäftliche E-Mail',
+    'lbl-company':    'Unternehmen','lbl-company-opt':'(optional)',
+    'lbl-role':       'Ihre Rolle','lbl-role-opt':'(optional)',
+    'lbl-industry':   'Branche',
+    'lbl-size':       'Unternehmensgröße',
+    'lbl-volume':     'Monatliches FX-/Auslandszahlungsvolumen',
+    'lbl-notes':      'Anmerkungen','lbl-notes-opt':'(optional)',
+    'ph-fname':       'Max','ph-lname':'Mustermann',
+    'ph-company':     'Mustermann GmbH',
+    'ph-role':        'CFO, Treasury Manager…',
+    'ph-notes':       'Was sollen wir vor dem Gespräch wissen? Währungen, aktuelle Anbieter, Herausforderungen…',
+    'opt-select':     'Bitte wählen…',
+    'opt-ind-0':      'eCommerce & Einzelhandel','opt-ind-1':'Fertigung & Industrie','opt-ind-2':'Logistik & Spedition',
+    'opt-ind-3':      'Professional Services','opt-ind-4':'Finanzdienstleistungen','opt-ind-5':'Technologie & SaaS',
+    'opt-ind-6':      'Gesundheit & Pharma','opt-ind-7':'Immobilien','opt-ind-8':'Energie & Rohstoffe','opt-ind-9':'Sonstiges',
+    'opt-size-0':     '1 – 10 Mitarbeiter','opt-size-1':'11 – 50 Mitarbeiter','opt-size-2':'51 – 200 Mitarbeiter',
+    'opt-size-3':     '201 – 1.000 Mitarbeiter','opt-size-4':'1.000+ Mitarbeiter',
+    'opt-vol-0':      'Unter 50.000 € pro Monat','opt-vol-1':'50.000 – 200.000 € pro Monat',
+    'opt-vol-2':      '200.000 – 500.000 € pro Monat','opt-vol-3':      '500.000 € – 2 Mio. € pro Monat','opt-vol-4':'Über 2 Mio. € pro Monat',
+    'btn-continue':   'Weiter','btn-back':'← Zurück',
+    'btn-review':     'Buchung prüfen','btn-confirm':'Termin bestätigen',
+    'step4-title':    'Buchung bestätigen',
+    'step4-sub':      'Bitte prüfen Sie die Angaben und bestätigen Sie anschließend.',
+    'slot-meta':      '30 Minuten · Videoanruf · Europa/Berlin',
+    'privacy':        'Mit der Bestätigung erklären Sie sich einverstanden, eine Kalendereinladung an die angegebene E-Mail-Adresse zu erhalten. Ihre Daten werden ausschließlich zur Vorbereitung des Gesprächs verwendet und gemäß unserer',
+    'privacy-link':   'Datenschutzrichtlinie',
+    'success-title':  'Termin gebucht.',
+    'success-sub':    'Eine Kalendereinladung wurde an {email} gesendet. Den Link zum Videoanruf finden Sie in der Einladung.',
+    'success-detail': '30-minütiges Erstgespräch · HansePay FX-Experte',
+    'btn-meet':       'Google Meet öffnen',
+    'btn-back-site':  '← Zurück zu HansePay',
+    'err-required':   'Pflichtfeld',
+    'err-email':      'Bitte gültige E-Mail eingeben',
+    'err-industry':   'Bitte Branche auswählen',
+    'err-size':       'Bitte Unternehmensgröße auswählen',
+    'err-volume':     'Bitte FX-Volumen auswählen',
+    'err-submit':     'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+    'err-network':    'Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'confirm-name':   'Name','confirm-email':'E-Mail','confirm-company':'Unternehmen',
+    'confirm-role':   'Rolle','confirm-industry':'Branche','confirm-volume':'Volumen',
+    'confirm-size':   'Größe','confirm-notes':'Anmerkungen',
+    'months':         ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+    'days-short':     ['So','Mo','Di','Mi','Do','Fr','Sa'],
+    'days-long':      ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+    'slots-sub':      '{day}, {date}. {month} — verfügbare 30-Minuten-Slots',
+  }
+};
+
+var bkLang = (new URLSearchParams(window.location.search).get('lang') || 'de');
+
+function bkt(key, vars) {
+  var t = BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en;
+  var s = t[key] || BK_TRANSLATIONS.en[key] || key;
+  if (vars) Object.keys(vars).forEach(function(k){ s = s.replace('{'+k+'}', vars[k]); });
+  return s;
+}
+
+function applyBookingLang() {
+  var t = BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en;
+  document.documentElement.lang = bkLang;
+
+  // HTML elements with data-bki18n
+  document.querySelectorAll('[data-bki18n]').forEach(function(el) {
+    var key = el.getAttribute('data-bki18n');
+    if (key.endsWith('-html')) el.innerHTML = t[key.slice(0,-5)] || BK_TRANSLATIONS.en[key.slice(0,-5)] || '';
+    else el.textContent = t[key] || BK_TRANSLATIONS.en[key] || '';
+  });
+  // Placeholders
+  document.querySelectorAll('[data-bki18n-ph]').forEach(function(el) {
+    var key = el.getAttribute('data-bki18n-ph');
+    el.placeholder = t[key] || BK_TRANSLATIONS.en[key] || '';
+  });
+  // Select options via data-bki18n-opts="prefix"
+  document.querySelectorAll('[data-bki18n-opts]').forEach(function(sel) {
+    var prefix = sel.getAttribute('data-bki18n-opts');
+    var opts = sel.querySelectorAll('option');
+    opts.forEach(function(opt, i) {
+      if (i === 0) opt.textContent = t['opt-select'];
+      else { var k = prefix + '-' + (i-1); opt.textContent = t[k] || BK_TRANSLATIONS.en[k] || opt.textContent; }
+    });
+  });
+  // Error spans
+  var errMap = {'fg-firstName':'err-required','fg-lastName':'err-required','fg-email':'err-email',
+                'fg-industry':'err-industry','fg-companySize':'err-size','fg-fxVolume':'err-volume'};
+  Object.keys(errMap).forEach(function(fgId) {
+    var fg = document.getElementById(fgId);
+    if (fg) { var span = fg.querySelector('.form-error'); if (span) span.textContent = t[errMap[fgId]]; }
+  });
+  // Step2 subtitle if already set dynamically — update stored days label
+  var daysEl = document.getElementById('daysAheadLabel');
+  if (daysEl) {
+    var step1sub = document.getElementById('step1-sub');
+    if (step1sub) step1sub.innerHTML = t['step1-sub'].replace('{days}', '<span id="daysAheadLabel">' + daysEl.textContent + '</span>');
+  }
+}
+
+// Listen for language change from parent coming-soon page
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'setLang') {
+    bkLang = e.data.lang;
+    // Refresh arrays used in JS rendering
+    if (typeof MONTHS !== 'undefined') {
+      MONTHS = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en).months;
+      DAYS_SHORT = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-short'];
+      DAYS_LONG  = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-long'];
+    }
+    applyBookingLang();
+  }
+});
+
+document.addEventListener('DOMContentLoaded', applyBookingLang);
 </script>
 <script>
 (function(){
@@ -498,7 +684,10 @@ fetch('/api/booking/config').then(function(r){ return r.json(); }).then(function
 }).catch(function(){});
 
 // ── Calendar rendering ─────────────────────────────────────────
-var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// Use translated month/day names from i18n system
+var MONTHS = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en).months;
+var DAYS_SHORT = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-short'];
+var DAYS_LONG  = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-long'];
 var today = new Date();
 today.setHours(0,0,0,0);
 
@@ -636,9 +825,12 @@ document.getElementById('toStep2').addEventListener('click', function(){
   if(!state.selectedDate) return;
   var d = new Date(state.selectedDate + 'T12:00:00Z');
   var monthStr = MONTHS[d.getUTCMonth()];
-  var dayStr   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getUTCDay()];
+  MONTHS = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en).months;
+  DAYS_SHORT = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-short'];
+  DAYS_LONG  = (BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en)['days-long'];
+  var dayStr = DAYS_LONG[d.getUTCDay()];
   document.getElementById('step2Subtitle').textContent =
-    dayStr + ', ' + d.getUTCDate() + ' ' + monthStr + ' — available 30-minute slots';
+    bkt('slots-sub', { day: dayStr, date: d.getUTCDate(), month: MONTHS[d.getUTCMonth()] });
   goTo(2);
   loadSlots(state.selectedDate);
 });
@@ -722,23 +914,23 @@ function buildConfirmStep(){
   // Slot display
   var slotLabel = state.selectedSlot.label;
   var d = new Date(state.selectedDate + 'T12:00:00Z');
-  var dStr = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()] + ', ' +
+  var dStr = DAYS_SHORT[d.getUTCDay()] + ', ' +
              d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()].slice(0,3) + ' ' + d.getUTCFullYear();
   document.getElementById('confirmSlotTime').textContent = dStr + ' · ' + slotLabel;
 
   // Lead card
   var lead = state.lead;
   var rows = [
-    ['Name',     lead.firstName + ' ' + lead.lastName],
-    ['Email',    lead.email],
-    ['Company',  lead.company  || '—'],
-    ['Role',     lead.role     || '—'],
-    ['Industry', lead.industry],
-    ['Volume',   lead.fxVolume],
-    ['Size',     lead.companySize],
+    [bkt('confirm-name'),     lead.firstName + ' ' + lead.lastName],
+    [bkt('confirm-email'),    lead.email],
+    [bkt('confirm-company'),  lead.company  || '—'],
+    [bkt('confirm-role'),     lead.role     || '—'],
+    [bkt('confirm-industry'), lead.industry],
+    [bkt('confirm-volume'),   lead.fxVolume],
+    [bkt('confirm-size'),     lead.companySize],
   ];
   if(lead.notes){
-    rows.push(['Notes', lead.notes]);
+    rows.push([bkt('confirm-notes'), lead.notes]);
   }
   document.getElementById('confirmLeadCard').innerHTML = rows.map(function(r){
     return '<div class="confirm-lead-row"><span class="confirm-lead-key">' + r[0] + '</span>' +
@@ -777,10 +969,13 @@ document.getElementById('confirmBtn').addEventListener('click', function(){
 
     // Success!
     var d = new Date(state.selectedDate + 'T12:00:00Z');
-    var dStr = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getUTCDay()] + ', ' +
-               d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    var dStr = DAYS_LONG[d.getUTCDay()] + ', ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
     document.getElementById('successTime').textContent = dStr + ' · ' + state.selectedSlot.label;
     document.getElementById('successEmail').textContent = state.lead.email;
+    // Update success subtitle with email interpolated
+    document.getElementById('success-sub-p').innerHTML =
+      bkt('success-sub', { email: '' }).replace('{}','').replace('  ',' ').replace('{email}',
+        '<strong>' + state.lead.email + '</strong>');
 
     if(result.body.meetLink){
       var ml = document.getElementById('meetLinkBtn');
