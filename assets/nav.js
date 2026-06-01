@@ -1439,6 +1439,8 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'platform.h1.html':'Eine Plattform<br><em>für globale Zahlungen.</em>',
       'platform.transfers.h2.html':'Überall senden,<br><em>in Minuten.</em>',
       'platform.alerts.h2.html':'Keine Kurschance<br><em>mehr verpassen.</em>',
+      // converter hero
+      'conv.hero.h1.html':'Live Interbanken-Kurse <em>in 30+ Währungen weltweit.</em>',
       // common section tails HTML
       'gs.h2.html':'Eröffnen Sie Ihr Konto.',
     }
