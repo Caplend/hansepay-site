@@ -80,6 +80,26 @@ a { color: inherit; text-decoration: none; }
 .integration-input::placeholder { color:var(--ink3); }
 .coming-soon { font-size:0.75rem; font-weight:600; color:var(--ink3); background:#f3f4f6; padding:4px 10px; border-radius:var(--r-pill); }
 
+/* AVATAR PREVIEW */
+.avatar-row { display:flex; align-items:center; gap:14px; }
+.avatar-row input { flex:1; }
+.avatar-preview { width:40px; height:40px; border-radius:50%; background:var(--n500); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.875rem; font-weight:700; color:#fff; overflow:hidden; }
+.avatar-preview img { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+
+/* PASSWORD FIELD TOGGLE */
+.password-row { display:flex; align-items:center; gap:8px; }
+.password-row input { flex:1; }
+.btn-toggle { padding:8px 12px; background:transparent; border:1.5px solid rgba(11,25,41,0.1); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:600; color:var(--ink2); cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+.btn-toggle:hover { border-color:var(--n300); color:var(--n500); }
+
+/* KEY STATUS */
+.key-status { font-size:0.8125rem; color:var(--ink3); display:flex; align-items:center; gap:6px; margin-top:6px; }
+.key-status.saved { color:#166534; }
+
+/* SELECT */
+.field select { width:100%; padding:10px 13px; border:1.5px solid rgba(11,25,41,0.1); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.875rem; color:var(--ink); background:#fff; outline:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233D5A73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; transition:border-color 0.15s; }
+.field select:focus { border-color:var(--n300); box-shadow:0 0 0 3px rgba(59,123,196,0.08); }
+
 /* SAVE BAR */
 .save-bar { padding-top:8px; display:flex; align-items:center; gap:14px; }
 .btn-save { padding:12px 32px; background:var(--n500); color:#fff; border:none; border-radius:var(--r-pill); font-family:'Inter',sans-serif; font-size:0.9375rem; font-weight:600; cursor:pointer; transition:background 0.15s; }
@@ -166,6 +186,81 @@ a { color: inherit; text-decoration: none; }
 
   <div class="content">
     <h1 class="page-heading">Settings</h1>
+
+    <!-- My Profile -->
+    <div class="settings-card">
+      <div class="settings-card-title">My Profile</div>
+      <div class="settings-card-desc">Update how you appear on blog posts and across the admin.</div>
+      <div class="settings-divider"></div>
+
+      <div class="fields-row">
+        <div class="field">
+          <label for="p-name">Display Name</label>
+          <input type="text" id="p-name" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="p-role">Job Title / Role</label>
+          <input type="text" id="p-role" placeholder="e.g. Head of Sales" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="p-bio">Short Bio</label>
+        <textarea id="p-bio" rows="3" maxlength="200" placeholder="Brief description that appears on blog posts you author."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="p-avatar">Avatar URL</label>
+        <div class="avatar-row">
+          <input type="text" id="p-avatar" placeholder="https://..." oninput="updateAvatarPreview()" />
+          <div class="avatar-preview" id="avatar-preview-wrap">
+            <img id="avatar-preview-img" src="" alt="" style="display:none;" />
+            <span id="avatar-preview-initials">?</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="save-bar" style="padding-top:4px;">
+        <button class="btn-save" id="save-profile-btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+    <!-- AI Integration -->
+    <div class="settings-card">
+      <div class="settings-card-title">AI Integration</div>
+      <div class="settings-card-desc">Configure Claude AI to generate blog content. Your API key is stored securely and never exposed to the browser.</div>
+      <div class="settings-divider"></div>
+
+      <div class="field">
+        <label for="p-claude-key">Claude API Key</label>
+        <div class="password-row">
+          <input type="password" id="p-claude-key" placeholder="sk-ant-api03-..." autocomplete="off" />
+          <button type="button" class="btn-toggle" onclick="toggleKeyVisibility()">Show</button>
+        </div>
+        <div class="key-status" id="key-status"><span>No key saved</span></div>
+        <div style="font-size:0.8125rem;color:var(--ink3);margin-top:8px;line-height:1.5;">
+          Used to generate blog content with AI. Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--n400);text-decoration:underline;">console.anthropic.com</a>.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="p-ai-model">Model</label>
+        <select id="p-ai-model">
+          <option value="claude-opus-4-5">claude-opus-4-5</option>
+          <option value="claude-sonnet-4-5" selected>claude-sonnet-4-5</option>
+          <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="p-ai-prompt">System Prompt <span class="hint">(HansePay context)</span></label>
+        <textarea id="p-ai-prompt" rows="7">You are a content writer for HansePay, a B2B FX payments company based in Germany. HansePay helps European companies manage cross-border payments, foreign exchange, and treasury operations. You write SEO-optimised blog content that educates finance teams on FX topics and positions HansePay as a trusted, knowledgeable partner. Always write in a professional yet accessible tone. Include practical examples, comparison tables where relevant, and end with a CTA for HansePay's services.</textarea>
+      </div>
+
+      <div class="save-bar" style="padding-top:4px;">
+        <button class="btn-save" id="save-ai-btn" onclick="saveAiSettings()">Save AI Settings</button>
+      </div>
+    </div>
 
     <!-- Site Settings -->
     <div class="settings-card">
@@ -288,6 +383,146 @@ function populateForm(s) {
   if (s.postsPerPage !== undefined) document.getElementById('s-posts-per-page').value = s.postsPerPage || '';
   if (s.googleAnalyticsId !== undefined) document.getElementById('s-ga-id').value = s.googleAnalyticsId || '';
 }
+
+// ── Profile & AI helpers ─────────────────────────────────────
+
+function updateAvatarPreview() {
+  var url = document.getElementById('p-avatar').value.trim();
+  var img = document.getElementById('avatar-preview-img');
+  var initials = document.getElementById('avatar-preview-initials');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    initials.style.display = 'none';
+    img.onerror = function() {
+      img.style.display = 'none';
+      initials.style.display = '';
+    };
+  } else {
+    img.style.display = 'none';
+    initials.style.display = '';
+  }
+}
+
+function setKeyStatus(hasSavedKey) {
+  var el = document.getElementById('key-status');
+  if (hasSavedKey) {
+    el.className = 'key-status saved';
+    el.innerHTML = '<span>&#10003; API key saved</span>';
+    document.getElementById('p-claude-key').placeholder = '••••••••••• (saved)';
+  } else {
+    el.className = 'key-status';
+    el.innerHTML = '<span>No key saved</span>';
+  }
+}
+
+function toggleKeyVisibility() {
+  var input = document.getElementById('p-claude-key');
+  var btn = document.querySelector('.btn-toggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+// Load current user profile into form
+authFetch('/api/auth/me')
+  .then(function(r) {
+    if (!r.ok) return null;
+    return r.json();
+  })
+  .then(function(u) {
+    if (!u) return;
+    document.getElementById('p-name').value = u.name || '';
+    document.getElementById('p-role').value = u.role || '';
+    document.getElementById('p-bio').value = u.bio || '';
+    document.getElementById('p-avatar').value = u.avatarUrl || '';
+    updateAvatarPreview();
+    // Set initials in avatar preview
+    if (u.name) {
+      document.getElementById('avatar-preview-initials').textContent = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    }
+    // AI model preference & key status
+    if (u.aiModel) {
+      var sel = document.getElementById('p-ai-model');
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === u.aiModel) { sel.selectedIndex = i; break; }
+      }
+    }
+    if (u.aiSystemPrompt) {
+      document.getElementById('p-ai-prompt').value = u.aiSystemPrompt;
+    }
+    setKeyStatus(!!u.hasClaudeKey);
+  })
+  .catch(function() {});
+
+function saveProfile() {
+  var btn = document.getElementById('save-profile-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  var body = {
+    name: document.getElementById('p-name').value.trim(),
+    role: document.getElementById('p-role').value.trim(),
+    bio: document.getElementById('p-bio').value.trim(),
+    avatarUrl: document.getElementById('p-avatar').value.trim()
+  };
+
+  authFetch('/api/users/profile', { method: 'PUT', body: JSON.stringify(body) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || 'Save failed.');
+      // Update localStorage so sidebar/topbar reflect changes immediately
+      var stored = JSON.parse(localStorage.getItem('hp_user') || '{}');
+      stored.name = body.name || stored.name;
+      stored.role = body.role || stored.role;
+      stored.bio = body.bio;
+      stored.avatarUrl = body.avatarUrl;
+      localStorage.setItem('hp_user', JSON.stringify(stored));
+      // Update sidebar & topbar
+      var initials = (body.name || stored.name || '').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase() || 'A';
+      document.getElementById('sidebar-avatar').textContent = initials;
+      document.getElementById('topbar-avatar').textContent = initials;
+      document.getElementById('sidebar-name').textContent = body.name || stored.name;
+      document.getElementById('topbar-name').textContent = body.name || stored.name;
+      document.getElementById('avatar-preview-initials').textContent = initials;
+      showToast('Profile saved', 'success');
+    })
+    .catch(function(err) { showToast(err.message || 'Error saving profile.', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Save Profile'; });
+}
+
+function saveAiSettings() {
+  var btn = document.getElementById('save-ai-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  var keyVal = document.getElementById('p-claude-key').value.trim();
+  var body = {
+    aiModel: document.getElementById('p-ai-model').value,
+    aiSystemPrompt: document.getElementById('p-ai-prompt').value.trim()
+  };
+  // Only include claudeApiKey if the user actually typed something
+  if (keyVal) { body.claudeApiKey = keyVal; }
+
+  authFetch('/api/users/profile', { method: 'PUT', body: JSON.stringify(body) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || 'Save failed.');
+      if (keyVal) {
+        setKeyStatus(true);
+        document.getElementById('p-claude-key').value = '';
+      }
+      showToast('AI settings saved', 'success');
+    })
+    .catch(function(err) { showToast(err.message || 'Error saving AI settings.', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Save AI Settings'; });
+}
+
+// ── Site settings ────────────────────────────────────────────
 
 // Load settings on page load
 authFetch('/api/settings')

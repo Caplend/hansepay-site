@@ -73,6 +73,27 @@ a{color:inherit;text-decoration:none}
 .article-body th{background:var(--n050);font-weight:600;text-align:left;padding:10px 14px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink2);border-bottom:1px solid rgba(11,25,41,.1)}
 .article-body td{padding:10px 14px;border-bottom:1px solid rgba(11,25,41,.06);color:var(--ink2)}
 
+/* ── RICH BLOCKS (inserted by editor) ── */
+.article-body .callout{border-radius:var(--r-md);padding:16px 20px;margin:2em 0;font-size:16px;line-height:1.7}
+.article-body .callout-info{background:#eff6ff;border-left:4px solid #3b82f6;color:#1e3a8a}
+.article-body .callout-warning{background:#fffbeb;border-left:4px solid #f59e0b;color:#78350f}
+.article-body .callout-success{background:#f0fdf4;border-left:4px solid #22c55e;color:#14532d}
+.article-body .callout strong{font-weight:700}
+.article-body .cta-block{background:linear-gradient(135deg,var(--n800),var(--n600));border-radius:16px;padding:32px 36px;margin:2.5em 0;color:#fff}
+.article-body .cta-block strong{color:#fff;font-size:20px;font-weight:700;display:block;margin-bottom:8px}
+.article-body .cta-block a{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:var(--gold);color:var(--n800);font-weight:700;font-size:15px;padding:12px 24px;border-radius:var(--r-pill);text-decoration:none;transition:filter .18s}
+.article-body .cta-block a:hover{filter:brightness(1.08);text-decoration:none}
+.article-body .stat-block{background:var(--n050);border-radius:var(--r-lg);padding:28px 32px;margin:2em 0;text-align:center}
+.article-body .stat-number{display:block;font-family:var(--font-display);font-size:52px;font-weight:400;color:var(--n500);line-height:1}
+.article-body .stat-label{display:block;font-size:15px;color:var(--ink2);margin-top:8px}
+
+/* ── AUTHOR BIO ── */
+.author-bio{display:flex;align-items:flex-start;gap:18px;background:#fff;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);padding:24px;margin-top:3em}
+.author-bio-avatar{width:56px;height:56px;border-radius:50%;background:var(--n500);object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700;color:#fff}
+.author-bio-name{font-weight:700;font-size:16px;color:var(--ink);margin-bottom:2px}
+.author-bio-role{font-size:13px;color:var(--n400);font-weight:500;margin-bottom:8px}
+.author-bio-text{font-size:14px;color:var(--ink2);line-height:1.65}
+
 /* ── SIDEBAR ── */
 .article-sidebar{position:sticky;top:96px}
 .sidebar-card{background:#fff;border:1.5px solid rgba(11,25,41,.09);border-radius:var(--r-lg);padding:24px;box-shadow:0 2px 12px rgba(11,25,41,.06)}
@@ -203,9 +224,20 @@ a{color:inherit;text-decoration:none}
       }
     }
 
+    // Author bio block (shown when authorBio or authorRole is set)
+    const authorBioHTML = (post.authorBio || post.authorRole) ? (() => {
+      const name    = esc(post.author || post.authorName || 'HansePay Editorial');
+      const role    = esc(post.authorRole || '');
+      const bio     = esc(post.authorBio || '');
+      const avatar  = post.authorAvatar
+        ? `<img src="${esc(post.authorAvatar)}" alt="${name}" class="author-bio-avatar" onerror="this.outerHTML='<div class=\\'author-bio-avatar\\'>${name.charAt(0)}</div>'">`
+        : `<div class="author-bio-avatar">${name.charAt(0)}</div>`;
+      return `<div class="author-bio">${avatar}<div><div class="author-bio-name">${name}</div>${role ? `<div class="author-bio-role">${role}</div>` : ''}${bio ? `<div class="author-bio-text">${bio}</div>` : ''}</div></div>`;
+    })() : '';
+
     document.getElementById('articleBody').innerHTML = `
       <div class="article-layout">
-        <article class="article-body" id="articleContent">${bodyHTML || '<p>No content available.</p>'}</article>
+        <article class="article-body" id="articleContent">${bodyHTML || '<p>No content available.</p>'}${authorBioHTML}</article>
         <aside class="article-sidebar">
           <div class="sidebar-card">
             <p class="sidebar-label">Share</p>

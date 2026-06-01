@@ -108,7 +108,30 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
   const users = readData('users.json');
   const user = users.find(u => u.id === req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
-  const { passwordHash, ...userSafe } = user;
+  const { passwordHash, claudeApiKey, ...userSafe } = user;
+  // Tell the frontend whether a key is saved without exposing it
+  userSafe.hasClaudeKey = !!claudeApiKey;
+  res.json(userSafe);
+});
+
+// PUT /api/users/profile — let any authenticated user update their own profile
+app.put('/api/users/profile', authenticateToken, (req, res) => {
+  const users = readData('users.json');
+  const idx = users.findIndex(u => u.id === req.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+
+  const profileFields = ['name', 'role', 'bio', 'avatarUrl', 'aiModel', 'aiSystemPrompt'];
+  profileFields.forEach(k => {
+    if (req.body[k] !== undefined) users[idx][k] = req.body[k];
+  });
+  // Only overwrite API key if a non-empty value was sent
+  if (req.body.claudeApiKey && req.body.claudeApiKey.trim()) {
+    users[idx].claudeApiKey = req.body.claudeApiKey.trim();
+  }
+
+  writeData('users.json', users);
+  const { passwordHash, claudeApiKey, ...userSafe } = users[idx];
+  userSafe.hasClaudeKey = !!users[idx].claudeApiKey;
   res.json(userSafe);
 });
 
@@ -146,7 +169,7 @@ app.get('/api/posts', (req, res) => {
 
   const posts = readData('posts.json');
   const published = posts
-    .filter(p => p.status === 'published')
+    .filter(p => p.status === 'published' && p.showInListing !== false)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json(published);
 });
@@ -175,6 +198,8 @@ app.post('/api/posts', authenticateToken, (req, res) => {
   const author = users.find(u => u.id === req.user.id);
 
   const posts = readData('posts.json');
+  const { featured, readTime, showInListing,
+          authorRole, authorBio, authorAvatar, publishedAt } = req.body;
   const newPost = {
     id: 'post_' + uuidv4().replace(/-/g, '').substring(0, 8),
     title,
@@ -184,9 +209,16 @@ app.post('/api/posts', authenticateToken, (req, res) => {
     category: category || 'Uncategorised',
     tags: tags || [],
     status: status || 'draft',
+    featured: !!featured,
+    showInListing: showInListing !== false,
     featuredImage: featuredImage || null,
+    readTime: readTime || null,
     authorId: req.user.id,
-    authorName: author ? author.name : req.user.name,
+    author: req.body.author || (author ? author.name : req.user.name),
+    authorRole: authorRole || (author ? author.role : '') || '',
+    authorBio: authorBio || (author ? author.bio : '') || '',
+    authorAvatar: authorAvatar || (author ? author.avatarUrl : '') || '',
+    publishedAt: publishedAt || new Date().toISOString(),
     viewCount: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -202,7 +234,11 @@ app.put('/api/posts/:id', authenticateToken, (req, res) => {
   const idx = posts.findIndex(p => p.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Post not found' });
 
-  const allowed = ['title', 'slug', 'excerpt', 'content', 'category', 'tags', 'status', 'featuredImage'];
+  const allowed = [
+    'title', 'slug', 'excerpt', 'content', 'category', 'tags', 'status',
+    'featuredImage', 'featured', 'showInListing', 'readTime',
+    'author', 'authorRole', 'authorBio', 'authorAvatar', 'publishedAt',
+  ];
   allowed.forEach(k => {
     if (req.body[k] !== undefined) posts[idx][k] = req.body[k];
   });
@@ -276,6 +312,105 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, (req, res) => {
   users.splice(idx, 1);
   writeData('users.json', users);
   res.json({ success: true });
+});
+
+// ─── AI content generation ───────────────────────────────────────────────────
+
+app.post('/api/ai/generate-post', authenticateToken, async (req, res) => {
+  const users = readData('users.json');
+  const user  = users.find(u => u.id === req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+
+  if (!apiKey) {
+    return res.status(400).json({
+      error: 'No Claude API key configured. Add your key in Settings → AI Integration.',
+    });
+  }
+
+  const { topic, tone, length, sections } = req.body;
+  if (!topic) return res.status(400).json({ error: 'topic is required' });
+
+  const wordTargets = { short: 600, medium: 1200, long: 2500 };
+  const wordTarget  = wordTargets[length] || 1200;
+  const model       = user?.aiModel || 'claude-sonnet-4-5';
+
+  const defaultSystemPrompt = `You are a content writer for HansePay, a B2B FX payments company based in Germany. HansePay helps European companies manage cross-border payments, foreign exchange, and treasury operations. Write SEO-optimised blog content that educates finance teams and positions HansePay as a trusted, knowledgeable partner. Use a professional yet accessible tone, practical examples, comparison tables where relevant, and always end with a CTA for HansePay's services.`;
+  const systemPrompt = user?.aiSystemPrompt || defaultSystemPrompt;
+
+  const sectionList = Array.isArray(sections) ? sections : ['introduction', 'key-points', 'comparison', 'cta'];
+  const toneMap = { professional: 'professional and authoritative', conversational: 'conversational and engaging', technical: 'technical and precise', comparative: 'analytical and comparative' };
+  const toneStr = toneMap[tone] || 'professional';
+
+  const userPrompt = `Write a ${wordTarget}-word blog article about: "${topic}"
+
+Tone: ${toneStr}
+Required sections: ${sectionList.join(', ')}
+
+Format the article in Markdown:
+- Use ## for main headings, ### for sub-headings
+- Include a comparison table if comparing products/providers (use standard Markdown table syntax)
+- Use HTML callout divs for key tips:
+  <div class="callout callout-info"><strong>💡 Pro tip:</strong> ...</div>
+- End with a CTA block:
+  <div class="cta-block"><strong>Ready to optimise your FX costs?</strong><br>Book a free discovery call with a HansePay specialist — no commitment required.\n\n[Talk to our team →](booking.html)</div>
+- Write the full article body only (no meta description, no front matter)`;
+
+  // Set up SSE streaming
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key':         apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type':      'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 4096,
+        stream:     true,
+        system:     systemPrompt,
+        messages:   [{ role: 'user', content: userPrompt }],
+      }),
+    });
+
+    if (!anthropicRes.ok) {
+      const errBody = await anthropicRes.text();
+      res.write(`data: ${JSON.stringify({ error: 'Anthropic API error: ' + anthropicRes.status + ' ' + errBody.slice(0, 200) })}\n\n`);
+      return res.end();
+    }
+
+    const reader  = anthropicRes.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+            res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
+          }
+        } catch (_) {}
+      }
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('[ai] generate error:', err.message);
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.end();
+  }
 });
 
 // ─── Analytics routes ─────────────────────────────────────────────────────────
