@@ -16,8 +16,21 @@ const JWT_SECRET = 'hansepay-cms-secret-2024';
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
-// Ensure uploads directory exists
+// Ensure data & uploads directories exist
+if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR,    { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+// Seed data files from *.seed.json if the live file doesn't exist yet.
+// This runs on every cold start — if a Railway Volume is mounted at /app/data
+// the live file survives deploys; on a fresh volume the seed is copied in once.
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics'].forEach(name => {
+  const live = path.join(DATA_DIR, `${name}.json`);
+  const seed = path.join(DATA_DIR, `${name}.seed.json`);
+  if (!fs.existsSync(live) && fs.existsSync(seed)) {
+    fs.copyFileSync(seed, live);
+    console.log(`[seed] initialised ${name}.json from seed`);
+  }
+});
 
 // Multer — store uploads with original extension
 const storage = multer.diskStorage({

@@ -1,2 +1,11 @@
 node_modules/
 .DS_Store
+
+# Runtime data — persisted via Railway Volume at /app/data.
+# Seed files (*.seed.json) ARE committed; live files are not.
+data/users.json
+data/posts.json
+data/settings.json
+data/seo.json
+data/bookings.json
+data/analytics.json
