@@ -6,6 +6,7 @@
   "contactEmail": "hello@hansepay.com",
   "defaultAuthor": "HansePay Team",
   "postsPerPage": 9,
+  "comingSoonMode": true,
   "maintenanceMode": false,
   "googleAnalyticsId": ""
 }

@@ -76,6 +76,45 @@ app.set('trust proxy', 1);
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+// ── Coming Soon gate ─────────────────────────────────────────────────────────
+// Set PREVIEW_TOKEN env var in Railway (e.g. "hansepay2026").
+// Visiting /?preview=TOKEN grants a 30-day cookie to browse the full site.
+// Toggle comingSoonMode in Admin → Settings to go live instantly.
+app.use((req, res, next) => {
+  // Skip: API, admin panel, static assets, uploads
+  const skip = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
+  if (skip.some(p => req.path.startsWith(p))) return next();
+
+  const settings = readData('settings.json');
+  if (!settings.comingSoonMode) return next(); // Site is live — pass through
+
+  const previewToken = process.env.PREVIEW_TOKEN;
+
+  // If a token is supplied in the query string, set a 30-day cookie and redirect clean
+  if (previewToken && req.query.preview === previewToken) {
+    res.cookie('hp_preview', previewToken, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: req.protocol === 'https',
+    });
+    // Remove ?preview= from the URL so the link looks clean after clicking
+    const clean = req.path + (Object.keys(req.query).filter(k => k !== 'preview').length
+      ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(req.query).filter(([k]) => k !== 'preview'))).toString()
+      : '');
+    return res.redirect(302, clean);
+  }
+
+  // Check cookie
+  const cookieHeader = req.headers.cookie || '';
+  const cookieVal = cookieHeader.split(';').map(c => c.trim())
+    .find(c => c.startsWith('hp_preview='))?.split('=')[1];
+  if (previewToken && cookieVal === previewToken) return next();
+
+  // No valid token — serve coming soon page for all HTML routes
+  res.sendFile(path.join(__dirname, 'coming-soon.html'));
+});
+
 // Static files — files live at repo root in hansepay-deploy
 app.use(express.static(__dirname));
 // Also serve under /hansepay/ prefix for compatibility with landing page links
@@ -702,6 +741,14 @@ app.put('/api/settings', authenticateToken, requireAdmin, (req, res) => {
   const updated = Object.assign({}, current, req.body);
   writeData('settings.json', updated);
   res.json(updated);
+});
+
+// Returns the shareable preview URL (uses the request host so it works on any domain)
+app.get('/api/settings/preview-link', authenticateToken, requireAdmin, (req, res) => {
+  const token = process.env.PREVIEW_TOKEN;
+  if (!token) return res.json({ url: null });
+  const host = `${req.protocol}://${req.get('host')}`;
+  res.json({ url: `${host}/?preview=${token}` });
 });
 
 // ─── Booking routes ───────────────────────────────────────────────────────────

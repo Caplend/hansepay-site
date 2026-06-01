@@ -392,6 +392,27 @@ a { color: inherit; text-decoration: none; }
   </div>
 
   <div class="content">
+
+    <!-- Launch mode banner -->
+    <div id="launch-banner" style="display:none;background:#fff;border:1.5px solid rgba(11,25,41,.1);border-radius:14px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="launch-dot" style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;box-shadow:0 0 0 3px rgba(245,158,11,.15);"></div>
+        <div>
+          <div style="font-size:0.9375rem;font-weight:600;color:var(--n800);" id="launch-label">Coming Soon Mode — site is hidden</div>
+          <div style="font-size:0.8125rem;color:var(--ink3);margin-top:2px;" id="launch-sub">Public visitors see the coming soon page. Share the preview link to show the full site.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <button id="copy-preview-btn" onclick="copyPreviewLink()" style="padding:8px 16px;border-radius:100px;border:1.5px solid rgba(11,25,41,.12);background:transparent;font-family:'Inter',sans-serif;font-size:0.8125rem;font-weight:600;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy preview link
+        </button>
+        <button id="launch-toggle-btn" onclick="toggleLaunchMode()" style="padding:8px 20px;border-radius:100px;border:none;font-family:'Inter',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:all .15s;background:var(--n500);color:#fff;">
+          Go Live
+        </button>
+      </div>
+    </div>
+
     <!-- Stat cards -->
     <div class="stats-grid">
       <div class="stat-card">
@@ -596,6 +617,86 @@ authFetch('/api/posts?status=all')
     }).join('');
   })
   .catch(function() {});
+
+// ── Launch mode banner ────────────────────────────────────────────────────────
+var currentSettings = {};
+
+authFetch('/api/settings')
+  .then(function(r) { return r.json(); })
+  .then(function(s) {
+    currentSettings = s;
+    updateLaunchBanner(s.comingSoonMode);
+  })
+  .catch(function() {});
+
+function updateLaunchBanner(comingSoon) {
+  var banner = document.getElementById('launch-banner');
+  var dot    = document.getElementById('launch-dot');
+  var label  = document.getElementById('launch-label');
+  var sub    = document.getElementById('launch-sub');
+  var btn    = document.getElementById('launch-toggle-btn');
+  var copyBtn = document.getElementById('copy-preview-btn');
+  banner.style.display = 'flex';
+  if (comingSoon) {
+    dot.style.background = '#f59e0b';
+    dot.style.boxShadow  = '0 0 0 3px rgba(245,158,11,.15)';
+    label.textContent    = 'Coming Soon Mode — site is hidden from public';
+    sub.textContent      = 'Public visitors see the coming soon page. Share the preview link to show the full site.';
+    btn.textContent      = '🚀 Go Live';
+    btn.style.background = 'var(--n500)';
+    copyBtn.style.display = 'flex';
+  } else {
+    dot.style.background = '#22c55e';
+    dot.style.boxShadow  = '0 0 0 3px rgba(34,197,94,.15)';
+    label.textContent    = 'Site is Live';
+    sub.textContent      = 'The full site is publicly accessible at your domain.';
+    btn.textContent      = 'Switch to Coming Soon';
+    btn.style.background = '#6b7280';
+    copyBtn.style.display = 'none';
+  }
+}
+
+function toggleLaunchMode() {
+  var btn = document.getElementById('launch-toggle-btn');
+  btn.disabled = true;
+  var newMode = !currentSettings.comingSoonMode;
+  authFetch('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify(Object.assign({}, currentSettings, { comingSoonMode: newMode }))
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(s) {
+      currentSettings = s;
+      updateLaunchBanner(s.comingSoonMode);
+      var msg = s.comingSoonMode ? 'Coming Soon mode enabled.' : '🚀 Site is now live!';
+      showToast(msg);
+    })
+    .catch(function() { showToast('Failed to update.', 'error'); })
+    .finally(function() { btn.disabled = false; });
+}
+
+function copyPreviewLink() {
+  authFetch('/api/settings/preview-link')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.url) { showToast('Set a PREVIEW_TOKEN env var in Railway first.', 'error'); return; }
+      navigator.clipboard.writeText(d.url).then(function() {
+        var btn = document.getElementById('copy-preview-btn');
+        btn.innerHTML = '✓ Copied!';
+        setTimeout(function() {
+          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy preview link';
+        }, 2000);
+      });
+    });
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(function() { t.className = 'toast'; }, 3200);
+}
 </script>
 </body>
 </html>
