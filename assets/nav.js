@@ -805,7 +805,7 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       // index platform
       'index.platform.eyebrow':'Die Plattform',
       'index.platform.h2':'Was Ihr Treasury braucht — und nichts darüber hinaus.',
-      'index.platform.h2.html':'Was Ihr Treasury braucht — <em>und nichts darüber hinaus.</em>',
+      'index.platform.h2.html':'Was Ihr Treasury braucht — <em style="color:var(--n200)">und nichts darüber hinaus.</em>',
       'index.platform.sub':'Live-FX-Kurse, sofortige Zahlungen, vollständiger Prüfpfad — Ihr Finanzteam erhält ein übersichtliches Dashboard mit allem an einem Ort.',
       'index.platform.f1.title':'Live-FX-Kursstreaming',
       'index.platform.f1.desc':'Den echten Kurs mit einem Klick sichern. Spot, Forward oder geplant — Ihre Wahl.',
