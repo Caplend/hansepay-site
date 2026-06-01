@@ -59,6 +59,16 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 .mobile-menu-link:last-of-type,.mobile-menu-sub:last-of-type{border-bottom:none}
 .mobile-menu-cta{margin-top:16px}
 @media(max-width:768px){.nav-links{display:none}.nav-burger{display:flex}.nav-inner{justify-content:space-between}.nav-logo{margin-right:0}.nav-cta{display:none}}
+/* ── LANG TOGGLE ── */
+.nav-lang{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:3px;}
+nav.scrolled .nav-lang{background:rgba(11,25,41,.06);border-color:rgba(11,25,41,.12);}
+.nav-lang-btn{padding:4px 10px;border-radius:100px;border:none;font-family:var(--font-ui,sans-serif);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .18s ease;background:transparent;color:rgba(255,255,255,.45);}
+nav.scrolled .nav-lang-btn{color:rgba(11,25,41,.4);}
+.nav-lang-btn.active{background:rgba(255,255,255,.18);color:#fff;}
+nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
+.mobile-lang-toggle{display:flex;gap:6px;padding:16px 0 8px;border-top:1px solid rgba(255,255,255,.07);margin-top:4px;}
+.mobile-lang-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:transparent;font-family:var(--font-ui,sans-serif);font-size:13px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;}
+.mobile-lang-btn.active{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
 `;
     document.head.appendChild(st);
   }
@@ -75,19 +85,19 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 
       <!-- Platform -->
       <li class="nav-item">
-        <span class="nav-link">Platform
+        <span class="nav-link"><span data-i18n="nav.platform">Platform</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </span>
         <div class="nav-dropdown">
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">Platform</span>
+            <span class="nav-dropdown-label" data-i18n="nav.platform">Platform</span>
             <a href="platform.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Overview</div><div class="nav-dd-sub">See the full platform at a glance</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.overview">Overview</div><div class="nav-dd-sub" data-i18n="nav.platform.overview.sub">See the full platform at a glance</div></div>
             </a>
             <a href="platform-technology.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Technology</div><div class="nav-dd-sub">The infrastructure behind every transfer</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.tech">Technology</div><div class="nav-dd-sub" data-i18n="nav.platform.tech.sub">The infrastructure behind every transfer</div></div>
             </a>
           </div>
         </div>
@@ -95,35 +105,35 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 
       <!-- Solutions -->
       <li class="nav-item">
-        <span class="nav-link">Solutions
+        <span class="nav-link"><span data-i18n="nav.solutions">Solutions</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </span>
         <div class="nav-dropdown" style="width:300px">
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">By Industry</span>
+            <span class="nav-dropdown-label" data-i18n="nav.solutions.by-industry">By Industry</span>
             <a href="solutions-ecommerce.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">E-Commerce &amp; Retail</div><div class="nav-dd-sub">Supplier payments, bulk FX, emerging markets</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</div><div class="nav-dd-sub" data-i18n="nav.solutions.ecom.sub">Supplier payments, bulk FX, emerging markets</div></div>
             </a>
             <a href="solutions-manufacturing.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Import &amp; Manufacturing</div><div class="nav-dd-sub">Industrial FX, big-ticket execution, supply chain</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</div><div class="nav-dd-sub" data-i18n="nav.solutions.mfg.sub">Industrial FX, big-ticket execution, supply chain</div></div>
             </a>
             <a href="solutions-logistics.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Logistics &amp; Freight</div><div class="nav-dd-sub">Same-day execution, agent networks, maritime</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.log">Logistics &amp; Freight</div><div class="nav-dd-sub" data-i18n="nav.solutions.log.sub">Same-day execution, agent networks, maritime</div></div>
             </a>
           </div>
           <div class="nav-dropdown-sep"></div>
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">By Business Size</span>
+            <span class="nav-dropdown-label" data-i18n="nav.solutions.by-size">By Business Size</span>
             <a href="solutions-corporate.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Mid &amp; Large Business</div><div class="nav-dd-sub">Institutional pricing, named expert, &gt;€2M</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.corp">Mid &amp; Large Business</div><div class="nav-dd-sub" data-i18n="nav.solutions.corp.sub">Institutional pricing, named expert, &gt;€2M</div></div>
             </a>
             <a href="solutions-sme.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Small Business</div><div class="nav-dd-sub">No minimum volume, same-day, interbank rates</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.sme">Small Business</div><div class="nav-dd-sub" data-i18n="nav.solutions.sme.sub">No minimum volume, same-day, interbank rates</div></div>
             </a>
           </div>
         </div>
@@ -131,23 +141,23 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 
       <!-- About -->
       <li class="nav-item">
-        <span class="nav-link">About
+        <span class="nav-link"><span data-i18n="nav.about">About</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </span>
         <div class="nav-dropdown" style="width:270px">
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">About HansePay</span>
+            <span class="nav-dropdown-label" data-i18n="nav.about.label">About HansePay</span>
             <a href="about-vision.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Vision &amp; Mission</div><div class="nav-dd-sub">Why we built HansePay</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.vision">Vision &amp; Mission</div><div class="nav-dd-sub" data-i18n="nav.about.vision.sub">Why we built HansePay</div></div>
             </a>
             <a href="about-team.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Team &amp; History</div><div class="nav-dd-sub">Founders, advisors, offices &amp; milestones</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.team">Team &amp; History</div><div class="nav-dd-sub" data-i18n="nav.about.team.sub">Founders, advisors, offices &amp; milestones</div></div>
             </a>
             <a href="about-licenses.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Licenses</div><div class="nav-dd-sub">MiCAR, BaFin, GDPR, ISO 27001</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.licenses">Licenses</div><div class="nav-dd-sub" data-i18n="nav.about.licenses.sub">MiCAR, BaFin, GDPR, ISO 27001</div></div>
             </a>
           </div>
         </div>
@@ -155,39 +165,39 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 
       <!-- Insights -->
       <li class="nav-item">
-        <span class="nav-link">Insights
+        <span class="nav-link"><span data-i18n="nav.insights">Insights</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </span>
         <div class="nav-dropdown" style="width:270px">
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">Insights</span>
+            <span class="nav-dropdown-label" data-i18n="nav.insights">Insights</span>
             <a href="insights-stories.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Customer stories</div><div class="nav-dd-sub">Real customers. Real results.</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.stories">Customer stories</div><div class="nav-dd-sub" data-i18n="nav.insights.stories.sub">Real customers. Real results.</div></div>
             </a>
             <a href="insights-market.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Market insights</div><div class="nav-dd-sub">Currency analysis, weekly</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.market">Market insights</div><div class="nav-dd-sub" data-i18n="nav.insights.market.sub">Currency analysis, weekly</div></div>
             </a>
             <a href="events.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Events</div><div class="nav-dd-sub">Where to find us this season</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.events">Events</div><div class="nav-dd-sub" data-i18n="nav.insights.events.sub">Where to find us this season</div></div>
             </a>
           </div>
           <div class="nav-dropdown-sep"></div>
           <div class="nav-dropdown-section">
-            <span class="nav-dropdown-label">Free tools</span>
+            <span class="nav-dropdown-label" data-i18n="nav.tools.label">Free tools</span>
             <a href="tools-calculator.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">FX Savings Calculator</div><div class="nav-dd-sub">Estimate your annual saving</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.calc">FX Savings Calculator</div><div class="nav-dd-sub" data-i18n="nav.tools.calc.sub">Estimate your annual saving</div></div>
             </a>
             <a href="tools-converter.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">Currency Converter</div><div class="nav-dd-sub">Live mid-market rates</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.conv">Currency Converter</div><div class="nav-dd-sub" data-i18n="nav.tools.conv.sub">Live mid-market rates</div></div>
             </a>
             <a href="tools-iban.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title">IBAN Verifier</div><div class="nav-dd-sub">Validate format and bank details</div></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.iban">IBAN Verifier</div><div class="nav-dd-sub" data-i18n="nav.tools.iban.sub">Validate format and bank details</div></div>
             </a>
           </div>
         </div>
@@ -195,33 +205,41 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 
     </ul>
     <div class="nav-right">
-      <a href="index.html#contact" class="btn nav-cta">Open an account</a>
+      <div class="nav-lang" id="nav-lang-toggle">
+        <button class="nav-lang-btn active" id="nav-btn-de" onclick="HP.setLang('de')">DE</button>
+        <button class="nav-lang-btn" id="nav-btn-en" onclick="HP.setLang('en')">EN</button>
+      </div>
+      <a href="index.html#contact" class="btn nav-cta" data-i18n="nav.cta">Open an account</a>
       <button class="nav-burger" id="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
 <div class="mobile-menu" id="mobile-menu">
-  <a class="mobile-menu-link" href="index.html" onclick="closeMobileMenu()">Home</a>
-  <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()">Platform</a>
-  <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()">Technology</a>
-  <a class="mobile-menu-link" href="solutions-ecommerce.html" onclick="closeMobileMenu()">Solutions</a>
-  <a class="mobile-menu-sub" href="solutions-ecommerce.html" onclick="closeMobileMenu()">E-Commerce &amp; Retail</a>
-  <a class="mobile-menu-sub" href="solutions-manufacturing.html" onclick="closeMobileMenu()">Import &amp; Manufacturing</a>
-  <a class="mobile-menu-sub" href="solutions-logistics.html" onclick="closeMobileMenu()">Logistics &amp; Freight</a>
-  <a class="mobile-menu-sub" href="solutions-corporate.html" onclick="closeMobileMenu()">Mid &amp; Large Business</a>
-  <a class="mobile-menu-sub" href="solutions-sme.html" onclick="closeMobileMenu()">Small Business</a>
-  <a class="mobile-menu-link" href="about-vision.html" onclick="closeMobileMenu()">About</a>
-  <a class="mobile-menu-sub" href="about-vision.html" onclick="closeMobileMenu()">Vision &amp; Mission</a>
-  <a class="mobile-menu-sub" href="about-team.html" onclick="closeMobileMenu()">Team &amp; History</a>
-  <a class="mobile-menu-sub" href="about-licenses.html" onclick="closeMobileMenu()">Licenses</a>
-  <a class="mobile-menu-link" href="insights-stories.html" onclick="closeMobileMenu()">Insights</a>
-  <a class="mobile-menu-sub" href="insights-stories.html" onclick="closeMobileMenu()">Customer stories</a>
-  <a class="mobile-menu-sub" href="insights-market.html" onclick="closeMobileMenu()">Market insights</a>
-  <a class="mobile-menu-sub" href="events.html" onclick="closeMobileMenu()">Events</a>
-  <a class="mobile-menu-sub" href="tools-calculator.html" onclick="closeMobileMenu()">FX Savings Calculator</a>
-  <a class="mobile-menu-sub" href="tools-converter.html" onclick="closeMobileMenu()">Currency Converter</a>
-  <a class="mobile-menu-sub" href="tools-iban.html" onclick="closeMobileMenu()">IBAN Verifier</a>
-  <a href="index.html#contact" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()">Open an account</a>
+  <a class="mobile-menu-link" href="index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
+  <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
+  <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
+  <a class="mobile-menu-link" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions">Solutions</a>
+  <a class="mobile-menu-sub" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</a>
+  <a class="mobile-menu-sub" href="solutions-manufacturing.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</a>
+  <a class="mobile-menu-sub" href="solutions-logistics.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.log">Logistics &amp; Freight</a>
+  <a class="mobile-menu-sub" href="solutions-corporate.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.corp">Mid &amp; Large Business</a>
+  <a class="mobile-menu-sub" href="solutions-sme.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.sme">Small Business</a>
+  <a class="mobile-menu-link" href="about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about">About</a>
+  <a class="mobile-menu-sub" href="about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about.vision">Vision &amp; Mission</a>
+  <a class="mobile-menu-sub" href="about-team.html" onclick="closeMobileMenu()" data-i18n="nav.about.team">Team &amp; History</a>
+  <a class="mobile-menu-sub" href="about-licenses.html" onclick="closeMobileMenu()" data-i18n="nav.about.licenses">Licenses</a>
+  <a class="mobile-menu-link" href="insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights">Insights</a>
+  <a class="mobile-menu-sub" href="insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights.stories">Customer stories</a>
+  <a class="mobile-menu-sub" href="insights-market.html" onclick="closeMobileMenu()" data-i18n="nav.insights.market">Market insights</a>
+  <a class="mobile-menu-sub" href="events.html" onclick="closeMobileMenu()" data-i18n="nav.insights.events">Events</a>
+  <a class="mobile-menu-sub" href="tools-calculator.html" onclick="closeMobileMenu()" data-i18n="nav.tools.calc">FX Savings Calculator</a>
+  <a class="mobile-menu-sub" href="tools-converter.html" onclick="closeMobileMenu()" data-i18n="nav.tools.conv">Currency Converter</a>
+  <a class="mobile-menu-sub" href="tools-iban.html" onclick="closeMobileMenu()" data-i18n="nav.tools.iban">IBAN Verifier</a>
+  <a href="index.html#contact" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()" data-i18n="nav.cta">Open an account</a>
+  <div class="mobile-lang-toggle">
+    <button class="mobile-lang-btn active" id="mob-btn-de" onclick="HP.setLang('de')">DE</button>
+    <button class="mobile-lang-btn" id="mob-btn-en" onclick="HP.setLang('en')">EN</button>
+  </div>
 </div>
 `;
 
@@ -517,4 +535,218 @@ nav.scrolled .nav-burger span{background:var(--n700)}
     closeMobileMenu();
     openBookingModal();
   });
+
+  // ── i18n engine ──────────────────────────────────────────────────────────────
+  var HP_DICT = {
+    en: {
+      // Nav
+      'nav.home':'Home','nav.platform':'Platform','nav.solutions':'Solutions',
+      'nav.about':'About','nav.insights':'Insights','nav.cta':'Open an account',
+      'nav.platform.overview':'Overview','nav.platform.overview.sub':'See the full platform at a glance',
+      'nav.platform.tech':'Technology','nav.platform.tech.sub':'The infrastructure behind every transfer',
+      'nav.solutions.by-industry':'By Industry','nav.solutions.by-size':'By Business Size',
+      'nav.solutions.ecom':'E-Commerce & Retail','nav.solutions.ecom.sub':'Supplier payments, bulk FX, emerging markets',
+      'nav.solutions.mfg':'Import & Manufacturing','nav.solutions.mfg.sub':'Industrial FX, big-ticket execution, supply chain',
+      'nav.solutions.log':'Logistics & Freight','nav.solutions.log.sub':'Same-day execution, agent networks, maritime',
+      'nav.solutions.corp':'Mid & Large Business','nav.solutions.corp.sub':'Institutional pricing, named expert, >€2M',
+      'nav.solutions.sme':'Small Business','nav.solutions.sme.sub':'No minimum volume, same-day, interbank rates',
+      'nav.about.label':'About HansePay',
+      'nav.about.vision':'Vision & Mission','nav.about.vision.sub':'Why we built HansePay',
+      'nav.about.team':'Team & History','nav.about.team.sub':'Founders, advisors, offices & milestones',
+      'nav.about.licenses':'Licenses','nav.about.licenses.sub':'MiCAR, BaFin, GDPR, ISO 27001',
+      'nav.insights.stories':'Customer stories','nav.insights.stories.sub':'Real customers. Real results.',
+      'nav.insights.market':'Market insights','nav.insights.market.sub':'Currency analysis, weekly',
+      'nav.insights.events':'Events','nav.insights.events.sub':'Where to find us this season',
+      'nav.tools.label':'Free tools',
+      'nav.tools.calc':'FX Savings Calculator','nav.tools.calc.sub':'Estimate your annual saving',
+      'nav.tools.conv':'Currency Converter','nav.tools.conv.sub':'Live mid-market rates',
+      'nav.tools.iban':'IBAN Verifier','nav.tools.iban.sub':'Validate format and bank details',
+      // Common CTAs
+      'cta.open-account':'Open an account','cta.book-call':'Book a call',
+      'cta.learn-more':'Learn more','cta.get-started':'Get started',
+      'cta.talk-to-team':'Talk to our team','cta.back-to-site':'← Back to HansePay',
+      // index.html
+      'index.chip':'EU-regulated · Hamburg',
+      'index.hero.sub':'Send money in 30+ currencies at the real interbank rate — no markups, no surprises. Faster settlement, lower costs, every time.',
+      'index.hero.cta1':'Open an account','index.hero.cta2':'Book a call',
+      'index.trust.bafin':'EU-regulated','index.trust.rates':'Mid-market rates',
+      'index.trust.speed':'Same-day settlement','index.trust.experts':'Dedicated FX expert',
+      'index.features.label':'Features','index.features.h2':'Everything your treasury needs.',
+      'index.how.label':'How it works','index.how.h2':'Up and running in minutes.',
+      'index.calc.label':'FX Calculator','index.calc.h2':'See what you could save.',
+      'index.gs.h2':'Open your account.','index.gs.sub':'Start sending money in minutes, or talk to us about your use case.',
+      // tools-calculator.html
+      'calc.chip':'FX Savings Calculator','calc.h1.1':'See what you could save','calc.h1.2':'in under 30 seconds.',
+      'calc.sub':'Set your volume, currency, and provider below. These are estimates based on industry-standard margins.',
+      // tools-converter.html
+      'conv.chip':'Live Currency Converter','conv.h1':'Real rates,','conv.h1.em':'right now.',
+      'conv.sub':'Mid-market exchange rates updated every 60 seconds. No markup, no hidden fees.',
+      // tools-iban.html
+      'iban.chip':'IBAN Verifier','iban.h1':'Validate any IBAN,','iban.h1.em':'instantly.',
+      'iban.sub':'Check format, extract BIC, and verify bank details for 77 countries.',
+      // tools.html
+      'tools.chip':'Free Tools','tools.h1':'Tools built for','tools.h1.em':'finance teams.',
+      'tools.sub':'Free, no sign-up required. Built by payments professionals.',
+      // blog.html
+      'blog.h1':'HansePay Insights.','blog.sub':'FX education, market analysis, and treasury best practices.',
+      // about-vision.html
+      'vision.chip':'Vision & Mission','vision.h1':'Why we built','vision.h1.em':'HansePay.',
+      // about-team.html
+      'team.chip':'Our Team','team.h1':'The people behind','team.h1.em':'HansePay.',
+      // about-licenses.html
+      'licenses.chip':'Regulation & Compliance','licenses.h1':'Built on a foundation of','licenses.h1.em':'trust.',
+      // solutions
+      'sol-ecom.chip':'Solutions · E-Commerce','sol-ecom.h1':'FX built for','sol-ecom.h1.em':'online retail.',
+      'sol-mfg.chip':'Solutions · Manufacturing','sol-mfg.h1':'FX for import &','sol-mfg.h1.em':'manufacturing.',
+      'sol-log.chip':'Solutions · Logistics','sol-log.h1':'FX for logistics &','sol-log.h1.em':'freight.',
+      'sol-corp.chip':'Solutions · Corporate','sol-corp.h1':'FX for mid &','sol-corp.h1.em':'large business.',
+      'sol-sme.chip':'Solutions · SME','sol-sme.h1':'FX for','sol-sme.h1.em':'small business.',
+      // platform
+      'platform.chip':'Platform Overview','platform.h1':'The payment platform','platform.h1.em':'built for business.',
+      'platform-tech.chip':'Technology','platform-tech.h1':'Infrastructure you can','platform-tech.h1.em':'rely on.',
+      // partners
+      'partners-embed.chip':'Embedded FX','partners-embed.h1':'Embed HansePay into','partners-embed.h1.em':'your product.',
+      'partners-partner.chip':'Partner Programme','partners-partner.h1':'Grow together','partners-partner.h1.em':'with HansePay.',
+      'partners-refer.chip':'Referral Programme','partners-refer.h1':'Refer a business,','partners-refer.h1.em':'earn a reward.',
+      'partners-resell.chip':'Reseller Programme','partners-resell.h1':'Resell HansePay','partners-resell.h1.em':'to your clients.',
+      // insights
+      'stories.chip':'Customer Stories','stories.h1':'Real customers.','stories.h1.em':'Real results.',
+      'market.chip':'Market Insights','market.h1':'Weekly FX','market.h1.em':'analysis.',
+      'events.chip':'Events','events.h1':'Meet us','events.h1.em':'in person.',
+      // common section tails
+      'gs.h2':'Open your account.','gs.sub':'Start sending money in minutes, or talk to us about your use case.',
+    },
+    de: {
+      // Nav
+      'nav.home':'Startseite','nav.platform':'Plattform','nav.solutions':'Lösungen',
+      'nav.about':'Über uns','nav.insights':'Einblicke','nav.cta':'Konto eröffnen',
+      'nav.platform.overview':'Übersicht','nav.platform.overview.sub':'Die gesamte Plattform auf einen Blick',
+      'nav.platform.tech':'Technologie','nav.platform.tech.sub':'Die Infrastruktur hinter jeder Überweisung',
+      'nav.solutions.by-industry':'Nach Branche','nav.solutions.by-size':'Nach Unternehmensgröße',
+      'nav.solutions.ecom':'E-Commerce & Einzelhandel','nav.solutions.ecom.sub':'Lieferantenzahlungen, FX-Volumen, Schwellenmärkte',
+      'nav.solutions.mfg':'Import & Produktion','nav.solutions.mfg.sub':'Industrielles FX, Großaufträge, Lieferkette',
+      'nav.solutions.log':'Logistik & Fracht','nav.solutions.log.sub':'Same-Day-Ausführung, Agentennetzwerke, Schifffahrt',
+      'nav.solutions.corp':'Mittelstand & Konzerne','nav.solutions.corp.sub':'Institutionelle Konditionen, persönlicher Experte, >2 Mio. €',
+      'nav.solutions.sme':'Kleinunternehmen','nav.solutions.sme.sub':'Kein Mindestvolumen, Same-Day, Interbanken-Kurs',
+      'nav.about.label':'Über HansePay',
+      'nav.about.vision':'Vision & Mission','nav.about.vision.sub':'Warum wir HansePay gegründet haben',
+      'nav.about.team':'Team & Geschichte','nav.about.team.sub':'Gründer, Berater, Standorte & Meilensteine',
+      'nav.about.licenses':'Lizenzen','nav.about.licenses.sub':'MiCAR, BaFin, DSGVO, ISO 27001',
+      'nav.insights.stories':'Kundenstories','nav.insights.stories.sub':'Echte Kunden. Echte Ergebnisse.',
+      'nav.insights.market':'Marktanalysen','nav.insights.market.sub':'Währungsanalysen, wöchentlich',
+      'nav.insights.events':'Veranstaltungen','nav.insights.events.sub':'Wo Sie uns diese Saison finden',
+      'nav.tools.label':'Kostenlose Tools',
+      'nav.tools.calc':'FX-Sparrechner','nav.tools.calc.sub':'Schätzen Sie Ihre jährliche Ersparnis',
+      'nav.tools.conv':'Währungsrechner','nav.tools.conv.sub':'Live Interbanken-Kurse',
+      'nav.tools.iban':'IBAN-Prüfer','nav.tools.iban.sub':'Format und Bankdaten validieren',
+      // Common CTAs
+      'cta.open-account':'Konto eröffnen','cta.book-call':'Gespräch buchen',
+      'cta.learn-more':'Mehr erfahren','cta.get-started':'Jetzt starten',
+      'cta.talk-to-team':'Mit unserem Team sprechen','cta.back-to-site':'← Zurück zu HansePay',
+      // index.html
+      'index.chip':'EU-reguliert · Hamburg',
+      'index.hero.sub':'Überweisungen in über 30 Währungen — zum echten Interbanken-Kurs, ohne versteckte Aufschläge. Schneller als Ihre Bank, günstiger als jede Alternative.',
+      'index.hero.cta1':'Konto eröffnen','index.hero.cta2':'Gespräch buchen',
+      'index.trust.bafin':'EU-reguliert','index.trust.rates':'Interbanken-Kurs',
+      'index.trust.speed':'Same-Day-Abwicklung','index.trust.experts':'Persönlicher FX-Experte',
+      'index.features.label':'Funktionen','index.features.h2':'Alles, was Ihr Treasury braucht.',
+      'index.how.label':'So funktioniert es','index.how.h2':'In Minuten einsatzbereit.',
+      'index.calc.label':'FX-Rechner','index.calc.h2':'Sehen Sie, was Sie sparen könnten.',
+      'index.gs.h2':'Eröffnen Sie Ihr Konto.','index.gs.sub':'In Minuten loslegen oder mit uns über Ihren Anwendungsfall sprechen.',
+      // tools
+      'calc.chip':'FX-Sparrechner','calc.h1.1':'Sehen Sie, was Sie sparen','calc.h1.2':'in unter 30 Sekunden.',
+      'calc.sub':'Geben Sie Ihr Volumen, Ihre Währung und Ihren aktuellen Anbieter ein. Schätzungen basieren auf branchenüblichen Margen.',
+      'conv.chip':'Live-Währungsrechner','conv.h1':'Echte Kurse,','conv.h1.em':'jetzt.',
+      'conv.sub':'Interbanken-Wechselkurse, alle 60 Sekunden aktualisiert. Kein Aufschlag, keine versteckten Gebühren.',
+      'iban.chip':'IBAN-Prüfer','iban.h1':'Jede IBAN validieren,','iban.h1.em':'sofort.',
+      'iban.sub':'Format prüfen, BIC extrahieren und Bankdaten für 77 Länder verifizieren.',
+      'tools.chip':'Kostenlose Tools','tools.h1':'Tools für','tools.h1.em':'Finance-Teams.',
+      'tools.sub':'Kostenlos, keine Anmeldung erforderlich. Entwickelt von Zahlungsprofis.',
+      // blog
+      'blog.h1':'HansePay Einblicke.','blog.sub':'FX-Wissen, Marktanalysen und Treasury Best Practices.',
+      // about
+      'vision.chip':'Vision & Mission','vision.h1':'Warum wir','vision.h1.em':'HansePay gründeten.',
+      'team.chip':'Unser Team','team.h1':'Die Menschen hinter','team.h1.em':'HansePay.',
+      'licenses.chip':'Regulierung & Compliance','licenses.h1':'Auf einem Fundament des','licenses.h1.em':'Vertrauens.',
+      // solutions
+      'sol-ecom.chip':'Lösungen · E-Commerce','sol-ecom.h1':'FX für','sol-ecom.h1.em':'Online-Handel.',
+      'sol-mfg.chip':'Lösungen · Produktion','sol-mfg.h1':'FX für Import &','sol-mfg.h1.em':'Produktion.',
+      'sol-log.chip':'Lösungen · Logistik','sol-log.h1':'FX für Logistik &','sol-log.h1.em':'Fracht.',
+      'sol-corp.chip':'Lösungen · Konzerne','sol-corp.h1':'FX für Mittelstand &','sol-corp.h1.em':'Konzerne.',
+      'sol-sme.chip':'Lösungen · KMU','sol-sme.h1':'FX für','sol-sme.h1.em':'Kleinunternehmen.',
+      // platform
+      'platform.chip':'Plattform-Übersicht','platform.h1':'Die Zahlungsplattform','platform.h1.em':'für Unternehmen.',
+      'platform-tech.chip':'Technologie','platform-tech.h1':'Infrastruktur, auf die','platform-tech.h1.em':'Sie sich verlassen können.',
+      // partners
+      'partners-embed.chip':'Embedded FX','partners-embed.h1':'HansePay in Ihr','partners-embed.h1.em':'Produkt einbetten.',
+      'partners-partner.chip':'Partnerprogramm','partners-partner.h1':'Gemeinsam wachsen','partners-partner.h1.em':'mit HansePay.',
+      'partners-refer.chip':'Empfehlungsprogramm','partners-refer.h1':'Empfehlen und','partners-refer.h1.em':'Prämie erhalten.',
+      'partners-resell.chip':'Reseller-Programm','partners-resell.h1':'HansePay weiterverkaufen','partners-resell.h1.em':'an Ihre Kunden.',
+      // insights
+      'stories.chip':'Kundenstories','stories.h1':'Echte Kunden.','stories.h1.em':'Echte Ergebnisse.',
+      'market.chip':'Marktanalysen','market.h1':'Wöchentliche FX-','market.h1.em':'Analyse.',
+      'events.chip':'Veranstaltungen','events.h1':'Treffen Sie uns','events.h1.em':'persönlich.',
+      // common section tails
+      'gs.h2':'Eröffnen Sie Ihr Konto.','gs.sub':'In Minuten loslegen oder mit uns über Ihren Anwendungsfall sprechen.',
+    }
+  };
+
+  window.HP = {
+    lang: 'de',
+    t: function(key) {
+      var d = HP_DICT[window.HP.lang] || HP_DICT.en;
+      return d[key] !== undefined ? d[key] : (HP_DICT.en[key] || key);
+    },
+    setLang: function(lang) {
+      window.HP.lang = lang;
+      try { localStorage.setItem('hp_lang', lang); } catch(e) {}
+      document.documentElement.lang = lang;
+      // Toggle button states
+      ['de','en'].forEach(function(l) {
+        var nb = document.getElementById('nav-btn-' + l);
+        var mb = document.getElementById('mob-btn-' + l);
+        if (nb) nb.classList.toggle('active', l === lang);
+        if (mb) mb.classList.toggle('active', l === lang);
+      });
+      window.HP.apply();
+      // Notify booking iframe if open
+      var iframe = document.getElementById('hp-bm-iframe');
+      if (iframe && iframe.src && iframe.contentWindow) {
+        try { iframe.contentWindow.postMessage({ type: 'setLang', lang: lang }, '*'); } catch(ex) {}
+      }
+    },
+    apply: function() {
+      var t = window.HP.t.bind(window.HP);
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        var val = t(key);
+        if (val !== key) el.textContent = val;
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-html');
+        var val = t(key);
+        if (val !== key) el.innerHTML = val;
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n-ph');
+        var val = t(key);
+        if (val !== key) el.placeholder = val;
+      });
+    }
+  };
+
+  // Init language from localStorage, default DE
+  (function() {
+    var saved = null;
+    try { saved = localStorage.getItem('hp_lang'); } catch(e) {}
+    window.HP.lang = (saved === 'en') ? 'en' : 'de';
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        window.HP.setLang(window.HP.lang);
+      });
+    } else {
+      window.HP.setLang(window.HP.lang);
+    }
+  })();
+
 })();
