@@ -99,6 +99,7 @@ app.use((req, res, next) => {
   // Skip: API, admin panel, static assets, uploads, and legal pages
   const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
+                     '/booking.html', '/hansepay/booking.html',
                      '/hansepay/imprint.html', '/hansepay/cookie-policy.html'];
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
   if (skipExact.includes(req.path)) return next();
