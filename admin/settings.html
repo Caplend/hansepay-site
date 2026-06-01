@@ -81,10 +81,12 @@ a { color: inherit; text-decoration: none; }
 .coming-soon { font-size:0.75rem; font-weight:600; color:var(--ink3); background:#f3f4f6; padding:4px 10px; border-radius:var(--r-pill); }
 
 /* AVATAR PREVIEW */
-.avatar-row { display:flex; align-items:center; gap:14px; }
-.avatar-row input { flex:1; }
-.avatar-preview { width:40px; height:40px; border-radius:50%; background:var(--n500); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.875rem; font-weight:700; color:#fff; overflow:hidden; }
+.avatar-row { display:flex; align-items:flex-start; gap:14px; }
+.avatar-preview { width:48px; height:48px; border-radius:50%; background:var(--n500); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.875rem; font-weight:700; color:#fff; overflow:hidden; margin-top:4px; }
 .avatar-preview img { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+.btn-upload-avatar { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:transparent; border:1.5px solid rgba(11,25,41,0.15); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.8125rem; font-weight:600; color:var(--ink2); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.btn-upload-avatar:hover { border-color:var(--n300); color:var(--n500); background:rgba(11,25,41,0.03); }
+.btn-upload-avatar:disabled { opacity:0.5; cursor:not-allowed; }
 
 /* PASSWORD FIELD TOGGLE */
 .password-row { display:flex; align-items:center; gap:8px; }
@@ -210,9 +212,19 @@ a { color: inherit; text-decoration: none; }
       </div>
 
       <div class="field">
-        <label for="p-avatar">Avatar URL</label>
+        <label for="p-avatar">Avatar <span class="hint">Upload a photo or paste a URL</span></label>
         <div class="avatar-row">
-          <input type="text" id="p-avatar" placeholder="https://..." oninput="updateAvatarPreview()" />
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="file" id="p-avatar-file" accept="image/*" style="display:none;" onchange="uploadAvatarFile(this)" />
+              <button type="button" class="btn-upload-avatar" id="avatar-upload-btn" onclick="document.getElementById('p-avatar-file').click()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload photo
+              </button>
+              <span id="avatar-upload-status" style="font-size:0.8rem;color:var(--ink3);display:none;">Uploading…</span>
+            </div>
+            <input type="text" id="p-avatar" placeholder="https://..." oninput="updateAvatarPreview()" style="font-size:0.8125rem;" />
+          </div>
           <div class="avatar-preview" id="avatar-preview-wrap">
             <img id="avatar-preview-img" src="" alt="" style="display:none;" />
             <span id="avatar-preview-initials">?</span>
@@ -385,6 +397,38 @@ function populateForm(s) {
 }
 
 // ── Profile & AI helpers ─────────────────────────────────────
+
+async function uploadAvatarFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var btn = document.getElementById('avatar-upload-btn');
+  var status = document.getElementById('avatar-upload-status');
+  btn.disabled = true;
+  status.style.display = 'inline';
+  status.textContent = 'Uploading…';
+  try {
+    var token = localStorage.getItem('hp_token');
+    var fd = new FormData();
+    fd.append('image', file);
+    var res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: fd
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    var data = await res.json();
+    document.getElementById('p-avatar').value = data.url;
+    updateAvatarPreview();
+    status.textContent = 'Uploaded!';
+    setTimeout(function() { status.style.display = 'none'; }, 2000);
+  } catch(e) {
+    status.textContent = 'Upload failed';
+    setTimeout(function() { status.style.display = 'none'; }, 3000);
+  } finally {
+    btn.disabled = false;
+    input.value = '';
+  }
+}
 
 function updateAvatarPreview() {
   var url = document.getElementById('p-avatar').value.trim();
