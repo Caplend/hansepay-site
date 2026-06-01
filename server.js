@@ -140,7 +140,7 @@ app.put('/api/users/profile', authenticateToken, (req, res) => {
   const idx = users.findIndex(u => u.id === req.user.id);
   if (idx === -1) return res.status(404).json({ error: 'User not found' });
 
-  const profileFields = ['name', 'role', 'bio', 'avatarUrl', 'aiModel', 'aiSystemPrompt'];
+  const profileFields = ['name', 'role', 'bio', 'avatarUrl', 'linkedin', 'aiModel', 'aiSystemPrompt'];
   profileFields.forEach(k => {
     if (req.body[k] !== undefined) users[idx][k] = req.body[k];
   });
@@ -219,7 +219,7 @@ app.post('/api/posts', authenticateToken, (req, res) => {
 
   const posts = readData('posts.json');
   const { featured, readTime, showInListing,
-          authorRole, authorBio, authorAvatar, publishedAt } = req.body;
+          authorRole, authorBio, authorAvatar, authorLinkedin, publishedAt } = req.body;
   const newPost = {
     id: 'post_' + uuidv4().replace(/-/g, '').substring(0, 8),
     title,
@@ -238,6 +238,7 @@ app.post('/api/posts', authenticateToken, (req, res) => {
     authorRole: authorRole || (author ? author.role : '') || '',
     authorBio: authorBio || (author ? author.bio : '') || '',
     authorAvatar: authorAvatar || (author ? author.avatarUrl : '') || '',
+    authorLinkedin: authorLinkedin || (author ? author.linkedin : '') || '',
     publishedAt: publishedAt || new Date().toISOString(),
     viewCount: 0,
     createdAt: new Date().toISOString(),
@@ -257,7 +258,7 @@ app.put('/api/posts/:id', authenticateToken, (req, res) => {
   const allowed = [
     'title', 'slug', 'excerpt', 'content', 'category', 'tags', 'status',
     'featuredImage', 'featured', 'showInListing', 'readTime',
-    'author', 'authorRole', 'authorBio', 'authorAvatar', 'publishedAt',
+    'author', 'authorRole', 'authorBio', 'authorAvatar', 'authorLinkedin', 'publishedAt',
   ];
   allowed.forEach(k => {
     if (req.body[k] !== undefined) posts[idx][k] = req.body[k];

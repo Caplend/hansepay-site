@@ -784,6 +784,10 @@ a { color: inherit; text-decoration: none; }
               <label for="f-author-avatar">Avatar URL</label>
               <input type="text" id="f-author-avatar" placeholder="https://…" oninput="syncAuthorDisplay()" />
             </div>
+            <div class="afield">
+              <label for="f-author-linkedin">LinkedIn URL</label>
+              <input type="url" id="f-author-linkedin" placeholder="https://linkedin.com/in/…" />
+            </div>
           </div>
         </div>
 
@@ -937,6 +941,7 @@ var editId = new URLSearchParams(window.location.search).get('id');
     if (user.role)      roleEl.value = user.role;
     if (user.bio)       bioEl.value  = user.bio;
     if (user.avatarUrl) avEl.value   = user.avatarUrl;
+    if (user.linkedin)  document.getElementById('f-author-linkedin').value = user.linkedin;
     syncAuthorDisplay();
   }
 })();
@@ -976,8 +981,9 @@ function populateForm(p) {
   document.getElementById('f-author-name').value   = p.author     || '';
   document.getElementById('f-author-role').value   = p.authorRole || '';
   document.getElementById('f-author-bio').value    = p.authorBio  || '';
-  document.getElementById('f-author-avatar').value = p.authorAvatar || '';
-  document.getElementById('f-pubdate').value       = (p.publishedAt || '').split('T')[0];
+  document.getElementById('f-author-avatar').value   = p.authorAvatar   || '';
+  document.getElementById('f-author-linkedin').value = p.authorLinkedin || '';
+  document.getElementById('f-pubdate').value         = (p.publishedAt || '').split('T')[0];
 
   updateWordCount();
   syncAuthorDisplay();
@@ -1085,7 +1091,8 @@ function savePost() {
     showInListing:document.getElementById('f-show-listing').checked,
     author:       document.getElementById('f-author-name').value.trim() || (user && user.name) || 'HansePay Editorial',
     authorRole:   document.getElementById('f-author-role').value.trim(),
-    authorBio:    document.getElementById('f-author-bio').value.trim(),
+    authorBio:      document.getElementById('f-author-bio').value.trim(),
+    authorLinkedin: document.getElementById('f-author-linkedin').value.trim(),
     authorAvatar: document.getElementById('f-author-avatar').value.trim(),
     publishedAt:  document.getElementById('f-pubdate').value || new Date().toISOString().split('T')[0]
   };
@@ -1479,7 +1486,7 @@ function onStreamDone(content) {
   var metaPreview = '';
   if (aiMeta) {
     var imgUrl = aiMeta.imageQuery
-      ? 'https://source.unsplash.com/800x400/?' + encodeURIComponent(aiMeta.imageQuery)
+      ? 'https://loremflickr.com/800/400/' + aiMeta.imageQuery.trim().replace(/\s+/g, ',')
       : '';
     metaPreview =
       '<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin:12px 0;font-size:12px;line-height:1.7">' +
@@ -1532,7 +1539,7 @@ function insertAiContent() {
     }
     // Featured image from Unsplash based on imageQuery
     if (aiMeta.imageQuery) {
-      var imgUrl = 'https://source.unsplash.com/1200x630/?' + encodeURIComponent(aiMeta.imageQuery);
+      var imgUrl = 'https://loremflickr.com/1200/630/' + aiMeta.imageQuery.trim().replace(/\s+/g, ',');
       document.getElementById('f-image-url').value = imgUrl;
       document.getElementById('f-image-url-input').value = imgUrl;
       setImagePreview(imgUrl);
