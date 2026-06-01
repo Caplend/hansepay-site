@@ -272,11 +272,61 @@ nav.scrolled .nav-burger span{background:var(--n700)}
   })();
 
   // 4. Scroll + burger
+  // Returns true if the luminance of an rgb(...) / rgba(...) string is light (>0.55)
+  function isLightColor(cssColor) {
+    var m = cssColor.match(/[\d.]+/g);
+    if (!m || m.length < 3) return false;
+    var r = +m[0], g = +m[1], b = +m[2], a = m[3] !== undefined ? +m[3] : 1;
+    if (a < 0.15) return false; // nearly transparent — ignore
+    var lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    return lum > 0.55;
+  }
+
+  // Walk up from el looking for a non-transparent background
+  function resolvedBg(el) {
+    while (el && el !== document.documentElement) {
+      var bg = window.getComputedStyle(el).backgroundColor;
+      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') return bg;
+      el = el.parentElement;
+    }
+    return window.getComputedStyle(document.body).backgroundColor;
+  }
+
+  // Decide whether the nav needs to start solid (light page top) or can stay
+  // transparent (dark hero). Checks the first content element visible at y=80px.
+  function needsSolidNav() {
+    // Honour an explicit override: data-nav="dark" → always transparent; data-nav="light" → always solid
+    var attr = document.body.getAttribute('data-nav');
+    if (attr === 'dark')  return false;
+    if (attr === 'light') return true;
+
+    // Auto-detect: find the topmost element behind the nav
+    var candidates = ['[class*="hero"]', 'section', 'main', 'header:not(#main-nav)'];
+    for (var i = 0; i < candidates.length; i++) {
+      var el = document.querySelector(candidates[i]);
+      if (!el) continue;
+      var bg = resolvedBg(el);
+      if (bg && bg !== 'transparent' && bg !== 'rgba(0, 0, 0, 0)') {
+        return isLightColor(bg);
+      }
+    }
+    return false; // Default: transparent nav (dark hero assumed)
+  }
+
   function initNav(){
     var nav = document.getElementById('main-nav');
     if (!nav) return;
-    window.addEventListener('scroll', function(){ nav.classList.toggle('scrolled', scrollY > 20); }, {passive:true});
-    if (scrollY > 20) nav.classList.add('scrolled');
+
+    // Apply solid state immediately if the page has a light top section
+    var forceSolid = needsSolidNav();
+    if (forceSolid) nav.classList.add('nav-force-solid');
+
+    window.addEventListener('scroll', function(){
+      var solid = scrollY > 20 || forceSolid;
+      nav.classList.toggle('scrolled', solid);
+    }, {passive:true});
+    if (scrollY > 20 || forceSolid) nav.classList.add('scrolled');
+
     var burger = document.getElementById('nav-burger');
     var menu   = document.getElementById('mobile-menu');
     if (burger && menu) {
