@@ -736,7 +736,7 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'events.sub':'Wir finalisieren die Konferenzen, Panels und Meetups, bei denen das HansePay-Team 2026 vor Ort sein wird. Vollständiger Zeitplan folgt in Kürze.',
       // ── NEW KEYS (2026-06-01) ──
       // index hero
-      'index.hero.h1':'Grenzüberschreitende Zahlungen, neu gedacht.',
+      'index.hero.h1':'Internationale Zahlungen, neu gedacht.',
       'index.hero.sub':'Überweisungen in über 30 Währungen zum echten Interbanken-Kurs — ohne Aufschläge, ohne Überraschungen. Schnellere Abwicklung, niedrigere Kosten, jedes Mal.',
       'index.chip':'EU-reguliert · Hamburg',
       'cta.open-account':'Konto eröffnen',
@@ -1493,8 +1493,11 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       });
       document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-html');
-        var val = t(key);
-        if (val !== key) el.innerHTML = val;
+        // Try key+'.html' first (HTML-tagged translation), fall back to plain key
+        var htmlKey = key + '.html';
+        var val = t(htmlKey);
+        if (val === htmlKey) val = t(key); // no .html variant, use plain
+        if (val !== key && val !== htmlKey) el.innerHTML = val;
       });
       document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-ph');
