@@ -615,6 +615,28 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'events.chip':'Events','events.h1':'Meet us','events.h1.em':'in person.',
       // common section tails
       'gs.h2':'Open your account.','gs.sub':'Start sending money in minutes, or talk to us about your use case.',
+      // ── HTML keys for data-i18n-html (headings with <em> tags) ──
+      // index.html
+      'index.hero.h1.html':'Cross-border<br>payments, <em>reimagined.</em>',
+      'index.vp.h2.html':'The lowest fees.<br><em>The fastest transfers.</em>',
+      'index.how.h2.html':'From quote to <em>cleared funds</em> in four steps.',
+      'index.currencies.h2.html':'Send to <em>45+ markets.</em>',
+      'index.solutions.h2.html':'Solutions for <em>every industry.</em>',
+      'index.about.h2.html':'Built in Hamburg.<br><em>Trusted across Europe.</em>',
+      'index.insights.h2.html':'FX knowledge that moves<br><em>your business forward.</em>',
+      'index.faq.h2.html':'Common <em>questions.</em>',
+      'index.cta.h2.html':'Ready for a real <em>FX team?</em>',
+      // solutions pages
+      'sol-ecom.hero.h1.html':'FX built for<br><em>cross-border commerce.</em>',
+      'sol-ecom.comp.h2.html':'HansePay vs. your bank<br><em>vs. a fintech app.</em>',
+      'sol-ecom.cov.h2.html':'45+ markets, <em>one platform.</em>',
+      'sol-ecom.calc.h2.html':'Estimate your annual saving, <em>in 30 seconds.</em>',
+      // platform
+      'platform.h1.html':'One platform<br><em>for global payments.</em>',
+      'platform.transfers.h2.html':'Send anywhere,<br><em>in minutes.</em>',
+      'platform.alerts.h2.html':'Never miss a<br><em>rate opportunity.</em>',
+      // common section tails HTML
+      'gs.h2.html':'Open your account.',
     },
     de: {
       // Nav
@@ -1397,6 +1419,28 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'team.office.3.desc':'Wo der tägliche Betrieb läuft.',
       'team.offices.closing':'Drei Adressen. Eine Plattform. In Hamburg aufgebaut, für deutsche Unternehmen, die über Grenzen hinweg handeln.',
       'team.gs.cta2':'Unsere Vision & Werte',
+      // ── HTML keys for data-i18n-html (headings with <em> tags) ──
+      // index.html
+      'index.hero.h1.html':'Internationale<br>Zahlungen, <em>neu gedacht.</em>',
+      'index.vp.h2.html':'Die niedrigsten Kosten.<br><em>Die schnellsten Überweisungen.</em>',
+      'index.how.h2.html':'Vom Kurs zur <em>Gutschrift</em> in vier Schritten.',
+      'index.currencies.h2.html':'Zahlungen in <em>45+ Märkte.</em>',
+      'index.solutions.h2.html':'Lösungen für <em>jede Branche.</em>',
+      'index.about.h2.html':'Gegründet in Hamburg.<br><em>Vertrauen in ganz Europa.</em>',
+      'index.insights.h2.html':'FX-Wissen, das<br><em>Ihr Unternehmen voranbringt.</em>',
+      'index.faq.h2.html':'Häufige <em>Fragen.</em>',
+      'index.cta.h2.html':'Bereit für ein echtes <em>FX-Team?</em>',
+      // solutions pages
+      'sol-ecom.hero.h1.html':'FX für den<br><em>internationalen Handel.</em>',
+      'sol-ecom.comp.h2.html':'HansePay vs. Ihre Bank<br><em>vs. Fintech-App.</em>',
+      'sol-ecom.cov.h2.html':'45+ Märkte, <em>eine Plattform.</em>',
+      'sol-ecom.calc.h2.html':'Ihre jährliche Ersparnis — <em>in 30 Sekunden.</em>',
+      // platform
+      'platform.h1.html':'Eine Plattform<br><em>für globale Zahlungen.</em>',
+      'platform.transfers.h2.html':'Überall senden,<br><em>in Minuten.</em>',
+      'platform.alerts.h2.html':'Keine Kurschance<br><em>mehr verpassen.</em>',
+      // common section tails HTML
+      'gs.h2.html':'Eröffnen Sie Ihr Konto.',
     }
   };
 
