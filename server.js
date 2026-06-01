@@ -20,12 +20,13 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR,    { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
-// Seed data files from *.seed.json if the live file doesn't exist yet.
-// This runs on every cold start — if a Railway Volume is mounted at /app/data
-// the live file survives deploys; on a fresh volume the seed is copied in once.
+// Seed data files on first run (empty volume).
+// Seeds live in /app/seeds/ which is NOT inside the volume mount,
+// so they are always present in the container image.
+const SEEDS_DIR = path.join(__dirname, 'seeds');
 ['users', 'posts', 'settings', 'seo', 'bookings', 'analytics'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
-  const seed = path.join(DATA_DIR, `${name}.seed.json`);
+  const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
     fs.copyFileSync(seed, live);
     console.log(`[seed] initialised ${name}.json from seed`);
@@ -67,8 +68,14 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  if (!fs.existsSync(fp)) return filename.endsWith('analytics.json') ? [] : {};
-  return JSON.parse(fs.readFileSync(fp, 'utf8'));
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json'];
+  const defaultVal = arrayFiles.includes(filename) ? [] : {};
+  if (!fs.existsSync(fp)) return defaultVal;
+  try {
+    return JSON.parse(fs.readFileSync(fp, 'utf8'));
+  } catch (_) {
+    return defaultVal;
+  }
 }
 
 function writeData(filename, data) {
