@@ -16,20 +16,39 @@ const JWT_SECRET = 'hansepay-cms-secret-2024';
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
+// Startup diagnostics — visible in Railway → Deployments → View logs
+console.log('[startup] __dirname  :', __dirname);
+console.log('[startup] DATA_DIR   :', DATA_DIR);
+console.log('[startup] UPLOADS_DIR:', UPLOADS_DIR);
+console.log('[startup] DATA_DIR exists before mkdir:', fs.existsSync(DATA_DIR));
+
 // Ensure data & uploads directories exist
 if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR,    { recursive: true });
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
+// Log what's already in the data dir (tells us if volume is mounted + what survived)
+try {
+  const existing = fs.readdirSync(DATA_DIR);
+  console.log('[startup] DATA_DIR contents:', existing.length ? existing.join(', ') : '(empty)');
+  existing.forEach(f => {
+    const s = fs.statSync(path.join(DATA_DIR, f));
+    console.log(`[startup]   ${f}  ${s.size} bytes  mtime=${s.mtime.toISOString()}`);
+  });
+} catch(e) { console.log('[startup] Could not read DATA_DIR:', e.message); }
+
 // Seed data files on first run (empty volume).
-// Seeds live in /app/seeds/ which is NOT inside the volume mount,
-// so they are always present in the container image.
+// Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
+console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
 ['users', 'posts', 'settings', 'seo', 'bookings', 'analytics'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
     fs.copyFileSync(seed, live);
     console.log(`[seed] initialised ${name}.json from seed`);
+  } else if (fs.existsSync(live)) {
+    const s = fs.statSync(live);
+    console.log(`[seed] ${name}.json already exists (${s.size} bytes) — skipping seed`);
   }
 });
 
@@ -101,6 +120,24 @@ function requireAdmin(req, res, next) {
   }
   next();
 }
+
+// ─── Health / debug route (public) ───────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  let files = [];
+  try { files = fs.readdirSync(DATA_DIR).map(f => {
+    const s = fs.statSync(path.join(DATA_DIR, f));
+    return { name: f, bytes: s.size, mtime: s.mtime };
+  }); } catch(_) {}
+  res.json({
+    ok: true,
+    __dirname,
+    DATA_DIR,
+    SEEDS_DIR: path.join(__dirname, 'seeds'),
+    dataFiles: files,
+    volumeMounted: files.length > 0,
+    uptime: process.uptime(),
+  });
+});
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
