@@ -49,6 +49,21 @@ console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SE
   } else if (fs.existsSync(live)) {
     const s = fs.statSync(live);
     console.log(`[seed] ${name}.json already exists (${s.size} bytes) — skipping seed`);
+    // Merge any NEW fields from seed into the live file so new settings take effect
+    if (fs.existsSync(seed)) {
+      try {
+        const liveData = JSON.parse(fs.readFileSync(live, 'utf8'));
+        const seedData = JSON.parse(fs.readFileSync(seed, 'utf8'));
+        let changed = false;
+        for (const k of Object.keys(seedData)) {
+          if (!(k in liveData)) { liveData[k] = seedData[k]; changed = true; }
+        }
+        if (changed) {
+          fs.writeFileSync(live, JSON.stringify(liveData, null, 2));
+          console.log(`[seed] merged new fields into ${name}.json`);
+        }
+      } catch(e) { console.log(`[seed] merge error for ${name}.json:`, e.message); }
+    }
   }
 });
 
