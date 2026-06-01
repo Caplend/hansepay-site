@@ -96,9 +96,12 @@ app.use(express.json());
 // Visiting /?preview=TOKEN grants a 30-day cookie to browse the full site.
 // Toggle comingSoonMode in Admin → Settings to go live instantly.
 app.use((req, res, next) => {
-  // Skip: API, admin panel, static assets, uploads
-  const skip = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
-  if (skip.some(p => req.path.startsWith(p))) return next();
+  // Skip: API, admin panel, static assets, uploads, and legal pages
+  const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
+  const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
+                     '/hansepay/imprint.html', '/hansepay/cookie-policy.html'];
+  if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
+  if (skipExact.includes(req.path)) return next();
 
   const settings = readData('settings.json');
   if (!settings.comingSoonMode) return next(); // Site is live — pass through
