@@ -496,10 +496,10 @@ a{color:inherit;text-decoration:none}
           <div class="calc-lbl"><span data-i18n="index.calc.lbl.provider">Current provider</span><span id="hp-margin-hint" style="font-size:11px;color:var(--ink3)">~2.50%</span></div>
           <div class="calc-select-wrap">
             <select class="calc-select" id="hp-bank">
-              <option value="major_de">Major German bank (Deutsche Bank, Commerzbank)</option>
-              <option value="sparkasse">Sparkasse / Volksbank</option>
-              <option value="international">International bank (HSBC, BNP Paribas)</option>
-              <option value="broker">FX broker / specialist</option>
+              <option value="major_de" data-i18n="calc.bank.major_de">Major German bank (Deutsche Bank, Commerzbank)</option>
+              <option value="sparkasse" data-i18n="calc.bank.sparkasse">Sparkasse / Volksbank</option>
+              <option value="international" data-i18n="calc.bank.international">International bank (HSBC, BNP Paribas)</option>
+              <option value="broker" data-i18n="calc.bank.broker">FX broker / specialist</option>
             </select>
             <svg class="calc-arrow" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
@@ -936,8 +936,14 @@ var fmt=function(n){return new Intl.NumberFormat('en-GB',{style:'currency',curre
   document.getElementById('hp-ccy').addEventListener('change',function(){
     var parts=this.value.split('|');
     cat=parts[1]||'major';
-    var labels={major:'Major',minor:'Minor',exotic:'Exotic'};
-    document.getElementById('hp-cat-lbl').textContent=labels[cat]||'Major';
+    var t=window.HP?window.HP.t.bind(window.HP):function(k){return k;};
+    var labels={major:t('calc.cat.major'),minor:t('calc.cat.minor'),exotic:t('calc.cat.exotic')};
+    document.getElementById('hp-cat-lbl').textContent=labels[cat]||t('calc.cat.major');
+    // Update optgroup labels
+    var og=document.querySelectorAll('#hp-ccy optgroup');
+    if(og[0])og[0].label=t('calc.cat.major')+' currencies';
+    if(og[1])og[1].label=t('calc.cat.minor')+' currencies';
+    if(og[2])og[2].label=t('calc.cat.exotic')+' currencies';
     compute();
   });
   document.getElementById('hp-bank').addEventListener('change',function(){bankKey=this.value;compute();});
@@ -951,6 +957,19 @@ var fmt=function(n){return new Intl.NumberFormat('en-GB',{style:'currency',curre
   compute();
 })();
 calcUpdate();
+
+// Re-apply calculator labels when language switches
+(function(){
+  var origSet = window.HP && window.HP.setLang;
+  if(!origSet) return;
+  var _set = origSet;
+  window.HP.setLang = function(lang) {
+    _set.call(window.HP, lang);
+    // Trigger currency change to refresh cat label + optgroup labels
+    var ccyEl = document.getElementById('hp-ccy');
+    if(ccyEl) ccyEl.dispatchEvent(new Event('change'));
+  };
+})();
 
 /* Scroll reveal disabled */
 
