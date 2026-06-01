@@ -362,6 +362,17 @@ app.put('/api/users/:id', authenticateToken, requireAdmin, (req, res) => {
   res.json(userSafe);
 });
 
+app.put('/api/users/:id/password', authenticateToken, requireAdmin, (req, res) => {
+  const { password } = req.body;
+  if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  const users = readData('users.json');
+  const idx = users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+  users[idx].passwordHash = bcrypt.hashSync(password, 10);
+  writeData('users.json', users);
+  res.json({ success: true });
+});
+
 app.delete('/api/users/:id', authenticateToken, requireAdmin, (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
   let users = readData('users.json');

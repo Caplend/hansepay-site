@@ -65,6 +65,7 @@ a { color: inherit; text-decoration: none; }
 .actions { display:flex; align-items:center; gap:4px; }
 .btn-act { padding:5px 10px; border-radius:var(--r-sm); font-size:0.75rem; font-weight:600; background:transparent; border:none; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s; }
 .btn-act-edit { color:var(--n400); } .btn-act-edit:hover { background:var(--n050); color:var(--n600); }
+.btn-act-pwd { color:#7c3aed; } .btn-act-pwd:hover { background:#f5f3ff; }
 .btn-act-delete { color:#dc2626; } .btn-act-delete:hover { background:#fef2f2; }
 .btn-act-save { color:#166534; background:#dcfce7; } .btn-act-save:hover { background:#bbf7d0; }
 .btn-act-cancel { color:var(--ink3); } .btn-act-cancel:hover { background:rgba(11,25,41,0.05); color:var(--ink2); }
@@ -225,6 +226,26 @@ a { color: inherit; text-decoration: none; }
   </div>
 </div>
 
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal">
+    <div class="modal-title">Change Password</div>
+    <p id="pwd-modal-name" style="font-size:0.875rem;color:var(--ink2);margin-bottom:20px;margin-top:-12px;"></p>
+    <div class="modal-field">
+      <label for="pwd-new">New Password</label>
+      <input type="password" id="pwd-new" placeholder="••••••••" autocomplete="new-password" />
+    </div>
+    <div class="modal-field">
+      <label for="pwd-confirm">Confirm Password</label>
+      <input type="password" id="pwd-confirm" placeholder="••••••••" autocomplete="new-password" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-primary" id="pwd-submit-btn" onclick="submitPwdChange()">Update Password</button>
+      <button class="btn-modal-ghost" onclick="closePwdModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -292,6 +313,7 @@ function renderUsers(users) {
       '<td>' + formatDate(u.lastLogin) + '</td>' +
       '<td><div class="actions">' +
         '<button class="btn-act btn-act-edit" onclick="startEdit(\'' + id + '\')">Edit</button>' +
+        '<button class="btn-act btn-act-pwd" onclick="openPwdModal(\'' + id + '\', \'' + safeName.replace(/'/g, "\\'") + '\')">Password</button>' +
         '<button class="btn-act btn-act-delete" onclick="deleteUser(\'' + id + '\', \'' + safeName.replace(/'/g, "\\'") + '\')">Delete</button>' +
       '</div></td>' +
     '</tr>';
@@ -392,6 +414,50 @@ function submitNewUser() {
     })
     .catch(function(err) { showToast(err.message || 'Error creating user.', 'error'); })
     .finally(function() { btn.disabled = false; btn.textContent = 'Add User'; });
+}
+
+var pwdTargetId = null;
+
+function openPwdModal(id, name) {
+  pwdTargetId = id;
+  document.getElementById('pwd-modal-name').textContent = 'Setting new password for ' + name;
+  document.getElementById('pwd-new').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('pwd-modal').classList.add('open');
+  setTimeout(function() { document.getElementById('pwd-new').focus(); }, 100);
+}
+
+function closePwdModal() {
+  document.getElementById('pwd-modal').classList.remove('open');
+  pwdTargetId = null;
+}
+
+document.getElementById('pwd-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePwdModal();
+});
+
+function submitPwdChange() {
+  var newPwd = document.getElementById('pwd-new').value;
+  var confirm = document.getElementById('pwd-confirm').value;
+  if (!newPwd || newPwd.length < 6) { showToast('Password must be at least 6 characters.', 'error'); return; }
+  if (newPwd !== confirm) { showToast('Passwords do not match.', 'error'); return; }
+
+  var btn = document.getElementById('pwd-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+
+  authFetch('/api/users/' + pwdTargetId + '/password', {
+    method: 'PUT',
+    body: JSON.stringify({ password: newPwd })
+  })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || res.data.error || 'Failed to update password.');
+      closePwdModal();
+      showToast('Password updated.', 'success');
+    })
+    .catch(function(err) { showToast(err.message || 'Error updating password.', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Update Password'; });
 }
 
 authFetch('/api/users')
