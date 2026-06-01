@@ -759,6 +759,7 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       // index calc
       'index.calc.eyebrow':'Die versteckten Kosten',
       'index.calc.h2':'Ihre Bank berechnet Ihnen still und heimlich zu viel.',
+      'index.calc.h2.html':'Ihre Bank berechnet Ihnen <em>still und heimlich zu viel.</em>',
       'index.calc.sub':'Bei jeder grenzüberschreitenden Überweisung fügt Ihre Bank einen Aufschlag von 2–4 % auf den Wechselkurs hinzu — Geld, das verschwindet, ohne in einer Zeile aufzutauchen. Berechnen Sie genau, was Sie verlieren.',
       'index.calc.b1.title':'Keine versteckten Aufschläge',
       'index.calc.b1.desc':'Wir berechnen nur eine transparente Transaktionsgebühr.',
@@ -778,8 +779,8 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       // index value proposition
       'index.vp.eyebrow':'Der HansePay-Unterschied',
       'index.vp.h2':'Die niedrigsten Gebühren. Die schnellsten Überweisungen.',
-      'index.vp.sub':'HansePay gibt europäischen Unternehmen direkten Zugang zu Interbanken-FX-Kursen ohne Aufschlag — dem Kurs, den Banken untereinander zahlen. Mit Same-Day-Abwicklung auf den wichtigsten Korridoren verfügen Sie über die effizienteste grenzüberschreitende Zahlungsinfrastruktur, die verfügbar ist.',
-      'index.vp.cta':'Sehen Sie, wie unsere Preisgestaltung funktioniert →',
+      'index.vp.sub':'HansePay gibt europäischen Unternehmen direkten Zugang zu Interbanken-FX-Kursen — dem Kurs, den Banken untereinander zahlen, ohne Aufschlag. Same-Day-Abwicklung auf den wichtigsten Korridoren. Die effizienteste Infrastruktur für grenzüberschreitende Zahlungen, die es gibt.',
+      'index.vp.cta':'Unsere Preise im Überblick →',
       'index.vp.m1.label':'FX-Aufschlag',
       'index.vp.m1.sub':'Immer zum Interbanken-Kurs',
       'index.vp.m2.value':'Same Day',
@@ -791,8 +792,8 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'index.vp.m4.sub':'Vollständig digital, kein Papierkram',
       // index how it works
       'index.how.eyebrow':'So funktioniert es',
-      'index.how.h2':'Von der Kursanfrage bis zu gebuchten Mitteln in vier Schritten.',
-      'index.how.sub':'Keine Verzögerungen durch Formulare, keine undurchsichtige Preisgestaltung. Nur schnelle, präzise FX-Ausführung, wie sie sein sollte.',
+      'index.how.h2':'Vom Kurs zur Gutschrift in vier Schritten.',
+      'index.how.sub':'Keine Wartezeiten, keine undurchsichtige Preisgestaltung. Nur schnelle, präzise FX-Ausführung — wie sie sein sollte.',
       'index.how.s1.title':'Konto eröffnen',
       'index.how.s1.desc':'Online-Antrag in unter 10 Minuten. Kein Papierkram, keine Banktermine — digitale Identitätsprüfung inklusive.',
       'index.how.s2.title':'Kurs anfragen',
@@ -803,9 +804,10 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'index.how.s4.desc':'Jede Transaktion vollständig nachverfolgbar. Automatische Bestätigung und Buchungsbeleg per E-Mail.',
       // index platform
       'index.platform.eyebrow':'Die Plattform',
-      'index.platform.h2':'Alles, was Ihr Treasury braucht — nichts, was es nicht braucht.',
-      'index.platform.sub':'Live-FX-Kurse, sofortige Zahlungen, vollständiger Prüfpfad — Ihr Finanzteam erhält ein übersichtliches, leistungsstarkes Dashboard mit allem an einem Ort.',
-      'index.platform.f1.title':'Live-Interbanken-Kurs-Streaming',
+      'index.platform.h2':'Was Ihr Treasury braucht — und nichts darüber hinaus.',
+      'index.platform.h2.html':'Was Ihr Treasury braucht — <em>und nichts darüber hinaus.</em>',
+      'index.platform.sub':'Live-FX-Kurse, sofortige Zahlungen, vollständiger Prüfpfad — Ihr Finanzteam erhält ein übersichtliches Dashboard mit allem an einem Ort.',
+      'index.platform.f1.title':'Live-FX-Kursstreaming',
       'index.platform.f1.desc':'Den echten Kurs mit einem Klick sichern. Spot, Forward oder geplant — Ihre Wahl.',
       'index.platform.f2.title':'Vollständige Zahlungstransparenz',
       'index.platform.f2.desc':'Jede Überweisung in Echtzeit verfolgt. Abgewickelt, unterwegs oder ausstehend — stets sichtbar.',
