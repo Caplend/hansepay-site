@@ -676,18 +676,59 @@ function toggleLaunchMode() {
 }
 
 function copyPreviewLink() {
+  var btn = document.getElementById('copy-preview-btn');
+  btn.disabled = true;
   authFetch('/api/settings/preview-link')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (!d.url) { showToast('Set a PREVIEW_TOKEN env var in Railway first.', 'error'); return; }
-      navigator.clipboard.writeText(d.url).then(function() {
-        var btn = document.getElementById('copy-preview-btn');
-        btn.innerHTML = '✓ Copied!';
-        setTimeout(function() {
-          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy preview link';
-        }, 2000);
-      });
-    });
+      btn.disabled = false;
+      if (!d.url) {
+        showPreviewUrlPopup(null);
+        return;
+      }
+      // Try clipboard API first, fall back to showing the URL
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(d.url).then(function() {
+          btn.innerHTML = '✓ Copied!';
+          setTimeout(function() {
+            btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy preview link';
+          }, 2000);
+        }).catch(function() { showPreviewUrlPopup(d.url); });
+      } else {
+        showPreviewUrlPopup(d.url);
+      }
+    })
+    .catch(function() { btn.disabled = false; showToast('Could not fetch preview link.', 'error'); });
+}
+
+function showPreviewUrlPopup(url) {
+  // Remove existing popup if any
+  var existing = document.getElementById('preview-url-popup');
+  if (existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.id = 'preview-url-popup';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  popup.innerHTML = url
+    ? '<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:520px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.25)">' +
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;font-weight:600;color:#0B1929;margin-bottom:8px">Preview Link</div>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:14px">Copy this link and share it. Anyone with this link can browse the full site.</p>' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+        '<input id="preview-url-input" type="text" value="' + url + '" readonly style="flex:1;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-size:0.8125rem;font-family:\'Inter\',sans-serif;color:#0B1929;outline:none;background:#f9fafb" onclick="this.select()" />' +
+        '<button onclick="var i=document.getElementById(\'preview-url-input\');i.select();document.execCommand(\'copy\');this.textContent=\'✓\';setTimeout(function(){this.textContent=\'Copy\'},1500,this)" style="padding:9px 16px;background:#1E4E80;color:#fff;border:none;border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer">Copy</button>' +
+      '</div>' +
+      '<button onclick="document.getElementById(\'preview-url-popup\').remove()" style="margin-top:16px;width:100%;padding:9px;background:transparent;border:1.5px solid rgba(11,25,41,.1);border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;color:#3D5A73;cursor:pointer">Close</button>' +
+      '</div>'
+    : '<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.25)">' +
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;font-weight:600;color:#0B1929;margin-bottom:8px">Preview token not set</div>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:8px">Add a <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">PREVIEW_TOKEN</code> environment variable in Railway to enable the shareable preview link.</p>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:16px">Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">PREVIEW_TOKEN = hansepay2026</code></p>' +
+      '<button onclick="document.getElementById(\'preview-url-popup\').remove()" style="width:100%;padding:9px;background:#1E4E80;color:#fff;border:none;border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer">Got it</button>' +
+      '</div>';
+  document.body.appendChild(popup);
+  popup.addEventListener('click', function(e) { if (e.target === popup) popup.remove(); });
+  // Select the input for easy copying
+  if (url) setTimeout(function() { var i = document.getElementById('preview-url-input'); if(i){i.focus();i.select();} }, 50);
 }
 
 function showToast(msg, type) {
