@@ -688,6 +688,30 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       'events.chip':'Veranstaltungen','events.h1':'Treffen Sie uns','events.h1.em':'persönlich.',
       // common section tails
       'gs.h2':'Eröffnen Sie Ihr Konto.','gs.sub':'In Minuten loslegen oder mit uns über Ihren Anwendungsfall sprechen.',
+      // blog
+      'blog.chip':'HansePay Einblicke',
+      // about subtitles
+      'vision.sub':'Von Hamburg aus — wohin Ihr Unternehmen auch wächst, einschließlich der Märkte, die die meisten Banken nicht bedienen.',
+      'team.sub':'In Hamburg aufgebaut von einem Team, das weiß, was regulierte Finanzen, moderne Infrastruktur und der deutsche Mittelstand jeweils verlangen.',
+      'licenses.sub':'HansePay operiert unter einem der strengsten Regulierungsrahmen Europas. MiCAR-autorisiert nach EU-Recht, beaufsichtigt in Deutschland durch die BaFin, zertifiziert für Datenschutz und Informationssicherheit in jedem System.',
+      // solution subtitles
+      'sol-ecom.sub':'FX und Zahlungen für Online-Händler — auch in Währungen, die Ihre Bank nicht erreicht. Zahlen Sie Lieferanten in jedem Markt, begleichen Sie Rechnungen und verlieren Sie keine Marge durch Spreads bei jeder Bestellung.',
+      'sol-mfg.sub':'FX und Zahlungen für Hersteller und Importeure. Kurs zum Zeitpunkt der Ausführung fixieren. Märkte erreichen, die Ihre Bank nicht bedient. Großbeträge abwickeln, ohne den gesehenen Kurs zu verlieren.',
+      'sol-log.sub':'FX und zeitkritische Ausführung für Spediteure, Carrier, Zollagenten und Schiffsoperatoren. Zahlen Sie Carrier, Häfen und Agenten in jedem Markt, Same-Day, zu den Spreads, die Ihre Marge tatsächlich erfordert.',
+      'sol-corp.sub':'Für Unternehmen mit mehr als 2 Mio. € jährlichen grenzüberschreitenden Zahlungen. Institutionelle FX-Konditionen, kursgesperrte Ausführung und ein namentlich bekannter Experte, den Sie tatsächlich erreichen können — keine Hotline.',
+      'sol-sme.sub':'Für Unternehmen mit bis zu 2 Mio. € jährlichem FX-Volumen. Der gleiche Zugang zu Interbanken-Kursen und transparenter Ausführung, den Großkonzerne seit Jahrzehnten haben — ohne banktypische Gebühren oder lange Wartezeiten.',
+      // platform subtitles
+      'platform.sub':'Grenzüberschreitende Zahlungen, Wholesale-FX und vollständige Treasury-Transparenz — entwickelt für Unternehmen, die Geld über Grenzen bewegen. BaFin-lizenziert, Interbanken-Kurse, keine versteckten Gebühren.',
+      'platform-tech.sub':'Wie HansePay Geld in Minuten zu einem Bruchteil der Kosten bewegt. Die Technologie ist bewusst im Hintergrund — aber hier ist, was darunter läuft, wenn Sie es wissen müssen.',
+      // partners subtitles
+      'partners-embed.sub':'HansePay bietet Software-Plattformen eine einzige Integration für grenzüberschreitende Zahlungen, FX-Ausführung und EMT-Ausgabe. Wir kümmern uns um die regulierte Infrastruktur, damit Ihr Team sich auf das Produkt konzentrieren kann.',
+      'partners-partner.sub':'Wir arbeiten mit Software-Plattformen, Beratern und Resellern zusammen, um besseres FX für mittelständische Unternehmen in ganz Europa anzubieten. Jede Partnerschaft wird individuell gestaltet. Sagen Sie uns, was Sie sich vorstellen, und wir finden gemeinsam einen Weg.',
+      'partners-refer.sub':'Wenn ein Kunde Lieferanten im Ausland bezahlt, in mehreren Währungen fakturiert oder grenzüberschreitende Tochtergesellschaften verwaltet, sehen Sie die Kosten in seinen Büchern. HansePay ist die regulierte EU-Infrastruktur, die das löst.',
+      'partners-resell.sub':'HansePay arbeitet mit Regionalbanken, Branchenverbänden und Branchennetzwerken zusammen, um deren Mitgliedern und Kunden einen regulierten EU-FX- und grenzüberschreitenden Zahlungsservice anzubieten. Das Programm befindet sich in der Anfangsphase. Wir arbeiten mit unseren ersten Partnern individuell zusammen.',
+      // insights subtitles
+      'stories.sub':'Wir stellen ausführliche Berichte von Unternehmen zusammen, die HansePay bereits nutzen: wie sie FX-Kosten gesenkt, die Abwicklung beschleunigt und das Treasury vereinfacht haben. Die ersten Berichte erscheinen 2026.',
+      'market.sub':'Kurze, praxisnahe Einblicke zu den Währungsbewegungen, die für Unternehmen in Europa und darüber hinaus relevant sind. Kein Lärm, keine Prognosespiele — nur das, was Sie brauchen, um diese Woche bessere Zahlungsentscheidungen zu treffen.',
+      'events.sub':'Wir finalisieren die Konferenzen, Panels und Meetups, bei denen das HansePay-Team 2026 vor Ort sein wird. Vollständiger Zeitplan folgt in Kürze.',
     }
   };
 
@@ -720,7 +744,23 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         var key = el.getAttribute('data-i18n');
         var val = t(key);
-        if (val !== key) el.textContent = val;
+        if (val === key) return;
+        var hasChildEls = false;
+        for (var ci = 0; ci < el.childNodes.length; ci++) {
+          if (el.childNodes[ci].nodeType === 1) { hasChildEls = true; break; }
+        }
+        if (!hasChildEls) {
+          el.textContent = val;
+        } else {
+          // Update the last direct text node (preserves child elements like dot spans)
+          for (var ti = el.childNodes.length - 1; ti >= 0; ti--) {
+            var node = el.childNodes[ti];
+            if (node.nodeType === 3 && node.textContent.trim()) {
+              node.textContent = " " + val;
+              break;
+            }
+          }
+        }
       });
       document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
         var key = el.getAttribute('data-i18n-html');
