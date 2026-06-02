@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const crypto = require('crypto');
 const cal = (() => { try { return require('./lib/calendar'); } catch(e) { return null; } })();
 const mailer = (() => { try { return require('./lib/email'); } catch(e) { console.error('[email] module load failed:', e.message); return null; } })();
 const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return null; } })();
@@ -104,7 +105,8 @@ app.use((req, res, next) => {
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
                      '/booking.html', '/hansepay/booking.html',
                      '/hansepay/imprint.html', '/hansepay/cookie-policy.html',
-                     '/onboarding.html', '/hansepay/onboarding.html'];
+                     '/onboarding.html', '/hansepay/onboarding.html',
+                     '/rebook.html', '/hansepay/rebook.html'];
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
   if (skipExact.includes(req.path)) return next();
 
@@ -161,6 +163,10 @@ function readData(filename) {
 
 function writeData(filename, data) {
   fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), 'utf8');
+}
+
+function makeRebookToken(bookingId) {
+  return crypto.createHmac('sha256', JWT_SECRET).update(bookingId + '-rebook-hp').digest('hex').slice(0, 32);
 }
 
 // ─── CRM helpers ──────────────────────────────────────────────────────────────
@@ -1325,20 +1331,28 @@ app.post('/api/booking', async (req, res) => {
     console.log(`[booking] created: ${lead.email} @ ${slot.startISO} — event ${event.id}`);
 
     const bookingId = event.id || uuidv4();
+    const rebookToken = makeRebookToken(bookingId);
+    const host = `${req.protocol}://${req.get('host')}`;
 
     // Persist to bookings CRM
     try {
       const bookings = readData('bookings.json');
       const list = Array.isArray(bookings) ? bookings : [];
+      // Auto-assign to first active rep by priority
+      const settings = readData('settings.json');
+      const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
+      const assignedRep = reps.find(r => r.active !== false) || null;
       list.push({
-        id:        bookingId,
-        createdAt: new Date().toISOString(),
+        id:           bookingId,
+        createdAt:    new Date().toISOString(),
         slot,
         lead,
-        status:    'new',
-        notes:     '',
-        meetLink:  event.hangoutLink || null,
-        eventId:   event.id,
+        status:       'new',
+        notes:        '',
+        meetLink:     event.hangoutLink || null,
+        eventId:      event.id,
+        rebookToken,
+        assignedTo:   assignedRep ? { id: assignedRep.id, name: assignedRep.name, color: assignedRep.color || '#1E4E80' } : null,
       });
       writeData('bookings.json', list);
     } catch (e) {
@@ -1359,6 +1373,7 @@ app.post('/api/booking', async (req, res) => {
           slot, lead,
           meetLink:    event.hangoutLink || null,
           calendarUrl: event.htmlLink    || null,
+          rebookUrl:   `${host}/rebook.html?token=${rebookToken}`,
         });
         if (mail.to) {
           mailer.sendMail(mail).then(r => {
@@ -1384,6 +1399,116 @@ app.post('/api/booking', async (req, res) => {
     if (err.code === 403) return res.status(500).json({ error: 'Calendar access not authorised. Please contact us directly at hello@hansepay.com.' });
     res.status(500).json({ error: 'Could not create booking. Please try again or contact us directly.', detail: err.message });
   }
+});
+
+// ─── Rebooking routes (public — authenticated by rebookToken) ─────────────────
+
+// GET /api/booking/rebook/:token — fetch booking details for the rebook page (no login)
+app.get('/api/booking/rebook/:token', (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const b = list.find(b => b.rebookToken === req.params.token);
+  if (!b) return res.status(404).json({ error: 'Booking not found. This link may have expired.' });
+  // Return only what the rebook page needs — no internal fields
+  res.json({
+    id: b.id,
+    slot: b.slot,
+    meetLink: b.meetLink,
+    lead: { firstName: b.lead.firstName, lastName: b.lead.lastName, email: b.lead.email, company: b.lead.company, lang: b.lead.lang },
+    status: b.status,
+  });
+});
+
+// POST /api/booking/rebook/:token — cancel old slot, create new booking
+app.post('/api/booking/rebook/:token', async (req, res) => {
+  const { slot } = req.body;
+  if (!slot?.startISO || !slot?.endISO) return res.status(400).json({ error: 'New slot required' });
+  if (new Date(slot.startISO) < new Date()) return res.status(400).json({ error: 'That slot is in the past. Please pick another time.' });
+
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const idx = list.findIndex(b => b.rebookToken === req.params.token);
+  if (idx === -1) return res.status(404).json({ error: 'Booking not found.' });
+
+  const old = list[idx];
+  const lead = old.lead;
+
+  try {
+    // Cancel old calendar event (silent fail if not configured)
+    if (cal && old.eventId && !old.eventId.startsWith('mock_') && old.eventId !== 'unconfigured') {
+      try { await cal.cancelBookingEvent(old.eventId); } catch (e) { console.error('[rebook] cancel old event:', e.message); }
+    }
+
+    // Create new event
+    const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'rebook_' + uuidv4().slice(0,8), htmlLink: '#', hangoutLink: null };
+
+    list[idx] = Object.assign({}, old, {
+      slot,
+      status:      'new',
+      meetLink:    event.hangoutLink || null,
+      eventId:     event.id,
+      rebooked:    true,
+      rebookedAt:  new Date().toISOString(),
+      updatedAt:   new Date().toISOString(),
+    });
+    writeData('bookings.json', list);
+
+    // Send rebook confirmation email
+    if (mailer) {
+      const host = `${req.protocol}://${req.get('host')}`;
+      const mail = mailer.renderBookingEmail({
+        slot, lead,
+        meetLink:    event.hangoutLink || null,
+        calendarUrl: event.htmlLink || null,
+        rebookUrl:   `${host}/rebook.html?token=${old.rebookToken}`,
+        isRebook:    true,
+      });
+      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[email] rebook send:', err.message));
+    }
+
+    res.json({ success: true, meetLink: event.hangoutLink || null });
+  } catch (err) {
+    console.error('[rebook] error:', err.message);
+    if (err.code === 409) return res.status(409).json({ error: 'That slot was just taken. Please pick another time.' });
+    res.status(500).json({ error: 'Could not reschedule. Please try again or contact us directly.' });
+  }
+});
+
+// ─── Bookings: calendar feed + assignment ─────────────────────────────────────
+
+// GET /api/bookings/calendar?start=ISO&end=ISO — for admin calendar view
+app.get('/api/bookings/calendar', authenticateToken, (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const { start, end } = req.query;
+  const from = start ? new Date(start) : null;
+  const to   = end   ? new Date(end)   : null;
+  const filtered = list.filter(b => {
+    if (!b.slot?.startISO) return false;
+    const d = new Date(b.slot.startISO);
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    return true;
+  }).map(b => ({
+    id: b.id, status: b.status, meetLink: b.meetLink,
+    slot: b.slot, notes: b.notes || '',
+    assignedTo: b.assignedTo || null, rebooked: b.rebooked || false,
+    lead: { firstName: b.lead?.firstName, lastName: b.lead?.lastName, email: b.lead?.email, company: b.lead?.company, industry: b.lead?.industry, fxVolume: b.lead?.fxVolume },
+    createdAt: b.createdAt,
+  }));
+  res.json(filtered);
+});
+
+// PATCH /api/bookings/:id/assign — assign booking to a rep
+app.patch('/api/bookings/:id/assign', authenticateToken, (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const idx = list.findIndex(b => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Booking not found' });
+  list[idx].assignedTo = req.body.rep || null; // { id, name, color } or null
+  list[idx].updatedAt  = new Date().toISOString();
+  writeData('bookings.json', list);
+  res.json(list[idx]);
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
