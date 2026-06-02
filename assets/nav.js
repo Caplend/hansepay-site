@@ -42,10 +42,32 @@ nav.scrolled .nav-link:hover,nav.scrolled .nav-link.active-page{color:var(--n700
 .nav-dd-active .nav-dd-title{color:var(--gold)}
 .nav-dropdown-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
 .nav-right{display:flex;align-items:center;gap:8px;margin-left:16px;flex-shrink:0}
+.nav-signin{background:transparent;color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.22);padding:8px 18px;font-size:13px;border-radius:var(--r-pill);cursor:pointer;font-family:var(--font-ui);font-weight:600;transition:all .18s}
+.nav-signin:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.4)}
+nav.scrolled .nav-signin{color:var(--ink2);border-color:rgba(11,25,41,.18);background:transparent}
+nav.scrolled .nav-signin:hover{background:var(--n050);color:var(--n600)}
 .nav-cta{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.28);padding:8px 20px;font-size:13px;border-radius:var(--r-pill);backdrop-filter:blur(8px)}
 .nav-cta:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45)}
 nav.scrolled .nav-cta{background:var(--n500);border-color:var(--n500);backdrop-filter:none}
 nav.scrolled .nav-cta:hover{background:var(--n600)}
+/* Sign-in modal */
+.hp-signin-overlay{position:fixed;inset:0;background:rgba(6,13,26,.55);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:hpFadeIn .2s ease}
+@keyframes hpFadeIn{from{opacity:0}to{opacity:1}}
+.hp-signin-modal{background:#fff;border-radius:20px;padding:36px 40px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(6,13,26,.28);position:relative;animation:hpSlideUp .25s cubic-bezier(.4,0,.2,1)}
+@keyframes hpSlideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hp-signin-close{position:absolute;top:16px;right:18px;background:rgba(11,25,41,.07);border:none;width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--ink3);line-height:1;display:flex;align-items:center;justify-content:center}
+.hp-signin-close:hover{background:rgba(11,25,41,.14);color:var(--ink)}
+.hp-signin-logo{margin-bottom:22px;display:flex;align-items:center}
+.hp-signin-title{font-family:var(--font-logo);font-size:1.5rem;font-weight:400;color:var(--n800);margin-bottom:6px}
+.hp-signin-sub{font-size:14px;color:var(--ink3);margin-bottom:24px}
+.hp-signin-coming{display:flex;gap:14px;background:var(--n050);border-radius:12px;padding:18px 20px;margin-bottom:22px;align-items:flex-start}
+.hp-signin-coming-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.hp-signin-coming-label{font-size:14px;font-weight:700;color:var(--n700);margin-bottom:4px}
+.hp-signin-coming-text{font-size:13px;color:var(--ink2);line-height:1.5}
+.hp-signin-book{display:block;background:var(--n500);color:#fff;text-align:center;padding:13px 24px;border-radius:var(--r-pill);font-family:var(--font-ui);font-size:14px;font-weight:600;text-decoration:none;margin-bottom:16px;transition:.18s}
+.hp-signin-book:hover{background:var(--n600)}
+.hp-signin-footer{font-size:12px;color:var(--ink3);text-align:center;line-height:1.5}
+@media(max-width:480px){.hp-signin-modal{padding:28px 24px}.hp-signin-title{font-size:1.25rem}}
 .nav-burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;border:none;background:none}
 .nav-burger span{display:block;width:22px;height:2px;border-radius:2px;background:rgba(255,255,255,.85);transition:all .22s ease}
 nav.scrolled .nav-burger span{background:var(--n700)}
@@ -58,7 +80,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 .mobile-menu-sub{font-size:14px;color:rgba(255,255,255,.45);padding:8px 0 8px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
 .mobile-menu-link:last-of-type,.mobile-menu-sub:last-of-type{border-bottom:none}
 .mobile-menu-cta{margin-top:16px}
-@media(max-width:768px){.nav-links{display:none}.nav-burger{display:flex}.nav-inner{justify-content:space-between}.nav-logo{margin-right:0}.nav-cta{display:none}}
+@media(max-width:768px){.nav-links{display:none}.nav-burger{display:flex}.nav-inner{justify-content:space-between}.nav-logo{margin-right:0}.nav-cta{display:none}.nav-signin{display:none}}
 /* ── LANG TOGGLE ── */
 .nav-lang{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:3px;}
 nav.scrolled .nav-lang{background:rgba(11,25,41,.06);border-color:rgba(11,25,41,.12);}
@@ -209,11 +231,33 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
         <button class="nav-lang-btn active" id="nav-btn-de" onclick="HP.setLang('de')">DE</button>
         <button class="nav-lang-btn" id="nav-btn-en" onclick="HP.setLang('en')">EN</button>
       </div>
+      <button class="btn nav-signin" id="nav-signin-btn" onclick="openSignIn()" data-i18n="nav.signin">Sign in</button>
       <a href="/onboarding.html" class="btn nav-cta" data-i18n="nav.cta">Open an account</a>
       <button class="nav-burger" id="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
+<!-- Sign-in modal -->
+<div class="hp-signin-overlay" id="hp-signin-overlay" onclick="if(event.target===this)closeSignIn()" style="display:none">
+  <div class="hp-signin-modal" id="hp-signin-modal" role="dialog" aria-modal="true">
+    <button class="hp-signin-close" onclick="closeSignIn()" aria-label="Close">×</button>
+    <div class="hp-signin-logo">
+      <img src="/assets/hansepay-mark-uploaded.png" width="28" height="28" alt="HansePay" style="vertical-align:middle;margin-right:9px">
+      <span style="font-family:var(--font-logo);font-size:20px;font-weight:400;color:var(--n800)">HansePay</span>
+    </div>
+    <h2 class="hp-signin-title" id="hp-signin-title" data-i18n="signin.title">Sign in to your account</h2>
+    <p class="hp-signin-sub" id="hp-signin-sub" data-i18n="signin.sub">Access your HansePay dashboard.</p>
+    <div class="hp-signin-coming">
+      <div class="hp-signin-coming-icon">🚀</div>
+      <div>
+        <div class="hp-signin-coming-label" data-i18n="signin.soon.title">Customer portal launching soon</div>
+        <div class="hp-signin-coming-text" data-i18n="signin.soon.body">We're putting the finishing touches on your account dashboard. In the meantime, speak with your dedicated FX specialist.</div>
+      </div>
+    </div>
+    <a href="/booking.html" class="hp-signin-book" onclick="closeSignIn()" data-i18n="signin.book">Book a discovery call →</a>
+    <p class="hp-signin-footer" data-i18n="signin.footer">Already working with us? Your specialist will share your portal access link once it's ready.</p>
+  </div>
+</div>
 <div class="mobile-menu" id="mobile-menu">
   <a class="mobile-menu-link" href="index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
   <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
@@ -330,6 +374,20 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
     }
     return false; // Default: transparent nav (dark hero assumed)
   }
+
+  function openSignIn() {
+    var overlay = document.getElementById('hp-signin-overlay');
+    if (overlay) { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    // Apply current language to modal
+    if (window.HP && window.HP.apply) window.HP.apply();
+  }
+  function closeSignIn() {
+    var overlay = document.getElementById('hp-signin-overlay');
+    if (overlay) { overlay.style.display = 'none'; document.body.style.overflow = ''; }
+  }
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSignIn(); });
+  window.openSignIn  = openSignIn;
+  window.closeSignIn = closeSignIn;
 
   function initNav(){
     var nav = document.getElementById('main-nav');
@@ -541,6 +599,12 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
     en: {
       // Nav
       'nav.home':'Home','nav.platform':'Platform','nav.solutions':'Solutions',
+      'nav.signin':'Sign in',
+      'signin.title':'Sign in to your account','signin.sub':'Access your HansePay dashboard.',
+      'signin.soon.title':'Customer portal launching soon',
+      'signin.soon.body':'We\'re putting the finishing touches on your account dashboard. In the meantime, speak with your dedicated FX specialist.',
+      'signin.book':'Book a discovery call →',
+      'signin.footer':'Already working with us? Your specialist will share your portal access link once it\'s ready.',
       'nav.about':'About','nav.insights':'Insights','nav.cta':'Open an account',
       'nav.platform.overview':'Overview','nav.platform.overview.sub':'See the full platform at a glance',
       'nav.platform.tech':'Technology','nav.platform.tech.sub':'The infrastructure behind every transfer',
@@ -647,6 +711,12 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
     de: {
       // Nav
       'nav.home':'Startseite','nav.platform':'Plattform','nav.solutions':'Lösungen',
+      'nav.signin':'Anmelden',
+      'signin.title':'In Ihr Konto einloggen','signin.sub':'Zugang zu Ihrem HansePay-Dashboard.',
+      'signin.soon.title':'Kundenportal in Kürze verfügbar',
+      'signin.soon.body':'Wir legen letzte Hand an Ihr Account-Dashboard. Sprechen Sie in der Zwischenzeit mit Ihrem persönlichen FX-Spezialisten.',
+      'signin.book':'Kennenlerngespräch buchen →',
+      'signin.footer':'Arbeiten Sie bereits mit uns? Ihr Spezialist schickt Ihnen den Portal-Zugang, sobald er bereit ist.',
       'nav.about':'Über uns','nav.insights':'Einblicke','nav.cta':'Konto eröffnen',
       'nav.platform.overview':'Übersicht','nav.platform.overview.sub':'Die gesamte Plattform auf einen Blick',
       'nav.platform.tech':'Technologie','nav.platform.tech.sub':'Die Infrastruktur hinter jeder Überweisung',

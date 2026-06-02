@@ -973,6 +973,101 @@ app.post('/api/customers/:id/activities', authenticateToken, (req, res) => {
   res.status(201).json(entry);
 });
 
+// ─── AI: Lead research ────────────────────────────────────────────────────────
+
+// POST /api/customers/:id/research
+// Calls Claude to produce a structured intelligence brief on the company.
+// Uses the same API key infrastructure as the blog AI generator.
+app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
+  const users   = readData('users.json');
+  const user    = users.find(u => u.id === req.user.id);
+  const apiKey  = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const customers = readData('customers.json');
+  const idx = customers.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+
+  const c = customers[idx];
+  const companyName = c.company || req.body.company || '';
+  const website     = c.website || req.body.website || '';
+  const industry    = c.industry || req.body.industry || '';
+  const country     = c.country || req.body.country || '';
+
+  if (!companyName) return res.status(400).json({ error: 'Company name is required for research.' });
+
+  const prompt = `You are a B2B sales intelligence analyst for HansePay, a European FX payments company that helps businesses with cross-border payments, multi-currency accounts, and FX execution (interbank rates, fast settlement).
+
+Research this company and return a JSON intelligence brief. Be concise and commercially focused — this is for a sales rep preparing for a first outreach.
+
+Company: ${companyName}
+Website: ${website || '(not provided)'}
+Industry: ${industry || '(not provided)'}
+Country/Region: ${country || '(not provided)'}
+
+Return ONLY valid JSON (no markdown, no explanation) matching this schema exactly:
+{
+  "overview": "2–3 sentence factual description of what the company does",
+  "size": "estimated company size — employees and revenue range if detectable, or 'Unknown'",
+  "fxAngle": "1–2 sentences on WHY this company likely has FX or cross-border payment needs based on their business",
+  "painPoints": ["likely pain point 1", "likely pain point 2", "likely pain point 3"],
+  "recentSignals": "any recent news, funding, expansion, or hiring signals relevant to payment needs — or 'No signals found'",
+  "decisionMakers": ["job title to target 1", "job title to target 2"],
+  "outreachAngle": "one specific, personalised opening line or angle for a first cold outreach email — reference something specific about their business",
+  "relevanceScore": 1-5,
+  "confidenceNote": "brief note on data quality/confidence"
+}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.text();
+      return res.status(502).json({ error: 'Claude API error: ' + resp.status, detail: err.slice(0, 200) });
+    }
+
+    const data = await resp.json();
+    const raw  = data.content?.[0]?.text || '';
+    let brief;
+    try {
+      brief = JSON.parse(raw.trim());
+    } catch (_) {
+      // Try to extract JSON if Claude wrapped it
+      const m = raw.match(/\{[\s\S]+\}/);
+      if (m) brief = JSON.parse(m[0]);
+      else return res.status(502).json({ error: 'Could not parse research response.', raw: raw.slice(0, 300) });
+    }
+
+    // Store on customer record
+    customers[idx].aiResearch    = brief;
+    customers[idx].researchedAt  = new Date().toISOString();
+    customers[idx].updatedAt     = new Date().toISOString();
+    writeData('customers.json', customers);
+
+    // Log as activity
+    logActivity({
+      customerId: c.id,
+      type: 'note',
+      title: 'AI research completed',
+      body: `Relevance score: ${brief.relevanceScore}/5. ${brief.fxAngle || ''}`,
+      by: req.user.name || 'system',
+    });
+
+    res.json({ success: true, research: brief });
+  } catch (err) {
+    console.error('[research] error:', err.message);
+    res.status(500).json({ error: 'Research failed: ' + err.message });
+  }
+});
+
 // ─── Sales: pipeline + summary ────────────────────────────────────────────────
 
 app.get('/api/sales/summary', authenticateToken, (req, res) => {

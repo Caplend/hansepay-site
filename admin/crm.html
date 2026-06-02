@@ -17,6 +17,15 @@
     <div class="topbar-actions">
       <button class="btn btn-ghost" id="export-csv">Export CSV</button>
       <button class="btn btn-ghost" id="export-xlsx">Export Excel</button>
+      <label class="btn btn-ghost" style="cursor:pointer" title="Import leads from CSV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import CSV
+        <input type="file" accept=".csv" id="import-csv-file" style="display:none">
+      </label>
+      <button class="btn btn-ghost" id="btn-outbound" style="border-color:rgba(99,102,241,.35);color:#4f46e5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        Add outbound lead
+      </button>
       <button class="btn btn-primary" id="new-customer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New customer
@@ -173,9 +182,16 @@ function renderDrawer(c){
     '<button class="btn btn-primary btn-sm" id="save-profile">Save profile</button> '+
     '<button class="btn btn-danger btn-sm" id="del-customer">Delete</button>'+
 
+    '<div class="subhead">AI research</div>'+
+    '<div id="research-panel">'+renderResearchPanel(c)+'</div>'+
+    '<button class="btn btn-ghost btn-sm" id="btn-research" style="margin-bottom:4px">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'+
+      (c.aiResearch ? 'Re-research' : 'Research with Claude')+'</button>'+
+    (c.researchedAt ? '<div class="muted" style="font-size:.6875rem;margin-bottom:12px">Last researched: '+H.fmtDate(c.researchedAt)+'</div>' : '')+
+
     '<div class="subhead">Log activity</div>'+
-    '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting']],'note')+'</select></div>'+
-    '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Follow-up call"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting'],['linkedin','LinkedIn'],['outreach','Outreach sent']],'note')+'</select></div>'+
+    '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Sent intro email"></div></div>'+
     '<div class="field"><label>Details</label><textarea id="a-body" placeholder="What happened?"></textarea></div>'+
     '<button class="btn btn-ghost btn-sm" id="add-activity">Add to timeline</button>'+
 
@@ -186,6 +202,45 @@ function renderDrawer(c){
   document.getElementById('save-profile').addEventListener('click',saveProfile);
   document.getElementById('del-customer').addEventListener('click',delCustomer);
   document.getElementById('add-activity').addEventListener('click',addActivity);
+  document.getElementById('btn-research').addEventListener('click',runResearch);
+}
+
+function renderResearchPanel(c){
+  if(!c.aiResearch) return '<div class="muted" style="font-size:.8125rem;margin-bottom:14px">No research yet. Click "Research with Claude" to generate an AI intelligence brief on this company.</div>';
+  var r=c.aiResearch;
+  var scoreColor=r.relevanceScore>=4?'#16a34a':r.relevanceScore>=3?'#d97706':'#6b7280';
+  return '<div style="background:var(--n050);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:14px;font-size:.8125rem">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<span style="font-weight:700;color:var(--n800)">Intelligence Brief</span>'+
+      '<span style="background:'+scoreColor+';color:#fff;padding:2px 9px;border-radius:var(--r-pill);font-size:.6875rem;font-weight:700">'+r.relevanceScore+'/5 relevance</span>'+
+    '</div>'+
+    (r.overview?'<p style="color:var(--ink2);line-height:1.5;margin-bottom:10px">'+esc(r.overview)+'</p>':'')+
+    (r.fxAngle?'<div style="border-left:3px solid var(--n400);padding:8px 12px;background:#fff;border-radius:0 6px 6px 0;margin-bottom:10px;color:var(--ink);font-style:italic">'+esc(r.fxAngle)+'</div>':'')+
+    (r.painPoints&&r.painPoints.length?'<div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Pain points</div>'+r.painPoints.map(function(p){return '<div style="padding:2px 0;color:var(--ink2)">· '+esc(p)+'</div>';}).join('')+'</div>':'')+
+    (r.outreachAngle?'<div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Opening angle</div><div style="color:var(--ink);background:#fff;border-radius:6px;padding:10px 12px;font-size:.8125rem;line-height:1.5">'+esc(r.outreachAngle)+'</div></div>':'')+
+    (r.decisionMakers&&r.decisionMakers.length?'<div style="margin-bottom:4px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Target roles</div><div style="display:flex;flex-wrap:wrap;gap:5px">'+r.decisionMakers.map(function(d){return '<span style="background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-pill);padding:3px 10px;font-size:.6875rem;color:var(--ink2)">'+esc(d)+'</span>';}).join('')+'</div></div>':'')+
+    (r.recentSignals&&r.recentSignals!=='No signals found'?'<div style="margin-top:10px;font-size:.6875rem;color:var(--ink3)"><b>Signals:</b> '+esc(r.recentSignals)+'</div>':'')+
+  '</div>';
+}
+
+function runResearch(){
+  var btn=document.getElementById('btn-research');
+  if(!current)return;
+  btn.disabled=true; btn.textContent='Researching…';
+  A('/api/customers/'+current.id+'/research',{method:'POST'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error){H.toast(data.error,'error');}
+      else{
+        current.aiResearch=data.research; current.researchedAt=new Date().toISOString();
+        document.getElementById('research-panel').innerHTML=renderResearchPanel(current);
+        H.toast('Research complete ✓');
+        btn.textContent='Re-research';
+        load();
+      }
+    })
+    .catch(function(){H.toast('Research failed','error');})
+    .finally(function(){btn.disabled=false;});
 }
 
 function churnLabel(r){return {high:'High churn risk',medium:'Medium risk',low:'Low risk',churned:'Churned'}[r]||r;}
@@ -256,7 +311,109 @@ document.getElementById('export-xlsx').addEventListener('click',function(){downl
 document.getElementById('search').addEventListener('input',function(){clearTimeout(debounce);debounce=setTimeout(load,250);});
 ['f-stage','f-status','f-churn','f-source'].forEach(function(id){document.getElementById(id).addEventListener('change',load);});
 
+// ── Outbound quick-add ──
+document.getElementById('btn-outbound').addEventListener('click',function(){
+  var m=document.getElementById('outbound-modal');
+  if(m)m.style.display='flex';
+});
+
+// ── CSV Import ──
+document.getElementById('import-csv-file').addEventListener('change',function(e){
+  var file=e.target.files[0]; if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var lines=ev.target.result.split(/\r?\n/).filter(Boolean);
+    if(lines.length<2){H.toast('CSV must have a header row and at least one data row.','error');return;}
+    var headers=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim().toLowerCase();});
+    var map={company:['company','company name','firma','unternehmen'],
+             firstName:['first name','firstname','vorname'],lastName:['last name','lastname','nachname'],
+             email:['email','e-mail'],phone:['phone','tel','telefon'],website:['website','url'],
+             industry:['industry','branche'],country:['country','land'],fxVolume:['fx volume','fxvolume','monthly volume'],
+             notes:['notes','notizen','note']};
+    function col(key){var aliases=map[key]||[key];for(var i=0;i<aliases.length;i++){var idx=headers.indexOf(aliases[i]);if(idx!==-1)return idx;}return -1;}
+
+    var created=0,failed=0;
+    var promises=lines.slice(1).map(function(line){
+      var cols=line.split(',').map(function(v){return v.replace(/^"|"$/g,'').trim();});
+      var obj={source:'import'};
+      Object.keys(map).forEach(function(k){var i=col(k);if(i!==-1&&cols[i])obj[k]=cols[i];});
+      if(!obj.company&&!obj.email){failed++;return Promise.resolve();}
+      return A('/api/customers',{method:'POST',body:JSON.stringify(obj)})
+        .then(function(r){if(r.ok)created++;else failed++;}).catch(function(){failed++;});
+    });
+
+    Promise.all(promises).then(function(){
+      H.toast('Imported: '+created+' leads'+(failed?' ('+failed+' skipped)':''));
+      load(); e.target.value='';
+    });
+  };
+  reader.readAsText(file);
+});
+
 load();
+</script>
+
+<!-- Outbound lead modal -->
+<div id="outbound-modal" style="display:none;position:fixed;inset:0;background:rgba(6,13,26,.5);z-index:600;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:18px;padding:30px 32px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(6,13,26,.25)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;color:var(--n800);margin-bottom:6px">Add outbound lead</div>
+    <div style="font-size:.875rem;color:var(--ink3);margin-bottom:20px">Manually add a prospect for outbound outreach.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Company *</label><input id="ob-company" placeholder="Acme GmbH" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Website</label><input id="ob-website" placeholder="acme.de" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">First name</label><input id="ob-firstName" placeholder="Alex" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Last name</label><input id="ob-lastName" placeholder="Müller" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Email</label><input id="ob-email" type="email" placeholder="alex@acme.de" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Industry</label><input id="ob-industry" placeholder="Manufacturing" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="margin-bottom:16px"><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Notes</label><textarea id="ob-notes" rows="2" placeholder="Where did you find this lead? Any context?" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);resize:vertical"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button id="ob-save" onclick="saveOutbound()" style="flex:1;padding:11px;border-radius:var(--r-pill);border:none;background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer">Add &amp; research with AI</button>
+      <button id="ob-save-only" onclick="saveOutbound(false)" style="flex:1;padding:11px;border-radius:var(--r-pill);border:1.5px solid rgba(11,25,41,.12);background:#fff;color:var(--ink2);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer">Add without research</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function saveOutbound(withResearch){
+  withResearch = withResearch !== false;
+  var company = document.getElementById('ob-company').value.trim();
+  if(!company){document.getElementById('ob-company').focus();return;}
+  var body={
+    company, source:'outbound', stage:'lead', status:'prospect',
+    firstName: document.getElementById('ob-firstName').value.trim(),
+    lastName:  document.getElementById('ob-lastName').value.trim(),
+    email:     document.getElementById('ob-email').value.trim(),
+    website:   document.getElementById('ob-website').value.trim(),
+    industry:  document.getElementById('ob-industry').value.trim(),
+    notes:     document.getElementById('ob-notes').value.trim(),
+  };
+  var btn=document.getElementById('ob-save');
+  btn.disabled=true; btn.textContent='Adding…';
+  window.HPAdmin.authFetch('/api/customers',{method:'POST',body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(c){
+      document.getElementById('outbound-modal').style.display='none';
+      ['ob-company','ob-firstName','ob-lastName','ob-email','ob-website','ob-industry','ob-notes'].forEach(function(id){document.getElementById(id).value='';});
+      load();
+      if(withResearch && c.id){
+        // Auto-open the drawer and trigger research
+        window.openCustomer(c.id);
+        setTimeout(function(){
+          var rb=document.getElementById('btn-research');
+          if(rb){rb.click();}
+        }, 600);
+      } else {
+        window.HPAdmin.toast('Lead added ✓');
+      }
+    })
+    .catch(function(){window.HPAdmin.toast('Failed to add lead','error');})
+    .finally(function(){btn.disabled=false; btn.textContent='Add & research with AI';});
+}
 </script>
 </body>
 </html>
