@@ -42,10 +42,10 @@ nav.scrolled .nav-link:hover,nav.scrolled .nav-link.active-page{color:var(--n700
 .nav-dd-active .nav-dd-title{color:var(--gold)}
 .nav-dropdown-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
 .nav-right{display:flex;align-items:center;gap:8px;margin-left:16px;flex-shrink:0}
-.nav-signin{background:transparent;color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.22);padding:8px 18px;font-size:13px;border-radius:var(--r-pill);cursor:pointer;font-family:var(--font-ui);font-weight:600;transition:all .18s}
-.nav-signin:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.4)}
-nav.scrolled .nav-signin{color:var(--ink2);border-color:rgba(11,25,41,.18);background:transparent}
-nav.scrolled .nav-signin:hover{background:var(--n050);color:var(--n600)}
+.nav-signin{background:none;border:none;color:rgba(255,255,255,.7);padding:4px 2px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-ui);transition:color .18s;letter-spacing:.01em}
+.nav-signin:hover{color:#fff}
+nav.scrolled .nav-signin{color:var(--ink3)}
+nav.scrolled .nav-signin:hover{color:var(--ink)}
 .nav-cta{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.28);padding:8px 20px;font-size:13px;border-radius:var(--r-pill);backdrop-filter:blur(8px)}
 .nav-cta:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.45)}
 nav.scrolled .nav-cta{background:var(--n500);border-color:var(--n500);backdrop-filter:none}
