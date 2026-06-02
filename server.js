@@ -2,6 +2,9 @@
 
 const express = require('express');
 const cal = (() => { try { return require('./lib/calendar'); } catch(e) { return null; } })();
+const mailer = (() => { try { return require('./lib/email'); } catch(e) { console.error('[email] module load failed:', e.message); return null; } })();
+const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return null; } })();
+const crm = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -40,7 +43,7 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics'].forEach(name => {
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -145,7 +148,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json'];
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json'];
   const defaultVal = arrayFiles.includes(filename) ? [] : {};
   if (!fs.existsSync(fp)) return defaultVal;
   try {
@@ -157,6 +160,101 @@ function readData(filename) {
 
 function writeData(filename, data) {
   fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), 'utf8');
+}
+
+// ─── CRM helpers ──────────────────────────────────────────────────────────────
+
+function logActivity({ customerId, type, title, body, by }) {
+  const activities = readData('activities.json');
+  const list = Array.isArray(activities) ? activities : [];
+  const entry = {
+    id:         'act_' + uuidv4().replace(/-/g, '').substring(0, 10),
+    customerId,
+    type:       type || 'note',
+    title:      title || '',
+    body:       body || '',
+    by:         by || 'system',
+    at:         new Date().toISOString(),
+  };
+  list.push(entry);
+  writeData('activities.json', list);
+  return entry;
+}
+
+function activitiesFor(customerId) {
+  const activities = readData('activities.json');
+  return (Array.isArray(activities) ? activities : [])
+    .filter(a => a.customerId === customerId)
+    .sort((a, b) => new Date(b.at) - new Date(a.at));
+}
+
+// Create or update a customer from an inbound lead (e.g. a booking).
+function upsertCustomerFromLead(lead, opts) {
+  opts = opts || {};
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  const email = (lead.email || '').toLowerCase().trim();
+  const now = new Date().toISOString();
+
+  let cust = email ? list.find(c => (c.email || '').toLowerCase() === email) : null;
+  let isNew = false;
+
+  if (!cust) {
+    isNew = true;
+    cust = {
+      id:        'cust_' + uuidv4().replace(/-/g, '').substring(0, 10),
+      firstName: lead.firstName || '',
+      lastName:  lead.lastName || '',
+      email:     lead.email || '',
+      phone:     lead.phone || '',
+      website:   lead.website || '',
+      company:   lead.company || '',
+      industry:  lead.industry || '',
+      companySize: lead.companySize || '',
+      country:   lead.country || '',
+      city:      lead.city || '',
+      fxVolume:  lead.fxVolume || '',
+      currencyPairs: lead.currencyPairs || '',
+      stage:     'lead',
+      status:    'prospect',
+      owner:     '',
+      source:    opts.source || 'booking',
+      tags:      [],
+      notes:     lead.notes || '',
+      bookingIds: [],
+      lastContactAt:  now,
+      nextFollowUpAt: null,
+      lang:      lead.lang || 'de',
+      createdAt: now,
+      updatedAt: now,
+    };
+    list.push(cust);
+  } else {
+    // Fill blanks from the new lead, keep existing CRM edits
+    ['firstName', 'lastName', 'company', 'phone', 'website', 'industry', 'companySize', 'country', 'city', 'fxVolume'].forEach(k => {
+      if (!cust[k] && lead[k]) cust[k] = lead[k];
+    });
+    cust.lastContactAt = now;
+    cust.updatedAt = now;
+    if (cust.status === 'churned') cust.status = 'active'; // re-engaged
+  }
+
+  if (opts.bookingId) {
+    cust.bookingIds = cust.bookingIds || [];
+    if (!cust.bookingIds.includes(opts.bookingId)) cust.bookingIds.push(opts.bookingId);
+  }
+
+  writeData('customers.json', list);
+
+  logActivity({
+    customerId: cust.id,
+    type:       'booking',
+    title:      isNew ? 'New lead from booking' : 'Repeat booking',
+    body:       opts.slot ? `Discovery call booked for ${opts.slot.label || opts.slot.startISO}` : 'Discovery call booked',
+    by:         'system',
+  });
+
+  return cust;
 }
 
 // ─── Auth middleware ─────────────────────────────────────────────────────────
@@ -694,6 +792,298 @@ app.patch('/api/bookings/:id', authenticateToken, (req, res) => {
   res.json(bookings[idx]);
 });
 
+// ─── CRM: Customers ─────────────────────────────────────────────────────────
+
+// Enrich a customer with health/value using its activities
+function enrichCustomer(c) {
+  if (!crm) return c;
+  return crm.enrich(c, activitiesFor(c.id));
+}
+
+app.get('/api/customers', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  let list = (Array.isArray(customers) ? customers : []).map(enrichCustomer);
+
+  const { stage, status, churn, source, owner, q } = req.query;
+  if (stage)  list = list.filter(c => c.stage === stage);
+  if (status) list = list.filter(c => c.status === status);
+  if (source) list = list.filter(c => c.source === source);
+  if (owner)  list = list.filter(c => (c.owner || '') === owner);
+  if (churn)  list = list.filter(c => c.health && c.health.churnRisk === churn);
+  if (q) {
+    const needle = String(q).toLowerCase();
+    list = list.filter(c =>
+      [c.company, c.firstName, c.lastName, c.email, c.industry, c.country]
+        .filter(Boolean).some(v => String(v).toLowerCase().includes(needle))
+    );
+  }
+  list.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+  res.json(list);
+});
+
+app.get('/api/customers/export', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  if (!crm) return res.status(503).json({ error: 'CRM module unavailable' });
+  const aoa = crm.toExportRows(list, enrichCustomer);
+  const stamp = new Date().toISOString().slice(0, 10);
+  const format = (req.query.format || 'csv').toLowerCase();
+
+  if (format === 'xlsx' && xlsx) {
+    const buf = xlsx.buildWorkbook([{ name: 'Customers', aoa }]);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="hansepay-customers-${stamp}.xlsx"`);
+    return res.send(buf);
+  }
+  const csv = xlsx ? xlsx.toCSV(aoa) : aoa.map(r => r.join(',')).join('\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="hansepay-customers-${stamp}.csv"`);
+  res.send(csv);
+});
+
+app.get('/api/customers/:id', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  const c = (Array.isArray(customers) ? customers : []).find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: 'Customer not found' });
+  const enriched = enrichCustomer(c);
+  enriched.activities = activitiesFor(c.id);
+  const allBookings = readData('bookings.json');
+  enriched.bookings = (Array.isArray(allBookings) ? allBookings : []).filter(b => (c.bookingIds || []).includes(b.id));
+  res.json(enriched);
+});
+
+const CUSTOMER_FIELDS = ['firstName', 'lastName', 'email', 'phone', 'website', 'company',
+  'industry', 'companySize', 'country', 'city', 'fxVolume', 'currencyPairs',
+  'stage', 'status', 'owner', 'source', 'tags', 'notes', 'estValueEur',
+  'lastContactAt', 'nextFollowUpAt', 'lang'];
+
+app.post('/api/customers', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  if (!req.body.company && !req.body.email && !req.body.firstName) {
+    return res.status(400).json({ error: 'At least a company, name or email is required' });
+  }
+  const now = new Date().toISOString();
+  const cust = {
+    id: 'cust_' + uuidv4().replace(/-/g, '').substring(0, 10),
+    stage: 'lead', status: 'prospect', source: 'manual', tags: [], bookingIds: [],
+    owner: req.user.name || '', lastContactAt: now, nextFollowUpAt: null,
+    createdAt: now, updatedAt: now,
+  };
+  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) cust[k] = req.body[k]; });
+  list.push(cust);
+  writeData('customers.json', list);
+  logActivity({ customerId: cust.id, type: 'note', title: 'Customer created', by: req.user.name });
+  res.status(201).json(enrichCustomer(cust));
+});
+
+app.put('/api/customers/:id', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  const idx = list.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+
+  const prevStage = list[idx].stage;
+  const prevStatus = list[idx].status;
+  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) list[idx][k] = req.body[k]; });
+  list[idx].updatedAt = new Date().toISOString();
+  writeData('customers.json', list);
+
+  if (req.body.stage && req.body.stage !== prevStage) {
+    logActivity({ customerId: list[idx].id, type: 'stage_change',
+      title: `Stage: ${crm ? (crm.STAGE_LABELS[prevStage] || prevStage) : prevStage} → ${crm ? (crm.STAGE_LABELS[req.body.stage] || req.body.stage) : req.body.stage}`,
+      by: req.user.name });
+  }
+  if (req.body.status && req.body.status !== prevStatus) {
+    logActivity({ customerId: list[idx].id, type: 'stage_change',
+      title: `Status: ${prevStatus} → ${req.body.status}`, by: req.user.name });
+  }
+  res.json(enrichCustomer(list[idx]));
+});
+
+app.delete('/api/customers/:id', authenticateToken, requireAdmin, (req, res) => {
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  const idx = list.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+  list.splice(idx, 1);
+  writeData('customers.json', list);
+  // Drop associated activities
+  const activities = readData('activities.json');
+  writeData('activities.json', (Array.isArray(activities) ? activities : []).filter(a => a.customerId !== req.params.id));
+  res.json({ success: true });
+});
+
+// Add an activity / interaction; contact-type activities advance lastContactAt
+app.post('/api/customers/:id/activities', authenticateToken, (req, res) => {
+  const customers = readData('customers.json');
+  const list = Array.isArray(customers) ? customers : [];
+  const idx = list.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+
+  const { type, title, body } = req.body;
+  const entry = logActivity({ customerId: req.params.id, type, title, body, by: req.user.name });
+
+  if (['call', 'email', 'meeting', 'note'].includes(type)) {
+    list[idx].lastContactAt = new Date().toISOString();
+    list[idx].updatedAt = new Date().toISOString();
+    writeData('customers.json', list);
+  }
+  res.status(201).json(entry);
+});
+
+// ─── Sales: pipeline + summary ────────────────────────────────────────────────
+
+app.get('/api/sales/summary', authenticateToken, (req, res) => {
+  const customers = (readData('customers.json') || []).map(enrichCustomer);
+  const stages = crm ? crm.STAGES : ['lead', 'qualified', 'proposal', 'won', 'lost'];
+
+  const byStage = {};
+  stages.forEach(s => { byStage[s] = { count: 0, value: 0, weighted: 0, customers: [] }; });
+  customers.forEach(c => {
+    const s = c.stage || 'lead';
+    if (!byStage[s]) byStage[s] = { count: 0, value: 0, weighted: 0, customers: [] };
+    byStage[s].count++;
+    byStage[s].value += c.estValueEur || 0;
+    byStage[s].weighted += c.weightedValue || 0;
+    byStage[s].customers.push({
+      id: c.id, company: c.company, name: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+      email: c.email, estValueEur: c.estValueEur, owner: c.owner,
+      health: c.health.score, churnRisk: c.health.churnRisk, industry: c.industry,
+      updatedAt: c.updatedAt,
+    });
+  });
+
+  const open = customers.filter(c => !['won', 'lost'].includes(c.stage));
+  const won = customers.filter(c => c.stage === 'won');
+  const lost = customers.filter(c => c.stage === 'lost');
+  const closed = won.length + lost.length;
+
+  const pipelineValue = open.reduce((s, c) => s + (c.estValueEur || 0), 0);
+  const weightedPipeline = open.reduce((s, c) => s + (c.weightedValue || 0), 0);
+  const wonValue = won.reduce((s, c) => s + (c.estValueEur || 0), 0);
+
+  const healthDist = { excellent: 0, good: 0, watch: 0, 'at-risk': 0 };
+  customers.forEach(c => { healthDist[c.health.band] = (healthDist[c.health.band] || 0) + 1; });
+
+  const churnRisk = customers
+    .filter(c => ['high', 'medium'].includes(c.health.churnRisk))
+    .sort((a, b) => a.health.score - b.health.score)
+    .slice(0, 12)
+    .map(c => ({ id: c.id, company: c.company, name: `${c.firstName || ''} ${c.lastName || ''}`.trim(),
+      health: c.health.score, churnRisk: c.health.churnRisk, daysSinceContact: c.health.daysSinceContact,
+      estValueEur: c.estValueEur, status: c.status }));
+
+  res.json({
+    totals: {
+      customers: customers.length,
+      open: open.length,
+      won: won.length,
+      lost: lost.length,
+      pipelineValue, weightedPipeline, wonValue,
+      winRate: closed ? Math.round((won.length / closed) * 100) : 0,
+      avgDeal: won.length ? Math.round(wonValue / won.length) : 0,
+      avgHealth: customers.length ? Math.round(customers.reduce((s, c) => s + c.health.score, 0) / customers.length) : 0,
+    },
+    byStage,
+    healthDist,
+    churnRisk,
+  });
+});
+
+// ─── Marketing summary ──────────────────────────────────────────────────────
+
+function classifyChannel(referrer, data) {
+  const utm = (data && (data.utm_source || data.source)) || '';
+  if (utm) return String(utm).toLowerCase();
+  const r = (referrer || '').toLowerCase();
+  if (!r) return 'direct';
+  if (/google|bing|duckduckgo|yahoo|ecosia/.test(r)) return 'organic';
+  if (/linkedin|twitter|x\.com|facebook|instagram|youtube|t\.co/.test(r)) return 'social';
+  if (/mail|gmail|outlook/.test(r)) return 'email';
+  return 'referral';
+}
+
+app.get('/api/marketing/summary', authenticateToken, (req, res) => {
+  const analytics = readData('analytics.json') || [];
+  const posts = readData('posts.json') || [];
+  const seo = readData('seo.json') || {};
+  const customers = readData('customers.json') || [];
+  const bookings = readData('bookings.json') || [];
+
+  const pageviews = analytics.filter(a => !a.type || a.type === 'pageview');
+
+  // Channels
+  const channels = {};
+  pageviews.forEach(a => {
+    const ch = classifyChannel(a.referrer, a.data);
+    channels[ch] = (channels[ch] || 0) + 1;
+  });
+
+  // Top pages
+  const pageCounts = {};
+  pageviews.forEach(a => { pageCounts[a.page || '/'] = (pageCounts[a.page || '/'] || 0) + 1; });
+  const topPages = Object.entries(pageCounts).map(([page, views]) => ({ page, views }))
+    .sort((a, b) => b.views - a.views).slice(0, 10);
+
+  // Funnel
+  const modalOpens = analytics.filter(a => a.type === 'booking_modal_open').length;
+  const bookingConfirmed = Array.isArray(bookings) ? bookings.length : 0;
+  const totalViews = pageviews.length;
+
+  // Content performance
+  const topPosts = [...(Array.isArray(posts) ? posts : [])]
+    .filter(p => p.status === 'published')
+    .map(p => ({ id: p.id, title: p.title, slug: p.slug, category: p.category, views: p.viewCount || p.views || 0 }))
+    .sort((a, b) => b.views - a.views).slice(0, 8);
+  const publishedCount = (Array.isArray(posts) ? posts : []).filter(p => p.status === 'published').length;
+  const draftCount = (Array.isArray(posts) ? posts : []).filter(p => p.status === 'draft').length;
+
+  // SEO coverage: which key pages have title + description
+  const keyPages = ['index', 'about', 'tools', 'blog', 'booking', 'platform', 'solutions-corporate'];
+  const seoCoverage = keyPages.map(slug => {
+    const m = seo[slug] || {};
+    const hasTitle = !!(m.title || m.metaTitle);
+    const hasDesc = !!(m.description || m.metaDescription);
+    return { slug, hasTitle, hasDesc, complete: hasTitle && hasDesc };
+  });
+  const seoComplete = seoCoverage.filter(s => s.complete).length;
+
+  // Leads by source
+  const leadsBySource = {};
+  (Array.isArray(customers) ? customers : []).forEach(c => {
+    const s = c.source || 'unknown';
+    leadsBySource[s] = (leadsBySource[s] || 0) + 1;
+  });
+
+  // Views over last 30 days
+  const now = new Date();
+  const viewsLast30Days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86400000).toISOString().slice(0, 10);
+    viewsLast30Days.push({ date: d, count: pageviews.filter(a => a.timestamp && a.timestamp.startsWith(d)).length });
+  }
+
+  res.json({
+    totals: {
+      totalViews,
+      visitors: Object.keys(pageCounts).length ? totalViews : 0,
+      leads: Array.isArray(customers) ? customers.length : 0,
+      bookings: bookingConfirmed,
+      publishedCount, draftCount,
+      seoComplete, seoTotal: keyPages.length,
+      conversionRate: totalViews ? +((bookingConfirmed / totalViews) * 100).toFixed(2) : 0,
+    },
+    channels,
+    topPages,
+    topPosts,
+    seoCoverage,
+    leadsBySource,
+    funnel: { views: totalViews, modalOpens, bookings: bookingConfirmed },
+    viewsLast30Days,
+  });
+});
+
 // ─── SEO routes ───────────────────────────────────────────────────────────────
 
 app.get('/api/seo', (req, res) => {
@@ -899,12 +1289,14 @@ app.post('/api/booking', async (req, res) => {
     const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'unconfigured', htmlLink: '#', hangoutLink: null };
     console.log(`[booking] created: ${lead.email} @ ${slot.startISO} — event ${event.id}`);
 
+    const bookingId = event.id || uuidv4();
+
     // Persist to bookings CRM
     try {
       const bookings = readData('bookings.json');
       const list = Array.isArray(bookings) ? bookings : [];
       list.push({
-        id:        event.id || uuidv4(),
+        id:        bookingId,
         createdAt: new Date().toISOString(),
         slot,
         lead,
@@ -916,6 +1308,31 @@ app.post('/api/booking', async (req, res) => {
       writeData('bookings.json', list);
     } catch (e) {
       console.error('[booking] CRM save error:', e.message);
+    }
+
+    // Upsert a customer profile + log the booking as an activity
+    try {
+      upsertCustomerFromLead(lead, { bookingId, slot, source: 'booking' });
+    } catch (e) {
+      console.error('[booking] customer upsert error:', e.message);
+    }
+
+    // Send the branded confirmation email (fire-and-forget)
+    if (mailer) {
+      try {
+        const mail = mailer.renderBookingEmail({
+          slot, lead,
+          meetLink:    event.hangoutLink || null,
+          calendarUrl: event.htmlLink    || null,
+        });
+        if (mail.to) {
+          mailer.sendMail(mail).then(r => {
+            console.log(`[email] booking confirmation → ${mail.to}: ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
+          }).catch(err => console.error('[email] send error:', err.message));
+        }
+      } catch (e) {
+        console.error('[email] render error:', e.message);
+      }
     }
 
     res.json({

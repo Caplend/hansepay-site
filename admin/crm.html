@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Customers — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Customers</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="export-csv">Export CSV</button>
+      <button class="btn btn-ghost" id="export-xlsx">Export Excel</button>
+      <button class="btn btn-primary" id="new-customer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New customer
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="s-total">—</div><div class="stat-label">Total customers</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-active">—</div><div class="stat-label">Active accounts</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-pipeline">—</div><div class="stat-label">Open pipeline value</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-risk">—</div><div class="stat-label">Churn-risk accounts</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input class="search-input" id="search" type="text" placeholder="Search company, contact, email, industry…" />
+      <select class="select" id="f-stage"><option value="">All stages</option><option value="lead">Lead</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="won">Won</option><option value="lost">Lost</option></select>
+      <select class="select" id="f-status"><option value="">All statuses</option><option value="prospect">Prospect</option><option value="active">Active</option><option value="churned">Churned</option></select>
+      <select class="select" id="f-churn"><option value="">All health</option><option value="high">High churn risk</option><option value="medium">Medium churn risk</option><option value="low">Low risk</option></select>
+      <select class="select" id="f-source"><option value="">All sources</option><option value="booking">Booking</option><option value="manual">Manual</option><option value="referral">Referral</option><option value="web">Web</option><option value="import">Import</option></select>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="overflow:hidden">
+      <table class="data-table">
+        <thead><tr>
+          <th>Company</th><th>Contact</th><th>Stage</th><th>Status</th>
+          <th>Est. value</th><th>Health</th><th>Churn</th><th>Last contact</th>
+        </tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Drawer -->
+<div class="drawer-overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head" style="position:relative">
+    <button class="drawer-close" id="drawer-close">&times;</button>
+    <div id="drawer-title" style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;padding-right:30px">Customer</div>
+    <div id="drawer-sub" style="font-size:.8125rem;color:rgba(255,255,255,.6);margin-top:4px"></div>
+    <div id="drawer-health" style="margin-top:14px"></div>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<script src="components.js"></script>
+<script>
+var H = window.HPAdmin;
+H.renderSidebar('crm');
+var A = H.authFetch, esc = H.escapeHtml;
+
+var all = [];
+var current = null;
+var debounce;
+
+function stageBadge(s){ var l={lead:'Lead',qualified:'Qualified',proposal:'Proposal',won:'Won',lost:'Lost'}[s]||s; return '<span class="badge badge-'+s+'">'+l+'</span>'; }
+function statusBadge(s){ return '<span class="badge badge-'+s+'">'+s+'</span>'; }
+function churnBadge(r){
+  var map={high:'High',medium:'Medium',low:'Low',churned:'Churned'};
+  return '<span class="risk-'+r+'" style="font-weight:600;font-size:.75rem">●&nbsp;'+(map[r]||r)+'</span>';
+}
+
+function load(){
+  var qs=[];
+  var q=document.getElementById('search').value.trim(); if(q)qs.push('q='+encodeURIComponent(q));
+  ['stage','status','churn','source'].forEach(function(f){
+    var v=document.getElementById('f-'+f).value; if(v)qs.push((f==='churn'?'churn':f)+'='+v);
+  });
+  A('/api/customers'+(qs.length?'?'+qs.join('&'):'')).then(function(r){return r.json();}).then(function(list){
+    all=list; render(list);
+  }).catch(function(){});
+  // stats from unfiltered sales summary
+  A('/api/sales/summary').then(function(r){return r.json();}).then(function(s){
+    document.getElementById('s-total').textContent=H.num(s.totals.customers);
+    document.getElementById('s-pipeline').textContent=H.eur(s.totals.pipelineValue);
+    document.getElementById('s-risk').textContent=H.num(s.churnRisk.filter(function(c){return c.churnRisk==='high'||c.churnRisk==='medium';}).length);
+  }).catch(function(){});
+}
+
+// active-account count from current list (status active)
+function activeCount(list){ return list.filter(function(c){return c.status==='active';}).length; }
+
+function render(list){
+  var tb=document.getElementById('rows');
+  document.getElementById('s-active').textContent=H.num(activeCount(all));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="8" class="empty">No customers match your filters.</td></tr>'; return; }
+  tb.innerHTML=list.map(function(c){
+    var name=((c.firstName||'')+' '+(c.lastName||'')).trim()||'—';
+    return '<tr onclick="openCustomer(\''+c.id+'\')">'+
+      '<td class="t-strong">'+esc(c.company||'—')+'<div class="muted" style="font-weight:400;font-size:.6875rem">'+esc(c.industry||'')+(c.country?' · '+esc(c.country):'')+'</div></td>'+
+      '<td>'+esc(name)+'<div class="muted" style="font-size:.6875rem">'+esc(c.email||'')+'</div></td>'+
+      '<td>'+stageBadge(c.stage)+'</td>'+
+      '<td>'+statusBadge(c.status)+'</td>'+
+      '<td class="t-strong">'+H.eur(c.estValueEur)+'</td>'+
+      '<td>'+H.healthHtml(c.health)+'</td>'+
+      '<td>'+churnBadge(c.health.churnRisk)+'</td>'+
+      '<td>'+H.timeAgo(c.lastContactAt)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── Drawer ──
+function openDrawer(){ document.getElementById('overlay').classList.add('open'); document.getElementById('drawer').classList.add('open'); }
+function closeDrawer(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('drawer').classList.remove('open'); current=null; }
+document.getElementById('overlay').addEventListener('click',closeDrawer);
+document.getElementById('drawer-close').addEventListener('click',closeDrawer);
+
+window.openCustomer=function(id){
+  A('/api/customers/'+id).then(function(r){return r.json();}).then(function(c){
+    current=c; renderDrawer(c); openDrawer();
+  });
+};
+
+function selOpts(opts,val){ return opts.map(function(o){var v=o[0],l=o[1];return '<option value="'+v+'"'+(v===val?' selected':'')+'>'+l+'</option>';}).join(''); }
+
+function renderDrawer(c){
+  var name=((c.firstName||'')+' '+(c.lastName||'')).trim();
+  document.getElementById('drawer-title').textContent=c.company||name||'Customer';
+  document.getElementById('drawer-sub').innerHTML=esc(name)+(c.email?' · '+esc(c.email):'');
+  var hc=H.healthColor(c.health.score);
+  document.getElementById('drawer-health').innerHTML=
+    '<span class="chip" style="background:rgba(255,255,255,.12);color:#fff">Health '+c.health.score+'/100</span> '+
+    '<span class="chip" style="background:rgba(255,255,255,.12);color:#fff;text-transform:capitalize">'+churnLabel(c.health.churnRisk)+'</span>'+
+    (c.health.daysSinceContact!=null?' <span class="chip" style="background:rgba(255,255,255,.12);color:#fff">'+c.health.daysSinceContact+'d since contact</span>':'');
+
+  var body=document.getElementById('drawer-body');
+  body.innerHTML=
+    '<div class="card card-pad" style="margin-bottom:18px">'+
+      '<div class="field-row"><div class="field"><label>Stage</label><select id="e-stage">'+selOpts([['lead','Lead'],['qualified','Qualified'],['proposal','Proposal'],['won','Won'],['lost','Lost']],c.stage)+'</select></div>'+
+      '<div class="field"><label>Status</label><select id="e-status">'+selOpts([['prospect','Prospect'],['active','Active'],['churned','Churned']],c.status)+'</select></div></div>'+
+      '<div class="field-row"><div class="field"><label>Owner</label><input id="e-owner" value="'+esc(c.owner||'')+'"></div>'+
+      '<div class="field"><label>Next follow-up</label><input id="e-followup" type="date" value="'+(c.nextFollowUpAt?new Date(c.nextFollowUpAt).toISOString().slice(0,10):'')+'"></div></div>'+
+      '<button class="btn btn-primary btn-sm" id="save-stage" style="margin-top:4px">Save</button>'+
+    '</div>'+
+
+    '<div class="subhead" style="margin-top:0">Health factors</div>'+
+    '<ul style="list-style:none;margin-bottom:6px">'+(c.health.reasons.length?c.health.reasons.map(function(r){return '<li style="font-size:.8125rem;color:var(--ink2);padding:3px 0">• '+esc(r)+'</li>';}).join(''):'<li class="muted" style="font-size:.8125rem">No flags</li>')+'</ul>'+
+
+    '<div class="subhead">Profile</div>'+
+    '<div class="field-row"><div class="field"><label>First name</label><input id="e-firstName" value="'+esc(c.firstName||'')+'"></div><div class="field"><label>Last name</label><input id="e-lastName" value="'+esc(c.lastName||'')+'"></div></div>'+
+    '<div class="field"><label>Company</label><input id="e-company" value="'+esc(c.company||'')+'"></div>'+
+    '<div class="field-row"><div class="field"><label>Email</label><input id="e-email" value="'+esc(c.email||'')+'"></div><div class="field"><label>Phone</label><input id="e-phone" value="'+esc(c.phone||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Industry</label><input id="e-industry" value="'+esc(c.industry||'')+'"></div><div class="field"><label>Company size</label><input id="e-companySize" value="'+esc(c.companySize||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Country</label><input id="e-country" value="'+esc(c.country||'')+'"></div><div class="field"><label>City</label><input id="e-city" value="'+esc(c.city||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Monthly FX volume</label><input id="e-fxVolume" value="'+esc(c.fxVolume||'')+'"></div><div class="field"><label>Currency pairs</label><input id="e-currencyPairs" value="'+esc(c.currencyPairs||'')+'"></div></div>'+
+    '<div class="field"><label>Est. annual value (€)</label><input id="e-estValueEur" type="number" value="'+(c.estValueEur||0)+'"><div class="muted" style="font-size:.6875rem;margin-top:4px">Auto-estimated from FX volume; override if known.</div></div>'+
+    '<div class="field"><label>Tags (comma separated)</label><input id="e-tags" value="'+esc((c.tags||[]).join(', '))+'"></div>'+
+    '<div class="field"><label>Notes</label><textarea id="e-notes">'+esc(c.notes||'')+'</textarea></div>'+
+    '<button class="btn btn-primary btn-sm" id="save-profile">Save profile</button> '+
+    '<button class="btn btn-danger btn-sm" id="del-customer">Delete</button>'+
+
+    '<div class="subhead">Log activity</div>'+
+    '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting']],'note')+'</select></div>'+
+    '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Follow-up call"></div></div>'+
+    '<div class="field"><label>Details</label><textarea id="a-body" placeholder="What happened?"></textarea></div>'+
+    '<button class="btn btn-ghost btn-sm" id="add-activity">Add to timeline</button>'+
+
+    '<div class="subhead">Activity timeline</div>'+
+    '<ul class="timeline" id="timeline">'+renderTimeline(c.activities)+'</ul>';
+
+  document.getElementById('save-stage').addEventListener('click',saveStage);
+  document.getElementById('save-profile').addEventListener('click',saveProfile);
+  document.getElementById('del-customer').addEventListener('click',delCustomer);
+  document.getElementById('add-activity').addEventListener('click',addActivity);
+}
+
+function churnLabel(r){return {high:'High churn risk',medium:'Medium risk',low:'Low risk',churned:'Churned'}[r]||r;}
+
+var ACT_ICON={note:'✎',call:'☎',email:'✉',meeting:'◎',stage_change:'⇅',booking:'★'};
+function renderTimeline(acts){
+  if(!acts||!acts.length) return '<li class="muted" style="font-size:.8125rem">No activity yet.</li>';
+  return acts.map(function(a){
+    return '<li class="tl-item"><div class="tl-icon">'+(ACT_ICON[a.type]||'•')+'</div>'+
+      '<div class="tl-body"><div class="tl-title">'+esc(a.title||a.type)+'</div>'+
+      '<div class="tl-meta">'+H.fmtDateTime(a.at)+' · '+esc(a.by||'system')+'</div>'+
+      (a.body?'<div class="tl-text">'+esc(a.body)+'</div>':'')+'</div></li>';
+  }).join('');
+}
+
+function saveStage(){
+  var body={stage:document.getElementById('e-stage').value,status:document.getElementById('e-status').value,owner:document.getElementById('e-owner').value};
+  var fu=document.getElementById('e-followup').value; if(fu)body.nextFollowUpAt=new Date(fu).toISOString();
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
+    H.toast('Saved'); openCustomer(c.id); load();
+  });
+}
+function saveProfile(){
+  var fields=['firstName','lastName','company','email','phone','industry','companySize','country','city','fxVolume','currencyPairs','notes'];
+  var body={}; fields.forEach(function(f){body[f]=document.getElementById('e-'+f).value;});
+  body.estValueEur=parseInt(document.getElementById('e-estValueEur').value,10)||0;
+  body.tags=document.getElementById('e-tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
+    H.toast('Profile saved'); openCustomer(c.id); load();
+  });
+}
+function delCustomer(){
+  if(!confirm('Delete this customer and all its activity? This cannot be undone.'))return;
+  A('/api/customers/'+current.id,{method:'DELETE'}).then(function(r){
+    if(r.ok){H.toast('Deleted');closeDrawer();load();} else {r.json().then(function(e){H.toast(e.error||'Delete failed','error');});}
+  });
+}
+function addActivity(){
+  var body={type:document.getElementById('a-type').value,title:document.getElementById('a-title').value.trim(),body:document.getElementById('a-body').value.trim()};
+  if(!body.title&&!body.body){H.toast('Add a title or details','error');return;}
+  A('/api/customers/'+current.id+'/activities',{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(){
+    H.toast('Logged'); openCustomer(current.id); load();
+  });
+}
+
+// ── New customer ──
+document.getElementById('new-customer').addEventListener('click',function(){
+  A('/api/customers',{method:'POST',body:JSON.stringify({company:'New customer',source:'manual'})}).then(function(r){return r.json();}).then(function(c){
+    load(); openCustomer(c.id);
+  });
+});
+
+// ── Export ──
+function download(format){
+  var btn=document.getElementById('export-'+(format==='xlsx'?'xlsx':'csv'));
+  btn.disabled=true;
+  fetch(H.API+'/api/customers/export?format='+format,{headers:{'Authorization':'Bearer '+H.token}})
+    .then(function(r){return r.blob();}).then(function(blob){
+      var url=URL.createObjectURL(blob); var a=document.createElement('a');
+      a.href=url; a.download='hansepay-customers.'+(format==='xlsx'?'xlsx':'csv'); document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url); btn.disabled=false; H.toast('Exported '+format.toUpperCase());
+    }).catch(function(){btn.disabled=false;H.toast('Export failed','error');});
+}
+document.getElementById('export-csv').addEventListener('click',function(){download('csv');});
+document.getElementById('export-xlsx').addEventListener('click',function(){download('xlsx');});
+
+// ── Filters ──
+document.getElementById('search').addEventListener('input',function(){clearTimeout(debounce);debounce=setTimeout(load,250);});
+['f-stage','f-status','f-churn','f-source'].forEach(function(id){document.getElementById(id).addEventListener('change',load);});
+
+load();
+</script>
+</body>
+</html>
