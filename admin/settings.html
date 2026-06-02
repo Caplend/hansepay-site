@@ -363,6 +363,22 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
 
+    <!-- Sales Reps -->
+    <div class="settings-card">
+      <div class="settings-card-title">Sales reps &amp; routing</div>
+      <div class="settings-card-desc">New bookings are auto-assigned to the highest-priority active rep. Drag to reorder priority, or use the arrows.</div>
+      <div class="settings-divider"></div>
+
+      <div id="reps-list" style="margin-bottom:16px"></div>
+
+      <button onclick="addRep()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);border:1.5px dashed rgba(11,25,41,.18);background:transparent;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;color:var(--ink2);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--n050)'" onmouseout="this.style.background='transparent'">
+        + Add rep
+      </button>
+      <div style="margin-top:16px">
+        <button class="btn-save" style="padding:9px 20px;font-size:.8125rem" onclick="saveReps()">Save reps</button>
+      </div>
+    </div>
+
     <!-- Save -->
     <div class="save-bar">
       <button class="btn-save" id="save-btn" onclick="saveSettings()">Save Settings</button>
@@ -416,6 +432,11 @@ function populateForm(s) {
   if (s.contactEmail !== undefined) document.getElementById('s-contact-email').value = s.contactEmail || '';
   if (s.postsPerPage !== undefined) document.getElementById('s-posts-per-page').value = s.postsPerPage || '';
   if (s.googleAnalyticsId !== undefined) document.getElementById('s-ga-id').value = s.googleAnalyticsId || '';
+  // Load sales reps
+  salesReps = Array.isArray(s.salesReps) ? s.salesReps.map(function(r,i) {
+    return { id:r.id||'rep_'+Date.now()+i, name:r.name||'', email:r.email||'', color:r.color||'#1E4E80', priority:r.priority||i+1, active:r.active!==false };
+  }) : [];
+  renderReps();
 }
 
 // ── Profile & AI helpers ─────────────────────────────────────
@@ -588,6 +609,81 @@ function saveAiSettings() {
     })
     .catch(function(err) { showToast(err.message || 'Error saving AI settings.', 'error'); })
     .finally(function() { btn.disabled = false; btn.textContent = 'Save AI Settings'; });
+}
+
+// ── Sales reps ────────────────────────────────────────────────
+
+var salesReps = [];
+var REP_COLORS = ['#1E4E80','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#c2410c','#4f46e5'];
+
+function renderReps() {
+  var el = document.getElementById('reps-list');
+  if (!salesReps.length) {
+    el.innerHTML = '<div style="color:var(--ink3);font-size:.875rem;padding:8px 0">No reps yet. Add one below.</div>';
+    return;
+  }
+  el.innerHTML = salesReps.map(function(r, i) {
+    return '<div class="rep-row" id="reprow-' + i + '" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(11,25,41,.06)">' +
+      // Color swatch
+      '<input type="color" value="' + r.color + '" oninput="salesReps[' + i + '].color=this.value;document.getElementById(\'rep-dot-' + i + '\').style.background=this.value" style="width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none">' +
+      // Name
+      '<input type="text" value="' + escapeHtml(r.name) + '" placeholder="Full name" oninput="salesReps[' + i + '].name=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+      // Email
+      '<input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="Email (optional)" oninput="salesReps[' + i + '].email=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+      // Priority arrows
+      '<div style="display:flex;flex-direction:column;gap:2px">' +
+        (i > 0 ? '<button onclick="moveRep(' + i + ',-1)" title="Move up" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▲</button>' : '<span style="width:22px"></span>') +
+        (i < salesReps.length-1 ? '<button onclick="moveRep(' + i + ',1)" title="Move down" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▼</button>' : '<span style="width:22px"></span>') +
+      '</div>' +
+      // Active toggle
+      '<label style="display:flex;align-items:center;gap:5px;font-size:.8125rem;color:var(--ink2);cursor:pointer;white-space:nowrap">' +
+        '<input type="checkbox" ' + (r.active !== false ? 'checked' : '') + ' onchange="salesReps[' + i + '].active=this.checked" style="accent-color:var(--n500)"> Active' +
+      '</label>' +
+      // Remove
+      '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>' +
+    '</div>';
+  }).join('');
+}
+
+function addRep() {
+  var colorIdx = salesReps.length % REP_COLORS.length;
+  salesReps.push({ id: 'rep_' + Date.now(), name: '', email: '', color: REP_COLORS[colorIdx], priority: salesReps.length + 1, active: true });
+  renderReps();
+  // Focus the new name input
+  var rows = document.querySelectorAll('[id^="reprow-"]');
+  if (rows.length) { var inp = rows[rows.length-1].querySelector('input[type="text"]'); if(inp) inp.focus(); }
+}
+
+function removeRep(i) {
+  if (!confirm('Remove ' + (salesReps[i].name || 'this rep') + '?')) return;
+  salesReps.splice(i, 1);
+  salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
+  renderReps();
+}
+
+function moveRep(i, delta) {
+  var j = i + delta;
+  if (j < 0 || j >= salesReps.length) return;
+  var tmp = salesReps[i]; salesReps[i] = salesReps[j]; salesReps[j] = tmp;
+  salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
+  renderReps();
+}
+
+function saveReps() {
+  var invalid = salesReps.filter(function(r) { return !r.name.trim(); });
+  if (invalid.length) { showToast('Each rep needs a name.', 'error'); return; }
+  salesReps.forEach(function(r, i) { r.priority = i + 1; });
+
+  authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
+    var updated = Object.assign({}, current, { salesReps: salesReps });
+    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
+  }).then(function(r) { return r.json(); }).then(function() {
+    showToast('Sales reps saved ✓');
+  }).catch(function() { showToast('Failed to save reps.', 'error'); });
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── Site settings ────────────────────────────────────────────
