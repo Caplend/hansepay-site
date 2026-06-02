@@ -291,6 +291,7 @@ app.get('/api/health', (req, res) => {
     SEEDS_DIR: path.join(__dirname, 'seeds'),
     dataFiles: files,
     volumeMounted: files.length > 0,
+    emailConfigured: mailer ? mailer.gmailConfigured() : false,
     uptime: process.uptime(),
   });
 });
@@ -790,6 +791,39 @@ app.patch('/api/bookings/:id', authenticateToken, (req, res) => {
   bookings[idx].updatedAt = new Date().toISOString();
   writeData('bookings.json', bookings);
   res.json(bookings[idx]);
+});
+
+// ─── Email diagnostics ────────────────────────────────────────────────────────
+
+// Reports whether the branded-email transport is configured (no secrets exposed).
+app.get('/api/email/status', authenticateToken, requireAdmin, (req, res) => {
+  res.json({
+    moduleLoaded:    !!mailer,
+    gmailConfigured: mailer ? mailer.gmailConfigured() : false,
+    from:            process.env.EMAIL_FROM || (process.env.CALENDAR_OWNER_EMAIL ? 'HansePay <' + process.env.CALENDAR_OWNER_EMAIL + '>' : null),
+    calendarOwner:   process.env.CALENDAR_OWNER_EMAIL || null,
+    hasClientId:     !!process.env.GOOGLE_CLIENT_ID,
+    hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    hasRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
+    bcc:             process.env.EMAIL_BCC || null,
+    sendsGoogleInvite: process.env.BOOKING_SEND_GOOGLE_INVITE === 'true',
+  });
+});
+
+// Sends a sample branded booking confirmation and returns the exact result.
+app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'email module not loaded' });
+  const to = (req.body && req.body.to) || req.user.email;
+  const lang = (req.body && req.body.lang) || 'en';
+  const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
+  const sample = mailer.renderBookingEmail({
+    slot: { startISO: start.toISOString(), endISO: new Date(start.getTime() + 1800000).toISOString(), label: '11:00 – 11:30' },
+    meetLink: 'https://meet.google.com/test-link-demo',
+    lead: { firstName: (req.user.name || 'there').split(' ')[0], email: to, company: 'Sample Co', industry: 'Manufacturing', fxVolume: '€250k–€1M', lang },
+  });
+  sample.to = to;
+  const result = await mailer.sendMail(sample);
+  res.json(Object.assign({ to }, result));
 });
 
 // ─── CRM: Customers ─────────────────────────────────────────────────────────
