@@ -209,7 +209,7 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
         <button class="nav-lang-btn active" id="nav-btn-de" onclick="HP.setLang('de')">DE</button>
         <button class="nav-lang-btn" id="nav-btn-en" onclick="HP.setLang('en')">EN</button>
       </div>
-      <a href="index.html#contact" class="btn nav-cta" data-i18n="nav.cta">Open an account</a>
+      <a href="/onboarding.html" class="btn nav-cta" data-i18n="nav.cta">Open an account</a>
       <button class="nav-burger" id="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -235,7 +235,7 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
   <a class="mobile-menu-sub" href="tools-calculator.html" onclick="closeMobileMenu()" data-i18n="nav.tools.calc">FX Savings Calculator</a>
   <a class="mobile-menu-sub" href="tools-converter.html" onclick="closeMobileMenu()" data-i18n="nav.tools.conv">Currency Converter</a>
   <a class="mobile-menu-sub" href="tools-iban.html" onclick="closeMobileMenu()" data-i18n="nav.tools.iban">IBAN Verifier</a>
-  <a href="index.html#contact" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()" data-i18n="nav.cta">Open an account</a>
+  <a href="/onboarding.html" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()" data-i18n="nav.cta">Open an account</a>
   <div class="mobile-lang-toggle">
     <button class="mobile-lang-btn active" id="mob-btn-de" onclick="HP.setLang('de')">DE</button>
     <button class="mobile-lang-btn" id="mob-btn-en" onclick="HP.setLang('en')">EN</button>

@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open your HansePay account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;--n500:#1E4E80;
+  --n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;--n100:#C4DDEF;--n050:#EBF4FB;
+  --off:#F5F1EA;--gold:#C9A961;--ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --success:#1A7A4A;--error:#C0392B;--warn:#B8761A;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:var(--off)}
+body{display:flex;flex-direction:column;min-height:100vh}
+.onb-layout{display:flex;flex:1;min-height:100vh}
+
+/* LEFT PANEL */
+.left-panel{width:300px;min-width:300px;background:var(--n800);display:flex;flex-direction:column;padding:32px 24px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.left-logo{display:flex;align-items:center;gap:10px;margin-bottom:40px}
+.left-logo img{width:30px;height:30px;object-fit:contain}
+.left-logo-text{font-family:'Libre Baskerville',serif;font-size:18px;color:#fff;letter-spacing:.02em}
+.phase-list{flex:1;display:flex;flex-direction:column;gap:0}
+.phase-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;position:relative}
+.phase-item:not(:last-child)::after{content:'';position:absolute;left:11px;top:32px;width:2px;height:calc(100% - 12px);background:rgba(255,255,255,.15)}
+.phase-dot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.2);font-size:10px;color:rgba(255,255,255,.5);font-weight:600;transition:.3s;z-index:1}
+.phase-item.current .phase-dot{background:var(--n400);border-color:var(--n300);color:#fff}
+.phase-item.done .phase-dot{background:var(--success);border-color:var(--success);color:#fff}
+.phase-label{font-size:13px;color:rgba(255,255,255,.5);font-weight:500;padding-top:3px;transition:.3s}
+.phase-item.current .phase-label{color:#fff;font-weight:600}
+.phase-item.done .phase-label{color:rgba(255,255,255,.7)}
+.left-help{margin-top:auto;padding-top:24px;border-top:1px solid rgba(255,255,255,.1)}
+.left-help p{font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.6}
+
+/* RIGHT PANEL */
+.right-panel{flex:1;display:flex;flex-direction:column;background:var(--off);min-height:100vh}
+.progress-bar-wrap{height:3px;background:rgba(0,0,0,.08);position:sticky;top:0;z-index:10}
+.progress-bar-fill{height:3px;background:var(--n400);transition:width .5s ease;width:0}
+.right-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px 120px}
+.step-viewport{width:100%;max-width:520px}
+
+/* CARD */
+.step-card{background:#fff;border-radius:var(--r-lg);padding:40px;box-shadow:0 2px 16px rgba(11,25,41,.07)}
+.step-card.enter-right{animation:slideInRight 280ms ease-out both}
+.step-card.enter-left{animation:slideInLeft 280ms ease-out both}
+@keyframes slideInRight{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideInLeft{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.step-icon{text-align:center;margin-bottom:24px}
+.step-heading{font-family:'Libre Baskerville',serif;font-size:22px;color:var(--ink);margin-bottom:8px;line-height:1.3}
+.step-sub{font-size:13.5px;color:var(--ink2);margin-bottom:28px;line-height:1.5}
+
+/* FORM */
+.field-group{margin-bottom:18px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],select,textarea{width:100%;padding:11px 14px;border:1.5px solid #D8E4ED;border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;transition:.2s;outline:none;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--n400);box-shadow:0 0 0 3px rgba(46,107,173,.12)}
+input.error,select.error,textarea.error{border-color:var(--error)}
+.field-error{font-size:12px;color:var(--error);margin-top:4px;display:none}
+.field-error.visible{display:block}
+input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
+
+/* PASSWORD STRENGTH */
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink3);padding:2px}
+.strength-bar{display:flex;gap:4px;margin-top:8px}
+.strength-seg{height:3px;flex:1;border-radius:99px;background:#E2EAF0;transition:.3s}
+.strength-seg.weak{background:#C0392B}
+.strength-seg.almost{background:#E67E22}
+.strength-seg.good{background:#2980B9}
+.strength-seg.strong{background:var(--success)}
+.strength-label{font-size:11.5px;color:var(--ink3);margin-top:4px;height:16px}
+
+/* CHECKBOX */
+.check-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+.check-row input[type=checkbox]{width:16px;height:16px;margin-top:2px;accent-color:var(--n500);cursor:pointer;flex-shrink:0}
+.check-row label{font-size:13px;color:var(--ink2);text-transform:none;letter-spacing:0;font-weight:400;margin-bottom:0;cursor:pointer}
+.check-row a{color:var(--n400);text-decoration:none}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.2s;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--n800);color:#fff;width:100%}
+.btn-primary:hover{background:var(--n700)}
+.btn-primary:disabled{background:#B8C9D9;cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--n500);border:1.5px solid var(--n300);width:100%}
+.btn-ghost:hover{background:var(--n050)}
+.btn-sm{padding:8px 16px;font-size:13px;width:auto}
+
+/* RADIO CARDS */
+.radio-cards{display:grid;gap:12px;margin-bottom:18px}
+.radio-cards.cols2{grid-template-columns:1fr 1fr}
+.radio-card{border:1.5px solid #D8E4ED;border-radius:var(--r-md);padding:16px;cursor:pointer;transition:.2s;position:relative;display:flex;align-items:flex-start;gap:12px}
+.radio-card:hover:not(.disabled){border-color:var(--n300);background:var(--n050)}
+.radio-card.selected{border-color:var(--n500);background:var(--n050)}
+.radio-card.disabled{opacity:.5;cursor:not-allowed}
+.radio-card-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.radio-card-title{font-weight:600;font-size:14px;color:var(--ink)}
+.radio-card-desc{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.badge-soon{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--gold);color:#fff;border-radius:var(--r-pill);padding:2px 8px;margin-left:8px;vertical-align:middle}
+
+/* CHIPS */
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{padding:7px 14px;border-radius:var(--r-pill);border:1.5px solid #D8E4ED;font-size:13px;font-weight:500;cursor:pointer;transition:.2s;background:#fff;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.chip:hover{border-color:var(--n300);color:var(--n500)}
+.chip.selected{border-color:var(--n500);background:var(--n050);color:var(--n500)}
+.chip .chip-x{font-size:12px;opacity:.6;cursor:pointer}
+.chip .chip-x:hover{opacity:1}
+
+/* OTP */
+.otp-wrap{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.otp-input{width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;border:1.5px solid #D8E4ED;border-radius:var(--r-md);color:var(--ink);transition:.2s;outline:none}
+.otp-input:focus{border-color:var(--n400);box-shadow:0 0 0 3px rgba(46,107,173,.12)}
+.otp-input.filled{border-color:var(--n500);background:var(--n050)}
+.resend-row{text-align:center;margin-bottom:20px;font-size:13px;color:var(--ink3)}
+.resend-link{color:var(--n400);cursor:pointer;text-decoration:underline}
+
+/* PHONE ROW */
+.phone-row{display:flex;gap:0}
+.phone-row select{width:150px;min-width:150px;border-radius:var(--r-sm) 0 0 var(--r-sm);border-right:none;font-size:13px}
+.phone-row input{border-radius:0 var(--r-sm) var(--r-sm) 0}
+
+/* SECTION HEADER */
+.section-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #E8EFF5}
+
+/* TOGGLE LINK */
+.toggle-link{font-size:13px;color:var(--n400);cursor:pointer;text-decoration:none;margin-bottom:14px;display:inline-block}
+.toggle-link:hover{text-decoration:underline}
+.collapsible{display:none;margin-bottom:4px}
+.collapsible.open{display:block}
+
+/* READONLY */
+.readonly-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#F5F1EA;border-radius:var(--r-sm);margin-bottom:10px}
+.readonly-label{font-size:12.5px;color:var(--ink3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.readonly-value{font-size:14px;color:var(--ink);font-weight:500}
+.verified-badge{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--success);font-weight:600;background:#E8F5EE;padding:2px 8px;border-radius:var(--r-pill)}
+
+/* BANNER */
+.banner{padding:14px 16px;border-radius:var(--r-md);margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;font-size:13.5px;line-height:1.5}
+.banner-info{background:var(--n050);border:1px solid var(--n100);color:var(--ink2)}
+.banner-warn{background:#FFF8EC;border:1px solid #F5D99A;color:#7A5200}
+.banner-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+
+/* FILE UPLOAD */
+.upload-zone{border:2px dashed #C8D9E8;border-radius:var(--r-md);padding:28px;text-align:center;cursor:pointer;transition:.2s;background:#FAFCFF}
+.upload-zone:hover{border-color:var(--n400);background:var(--n050)}
+.upload-icon{font-size:32px;margin-bottom:8px}
+.upload-text{font-size:13.5px;color:var(--ink2)}
+.upload-text b{color:var(--n500)}
+.upload-hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.upload-files{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.upload-file-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#F0F6FF;border-radius:var(--r-sm);font-size:13px}
+.upload-file-remove{cursor:pointer;color:var(--error);opacity:.7}
+
+/* TOOLTIP */
+.tooltip-wrap{position:relative;display:inline-flex;align-items:center}
+.tooltip-icon{width:17px;height:17px;border-radius:50%;background:var(--n100);color:var(--n600);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px;flex-shrink:0}
+.tooltip-box{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:280px;background:var(--n800);color:#fff;font-size:12.5px;line-height:1.6;padding:12px 14px;border-radius:var(--r-md);z-index:100;pointer-events:none;opacity:0;transition:.2s;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.tooltip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--n800)}
+.tooltip-icon:hover + .tooltip-box,.tooltip-icon:focus + .tooltip-box{opacity:1}
+
+/* T&C */
+.tc-box{max-height:220px;overflow-y:auto;padding:16px;border:1.5px solid #D8E4ED;border-radius:var(--r-md);font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:16px;background:#FAFCFF}
+.blindpay-card{padding:16px;border:1.5px solid #D8E4ED;border-radius:var(--r-md);margin-bottom:16px;background:#FAFCFF}
+.blindpay-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.blindpay-card-title{font-weight:600;font-size:14px;color:var(--ink)}
+.bp-status{font-size:12.5px;font-weight:600}
+.bp-status.accepted{color:var(--success)}
+.bp-status.not-accepted{color:var(--ink3)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:.2s}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal-box{background:#fff;border-radius:var(--r-lg);padding:40px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;transform:scale(.95);transition:.2s}
+.modal-overlay.open .modal-box{transform:scale(1)}
+.modal-title{font-family:'Libre Baskerville',serif;font-size:20px;margin-bottom:16px;color:var(--ink)}
+.modal-body{font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px}
+.modal-actions{display:flex;gap:12px}
+
+/* REVIEW */
+.review-section{margin-bottom:24px}
+.review-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #E8EFF5}
+.review-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3)}
+.review-edit{font-size:12.5px;color:var(--n400);cursor:pointer;text-decoration:none}
+.review-edit:hover{text-decoration:underline}
+.review-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 0;font-size:13.5px;gap:12px}
+.review-key{color:var(--ink3);flex-shrink:0;width:150px}
+.review-val{color:var(--ink);font-weight:500;text-align:right}
+
+/* NAV FOOTER */
+.nav-footer{position:fixed;bottom:0;left:300px;right:0;background:rgba(245,241,234,.95);backdrop-filter:blur(8px);border-top:1px solid #E2DDD6;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.nav-step-info{font-size:12.5px;color:var(--ink3)}
+.nav-step-info b{color:var(--ink);font-weight:600}
+.nav-btns{display:flex;gap:10px;align-items:center}
+
+/* SUCCESS */
+.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;text-align:center;background:var(--off)}
+.success-check{margin-bottom:32px}
+.success-check svg .circle{stroke-dasharray:283;stroke-dashoffset:283;animation:drawCircle .6s ease forwards .2s}
+.success-check svg .check{stroke-dasharray:100;stroke-dashoffset:100;animation:drawCheck .4s ease forwards .8s}
+@keyframes drawCircle{to{stroke-dashoffset:0}}
+@keyframes drawCheck{to{stroke-dashoffset:0}}
+.success-heading{font-family:'Libre Baskerville',serif;font-size:28px;margin-bottom:12px}
+.success-sub{font-size:15px;color:var(--ink2);margin-bottom:32px}
+.success-progress{background:#fff;border-radius:var(--r-lg);padding:24px;width:100%;max-width:440px;text-align:left;margin-bottom:24px}
+.success-progress-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #F0F4F8;font-size:13.5px}
+.success-progress-item:last-child{border-bottom:none}
+.success-progress-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.success-progress-text{color:var(--ink2);line-height:1.5}
+.success-ref{font-size:13px;color:var(--ink3);margin-bottom:28px;background:#fff;padding:10px 20px;border-radius:var(--r-pill);display:inline-block}
+.success-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* SAVED BANNER */
+.saved-banner{background:#fff;border:1.5px solid var(--n100);border-radius:var(--r-md);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--ink2)}
+.saved-btns{display:flex;gap:8px}
+
+/* MOBILE TOP */
+.mobile-top{display:none;background:var(--n800);flex-direction:column;position:sticky;top:0;z-index:20}
+.mobile-top-inner{display:flex;align-items:center;padding:14px 20px}
+.mobile-logo{display:flex;align-items:center;gap:8px}
+.mobile-logo span{font-family:'Libre Baskerville',serif;font-size:16px;color:#fff}
+.mobile-phase{margin-left:auto;font-size:12px;color:var(--n200);font-weight:500}
+.mobile-progress{height:3px;background:rgba(255,255,255,.15)}
+.mobile-progress-fill{height:3px;background:var(--n300);transition:width .5s ease}
+
+/* SPINNER */
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SEARCHABLE SELECT */
+.searchable-select-wrap{position:relative}
+.searchable-select-input{width:100%;padding:11px 14px;border:1.5px solid #D8E4ED;border-radius:var(--r-sm);font-size:14px;color:var(--ink);background:#fff;transition:.2s;outline:none}
+.searchable-select-input:focus{border-color:var(--n400);box-shadow:0 0 0 3px rgba(46,107,173,.12)}
+.searchable-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--n200);border-radius:var(--r-md);max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.1);display:none}
+.searchable-dropdown.open{display:block}
+.searchable-option{padding:10px 14px;font-size:13.5px;cursor:pointer;transition:.15s}
+.searchable-option:hover{background:var(--n050);color:var(--n500)}
+
+.nationality-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-pill);background:var(--n050);border:1.5px solid var(--n200);font-size:14px;font-weight:500;color:var(--n600);margin-bottom:12px}
+
+/* TOAST */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--n800);color:#fff;padding:10px 20px;border-radius:var(--r-pill);font-size:13.5px;z-index:9999;transition:opacity .3s;pointer-events:none;opacity:0}
+
+@media(max-width:768px){
+  .left-panel{display:none}
+  .nav-footer{left:0}
+  .mobile-top{display:flex}
+  .step-card{padding:24px}
+  .field-row{grid-template-columns:1fr}
+  .radio-cards.cols2{grid-template-columns:1fr}
+  .right-content{padding:24px 16px 120px}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- MOBILE TOP BAR -->
+<div class="mobile-top" id="mobileTop">
+  <div class="mobile-top-inner">
+    <div class="mobile-logo">
+      <img src="/assets/hansepay-mark-uploaded.png" width="24" height="24" alt="">
+      <span>HansePay</span>
+    </div>
+    <div class="mobile-phase" id="mobilePhaseName">Account</div>
+  </div>
+  <div class="mobile-progress"><div class="mobile-progress-fill" id="mobileProgress" style="width:0"></div></div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="onb-layout" id="mainLayout">
+
+  <div class="left-panel" id="leftPanel">
+    <div class="left-logo">
+      <img src="/assets/hansepay-mark-uploaded.png" alt="">
+      <span class="left-logo-text">HansePay</span>
+    </div>
+    <div class="phase-list" id="phaseList"></div>
+    <div class="left-help">
+      <p id="leftHelpText"></p>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+    <div class="right-content">
+      <div class="step-viewport" id="stepViewport"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SUCCESS PAGE -->
+<div id="successPage" style="display:none">
+  <div class="success-wrap">
+    <div class="success-check">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+        <circle class="circle" cx="40" cy="40" r="36" stroke="#1A7A4A" stroke-width="4" fill="none"/>
+        <path class="check" d="M24 40 L35 52 L56 28" stroke="#1A7A4A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <h1 class="success-heading" id="successHeading">You're all set!</h1>
+    <p class="success-sub">We're reviewing your application.</p>
+    <div class="success-progress">
+      <div class="success-progress-item"><span class="success-progress-icon">✅</span><div class="success-progress-text">Account created</div></div>
+      <div class="success-progress-item"><span class="success-progress-icon">✅</span><div class="success-progress-text">Identity verified</div></div>
+      <div class="success-progress-item"><span class="success-progress-icon">⏳</span><div class="success-progress-text"><b>Compliance review</b> — 1–2 business days</div></div>
+      <div class="success-progress-item"><span class="success-progress-icon">📧</span><div class="success-progress-text" id="successEmailLine">We'll email you when your account is approved</div></div>
+    </div>
+    <div class="success-ref" id="successRef">Reference: HP-00000000</div>
+    <div class="success-btns">
+      <a href="/" class="btn btn-primary" style="width:auto;min-width:180px">Explore HansePay</a>
+      <a href="/booking.html" class="btn btn-ghost" style="width:auto;min-width:180px">Book a discovery call</a>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h2 class="modal-title" id="modalTitle"></h2>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<!-- NAV FOOTER (injected by JS) -->
+
+<script>
+// =============================================================
+// STATE
+// =============================================================
+const S = {
+  firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
+  phoneCountry:'+49',phone:'',
+  accountType:'',
+  middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
+  countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
+  thirdPartyName:'',thirdPartyRelation:'',
+  primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
+  accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
+  incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
+  highRiskSectors:[],volumeIncomeExplain:'',
+  isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
+  wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
+  highRiskWealth:[],canProvideDocs:'',
+  tcAccepted:false,blindpayAccepted:false,
+  isHighRisk:false,applicationRef:''
+};
+
+let CI = 0; // currentIndex
+let resendTimer = null;
+
+const PHASES = [
+  {id:'account',label:'Account',steps:[1,2,'3a','3b']},
+  {id:'about',label:'About you',steps:[4,5,'5b']},
+  {id:'identity',label:'Identity',steps:[6,7]},
+  {id:'financial',label:'Financial',steps:[8,9]},
+  {id:'compliance',label:'Compliance',steps:[10,11]},
+  {id:'review',label:'Review',steps:[12,13,14]}
+];
+const PHASE_HELP = {
+  account:"Creating your account only takes a few minutes. We'll ask for your name, email, and phone to get started.",
+  about:"We need to confirm your identity and address. This is required by EU financial regulations and helps keep your account secure.",
+  identity:"A quick identity check using your passport or ID card. Your document details are processed securely and never stored unnecessarily.",
+  financial:"A few questions about how you plan to use HansePay. This helps us set up your account correctly and meet our regulatory obligations.",
+  compliance:"Standard regulatory checks required for all financial accounts in the EU. Your answers are confidential and protected under GDPR.",
+  review:"Almost done! Review your details, accept our terms, and submit. We'll review your application within 1–2 business days."
+};
+
+const COUNTRIES = ['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belarus','Belgium','Bolivia','Bosnia and Herzegovina','Brazil','Bulgaria','Cambodia','Canada','Chile','China','Colombia','Costa Rica','Croatia','Cyprus','Czech Republic','Denmark','Ecuador','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Germany','Ghana','Greece','Guatemala','Honduras','Hungary','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kosovo','Kuwait','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Malta','Mexico','Moldova','Mongolia','Montenegro','Morocco','Netherlands','New Zealand','Nigeria','North Macedonia','Norway','Pakistan','Palestine','Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sweden','Switzerland','Taiwan','Thailand','Tunisia','Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Venezuela','Vietnam','Yemen','Zimbabwe'];
+
+function getActiveSteps(){
+  let s=[1,2,'3a','3b',4,5];
+  if(S.actingOnBehalf==='no') s.push('5b');
+  s.push(6,7,8,9,10);
+  if(S.isHighRisk) s.push(11);
+  s.push(12,13,14);
+  return s;
+}
+
+function computeHighRisk(){
+  const hrs = S.highRiskSectors.filter(x=>x!=='none');
+  const highVol = ['10k-50k','over50k'].includes(S.monthlyVolume);
+  const lowInc = ['under15k','15k-30k'].includes(S.annualIncome);
+  const hrInd = ['Finance & Banking','Gambling & Gaming','Crypto-assets & Blockchain','Mining & Extractives'].includes(S.industry);
+  S.isHighRisk = S.isPEP==='yes' || hrs.length>0 || (highVol&&lowInc) || S.otherCountries.length>0 || hrInd;
+}
+
+function saveState(){
+  try{localStorage.setItem('hp_onb',JSON.stringify({s:S,ci:CI}));}catch(e){}
+}
+function loadSaved(){
+  try{
+    const r=localStorage.getItem('hp_onb');
+    if(r){const p=JSON.parse(r);Object.assign(S,p.s||{});return p.ci||0;}
+  }catch(e){}
+  return null;
+}
+
+// =============================================================
+// HELPERS
+// =============================================================
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function g(id){const e=document.getElementById(id);return e?e.value:null}
+function gc(id){const e=document.getElementById(id);return e?e.checked:false}
+function isEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+function todayMinus18(){const d=new Date();d.setFullYear(d.getFullYear()-18);return d.toISOString().split('T')[0]}
+function maskPhone(cc,ph){if(!ph)return'';return cc+' '+('•'.repeat(Math.max(0,ph.length-3)))+ph.slice(-3)}
+function rand8(){return Math.floor(10000000+Math.random()*90000000)}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',2500);
+}
+
+function showErr(id,msg){
+  const e=document.getElementById(id+'-err');if(e){e.textContent=msg;e.classList.add('visible');}
+  const f=document.getElementById(id);if(f)f.classList.add('error');
+}
+function clearAllErr(){
+  document.querySelectorAll('.field-error').forEach(e=>{e.textContent='';e.classList.remove('visible')});
+  document.querySelectorAll('.error').forEach(e=>e.classList.remove('error'));
+}
+
+function toggleCollapse(wrapperId,linkEl,openText,closeText){
+  const w=document.getElementById(wrapperId);if(!w)return;
+  const open=w.classList.toggle('open');
+  linkEl.textContent=open?closeText:openText;
+}
+
+// Country options HTML
+function countryOptsHTML(sel){
+  return COUNTRIES.map(c=>`<option value="${esc(c)}"${sel===c?' selected':''}>${esc(c)}</option>`).join('');
+}
+
+// =============================================================
+// RENDER HELPERS
+// =============================================================
+function fieldHTML(id,lbl,type,val,ph,req,extra){
+  const optStr=req?'':' <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span>';
+  return`<div class="field-group">
+    <label for="${id}">${lbl}${optStr}</label>
+    <input type="${type||'text'}" id="${id}" value="${esc(val||'')}" placeholder="${ph||''}" ${extra||''}>
+    <div class="field-error" id="${id}-err"></div>
+  </div>`;
+}
+
+function selectHTML(id,lbl,optsHTML,req){
+  const optStr=req?'':' <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span>';
+  return`<div class="field-group">
+    <label for="${id}">${lbl}${optStr}</label>
+    <select id="${id}"><option value="">Select…</option>${optsHTML}</select>
+    <div class="field-error" id="${id}-err"></div>
+  </div>`;
+}
+
+function radioCardsHTML(groupId,opts,sel,cols){
+  const grid=cols===2?'radio-cards cols2':'radio-cards';
+  return`<div class="${grid}" id="${groupId}">${opts.map(o=>`
+    <div class="radio-card${sel===o.v?' selected':''}${o.dis?' disabled':''}" data-group="${groupId}" data-val="${o.v}">
+      ${o.icon?`<div class="radio-card-icon">${o.icon}</div>`:''}
+      <div class="radio-card-body">
+        <div class="radio-card-title">${o.label}${o.badge?`<span class="badge-soon">${o.badge}</span>`:''}</div>
+        ${o.desc?`<div class="radio-card-desc">${o.desc}</div>`:''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function chipGroupHTML(groupId,opts,sel){
+  return`<div class="chip-group" id="${groupId}">${opts.map(o=>`
+    <div class="chip${sel.includes(o.v)?' selected':''}" data-group="${groupId}" data-val="${o.v}">${o.label}</div>`).join('')}</div>`;
+}
+
+function searchableSelectHTML(inputId,dropId,hiddenId,placeholder,val){
+  return`<div style="position:relative">
+    <input type="text" id="${inputId}" class="searchable-select-input" placeholder="${placeholder}" value="${esc(val||'')}" autocomplete="off">
+    <div class="searchable-dropdown" id="${dropId}">${COUNTRIES.map(c=>`<div class="searchable-option" data-val="${esc(c)}">${esc(c)}</div>`).join('')}</div>
+    ${hiddenId?`<input type="hidden" id="${hiddenId}" value="${esc(val||'')}">`:''}</div>`;
+}
+
+// =============================================================
+// STEP RENDERERS
+// =============================================================
+function renderStep(id){
+  switch(id){
+    case 1:return R1();case 2:return R2();case'3a':return R3a();case'3b':return R3b();
+    case 4:return R4();case 5:return R5();case'5b':return R5b();
+    case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
+    case 10:return R10();case 11:return R11();case 12:return R12();case 13:return R13();
+    case 14:return R14();
+  }
+  return '';
+}
+
+function R1(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Open your HansePay account.</h1>
+    <p class="step-sub">Takes about 10 minutes.</p>
+    <div class="field-row">
+      ${fieldHTML('firstName','First name','text',S.firstName,'','true')}
+      ${fieldHTML('lastName','Last name','text',S.lastName,'','true')}
+    </div>
+    ${fieldHTML('email','Email address','email',S.email,'you@example.com','true')}
+    <div class="field-group">
+      <label for="password">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="password" value="${esc(S.password)}" placeholder="Min. 8 characters">
+        <button type="button" class="pw-toggle" onclick="togglePw('password')" aria-label="Show/hide">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="strength-bar"><div class="strength-seg" id="ss1"></div><div class="strength-seg" id="ss2"></div><div class="strength-seg" id="ss3"></div><div class="strength-seg" id="ss4"></div></div>
+      <div class="strength-label" id="sLabel"></div>
+      <div class="field-error" id="password-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="cpw">Confirm password</label>
+      <div class="pw-wrap">
+        <input type="password" id="cpw" placeholder="Repeat your password">
+        <button type="button" class="pw-toggle" onclick="togglePw('cpw')" aria-label="Show/hide">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="field-error" id="cpw-err"></div>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="agreeTerms" ${S.agreedToTerms?'checked':''}>
+      <label for="agreeTerms">I agree to the <a href="#" onclick="return false">Terms of Service</a> and <a href="#" onclick="return false">Privacy Policy</a></label>
+    </div>
+    <div class="field-error" id="agreeTerms-err"></div>
+    <button class="btn btn-primary" onclick="nextStep()">Create account</button>
+  </div>`;
+}
+
+function R2(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><rect x="8" y="16" width="48" height="36" rx="6" stroke="var(--n800)" stroke-width="2.5" fill="none"/><path d="M8 22 L32 38 L56 22" stroke="var(--n800)" stroke-width="2.5" stroke-linejoin="round" fill="none"/></svg></div>
+    <h1 class="step-heading">Check your inbox.</h1>
+    <p class="step-sub">We sent a verification link to <b>${esc(S.email)}</b></p>
+    <p style="font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px">Click the link in the email to verify your address. If you don't see it, check your spam folder. The link expires in 24 hours.</p>
+    <button class="btn btn-ghost" style="margin-bottom:12px" onclick="showToast('Verification email resent!')">Resend email</button>
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R3a(){
+  const phoneCodes=[
+    ['+49','🇩🇪 +49 Germany'],['+43','🇦🇹 +43 Austria'],['+41','🇨🇭 +41 Switzerland'],
+    ['+44','🇬🇧 +44 UK'],['+33','🇫🇷 +33 France'],['+31','🇳🇱 +31 Netherlands'],
+    ['+32','🇧🇪 +32 Belgium'],['+34','🇪🇸 +34 Spain'],['+39','🇮🇹 +39 Italy'],
+    ['+351','🇵🇹 +351 Portugal'],['+48','🇵🇱 +48 Poland'],['+46','🇸🇪 +46 Sweden'],
+    ['+45','🇩🇰 +45 Denmark'],['+47','🇳🇴 +47 Norway'],['+358','🇫🇮 +358 Finland'],
+    ['+371','🇱🇻 +371 Latvia'],['+370','🇱🇹 +370 Lithuania'],['+372','🇪🇪 +372 Estonia'],
+    ['+420','🇨🇿 +420 Czech Republic'],['+421','🇸🇰 +421 Slovakia'],['+36','🇭🇺 +36 Hungary'],
+    ['+40','🇷🇴 +40 Romania'],['+359','🇧🇬 +359 Bulgaria'],['+385','🇭🇷 +385 Croatia'],
+    ['+353','🇮🇪 +353 Ireland'],['+352','🇱🇺 +352 Luxembourg'],['+356','🇲🇹 +356 Malta'],
+    ['+357','🇨🇾 +357 Cyprus'],['+30','🇬🇷 +30 Greece'],['+1','🇺🇸 +1 USA'],
+    ['+1','🇨🇦 +1 Canada'],['+61','🇦🇺 +61 Australia']
+  ];
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Secure your account.</h1>
+    <p class="step-sub">We'll send a verification code to your phone.</p>
+    <div class="field-group">
+      <label>Phone number</label>
+      <div class="phone-row">
+        <select id="phoneCountry">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.phoneCountry===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
+        <input type="tel" id="phoneNum" value="${esc(S.phone)}" placeholder="Your phone number">
+      </div>
+      <div class="field-error" id="phone-err"></div>
+    </div>
+    <button class="btn btn-primary" onclick="sendCode()">Send code</button>
+  </div>`;
+}
+
+function R3b(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Enter verification code.</h1>
+    <p class="step-sub">Enter the 6-digit code sent to <b>${maskPhone(S.phoneCountry,S.phone)}</b></p>
+    <div class="otp-wrap" id="otpWrap">
+      ${[0,1,2,3,4,5].map(i=>`<input type="text" maxlength="1" class="otp-input" id="otp${i}" inputmode="numeric" pattern="[0-9]*">`).join('')}
+    </div>
+    <div class="resend-row">
+      <span id="resendText">Resend code in <b id="resendCount">30</b>s</span>
+      <span id="resendLink" class="resend-link" style="display:none" onclick="startResendTimer()">Resend code</span>
+    </div>
+    <div class="field-error" id="otp-err" style="text-align:center;margin-bottom:12px"></div>
+    <button class="btn btn-primary" onclick="verifyOTP()">Verify</button>
+  </div>`;
+}
+
+function R4(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">What kind of account are you opening${S.firstName?', '+esc(S.firstName):''}?</h1>
+    <p class="step-sub" style="margin-bottom:20px">Choose the account type that fits your needs.</p>
+    ${radioCardsHTML('rcAccountType',[
+      {v:'individual',icon:'👤',label:'Individual',desc:'For personal use and transfers'},
+      {v:'company',icon:'🏢',label:'Company',desc:'For businesses and organisations',badge:'Coming soon',dis:true}
+    ],S.accountType,2)}
+    <div class="field-error" id="accountType-err"></div>
+    <button class="btn btn-primary" style="margin-top:8px" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R5(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Your details.</h1>
+
+    <div class="section-header">Personal information</div>
+    <div class="field-row">
+      ${fieldHTML('d5FirstName','First name','text',S.firstName,'','true')}
+      ${fieldHTML('d5LastName','Last name','text',S.lastName,'','true')}
+    </div>
+    <a class="toggle-link" id="midToggle" onclick="toggleCollapse('midWrap',this,'+ Add middle name','− Hide middle name')">+ Add middle name</a>
+    <div class="collapsible${S.middleName?' open':''}" id="midWrap">${fieldHTML('middleName','Middle name','text',S.middleName)}</div>
+    ${fieldHTML('dob','Date of birth','date',S.dob,'','true','max="'+todayMinus18()+'"')}
+    <div class="field-group">
+      <div class="readonly-row"><span class="readonly-label">Email</span><span><span class="readonly-value">${esc(S.email)}</span> <span class="verified-badge">✓ Verified</span></span></div>
+      <div class="readonly-row"><span class="readonly-label">Phone</span><span><span class="readonly-value">${esc(S.phoneCountry)} ${esc(S.phone)}</span> <span class="verified-badge">✓ Verified</span></span></div>
+    </div>
+
+    <div class="section-header">Address</div>
+    ${fieldHTML('street','Street address','text',S.street,'','true')}
+    <a class="toggle-link" onclick="toggleCollapse('line2Wrap',this,'+ Add address line 2','− Hide line 2')">+ Add address line 2</a>
+    <div class="collapsible${S.addressLine2?' open':''}" id="line2Wrap">${fieldHTML('addressLine2','Address line 2','text',S.addressLine2)}</div>
+    <div class="field-row">
+      ${fieldHTML('city','City','text',S.city,'','true')}
+      ${fieldHTML('postcode','Postcode','text',S.postcode,'','true')}
+    </div>
+    ${fieldHTML('stateProvince','State / Province','text',S.stateProvince)}
+    <div class="field-group">
+      <label>Country of residence</label>
+      ${searchableSelectHTML('countrySearch','countryDrop','countryHidden','Search country…',S.countryOfResidence)}
+      <div class="field-error" id="countryOfResidence-err"></div>
+    </div>
+
+    <div class="field-group" style="margin-top:8px">
+      <label>Have you changed your country of residence in the last 12 months?</label>
+      ${radioCardsHTML('rcChangedRes',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.changedResidence,2)}
+    </div>
+    <div id="prevCountryWrap" style="display:${S.changedResidence==='yes'?'block':'none'}">
+      ${selectHTML('previousCountry','Which country did you move from?',countryOptsHTML(S.previousCountry))}
+    </div>
+
+    <div class="section-header">Account use</div>
+    <div class="field-group">
+      <label>Are you opening this account for yourself?</label>
+      ${radioCardsHTML('rcActingBehalf',[
+        {v:'yes',label:'Yes, for myself'},
+        {v:'no',label:'No, I\'m acting on behalf of another person or entity'}
+      ],S.actingOnBehalf)}
+      <div class="field-error" id="actingOnBehalf-err"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R5b(){
+  return`<div class="step-card" id="sCard">
+    <div class="banner banner-info"><span class="banner-icon">ℹ️</span><span>Since you're acting on behalf of someone else, we need a few more details.</span></div>
+    <h1 class="step-heading">Third-party details.</h1>
+    ${fieldHTML('thirdPartyName','Name of the person or entity','text',S.thirdPartyName,'','true')}
+    ${fieldHTML('thirdPartyRelation','Your relationship to them','text',S.thirdPartyRelation,'e.g. Power of attorney, employer','true')}
+    <div class="field-group">
+      <label>Supporting documents <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+      <div class="upload-zone" onclick="document.getElementById('tpFiles').click()">
+        <input type="file" id="tpFiles" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleUpload('tpFiles','tpFileList')">
+        <div class="upload-icon">📎</div>
+        <div class="upload-text"><b>Click to upload</b> or drag and drop</div>
+        <div class="upload-hint">PDF, JPG or PNG</div>
+      </div>
+      <div class="upload-files" id="tpFileList"></div>
+    </div>
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R6(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><path d="M32 8 L52 16 L52 34 C52 45 43 54 32 57 C21 54 12 45 12 34 L12 16 Z" stroke="var(--n800)" stroke-width="2.5" fill="none"/><path d="M24 32 L30 38 L40 26" stroke="var(--n800)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+    <h1 class="step-heading">Let's verify your identity.</h1>
+    <p class="step-sub">Takes 2–3 minutes. Have your ID ready.</p>
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:20px;margin-bottom:20px">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">📋</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Document photo</b>Passport, national ID or driving licence</div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">🤳</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Liveness check</b>A brief selfie video</div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">✅</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Instant review</b>Automated in seconds</div></div>
+      </div>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink3);margin-bottom:6px">Powered by Signicat — bank-grade identity verification</p>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:16px;font-style:italic">Click below to simulate a successful verification</p>
+    <button class="btn btn-primary" id="verifyBtn" onclick="simulateVerify()">Start verification →</button>
+  </div>`;
+}
+
+function R7(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Your citizenship.</h1>
+    <div style="margin-bottom:16px">
+      <label style="margin-bottom:8px;display:block">Primary nationality detected</label>
+      <div class="nationality-chip">🇩🇪 ${esc(S.primaryNationality)}</div>
+    </div>
+    <div class="field-group">
+      <label>Do you hold citizenship in any other country?</label>
+      ${radioCardsHTML('rcOtherCit',[
+        {v:'no',label:'No, that\'s my only citizenship'},
+        {v:'yes',label:'Yes, I hold dual or multiple citizenship'}
+      ],S.hasOtherCitizenship)}
+      <div class="field-error" id="citizenship-err"></div>
+    </div>
+    <div id="addCitizenWrap" style="display:${S.hasOtherCitizenship==='yes'?'block':'none'}">
+      <div class="field-group">
+        <label>Additional citizenships</label>
+        ${searchableSelectHTML('citizenSearch','citizenDrop',null,'Search and add countries…','')}
+      </div>
+      <div class="chip-group" id="citizenChips">${S.additionalCitizenships.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeCitizen('${esc(c)}')">×</span></div>`).join('')}</div>
+    </div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:20px">This helps us meet EU anti-money-laundering requirements.</p>
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R8(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">How you'll use HansePay${S.firstName?', '+esc(S.firstName):''}.</h1>
+
+    <div class="field-group">
+      <label>What will you mainly use your account for?</label>
+      ${radioCardsHTML('rcPurpose',[
+        {v:'personal',icon:'👤',label:'Personal payments'},
+        {v:'business',icon:'💼',label:'Business payments'},
+        {v:'both',icon:'🔄',label:'Both'}
+      ],S.accountPurpose)}
+      <div class="field-error" id="accountPurpose-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>What types of payments do you expect to make?</label>
+      ${chipGroupHTML('cgPayTypes',[
+        {v:'everyday',label:'Everyday purchases'},
+        {v:'family',label:'Transfers to family or friends'},
+        {v:'own',label:'Transfers between my own accounts'},
+        {v:'suppliers',label:'Payments to suppliers or employees'},
+        {v:'intl',label:'International transfers'},
+        {v:'other',label:'Other'}
+      ],S.paymentTypes)}
+      <div class="field-error" id="paymentTypes-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>Expected monthly payment volume</label>
+      ${radioCardsHTML('rcVolume',[
+        {v:'under1k',label:'Under €1,000'},
+        {v:'1k-10k',label:'€1,000–€10,000'},
+        {v:'10k-50k',label:'€10,000–€50,000'},
+        {v:'over50k',label:'Over €50,000'}
+      ],S.monthlyVolume,2)}
+      <div class="field-error" id="monthlyVolume-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>Which regions will payments usually involve?</label>
+      ${chipGroupHTML('cgRegions',[
+        {v:'de-lv',label:'Germany & Latvia'},
+        {v:'eu-eea',label:'Rest of EU/EEA'},
+        {v:'uk',label:'United Kingdom'},
+        {v:'other',label:'Other countries'}
+      ],S.paymentRegions)}
+      <div class="field-error" id="paymentRegions-err"></div>
+    </div>
+
+    <div id="otherCountriesWrap" style="display:${S.paymentRegions.includes('other')?'block':'none'}">
+      <div class="field-group">
+        <label>Which other countries?</label>
+        ${searchableSelectHTML('otherCSearch','otherCDrop',null,'Search countries…','')}
+      </div>
+      <div class="chip-group" id="otherCChips">${S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R9(){
+  const highVol=['10k-50k','over50k'].includes(S.monthlyVolume);
+  const lowInc=['under15k','15k-30k'].includes(S.annualIncome);
+  const showBanner=highVol&&lowInc;
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Tell us about your income.</h1>
+
+    ${selectHTML('incomeSource','Main source of income',
+      ['Salary','Self-employment','Business ownership','Investments','Pension','Student support','Family support','Savings','Other'].map(s=>`<option value="${s}"${S.incomeSource===s?' selected':''}>${s}</option>`).join(''),
+    true)}
+    <div class="collapsible${S.incomeSource==='Other'?' open':''}" id="incOtherWrap">
+      ${fieldHTML('incomeSourceOther','Please specify','text',S.incomeSourceOther)}
+    </div>
+
+    <div class="field-group">
+      <label>Work situation</label>
+      ${chipGroupHTML('cgEmployment',[
+        {v:'employed',label:'Employed'},{v:'self-employed',label:'Self-employed'},
+        {v:'business-owner',label:'Business owner'},{v:'unemployed',label:'Unemployed'},
+        {v:'student',label:'Student'},{v:'retired',label:'Retired'},
+        {v:'homemaker',label:'Homemaker'},{v:'other',label:'Other'}
+      ],S.employmentStatus?[S.employmentStatus]:[])}
+      <div class="field-error" id="employmentStatus-err"></div>
+    </div>
+
+    ${selectHTML('industry','Industry',
+      ['Finance & Banking','Technology & Software','Healthcare & Pharmaceuticals','Manufacturing','Retail & E-commerce','Logistics & Transport','Real Estate','Legal Services','Consulting & Advisory','Education','Agriculture & Food','Construction','Media & Entertainment','Energy & Utilities','Hospitality & Tourism','NGO / Non-profit','Gambling & Gaming','Crypto-assets & Blockchain','Mining & Extractives','Telecommunications','Government / Public sector','Other'].map(s=>`<option value="${s}"${S.industry===s?' selected':''}>${s}</option>`).join(''),
+    true)}
+
+    <div class="field-group">
+      <label>Approximate annual income before tax</label>
+      ${radioCardsHTML('rcAnnualIncome',[
+        {v:'under15k',label:'Under €15,000'},{v:'15k-30k',label:'€15,000–€30,000'},
+        {v:'30k-60k',label:'€30,001–€60,000'},{v:'60k-100k',label:'€60,001–€100,000'},
+        {v:'over100k',label:'Over €100,000'},{v:'prefer-not',label:'Prefer not to say'}
+      ],S.annualIncome,2)}
+      <div class="field-error" id="annualIncome-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>Is any part of your income connected to higher-risk sectors?</label>
+      ${chipGroupHTML('cgHRS',[
+        {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
+        {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals or stones'},
+        {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
+        {v:'cash',label:'Cash-intensive businesses'},{v:'none',label:'None of these'}
+      ],S.highRiskSectors)}
+      <div class="field-error" id="highRiskSectors-err"></div>
+    </div>
+
+    <div id="volIncBanner" style="display:${showBanner?'block':'none'}">
+      <div class="banner banner-warn">
+        <span class="banner-icon">⚠️</span>
+        <span>Your expected payment volume is higher than typical for the income you've indicated. Please briefly explain what will fund these payments.</span>
+      </div>
+      <div class="field-group">
+        <textarea id="volumeIncomeExplain" rows="3" placeholder="E.g. I'll be managing payments on behalf of a family business…">${esc(S.volumeIncomeExplain)}</textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R10(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">A few compliance questions.</h1>
+    <p class="step-sub">Required by EU AML regulations.</p>
+
+    <div class="section-header">Section A — Politically Exposed Person</div>
+    <div class="field-group">
+      <label style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+        Are you, or have you been in the last 12 months, a politically exposed person?
+        <span class="tooltip-wrap">
+          <span class="tooltip-icon" tabindex="0">i</span>
+          <span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes their immediate family members and close associates.</span>
+        </span>
+      </label>
+      ${radioCardsHTML('rcPEP',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.isPEP,2)}
+      <div class="field-error" id="pep-err"></div>
+    </div>
+
+    <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
+      ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
+      ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
+      ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
+      ${fieldHTML('pepDates','Dates held (from–to)','text',S.pepDates,'e.g. 2018–2023')}
+    </div>
+
+    <div class="section-header">Section B — Sanctions</div>
+    <div class="check-row" style="margin-bottom:8px">
+      <input type="checkbox" id="sanctionsCheck" ${S.sanctionsConfirm?'checked':''}>
+      <label for="sanctionsCheck">I confirm that I am not subject to international sanctions and will not use this account to directly or indirectly transact with sanctioned persons, entities, or prohibited jurisdictions.</label>
+    </div>
+    <div class="field-error" id="sanctions-err"></div>
+
+    <button class="btn btn-primary" style="margin-top:16px" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R11(){
+  return`<div class="step-card" id="sCard">
+    <div class="banner banner-warn"><span class="banner-icon">⚠️</span><span>Based on your profile, we need a few additional details. This is a standard regulatory step.</span></div>
+    <h1 class="step-heading">Source of wealth.</h1>
+
+    ${selectHTML('wealthSource','How did you mainly build your savings or wealth?',
+      ['Salary or employment','Self-employment or business','Sale of business or property','Investments','Crypto-assets','Inheritance or gift','Pension or retirement savings','Other'].map(s=>`<option value="${s}"${S.wealthSource===s?' selected':''}>${s}</option>`).join(''),
+    true)}
+
+    ${selectHTML('netWorth','Approximate total net worth',
+      ['Under €15,000','€15,000–€30,000','€30,001–€60,000','€60,001–€100,000','€100,001–€250,000','€250,001–€1,000,000','Over €1,000,000','Prefer not to say'].map(s=>`<option value="${s}"${S.netWorth===s?' selected':''}>${s}</option>`).join(''),
+    true)}
+
+    <div class="field-group">
+      <label>Do you own or control a business?</label>
+      ${radioCardsHTML('rcOwnsBiz',[{v:'yes',label:'Yes'},{v:'no',label:'No'}],S.ownsBusiness,2)}
+    </div>
+
+    <div class="field-group">
+      <label>Have you received funds from a major asset sale, inheritance, or investment event in the last 3 years?</label>
+      ${radioCardsHTML('rcMajorFunds',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.majorFundsEvent,2)}
+    </div>
+    <div id="majorFundsWrap" style="display:${S.majorFundsEvent==='yes'?'block':'none'}">
+      <div class="field-group">
+        <label for="majorFundsDesc">Please describe briefly</label>
+        <textarea id="majorFundsDesc" rows="3" placeholder="E.g. Sale of property in Berlin in 2022">${esc(S.majorFundsDesc)}</textarea>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Is any significant part of your wealth connected to higher-risk areas?</label>
+      ${chipGroupHTML('cgHRW',[
+        {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
+        {v:'defence',label:'Defence / dual-use'},{v:'extractives',label:'Extractives'},
+        {v:'cash',label:'Cash-intensive business'},{v:'offshore',label:'Offshore structures'},
+        {v:'high-risk',label:'High-risk countries'},{v:'none',label:'None of these'}
+      ],S.highRiskWealth)}
+    </div>
+
+    <div class="field-group">
+      <label>Can you provide documents showing the origin of your funds if requested?</label>
+      ${radioCardsHTML('rcCanDocs',[
+        {v:'yes',label:'Yes, I can provide documents'},
+        {v:'no',label:'No, I cannot'},
+        {v:'help',label:'I may need help understanding what\'s acceptable'}
+      ],S.canProvideDocs)}
+    </div>
+    <div id="wealthDocsWrap" style="display:${S.canProvideDocs==='yes'?'block':'none'}">
+      <div class="field-group">
+        <label>Upload documents <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+        <div class="upload-zone" onclick="document.getElementById('wealthFiles').click()">
+          <input type="file" id="wealthFiles" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleUpload('wealthFiles','wealthFileList')">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text"><b>Click to upload</b> or drag and drop</div>
+          <div class="upload-hint">PDF, JPG or PNG</div>
+        </div>
+        <div class="upload-files" id="wealthFileList"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+  </div>`;
+}
+
+function R12(){
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Almost there.</h1>
+    <p class="step-sub">Please review and accept our terms.</p>
+
+    <div class="tc-box">
+      <b>HansePay Terms &amp; Conditions</b><br><br>
+      By accepting, you agree to our payment services agreement, fee schedule, acceptable use policy, and GDPR data processing terms. You also confirm you have not been convicted of a serious financial crime.<br><br>
+      <b>Payment Services Agreement:</b> HansePay provides regulated payment services in accordance with EU Payment Services Directive 2 (PSD2). All transactions are processed securely and subject to our fee schedule.<br><br>
+      <b>Acceptable Use Policy:</b> You agree not to use HansePay for any illegal activities, money laundering, terrorist financing, or transactions involving sanctioned jurisdictions.<br><br>
+      <b>Data Processing:</b> Your personal data is processed in accordance with EU Regulation 2016/679 (GDPR). You have the right to access, rectify, and erase your data.<br><br>
+      <em>This is a placeholder — full terms to be inserted before go-live.</em>
+    </div>
+
+    <div class="blindpay-card">
+      <div class="blindpay-card-header">
+        <span class="blindpay-card-title">BlindPay Payment Services</span>
+        <span class="bp-status${S.blindpayAccepted?' accepted':' not-accepted'}" id="bpStatus">${S.blindpayAccepted?'Accepted ✓':'Not accepted'}</span>
+      </div>
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:12px">To use payment services you must also accept BlindPay's terms.</p>
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="openBlindPayModal()">Read &amp; accept BlindPay terms →</button>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="tcCheck" ${S.tcAccepted?'checked':''} onchange="onTCChange()">
+      <label for="tcCheck">I have read and agree to the Terms and Conditions and Privacy Policy.</label>
+    </div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Your data is protected under GDPR.</p>
+    <div class="field-error" id="tc-err"></div>
+    <button class="btn btn-primary" id="acceptBtn" onclick="nextStep()" ${(!S.tcAccepted||!S.blindpayAccepted)?'disabled':''}>Accept &amp; continue</button>
+  </div>`;
+}
+
+function R13(){
+  function rv(k,v){return`<div class="review-row"><span class="review-key">${k}</span><span class="review-val">${esc(v||'—')}</span></div>`}
+  function rs(title,stepId,rows){
+    return`<div class="review-section">
+      <div class="review-section-header">
+        <span class="review-section-title">${title}</span>
+        <a class="review-edit" onclick="jumpTo(${typeof stepId==='string'?`'${stepId}'`:stepId})">Edit</a>
+      </div>${rows}</div>`;
+  }
+  return`<div class="step-card" id="sCard">
+    <h1 class="step-heading">Review your details${S.firstName?', '+esc(S.firstName):''}.</h1>
+    <p class="step-sub">Double-check everything before we submit.</p>
+    ${rs('Account',1,rv('Email',S.email)+rv('Phone',S.phoneCountry+' '+S.phone))}
+    ${rs('Personal details',5,rv('Full name',[S.firstName,S.middleName,S.lastName].filter(Boolean).join(' '))+rv('Date of birth',S.dob)+rv('Primary nationality',S.primaryNationality))}
+    ${rs('Address',5,rv('Street',S.street+(S.addressLine2?' '+S.addressLine2:''))+rv('City',S.city)+rv('Postcode',S.postcode)+rv('Country',S.countryOfResidence)+(S.changedResidence==='yes'?rv('Previous country',S.previousCountry):''))}
+    ${rs('Acting on behalf',5,rv('For myself',S.actingOnBehalf==='yes'?'Yes':'No')+(S.actingOnBehalf==='no'?rv('Third party',S.thirdPartyName):''))}
+    ${rs('Account usage',8,rv('Purpose',S.accountPurpose)+rv('Monthly volume',S.monthlyVolume)+rv('Regions',S.paymentRegions.join(', ')))}
+    ${rs('Income & employment',9,rv('Income source',S.incomeSource)+rv('Employment',S.employmentStatus)+rv('Industry',S.industry)+rv('Annual income',S.annualIncome))}
+    ${rs('Compliance',10,rv('PEP status',S.isPEP==='yes'?'Yes — '+S.pepPosition:'No')+rv('Sanctions confirmed',S.sanctionsConfirm?'Yes':'No'))}
+    <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">Submit application</button>
+  </div>`;
+}
+
+function R14(){
+  setTimeout(()=>{
+    document.getElementById('mainLayout').style.display='none';
+    document.getElementById('mobileTop').style.display='none';
+    document.getElementById('successPage').style.display='block';
+    document.getElementById('successHeading').textContent=`You're all set${S.firstName?', '+S.firstName:''}!`;
+    document.getElementById('successEmailLine').textContent=`We'll email you at ${S.email} when your account is approved`;
+    document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
+    const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
+  },50);
+  return`<div class="step-card" id="sCard"><p style="text-align:center;padding:20px;color:var(--ink3)">Finalising…</p></div>`;
+}
+
+// =============================================================
+// NAVIGATION
+// =============================================================
+function showStep(dir){
+  const steps=getActiveSteps();
+  const id=steps[CI];
+  const vp=document.getElementById('stepViewport');
+  vp.innerHTML=renderStep(id);
+  const card=document.getElementById('sCard');
+  if(card){
+    card.className='step-card '+(dir==='back'?'enter-left':'enter-right');
+    void card.offsetWidth;
+  }
+  updateProgress();
+  updateLeftPanel();
+  updateNavFooter();
+  attachAll(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextStep(){
+  computeHighRisk();
+  if(!validateStep()) return;
+  collectData();
+  saveState();
+  const steps=getActiveSteps();
+  if(CI<steps.length-1){CI++;showStep('forward');}
+}
+
+function prevStep(){
+  collectData();saveState();
+  if(CI>0){CI--;showStep('back');}
+}
+
+function jumpTo(id){
+  collectData();
+  const steps=getActiveSteps();
+  const idx=steps.indexOf(id);
+  if(idx!==-1){CI=idx;showStep('back');}
+}
+
+// =============================================================
+// VALIDATION
+// =============================================================
+function validateStep(){
+  clearAllErr();
+  const id=getActiveSteps()[CI];
+  let ok=true;
+  function fail(fid,msg){showErr(fid,msg);ok=false;}
+
+  if(id===1){
+    const fn=document.getElementById('firstName');
+    const ln=document.getElementById('lastName');
+    const em=document.getElementById('email');
+    const pw=document.getElementById('password');
+    const cpw=document.getElementById('cpw');
+    const ag=document.getElementById('agreeTerms');
+    if(!fn?.value.trim()) fail('firstName','First name is required');
+    if(!ln?.value.trim()) fail('lastName','Last name is required');
+    if(!isEmail(em?.value||'')) fail('email','Please enter a valid email address');
+    if((pw?.value||'').length<8) fail('password','Password must be at least 8 characters');
+    if(cpw?.value!==pw?.value) fail('cpw','Passwords do not match');
+    if(!ag?.checked){
+      const e=document.getElementById('agreeTerms-err');
+      if(e){e.textContent='You must agree to the terms';e.classList.add('visible');}
+      ok=false;
+    }
+  } else if(id==='3a'){
+    if(!document.getElementById('phoneNum')?.value.trim()) fail('phone','Phone number is required');
+  } else if(id===4){
+    if(!S.accountType) fail('accountType','Please select an account type');
+  } else if(id===5){
+    const dob=document.getElementById('dob');
+    if(!dob?.value){fail('dob','Date of birth is required');}
+    else{const age=(Date.now()-new Date(dob.value))/(86400000*365.25);if(age<18)fail('dob','You must be at least 18 years old');}
+    if(!document.getElementById('street')?.value.trim()) fail('street','Street address is required');
+    if(!document.getElementById('city')?.value.trim()) fail('city','City is required');
+    if(!document.getElementById('postcode')?.value.trim()) fail('postcode','Postcode is required');
+    if(!S.countryOfResidence) fail('countryOfResidence','Country of residence is required');
+    if(!S.actingOnBehalf) fail('actingOnBehalf','Please make a selection');
+  } else if(id===8){
+    if(!S.accountPurpose) fail('accountPurpose','Please select an option');
+    if(!S.paymentTypes.length) fail('paymentTypes','Please select at least one payment type');
+    if(!S.monthlyVolume) fail('monthlyVolume','Please select a volume range');
+    if(!S.paymentRegions.length) fail('paymentRegions','Please select at least one region');
+  } else if(id===9){
+    if(!document.getElementById('incomeSource')?.value) fail('incomeSource','Please select your income source');
+    if(!S.employmentStatus) fail('employmentStatus','Please select your work situation');
+    if(!document.getElementById('industry')?.value) fail('industry','Please select your industry');
+    if(!S.annualIncome) fail('annualIncome','Please select your annual income');
+    if(!S.highRiskSectors.length) fail('highRiskSectors','Please select at least one option (or "None of these")');
+  } else if(id===10){
+    if(!S.isPEP) fail('pep','Please answer this question');
+    if(S.isPEP==='yes'){
+      if(!document.getElementById('pepPosition')?.value.trim()) fail('pepPosition','Position is required');
+      if(!document.getElementById('pepInstitution')?.value.trim()) fail('pepInstitution','Institution is required');
+      if(!document.getElementById('pepCountry')?.value) fail('pepCountry','Country is required');
+    }
+    if(!S.sanctionsConfirm){
+      const e=document.getElementById('sanctions-err');
+      if(e){e.textContent='You must confirm the sanctions declaration';e.classList.add('visible');}
+      ok=false;
+    }
+  } else if(id===12){
+    if(!S.tcAccepted||!S.blindpayAccepted){
+      const e=document.getElementById('tc-err');
+      if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
+      ok=false;
+    }
+  }
+
+  if(!ok){
+    const fe=document.querySelector('.field-error.visible');
+    if(fe) fe.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  return ok;
+}
+
+// =============================================================
+// COLLECT DATA
+// =============================================================
+function collectData(){
+  const id=getActiveSteps()[CI];
+  if(id===1){
+    S.firstName=g('firstName')||S.firstName;
+    S.lastName=g('lastName')||S.lastName;
+    S.email=g('email')||S.email;
+    S.password=g('password')||S.password;
+    S.agreedToTerms=gc('agreeTerms');
+  } else if(id==='3a'){
+    S.phoneCountry=g('phoneCountry')||S.phoneCountry;
+    S.phone=g('phoneNum')||S.phone;
+  } else if(id===5){
+    S.firstName=g('d5FirstName')||S.firstName;
+    S.lastName=g('d5LastName')||S.lastName;
+    S.middleName=g('middleName')||'';
+    S.dob=g('dob')||S.dob;
+    S.street=g('street')||S.street;
+    S.addressLine2=g('addressLine2')||'';
+    S.city=g('city')||S.city;
+    S.postcode=g('postcode')||S.postcode;
+    S.stateProvince=g('stateProvince')||'';
+    S.previousCountry=g('previousCountry')||'';
+  } else if(id==='5b'){
+    S.thirdPartyName=g('thirdPartyName')||'';
+    S.thirdPartyRelation=g('thirdPartyRelation')||'';
+  } else if(id===9){
+    S.incomeSource=g('incomeSource')||S.incomeSource;
+    S.incomeSourceOther=g('incomeSourceOther')||'';
+    S.industry=g('industry')||S.industry;
+    S.volumeIncomeExplain=g('volumeIncomeExplain')||'';
+  } else if(id===10){
+    S.pepPosition=g('pepPosition')||'';
+    S.pepInstitution=g('pepInstitution')||'';
+    S.pepCountry=g('pepCountry')||'';
+    S.pepDates=g('pepDates')||'';
+    S.sanctionsConfirm=gc('sanctionsCheck');
+  } else if(id===11){
+    S.wealthSource=g('wealthSource')||'';
+    S.netWorth=g('netWorth')||'';
+    S.majorFundsDesc=g('majorFundsDesc')||'';
+  } else if(id===12){
+    S.tcAccepted=gc('tcCheck');
+  }
+}
+
+// =============================================================
+// ATTACH LISTENERS
+// =============================================================
+function attachAll(id){
+  // Radio cards
+  document.querySelectorAll('.radio-card:not(.disabled)').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const grp=card.dataset.group;const val=card.dataset.val;
+      document.querySelectorAll(`.radio-card[data-group="${grp}"]`).forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      onRadioSelect(grp,val);
+      saveState();
+    });
+  });
+
+  // Chips
+  document.querySelectorAll('.chip-group').forEach(grp=>{
+    grp.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click',e=>{
+        if(e.target.classList.contains('chip-x'))return;
+        onChipClick(grp.id,chip.dataset.val,grp,chip);
+        saveState();
+      });
+    });
+  });
+
+  // Password
+  if(id===1){
+    const pw=document.getElementById('password');
+    if(pw){pw.addEventListener('input',()=>updateStrength(pw.value));updateStrength(S.password||'');}
+    const ag=document.getElementById('agreeTerms');
+    if(ag) ag.addEventListener('change',()=>{S.agreedToTerms=ag.checked;saveState();});
+  }
+  if(id===10){
+    const sc=document.getElementById('sanctionsCheck');
+    if(sc) sc.addEventListener('change',()=>{S.sanctionsConfirm=sc.checked;saveState();});
+  }
+  if(id===9){
+    const is=document.getElementById('incomeSource');
+    if(is) is.addEventListener('change',()=>{
+      S.incomeSource=is.value;
+      const w=document.getElementById('incOtherWrap');
+      if(w) w.className='collapsible'+(is.value==='Other'?' open':'');
+      saveState();
+    });
+  }
+  if(id===12){
+    const tc=document.getElementById('tcCheck');
+    if(tc) tc.addEventListener('change',()=>{S.tcAccepted=tc.checked;updateAcceptBtn();saveState();});
+  }
+
+  // OTP
+  if(id==='3b') initOTP();
+
+  // Searchable selects
+  initSearchable('countrySearch','countryDrop','countryHidden',v=>{S.countryOfResidence=v;saveState();});
+  initSearchable('citizenSearch','citizenDrop',null,v=>{
+    if(!S.additionalCitizenships.includes(v)){S.additionalCitizenships.push(v);renderCitizenChips();}
+    const inp=document.getElementById('citizenSearch');if(inp)inp.value='';
+    saveState();
+  });
+  initSearchable('otherCSearch','otherCDrop',null,v=>{
+    if(!S.otherCountries.includes(v)){S.otherCountries.push(v);renderOtherCChips();computeHighRisk();}
+    const inp=document.getElementById('otherCSearch');if(inp)inp.value='';
+    saveState();
+  });
+
+  // Upload drag/drop
+  document.querySelectorAll('.upload-zone').forEach(z=>{
+    z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});
+    z.addEventListener('dragleave',()=>z.classList.remove('dragover'));
+    z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('dragover');
+      const inp=z.querySelector('input[type=file]');
+      const list=z.closest('.field-group')?.querySelector('.upload-files');
+      if(inp&&list){
+        const dt=new DataTransfer();
+        Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));
+        inp.files=dt.files;
+        list.innerHTML=Array.from(dt.files).map((f,i)=>`<div class="upload-file-item"><span>📄 ${esc(f.name)}</span><span class="upload-file-remove" onclick="this.parentElement.remove()">✕</span></div>`).join('');
+      }
+    });
+  });
+}
+
+function onRadioSelect(grp,val){
+  if(grp==='rcAccountType'){S.accountType=val;}
+  else if(grp==='rcChangedRes'){
+    S.changedResidence=val;
+    const w=document.getElementById('prevCountryWrap');if(w)w.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcActingBehalf'){S.actingOnBehalf=val;}
+  else if(grp==='rcOtherCit'){
+    S.hasOtherCitizenship=val;
+    const w=document.getElementById('addCitizenWrap');if(w)w.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcPurpose'){S.accountPurpose=val;}
+  else if(grp==='rcVolume'){S.monthlyVolume=val;recheckVolIncBanner();}
+  else if(grp==='rcAnnualIncome'){S.annualIncome=val;recheckVolIncBanner();}
+  else if(grp==='rcPEP'){
+    S.isPEP=val;
+    const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
+  else if(grp==='rcMajorFunds'){
+    S.majorFundsEvent=val;
+    const w=document.getElementById('majorFundsWrap');if(w)w.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcCanDocs'){
+    S.canProvideDocs=val;
+    const w=document.getElementById('wealthDocsWrap');if(w)w.style.display=val==='yes'?'block':'none';
+  }
+}
+
+function onChipClick(grpId,val,grpEl,chip){
+  if(grpId==='cgPayTypes'){
+    toggleArr(S.paymentTypes,val);
+    chip.classList.toggle('selected',S.paymentTypes.includes(val));
+  } else if(grpId==='cgRegions'){
+    toggleArr(S.paymentRegions,val);
+    chip.classList.toggle('selected',S.paymentRegions.includes(val));
+    const w=document.getElementById('otherCountriesWrap');if(w)w.style.display=S.paymentRegions.includes('other')?'block':'none';
+  } else if(grpId==='cgHRS'){
+    if(val==='none'){S.highRiskSectors=['none'];}
+    else{S.highRiskSectors=S.highRiskSectors.filter(v=>v!=='none');toggleArr(S.highRiskSectors,val);}
+    grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',S.highRiskSectors.includes(c.dataset.val)));
+    recheckVolIncBanner();
+  } else if(grpId==='cgHRW'){
+    if(val==='none'){S.highRiskWealth=['none'];}
+    else{S.highRiskWealth=S.highRiskWealth.filter(v=>v!=='none');toggleArr(S.highRiskWealth,val);}
+    grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',S.highRiskWealth.includes(c.dataset.val)));
+  } else if(grpId==='cgEmployment'){
+    S.employmentStatus=S.employmentStatus===val?'':val;
+    grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===S.employmentStatus));
+  }
+}
+
+function toggleArr(arr,val){
+  const i=arr.indexOf(val);
+  if(i===-1) arr.push(val); else arr.splice(i,1);
+}
+
+function recheckVolIncBanner(){
+  const hv=['10k-50k','over50k'].includes(S.monthlyVolume);
+  const li=['under15k','15k-30k'].includes(S.annualIncome);
+  const w=document.getElementById('volIncBanner');if(w)w.style.display=(hv&&li)?'block':'none';
+}
+
+// =============================================================
+// SEARCHABLE SELECT
+// =============================================================
+function initSearchable(inputId,dropId,hiddenId,onSelect){
+  const inp=document.getElementById(inputId);
+  const drop=document.getElementById(dropId);
+  if(!inp||!drop) return;
+
+  function filter(){
+    const q=inp.value.toLowerCase();
+    drop.querySelectorAll('.searchable-option').forEach(o=>{
+      o.style.display=o.dataset.val.toLowerCase().includes(q)?'':'none';
+    });
+  }
+
+  inp.addEventListener('focus',()=>{filter();drop.classList.add('open');});
+  inp.addEventListener('input',filter);
+  inp.addEventListener('blur',()=>setTimeout(()=>drop.classList.remove('open'),180));
+
+  drop.querySelectorAll('.searchable-option').forEach(opt=>{
+    opt.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      const val=opt.dataset.val;
+      if(hiddenId){
+        inp.value=val;
+        const h=document.getElementById(hiddenId);if(h)h.value=val;
+      }
+      if(onSelect) onSelect(val);
+      drop.classList.remove('open');
+    });
+  });
+}
+
+function renderCitizenChips(){
+  const w=document.getElementById('citizenChips');if(!w)return;
+  w.innerHTML=S.additionalCitizenships.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeCitizen('${esc(c)}')">×</span></div>`).join('');
+}
+function removeCitizen(c){S.additionalCitizenships=S.additionalCitizenships.filter(x=>x!==c);renderCitizenChips();saveState();}
+
+function renderOtherCChips(){
+  const w=document.getElementById('otherCChips');if(!w)return;
+  w.innerHTML=S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('');
+}
+function removeOtherC(c){S.otherCountries=S.otherCountries.filter(x=>x!==c);renderOtherCChips();computeHighRisk();saveState();}
+
+// =============================================================
+// OTP
+// =============================================================
+function initOTP(){
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('otp'+i));
+  inputs.forEach((inp,i)=>{
+    if(!inp)return;
+    inp.addEventListener('input',e=>{
+      const v=e.target.value.replace(/\D/g,'');
+      e.target.value=v.slice(-1);
+      inp.classList.toggle('filled',!!inp.value);
+      if(v&&i<5) inputs[i+1]?.focus();
+      if(inputs.every(x=>x&&x.value)) setTimeout(verifyOTP,100);
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!inp.value&&i>0) inputs[i-1]?.focus();
+    });
+    inp.addEventListener('paste',e=>{
+      const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      if(txt.length>=6){
+        inputs.forEach((x,j)=>{if(x){x.value=txt[j]||'';x.classList.toggle('filled',!!x.value);}});
+        setTimeout(verifyOTP,100);
+      }
+      e.preventDefault();
+    });
+  });
+  startResendTimer();
+}
+
+function startResendTimer(){
+  let t=30;
+  const cnt=document.getElementById('resendCount');
+  const txt=document.getElementById('resendText');
+  const lnk=document.getElementById('resendLink');
+  if(txt)txt.style.display='';if(lnk)lnk.style.display='none';
+  clearInterval(resendTimer);
+  resendTimer=setInterval(()=>{
+    t--;if(cnt)cnt.textContent=t;
+    if(t<=0){clearInterval(resendTimer);if(txt)txt.style.display='none';if(lnk)lnk.style.display='';}
+  },1000);
+}
+
+function verifyOTP(){
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('otp'+i));
+  if(inputs.every(x=>x&&x.value)) nextStep();
+  else{const e=document.getElementById('otp-err');if(e){e.textContent='Please enter all 6 digits';e.classList.add('visible');}}
+}
+
+function sendCode(){
+  const ph=document.getElementById('phoneNum');
+  if(!ph?.value.trim()){showErr('phone','Phone number is required');return;}
+  S.phone=ph.value;
+  S.phoneCountry=document.getElementById('phoneCountry')?.value||'+49';
+  saveState();
+  const steps=getActiveSteps();
+  CI=steps.indexOf('3b');
+  showStep('forward');
+}
+
+// =============================================================
+// PASSWORD
+// =============================================================
+function togglePw(id){
+  const inp=document.getElementById(id);if(!inp)return;
+  inp.type=inp.type==='password'?'text':'password';
+}
+function updateStrength(pw){
+  let score=0;
+  if(pw.length>=8)score++;if(pw.length>=12)score++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))score++;
+  if(/[0-9]/.test(pw))score++;if(/[^A-Za-z0-9]/.test(pw))score++;
+  const lvl=score<=1?1:score<=2?2:score<=3?3:4;
+  const cls=['','weak','almost','good','strong'];
+  const lbl=['','Weak','Almost there','Good','Strong'];
+  for(let i=1;i<=4;i++){const s=document.getElementById('ss'+i);if(s)s.className='strength-seg'+(i<=lvl?' '+cls[lvl]:'');}
+  const sl=document.getElementById('sLabel');if(sl)sl.textContent=pw?lbl[lvl]:'';
+}
+
+// =============================================================
+// IDENTITY SIMULATION
+// =============================================================
+function simulateVerify(){
+  const btn=document.getElementById('verifyBtn');
+  if(btn){btn.innerHTML='<div class="spinner"></div> Verifying…';btn.disabled=true;}
+  setTimeout(nextStep,2000);
+}
+
+// =============================================================
+// SUBMIT
+// =============================================================
+function handleSubmit(){
+  const btn=document.getElementById('submitBtn');
+  if(btn){btn.innerHTML='<div class="spinner"></div> Submitting…';btn.disabled=true;}
+  S.applicationRef='HP-'+rand8();
+  setTimeout(()=>{
+    collectData();
+    const steps=getActiveSteps();
+    CI=steps.indexOf(14);
+    showStep('forward');
+  },2000);
+}
+
+// =============================================================
+// BLINDPAY MODAL
+// =============================================================
+function openBlindPayModal(){
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent='BlindPay Payment Services Terms';
+  document.getElementById('modalBody').innerHTML=`<p>By accepting BlindPay's terms, you agree to their payment processing agreement, including:</p>
+    <ul style="padding-left:20px;line-height:2.2;margin-top:12px">
+      <li>BlindPay processes payments as a regulated payment institution</li>
+      <li>Your funds are held in segregated client accounts</li>
+      <li>BlindPay may conduct its own compliance and AML checks</li>
+      <li>Transactions are subject to BlindPay's fee schedule</li>
+      <li>BlindPay's GDPR data processing applies to payment data</li>
+    </ul>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic;margin-top:16px">Placeholder — full terms to be inserted before go-live.</p>`;
+  document.getElementById('modalActions').innerHTML=`
+    <button class="btn btn-primary" onclick="acceptBlindPay()">Accept BlindPay terms</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="width:auto;min-width:100px">Cancel</button>`;
+  overlay.classList.add('open');
+}
+function acceptBlindPay(){
+  S.blindpayAccepted=true;closeModal();
+  const st=document.getElementById('bpStatus');
+  if(st){st.textContent='Accepted ✓';st.className='bp-status accepted';}
+  updateAcceptBtn();saveState();
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function updateAcceptBtn(){
+  const btn=document.getElementById('acceptBtn');
+  if(btn) btn.disabled=!(S.tcAccepted&&S.blindpayAccepted);
+}
+function onTCChange(){
+  S.tcAccepted=gc('tcCheck');updateAcceptBtn();saveState();
+}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal();});
+
+// =============================================================
+// PROGRESS & LEFT PANEL
+// =============================================================
+function getCurrentPhase(){
+  const id=getActiveSteps()[CI];
+  for(const ph of PHASES){if(ph.steps.includes(id))return ph.id;}
+  return 'account';
+}
+function getPhaseStatus(phId){
+  const curr=getCurrentPhase();
+  const pids=PHASES.map(p=>p.id);
+  const ci=pids.indexOf(curr),ti=pids.indexOf(phId);
+  if(ti<ci)return'done';if(ti===ci)return'current';return'pending';
+}
+function updateProgress(){
+  const steps=getActiveSteps();
+  const pct=steps.length>1?Math.round((CI/(steps.length-1))*100):0;
+  const pb=document.getElementById('progressBar');if(pb)pb.style.width=pct+'%';
+  const mp=document.getElementById('mobileProgress');if(mp)mp.style.width=pct+'%';
+}
+function updateLeftPanel(){
+  const pl=document.getElementById('phaseList');
+  if(pl){
+    pl.innerHTML=PHASES.map((ph,i)=>{
+      const st=getPhaseStatus(ph.id);
+      return`<div class="phase-item ${st}">
+        <div class="phase-dot">${st==='done'?'✓':i+1}</div>
+        <div class="phase-label">${ph.label}</div>
+      </div>`;
+    }).join('');
+  }
+  const ht=document.getElementById('leftHelpText');
+  if(ht)ht.textContent=PHASE_HELP[getCurrentPhase()]||'';
+  const mpn=document.getElementById('mobilePhaseName');
+  if(mpn){const ph=PHASES.find(p=>p.id===getCurrentPhase());if(ph)mpn.textContent=ph.label;}
+}
+
+// =============================================================
+// NAV FOOTER
+// =============================================================
+function updateNavFooter(){
+  const id=getActiveSteps()[CI];
+  if(id===14){const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';return;}
+  let nf=document.getElementById('navFooter');
+  if(!nf){
+    nf=document.createElement('div');nf.id='navFooter';nf.className='nav-footer';
+    document.body.appendChild(nf);
+  }
+  nf.style.display='flex';
+  const ph=PHASES.find(p=>p.id===getCurrentPhase());
+  const steps=getActiveSteps();
+  nf.innerHTML=`
+    <div class="nav-step-info">Step <b>${CI+1}</b> of <b>${steps.length-1}</b>${ph?' &mdash; '+ph.label:''}</div>
+    <div class="nav-btns">${CI>0?`<button class="btn btn-ghost btn-sm" onclick="prevStep()">← Back</button>`:''}</div>`;
+}
+
+// =============================================================
+// FILE UPLOAD
+// =============================================================
+function handleUpload(inputId,listId){
+  const inp=document.getElementById(inputId);
+  const list=document.getElementById(listId);
+  if(!inp||!list)return;
+  list.innerHTML=Array.from(inp.files).map((f)=>`<div class="upload-file-item"><span>📄 ${esc(f.name)}</span><span class="upload-file-remove" onclick="this.parentElement.remove()">✕</span></div>`).join('');
+}
+
+// =============================================================
+// INIT
+// =============================================================
+function clearAllErr(){
+  document.querySelectorAll('.field-error').forEach(e=>{e.textContent='';e.classList.remove('visible')});
+  document.querySelectorAll('.error').forEach(e=>e.classList.remove('error'));
+}
+
+function init(){
+  const savedIdx=loadSaved();
+  if(savedIdx!==null&&savedIdx>0){
+    // Show "continue" banner first
+    const vp=document.getElementById('stepViewport');
+    const banner=document.createElement('div');
+    banner.className='saved-banner';
+    banner.innerHTML=`<span>You have a saved application. <b>Continue where you left off?</b></span>
+      <div class="saved-btns">
+        <button class="btn btn-primary btn-sm" onclick="continueSaved(${savedIdx})">Continue</button>
+        <button class="btn btn-ghost btn-sm" onclick="startFresh()">Start over</button>
+      </div>`;
+    vp.appendChild(banner);
+    // Render first step below banner
+    const card=document.createElement('div');
+    card.innerHTML=renderStep(1);
+    vp.appendChild(card.firstElementChild);
+    updateProgress();updateLeftPanel();updateNavFooter();attachAll(1);
+  } else {
+    showStep('forward');
+  }
+}
+
+function continueSaved(idx){
+  CI=idx;showStep('forward');
+}
+function startFresh(){
+  Object.assign(S,{
+    firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
+    phoneCountry:'+49',phone:'',accountType:'',
+    middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
+    countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
+    thirdPartyName:'',thirdPartyRelation:'',
+    primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
+    accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
+    incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
+    highRiskSectors:[],volumeIncomeExplain:'',
+    isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
+    wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
+    highRiskWealth:[],canProvideDocs:'',
+    tcAccepted:false,blindpayAccepted:false,isHighRisk:false,applicationRef:''
+  });
+  CI=0;
+  try{localStorage.removeItem('hp_onb');}catch(e){}
+  showStep('forward');
+}
+
+init();
+</script>
+</body>
+</html>
