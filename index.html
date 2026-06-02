@@ -269,18 +269,22 @@ a{color:inherit;text-decoration:none}
   box-shadow:0 32px 80px rgba(11,25,41,.13),0 8px 24px rgba(11,25,41,.08)}
 @media(max-width:960px){.currencies-globe-wrap{display:none}}
 .currencies-content-col{}
-.currency-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.ccy-chip{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-md);background:#fff;transition:all .15s;cursor:default}
-.ccy-chip:hover{border-color:var(--n200);background:var(--n050)}
+/* Organic, non-uniform wrap — chips size to content so rows break naturally */
+.currency-grid{display:flex;flex-wrap:wrap;gap:8px}
+.ccy-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-pill);background:#fff;transition:all .15s;cursor:default;flex:0 0 auto}
+.ccy-chip:hover{border-color:var(--n200);background:var(--n050);transform:translateY(-1px)}
+/* Major currencies get visual weight — filled navy tint, slightly larger */
+.ccy-chip.major{padding:10px 16px;background:var(--n050);border-color:rgba(30,78,128,.18)}
+.ccy-chip.major .ccy-code{font-size:13px;color:var(--n600)}
+.ccy-chip.major .ccy-flag{font-size:17px}
+/* Compact chips show just flag + code */
+.ccy-chip.compact .ccy-name{display:none}
 .ccy-chip.globe-active{border-color:rgba(201,169,97,.5);background:rgba(201,169,97,.06);box-shadow:0 0 0 1px rgba(201,169,97,.18),0 2px 10px rgba(201,169,97,.08)}
 .ccy-chip.globe-active .ccy-code{color:#a07828}
 .ccy-chip.globe-active .ccy-flag{filter:drop-shadow(0 0 3px rgba(201,169,97,.5))}
 .ccy-flag{font-size:15px;line-height:1;flex-shrink:0}
 .ccy-code{font-size:12px;font-weight:700;color:var(--n700);letter-spacing:.01em}
 .ccy-name{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.corridor-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:16px}
-.corridor-badge{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:var(--r-md);background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);font-size:11px;font-weight:600;color:#15803d;letter-spacing:.02em}
-.corridor-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;flex-shrink:0}
 
 /* PLATFORM SHOWCASE */
 .showcase-layout{display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}
@@ -373,12 +377,7 @@ a{color:inherit;text-decoration:none}
   .ins-body{padding:18px 20px}
 }
 @media(max-width:640px){
-  .currency-grid{grid-template-columns:repeat(2,1fr)}
-  .corridor-row{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:380px){
-  .currency-grid{grid-template-columns:1fr}
-  .corridor-row{grid-template-columns:1fr}
+  .ccy-chip.major{padding:9px 14px}
 }
 @media(max-width:480px){
   .view-toggle{bottom:16px;right:16px;padding:3px}
@@ -715,34 +714,26 @@ a{color:inherit;text-decoration:none}
           <p class="lede reveal d2" style="margin-top:14px;font-size:15px" data-i18n="index.currencies.sub">Seamless transfers across the Americas, Africa, the Middle East, Asia &amp; Pacific, and Europe — with same-day availability on major corridors.</p>
         </div>
         <div class="currency-grid reveal">
-          <div class="ccy-chip" data-ccy="USD"><span class="ccy-flag">🇺🇸</span><span class="ccy-code">USD</span><span class="ccy-name">US Dollar</span></div>
-          <div class="ccy-chip" data-ccy="GBP"><span class="ccy-flag">🇬🇧</span><span class="ccy-code">GBP</span><span class="ccy-name">British Pound</span></div>
-          <div class="ccy-chip" data-ccy="JPY"><span class="ccy-flag">🇯🇵</span><span class="ccy-code">JPY</span><span class="ccy-name">Japanese Yen</span></div>
+          <div class="ccy-chip major" data-ccy="USD"><span class="ccy-flag">🇺🇸</span><span class="ccy-code">USD</span><span class="ccy-name">US Dollar</span></div>
+          <div class="ccy-chip major" data-ccy="GBP"><span class="ccy-flag">🇬🇧</span><span class="ccy-code">GBP</span><span class="ccy-name">British Pound</span></div>
+          <div class="ccy-chip major" data-ccy="JPY"><span class="ccy-flag">🇯🇵</span><span class="ccy-code">JPY</span><span class="ccy-name">Japanese Yen</span></div>
           <div class="ccy-chip" data-ccy="CAD"><span class="ccy-flag">🇨🇦</span><span class="ccy-code">CAD</span><span class="ccy-name">Canadian Dollar</span></div>
           <div class="ccy-chip" data-ccy="AUD"><span class="ccy-flag">🇦🇺</span><span class="ccy-code">AUD</span><span class="ccy-name">Australian Dollar</span></div>
           <div class="ccy-chip" data-ccy="SGD"><span class="ccy-flag">🇸🇬</span><span class="ccy-code">SGD</span><span class="ccy-name">Singapore Dollar</span></div>
           <div class="ccy-chip" data-ccy="HKD"><span class="ccy-flag">🇭🇰</span><span class="ccy-code">HKD</span><span class="ccy-name">Hong Kong Dollar</span></div>
-          <div class="ccy-chip" data-ccy="CNY"><span class="ccy-flag">🇨🇳</span><span class="ccy-code">CNY</span><span class="ccy-name">Chinese Yuan</span></div>
-          <div class="ccy-chip" data-ccy="INR"><span class="ccy-flag">🇮🇳</span><span class="ccy-code">INR</span><span class="ccy-name">Indian Rupee</span></div>
-          <div class="ccy-chip" data-ccy="AED"><span class="ccy-flag">🇦🇪</span><span class="ccy-code">AED</span><span class="ccy-name">UAE Dirham</span></div>
-          <div class="ccy-chip" data-ccy="SAR"><span class="ccy-flag">🇸🇦</span><span class="ccy-code">SAR</span><span class="ccy-name">Saudi Riyal</span></div>
+          <div class="ccy-chip major" data-ccy="CNY"><span class="ccy-flag">🇨🇳</span><span class="ccy-code">CNY</span><span class="ccy-name">Chinese Yuan</span></div>
+          <div class="ccy-chip major" data-ccy="INR"><span class="ccy-flag">🇮🇳</span><span class="ccy-code">INR</span><span class="ccy-name">Indian Rupee</span></div>
+          <div class="ccy-chip major" data-ccy="AED"><span class="ccy-flag">🇦🇪</span><span class="ccy-code">AED</span><span class="ccy-name">UAE Dirham</span></div>
+          <div class="ccy-chip compact" data-ccy="SAR"><span class="ccy-flag">🇸🇦</span><span class="ccy-code">SAR</span><span class="ccy-name">Saudi Riyal</span></div>
           <div class="ccy-chip" data-ccy="BRL"><span class="ccy-flag">🇧🇷</span><span class="ccy-code">BRL</span><span class="ccy-name">Brazilian Real</span></div>
           <div class="ccy-chip" data-ccy="MXN"><span class="ccy-flag">🇲🇽</span><span class="ccy-code">MXN</span><span class="ccy-name">Mexican Peso</span></div>
-          <div class="ccy-chip" data-ccy="ZAR"><span class="ccy-flag">🇿🇦</span><span class="ccy-code">ZAR</span><span class="ccy-name">South African Rand</span></div>
-          <div class="ccy-chip" data-ccy="NGN"><span class="ccy-flag">🇳🇬</span><span class="ccy-code">NGN</span><span class="ccy-name">Nigerian Naira</span></div>
-          <div class="ccy-chip" data-ccy="KRW"><span class="ccy-flag">🇰🇷</span><span class="ccy-code">KRW</span><span class="ccy-name">South Korean Won</span></div>
-          <div class="ccy-chip" data-ccy="THB"><span class="ccy-flag">🇹🇭</span><span class="ccy-code">THB</span><span class="ccy-name">Thai Baht</span></div>
-          <div class="ccy-chip" data-ccy="VND"><span class="ccy-flag">🇻🇳</span><span class="ccy-code">VND</span><span class="ccy-name">Vietnamese Dong</span></div>
+          <div class="ccy-chip compact" data-ccy="ZAR"><span class="ccy-flag">🇿🇦</span><span class="ccy-code">ZAR</span><span class="ccy-name">South African Rand</span></div>
+          <div class="ccy-chip compact" data-ccy="NGN"><span class="ccy-flag">🇳🇬</span><span class="ccy-code">NGN</span><span class="ccy-name">Nigerian Naira</span></div>
+          <div class="ccy-chip compact" data-ccy="KRW"><span class="ccy-flag">🇰🇷</span><span class="ccy-code">KRW</span><span class="ccy-name">South Korean Won</span></div>
+          <div class="ccy-chip compact" data-ccy="THB"><span class="ccy-flag">🇹🇭</span><span class="ccy-code">THB</span><span class="ccy-name">Thai Baht</span></div>
+          <div class="ccy-chip compact" data-ccy="VND"><span class="ccy-flag">🇻🇳</span><span class="ccy-code">VND</span><span class="ccy-name">Vietnamese Dong</span></div>
         </div>
-        <div class="corridor-row reveal">
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/USD · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/GBP · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/JPY · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/CAD · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/SGD · next day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/AED · next day</span>
-        </div>
-        <p style="font-size:11.5px;color:var(--ink3);margin-top:14px;line-height:1.5" data-i18n="index.currencies.more">+27 more markets available &mdash; speak with your FX expert for full corridor availability.</p>
+        <p style="font-size:11.5px;color:var(--ink3);margin-top:18px;line-height:1.5" data-i18n="index.currencies.more">+27 more markets available &mdash; speak with your FX expert for full corridor availability.</p>
         <a href="platform.html#currencies" class="btn btn-ghost-navy reveal" style="margin-top:20px" data-i18n="index.currencies.cta">See full coverage &rarr;</a>
       </div>
     </div>
