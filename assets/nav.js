@@ -1576,6 +1576,8 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
       if (iframe && iframe.src && iframe.contentWindow) {
         try { iframe.contentWindow.postMessage({ type: 'setLang', lang: lang }, '*'); } catch(ex) {}
       }
+      // Let other widgets (e.g. cookie banner) re-localise
+      try { window.dispatchEvent(new CustomEvent('hp:langchange', { detail: { lang: lang } })); } catch(ex) {}
     },
     apply: function() {
       var lang = window.HP.lang;
@@ -1693,6 +1695,18 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
     } else {
       window.HP.setLang(window.HP.lang);
     }
+  })();
+
+  // Load the cookie-consent / analytics gate from the same /assets/ folder
+  (function () {
+    try {
+      var ns = document.querySelector('script[src*="nav.js"]');
+      var base = ns ? ns.getAttribute('src').replace(/nav\.js.*$/, '') : 'assets/';
+      var s = document.createElement('script');
+      s.src = base + 'consent.js';
+      s.defer = true;
+      document.head.appendChild(s);
+    } catch (e) {}
   })();
 
 })();
