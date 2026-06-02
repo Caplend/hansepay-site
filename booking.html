@@ -596,7 +596,24 @@ var BK_TRANSLATIONS = {
   }
 };
 
-var bkLang = (new URLSearchParams(window.location.search).get('lang') || 'de');
+// Language detection — priority order:
+// 1. ?lang= URL param (explicitly passed by the site nav toggle — most reliable)
+// 2. localStorage hp_lang (user's last explicit toggle choice)
+// 3. navigator.languages (browser/OS language preference — covers "in Germany but EN only")
+// 4. Default 'de' (primary market)
+function detectBkLang() {
+  var p = new URLSearchParams(window.location.search).get('lang');
+  if (p === 'en' || p === 'de') return p;
+  try { var s = localStorage.getItem('hp_lang'); if (s === 'en' || s === 'de') return s; } catch(e) {}
+  var langs = navigator.languages || (navigator.language ? [navigator.language] : []);
+  for (var i = 0; i < langs.length; i++) {
+    var l = (langs[i] || '').toLowerCase().split('-')[0];
+    if (l === 'en') return 'en';
+    if (l === 'de') return 'de';
+  }
+  return 'de';
+}
+var bkLang = detectBkLang();
 
 function bkt(key, vars) {
   var t = BK_TRANSLATIONS[bkLang] || BK_TRANSLATIONS.en;

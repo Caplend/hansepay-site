@@ -344,11 +344,16 @@ function setLang(lang) {
   try { window.dispatchEvent(new CustomEvent('hp:langchange', { detail: { lang: lang } })); } catch(e) {}
 }
 
-// Init — default DE, respect saved preference
+// Init — priority: localStorage (explicit choice) → browser language → default DE
 (function() {
-  var saved = null;
-  try { saved = localStorage.getItem('hp_lang'); } catch(e) {}
-  setLang(saved === 'en' ? 'en' : 'de');
+  var lang = 'de';
+  try { var s = localStorage.getItem('hp_lang'); if (s === 'en' || s === 'de') { lang = s; setLang(lang); return; } } catch(e) {}
+  var langs = navigator.languages || (navigator.language ? [navigator.language] : []);
+  for (var i = 0; i < langs.length; i++) {
+    var l = (langs[i] || '').toLowerCase().split('-')[0];
+    if (l === 'en' || l === 'de') { lang = l; break; }
+  }
+  setLang(lang);
 })();
 
 // ── Waitlist ──
