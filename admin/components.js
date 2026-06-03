@@ -91,6 +91,7 @@
     search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/>',
     signout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+    sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
   };
   function svg(p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
 
@@ -101,6 +102,7 @@
     { sec: 'Growth' },
     { key: 'sales', label: 'Sales Pipeline', href: '/hansepay/admin/sales.html', icon: 'pipeline' },
     { key: 'crm', label: 'Customers (CRM)', href: '/hansepay/admin/crm.html', icon: 'users' },
+    { key: 'enrich', label: 'Enrichment', href: '/hansepay/admin/enrich.html', icon: 'sparkle' },
     { key: 'marketing', label: 'Marketing', href: '/hansepay/admin/marketing.html', icon: 'mega' },
     { sec: 'Content' },
     { key: 'posts', label: 'Posts', href: '/hansepay/admin/posts.html', icon: 'doc' },

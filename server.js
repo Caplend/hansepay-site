@@ -1214,6 +1214,131 @@ Return ONLY valid JSON (no markdown, no explanation):
   }
 });
 
+// ─── AI: Bulk enrichment (Clay-style columns) ─────────────────────────────────
+
+// POST /api/customers/:id/analyze
+// Answers an arbitrary set of criteria "columns" for one customer in a single
+// Claude call. Each column has { key, label, prompt, type, options? }.
+// Results are merged into customer.analysis (keyed by column key) so they
+// persist and render as table columns. Reuses webSearch + callClaude.
+const ANALYZE_TYPES = ['text', 'number', 'boolean', 'score', 'category'];
+
+app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
+  const users  = readData('users.json');
+  const user   = users.find(u => u.id === req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const customers = readData('customers.json');
+  const idx = customers.findIndex(c => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+
+  // Sanitise incoming column definitions
+  const columns = (Array.isArray(req.body.columns) ? req.body.columns : [])
+    .map(c => ({
+      key:     String(c.key || '').trim(),
+      label:   String(c.label || c.key || '').trim(),
+      prompt:  String(c.prompt || '').trim(),
+      type:    ANALYZE_TYPES.includes(c.type) ? c.type : 'text',
+      options: Array.isArray(c.options) ? c.options.map(String) : null,
+    }))
+    .filter(c => c.key && c.prompt);
+
+  if (!columns.length) return res.status(400).json({ error: 'Provide at least one criterion column.' });
+  if (columns.length > 20) return res.status(400).json({ error: 'Too many columns (max 20 per run).' });
+
+  const c           = customers[idx];
+  const companyName = c.company || '';
+  const website     = c.website || '';
+  if (!companyName) return res.status(400).json({ error: 'Customer has no company name to analyse.' });
+
+  const webEnabled = req.body.web !== false && !!process.env.TAVILY_API_KEY;
+  let searchResults = [];
+  let sources = [];
+
+  if (webEnabled) {
+    // Keep bulk cost down: 2 targeted searches per row (vs 3 in deep research).
+    const [overview, news] = await Promise.all([
+      webSearch(`${companyName} ${website} company overview business`, { deep: true, maxResults: 3 }),
+      webSearch(`${companyName} news 2024 2025 expansion funding hiring`, { maxResults: 2 }),
+    ]);
+    searchResults = [...overview, ...news];
+    sources = [...new Set(searchResults.map(r => r.url).filter(Boolean))];
+  }
+
+  const webCtx = formatSearchContext(searchResults);
+
+  // Per-column type guidance + the JSON shape we want back
+  const typeHint = (col) => {
+    switch (col.type) {
+      case 'number':   return 'a number only (no units, no text), or null if unknown';
+      case 'boolean':  return 'exactly "Yes" or "No"';
+      case 'score':    return 'an integer from 1 to 5 (5 = strongest fit)';
+      case 'category': return 'exactly one of: ' + (col.options && col.options.length ? col.options.join(', ') : '(no options provided — use a short label)');
+      default:         return 'a short phrase (max ~10 words)';
+    }
+  };
+  const columnSpec = columns.map((col, i) =>
+    `${i + 1}. key "${col.key}" — ${col.label}\n   Question: ${col.prompt}\n   Answer format: ${typeHint(col)}`
+  ).join('\n');
+  const jsonShape = '{\n' + columns.map(col => `  "${col.key}": <${col.type}>`).join(',\n') + '\n}';
+
+  const priorAnalysis = c.analysis && Object.keys(c.analysis).length
+    ? `\nPrevious analysis values (for context only, you may revise): ${JSON.stringify(c.analysis)}`
+    : '';
+
+  const prompt = `You are a B2B sales-intelligence analyst for HansePay, a European FX / cross-border payments company.
+
+Analyse ONE company against a set of criteria. Answer every criterion as accurately as you can.
+${webEnabled ? 'Live web search results are provided below — prefer them over training knowledge where they conflict.' : 'No live web search is available — use the company data and your training knowledge; answer null/Unknown when genuinely unsure.'}
+
+COMPANY
+- Name: ${companyName}
+- Website: ${website || '(not provided)'}
+- Industry: ${c.industry || '(not provided)'}
+- Country: ${c.country || '(not provided)'}
+- City: ${c.city || '(not provided)'}
+- Company size: ${c.companySize || '(not provided)'}
+- FX volume (known): ${c.fxVolume || '(not provided)'}
+- Notes: ${c.notes || '(none)'}${priorAnalysis}
+${webCtx}
+
+CRITERIA — answer each one:
+${columnSpec}
+
+Return ONLY a valid JSON object (no markdown, no commentary) with exactly these keys, each value honouring the stated answer format:
+${jsonShape}`;
+
+  try {
+    const values = await callClaude(apiKey, prompt, 900);
+    if (!values || typeof values !== 'object' || Array.isArray(values)) {
+      throw new Error('Expected a JSON object from Claude');
+    }
+
+    // Keep only the keys we asked for
+    const clean = {};
+    columns.forEach(col => { if (values[col.key] !== undefined) clean[col.key] = values[col.key]; });
+
+    customers[idx].analysis    = Object.assign({}, customers[idx].analysis, clean);
+    customers[idx].analyzedAt  = new Date().toISOString();
+    customers[idx].updatedAt   = new Date().toISOString();
+    writeData('customers.json', customers);
+
+    logActivity({
+      customerId: c.id,
+      type: 'note',
+      title: 'Bulk analysis',
+      body: `Enriched ${columns.length} ${columns.length === 1 ? 'criterion' : 'criteria'}${webEnabled ? ' (web search)' : ''}.`,
+      by: req.user.name || 'system',
+    });
+
+    res.json({ success: true, values: clean, web: webEnabled, sources: sources.slice(0, 5) });
+  } catch (err) {
+    console.error('[analyze] error:', err.message);
+    res.status(500).json({ error: 'Analysis failed: ' + err.message });
+  }
+});
+
 // ─── Sales: pipeline + summary ────────────────────────────────────────────────
 
 app.get('/api/sales/summary', authenticateToken, (req, res) => {
