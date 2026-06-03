@@ -299,6 +299,7 @@ app.get('/api/health', (req, res) => {
     dataFiles: files,
     volumeMounted: files.length > 0,
     emailConfigured: mailer ? mailer.gmailConfigured() : false,
+    webSearchConfigured: !!process.env.TAVILY_API_KEY,
     uptime: process.uptime(),
   });
 });
@@ -973,15 +974,161 @@ app.post('/api/customers/:id/activities', authenticateToken, (req, res) => {
   res.status(201).json(entry);
 });
 
+// ─── AI: Web search helper ────────────────────────────────────────────────────
+// Uses Tavily (https://tavily.com) — set TAVILY_API_KEY in Railway env vars.
+// Falls back gracefully when not configured (research uses training data only).
+
+async function webSearch(query, opts = {}) {
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  if (!tavilyKey) return [];
+  try {
+    const resp = await fetch('https://api.tavily.com/search', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        api_key:       tavilyKey,
+        query,
+        search_depth:  opts.deep ? 'advanced' : 'basic',
+        max_results:   opts.maxResults || 4,
+        include_answer: false,
+        include_raw_content: false,
+      }),
+    });
+    if (!resp.ok) { console.error('[search] Tavily', resp.status); return []; }
+    const data = await resp.json();
+    return (data.results || []).filter(r => r.content || r.snippet);
+  } catch (e) {
+    console.error('[search] Tavily error:', e.message);
+    return [];
+  }
+}
+
+// Truncate and format search results for Claude context
+function formatSearchContext(results, maxCharsEach = 600) {
+  if (!results.length) return '';
+  return '\n\n--- WEB SEARCH RESULTS ---\n' +
+    results.map(r =>
+      `SOURCE: ${r.url}\n${(r.content || r.snippet || '').slice(0, maxCharsEach)}`
+    ).join('\n\n') +
+    '\n--- END SEARCH RESULTS ---';
+}
+
+// Shared Claude caller (non-streaming, JSON response)
+async function callClaude(apiKey, prompt, maxTokens = 1500) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!resp.ok) throw Object.assign(new Error('Claude API ' + resp.status), { status: resp.status });
+  const data = await resp.json();
+  const raw = data.content?.[0]?.text || '';
+  // Try direct parse, then extract first JSON object/array
+  try { return JSON.parse(raw.trim()); } catch (_) {}
+  const m = raw.match(/(\[[\s\S]+\]|\{[\s\S]+\})/);
+  if (m) return JSON.parse(m[1]);
+  throw new Error('Could not parse JSON from Claude response:\n' + raw.slice(0, 300));
+}
+
+// ─── AI: Lead generation ─────────────────────────────────────────────────────
+
+// POST /api/customers/generate-leads
+// Takes criteria, searches the web (if Tavily configured), asks Claude to
+// extract/identify matching companies, returns a preview list.
+app.post('/api/customers/generate-leads', authenticateToken, async (req, res) => {
+  const users  = readData('users.json');
+  const user   = users.find(u => u.id === req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured.' });
+
+  const {
+    industry   = '',
+    country    = 'Germany, Europe',
+    size       = '',
+    keywords   = '',
+    count      = 8,
+    useCase    = '',
+  } = req.body;
+
+  if (!industry && !keywords) return res.status(400).json({ error: 'Provide at least an industry or keywords.' });
+
+  const webEnabled = !!process.env.TAVILY_API_KEY;
+  let searchResults = [];
+
+  if (webEnabled) {
+    const baseTerms = [industry, country, size, keywords, useCase, 'international payments export import'].filter(Boolean).join(' ');
+    const [q1, q2, q3] = await Promise.all([
+      webSearch(`${industry} companies ${country} ${keywords} export cross-border`, { deep: true, maxResults: 5 }),
+      webSearch(`${baseTerms} company list`, { maxResults: 4 }),
+      webSearch(`top ${industry} companies ${country} import export site:linkedin.com OR site:crunchbase.com`, { maxResults: 4 }),
+    ]);
+    searchResults = [...q1, ...q2, ...q3];
+  }
+
+  const webCtx = formatSearchContext(searchResults, 400);
+
+  const prompt = `You are a B2B lead generation specialist for HansePay, a European FX payments company.
+
+Find ${Math.min(count, 12)} real companies that are strong prospects for HansePay — companies that need cross-border payments, FX conversion, or multi-currency accounts.
+
+Prospecting criteria:
+- Industry: ${industry || 'Any'}
+- Target country/region: ${country || 'Europe'}
+- Company size: ${size || 'Any'}
+- Keywords/focus: ${keywords || 'international trade, export, import'}
+- Use case context: ${useCase || 'B2B cross-border payments'}
+${webCtx ? '\nUse the web search results below — these contain real, current company data. Extract real company names, websites, and details from them.' : '\nNote: no live search available. Use your training knowledge. Mark confidence accordingly.'}
+${webCtx}
+
+Rules:
+- Only suggest REAL companies (not invented ones)
+- Each must have a plausible FX/cross-border payment need
+- Vary size and sub-sector within the criteria
+- Be specific about the FX angle for each
+
+Return ONLY a valid JSON array (no markdown):
+[
+  {
+    "company": "Exact legal company name",
+    "website": "domain.com or null",
+    "country": "Country",
+    "industry": "Specific sub-industry",
+    "size": "e.g. 200–500 employees or €50M revenue",
+    "fxAngle": "Why they specifically need FX payments — 1 sentence, concrete",
+    "outreachAngle": "Specific personalised opening for cold outreach",
+    "linkedinUrl": "https://linkedin.com/company/... or null",
+    "confidence": "high|medium|low",
+    "source": "${webEnabled ? 'web_search' : 'training_data'}"
+  }
+]`;
+
+  try {
+    const leads = await callClaude(apiKey, prompt, 3000);
+    if (!Array.isArray(leads)) throw new Error('Expected array from Claude');
+
+    res.json({
+      leads: leads.slice(0, count),
+      webSearchUsed: webEnabled,
+      searchResultCount: searchResults.length,
+      sources: [...new Set(searchResults.map(r => r.url).filter(Boolean))].slice(0, 8),
+    });
+  } catch (err) {
+    console.error('[generate-leads] error:', err.message);
+    res.status(500).json({ error: 'Lead generation failed: ' + err.message });
+  }
+});
+
 // ─── AI: Lead research ────────────────────────────────────────────────────────
 
-// POST /api/customers/:id/research
-// Calls Claude to produce a structured intelligence brief on the company.
-// Uses the same API key infrastructure as the blog AI generator.
+// POST /api/customers/:id/research — enhanced with live web search when Tavily configured
 app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
-  const users   = readData('users.json');
-  const user    = users.find(u => u.id === req.user.id);
-  const apiKey  = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  const users  = readData('users.json');
+  const user   = users.find(u => u.id === req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
   const customers = readData('customers.json');
@@ -996,55 +1143,52 @@ app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
 
   if (!companyName) return res.status(400).json({ error: 'Company name is required for research.' });
 
-  const prompt = `You are a B2B sales intelligence analyst for HansePay, a European FX payments company that helps businesses with cross-border payments, multi-currency accounts, and FX execution (interbank rates, fast settlement).
+  const webEnabled = !!process.env.TAVILY_API_KEY;
+  let searchResults = [];
+  let sources = [];
 
-Research this company and return a JSON intelligence brief. Be concise and commercially focused — this is for a sales rep preparing for a first outreach.
+  if (webEnabled) {
+    // Parallel searches: company overview, LinkedIn presence, recent news
+    const [general, linkedin, news] = await Promise.all([
+      webSearch(`${companyName} ${website} company overview business`, { deep: true, maxResults: 3 }),
+      webSearch(`${companyName} linkedin company profile`, { maxResults: 2 }),
+      webSearch(`${companyName} news 2024 2025 expansion funding hiring`, { maxResults: 3 }),
+    ]);
+    searchResults = [...general, ...linkedin, ...news];
+    sources = [...new Set(searchResults.map(r => r.url).filter(Boolean))];
+  }
+
+  const webCtx = formatSearchContext(searchResults);
+
+  const prompt = `You are a B2B sales intelligence analyst for HansePay, a European FX payments company (cross-border payments, multi-currency accounts, interbank FX rates).
+
+Your task: produce a structured intelligence brief on this company for a sales rep preparing a first outreach.
+${webEnabled ? 'You have live web search results below — use them for current, accurate information. Prefer web data over training knowledge where they conflict.' : 'Note: live web search is not available. Use your training data; note uncertainty where relevant.'}
 
 Company: ${companyName}
 Website: ${website || '(not provided)'}
 Industry: ${industry || '(not provided)'}
 Country/Region: ${country || '(not provided)'}
+${webCtx}
 
-Return ONLY valid JSON (no markdown, no explanation) matching this schema exactly:
+Return ONLY valid JSON (no markdown, no explanation):
 {
-  "overview": "2–3 sentence factual description of what the company does",
-  "size": "estimated company size — employees and revenue range if detectable, or 'Unknown'",
-  "fxAngle": "1–2 sentences on WHY this company likely has FX or cross-border payment needs based on their business",
-  "painPoints": ["likely pain point 1", "likely pain point 2", "likely pain point 3"],
-  "recentSignals": "any recent news, funding, expansion, or hiring signals relevant to payment needs — or 'No signals found'",
-  "decisionMakers": ["job title to target 1", "job title to target 2"],
-  "outreachAngle": "one specific, personalised opening line or angle for a first cold outreach email — reference something specific about their business",
+  "overview": "2–3 sentence factual description of what the company does and its scale",
+  "size": "employee count range and/or revenue if findable, else 'Unknown'",
+  "fxAngle": "1–2 sentences: WHY specifically this company needs FX/cross-border payments — be concrete",
+  "painPoints": ["specific pain point 1", "specific pain point 2", "specific pain point 3"],
+  "recentSignals": "recent news, funding, expansion, or hiring that signals payment needs — or null",
+  "linkedinUrl": "LinkedIn company page URL if found — or null",
+  "decisionMakers": ["CFO", "Head of Treasury", "VP Finance"],
+  "outreachAngle": "a specific, compelling first sentence for a cold outreach — reference something real and specific",
   "relevanceScore": 1-5,
-  "confidenceNote": "brief note on data quality/confidence"
+  "webSearchUsed": ${webEnabled},
+  "sources": ${JSON.stringify(sources.slice(0, 5))},
+  "confidenceNote": "brief honest assessment of data quality"
 }`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-
-    if (!resp.ok) {
-      const err = await resp.text();
-      return res.status(502).json({ error: 'Claude API error: ' + resp.status, detail: err.slice(0, 200) });
-    }
-
-    const data = await resp.json();
-    const raw  = data.content?.[0]?.text || '';
-    let brief;
-    try {
-      brief = JSON.parse(raw.trim());
-    } catch (_) {
-      // Try to extract JSON if Claude wrapped it
-      const m = raw.match(/\{[\s\S]+\}/);
-      if (m) brief = JSON.parse(m[0]);
-      else return res.status(502).json({ error: 'Could not parse research response.', raw: raw.slice(0, 300) });
-    }
+    const brief = await callClaude(apiKey, prompt, 1200);
 
     // Store on customer record
     customers[idx].aiResearch    = brief;
