@@ -1033,7 +1033,7 @@ function R9(){
           {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
           {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals'},
           {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
-          {v:'cash',label:'Cash-intensive business'},{v:'other-hr',label:'Other'}
+          {v:'cash',label:'Cash-intensive business (e.g. restaurants, retail, car washes)'},{v:'other-hr',label:'Other'}
         ],S.highRiskSectors)}
         <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
           ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
@@ -1132,7 +1132,7 @@ function R11(){
       ${chipGroupHTML('cgHRW',[
         {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
         {v:'defence',label:'Defence / dual-use'},{v:'extractives',label:'Extractives'},
-        {v:'cash',label:'Cash-intensive business'},{v:'offshore',label:'Offshore structures'},
+        {v:'cash',label:'Cash-intensive business (e.g. restaurants, retail, car washes)'},{v:'offshore',label:'Offshore structures'},
         {v:'high-risk',label:'High-risk countries'},{v:'none',label:'None of these'}
       ],S.highRiskWealth)}
     </div>
@@ -1651,10 +1651,16 @@ const COUNTRY_LIST = Object.entries(ISO2).map(([iso,name])=>({iso,name,search:(i
 
 function fuzzyCountrySearch(q){
   if(!q){
-    const priority=['DE','LV'];
-    const prioItems=priority.map(iso=>({iso,name:ISO2[iso],search:(iso+' '+ISO2[iso]).toLowerCase()}));
-    const rest=COUNTRY_LIST.filter(c=>!priority.includes(c.iso)).slice(0,38);
-    return [...prioItems,...rest];
+    // Germany + Latvia first (primary markets), then popular non-EU payment
+    // destinations ordered by global trade relevance for European businesses,
+    // then full alphabetical list (so Afghanistan never appears near the top)
+    const fixed=['DE','LV'];
+    const popular=['CN','US','GB','JP','IN','AE','BR','KR','CA','AU','SG','TR','SA','ID','MX','TH','MY','NG','ZA','VN','EG','QA','KW','PK','PH'];
+    const fixedItems=fixed.map(iso=>({iso,name:ISO2[iso],search:(iso+' '+ISO2[iso]).toLowerCase()}));
+    const popularItems=popular.filter(iso=>ISO2[iso]).map(iso=>({iso,name:ISO2[iso],search:(iso+' '+ISO2[iso]).toLowerCase()}));
+    const shown=new Set([...fixed,...popular]);
+    const rest=COUNTRY_LIST.filter(c=>!shown.has(c.iso));
+    return [...fixedItems,...popularItems,...rest];
   }
   const lq=q.toLowerCase().trim();
   // Exact ISO match first
