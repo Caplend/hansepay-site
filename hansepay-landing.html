@@ -1983,5 +1983,14 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 });
 </script>
 
+<style>
+.lang-switch{position:fixed;bottom:24px;right:24px;z-index:300;display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(11,25,41,.92);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15);border-radius:100px;font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:.04em;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .18s,color .18s,border-color .18s;box-shadow:0 4px 16px rgba(0,0,0,.28)}
+.lang-switch:hover{background:rgba(30,78,128,.95);color:#fff;border-color:rgba(141,189,230,.35)}
+.lang-switch svg{width:14px;height:14px;opacity:.7}
+</style>
+<a id="hp-lang-switch" class="lang-switch" href="index.html" aria-label="Switch to English version">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> EN
+</a>
+
 </body>
 </html>

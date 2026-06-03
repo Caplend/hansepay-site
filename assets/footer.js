@@ -26,6 +26,10 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
 .footer-social-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.35);transition:color .15s;text-decoration:none}.footer-social-link:hover{color:rgba(255,255,255,.75)}
 .footer-social-link svg{width:14px;height:14px}
 @media(max-width:768px){footer{padding:64px 0 36px}.footer-grid{margin-bottom:48px;gap:36px}}
+/* ── LANGUAGE SWITCH ── */
+.lang-switch{position:fixed;bottom:24px;right:24px;z-index:300;display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(11,25,41,.92);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-pill);font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:.04em;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .18s,color .18s,border-color .18s;box-shadow:0 4px 16px rgba(0,0,0,.28)}
+.lang-switch:hover{background:rgba(30,78,128,.95);color:#fff;border-color:rgba(141,189,230,.35)}
+.lang-switch svg{width:14px;height:14px;opacity:.7}
 `;
     document.head.appendChild(st);
   }
@@ -45,8 +49,8 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
         <ul class="footer-links">
           <li><a class="footer-link" href="platform.html">Overview</a></li>
           <li><a class="footer-link" href="platform-technology.html">Technology</a></li>
-          <li><a class="footer-link" href="tools-calculator.html">FX Calculator</a></li>
-          <li><a class="footer-link" href="tools-calculator.html">FX Calculator</a></li>
+          <li><a class="footer-link" href="tools-calculator.html">FX Savings Calculator</a></li>
+          <li><a class="footer-link" href="tools-iban.html">IBAN Verifier</a></li>
           <li><a class="footer-link" href="tools-converter.html">Currency Converter</a></li>
         </ul>
       </div>
@@ -58,6 +62,7 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
           <li><a class="footer-link" href="about-licenses.html">Licenses</a></li>
           <li><a class="footer-link" href="insights-stories.html">Customer stories</a></li>
           <li><a class="footer-link" href="insights-market.html">Market insights</a></li>
+          <li><a class="footer-link" href="events.html">Events</a></li>
         </ul>
       </div>
       <div>
@@ -79,7 +84,7 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
         BaFin-regulated &middot; EU E-Money Institution
       </span>
       <span class="footer-social">
-        <a class="footer-social-link" href="https://www.linkedin.com/company/atrya-infrastructure/" target="_blank" rel="noopener noreferrer">
+        <a class="footer-social-link" href="https://www.linkedin.com/company/hansepay/" target="_blank" rel="noopener noreferrer">
           <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
           LinkedIn
         </a>
@@ -93,4 +98,15 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
   var tmp = document.createElement('div');
   tmp.innerHTML = FOOTER_HTML;
   while (tmp.firstChild) s.parentNode.insertBefore(tmp.firstChild, s);
+
+  // 3. Inject language switch (fixed bottom-right, links to German page)
+  if (!document.getElementById('hp-lang-switch')) {
+    var sw = document.createElement('a');
+    sw.id = 'hp-lang-switch';
+    sw.className = 'lang-switch';
+    sw.href = 'hansepay-landing.html';
+    sw.setAttribute('aria-label', 'Zur deutschen Version wechseln');
+    sw.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> DE';
+    document.body.appendChild(sw);
+  }
 })();
