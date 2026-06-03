@@ -816,7 +816,7 @@ function R8(){
           {v:'personal',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,label:'Personal payments',desc:'Transfers and payments for personal use'},
           {v:'business',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,label:'Business payments',desc:'Supplier, employee or client payments'},
           {v:'both',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>`,label:'Both',desc:'Personal and business use'}
-        ].map(o=>`<div class="radio-card${S.accountPurpose===o.v?' selected':''}" onclick="selectRC('rcPurpose','${o.v}')">
+        ].map(o=>`<div class="radio-card${S.accountPurpose===o.v?' selected':''}" data-group="rcPurpose" data-val="${o.v}">
           <div style="width:38px;height:38px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--n600)">${o.svg}</div>
           <div><div class="radio-card-title">${o.label}</div><div class="radio-card-desc">${o.desc}</div></div>
         </div>`).join('')}
