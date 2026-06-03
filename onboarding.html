@@ -459,7 +459,7 @@ const S = {
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',industryOther:'',annualIncome:'',
   highRiskAnswer:'no',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
-  sanctionsAnswer:'no',criminalConviction:'no',sanctionsConfirm:false,
+  sanctionsAnswer:'no',criminalConviction:'no',criminalDetail:'',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
   highRiskWealth:[],canProvideDocs:'',
   tcAccepted:false,blindpayAccepted:false,
@@ -552,9 +552,12 @@ function countryOptsHTML(sel){
 // =============================================================
 function fieldHTML(id,lbl,type,val,ph,req,extra){
   const optStr=req?'':' <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span>';
+  const field=type==='textarea'
+    ?`<textarea id="${id}" placeholder="${ph||''}" rows="3" ${extra||''}>${esc(val||'')}</textarea>`
+    :`<input type="${type||'text'}" id="${id}" value="${esc(val||'')}" placeholder="${ph||''}" ${extra||''}>`;
   return`<div class="field-group">
     <label for="${id}">${lbl}${optStr}</label>
-    <input type="${type||'text'}" id="${id}" value="${esc(val||'')}" placeholder="${ph||''}" ${extra||''}>
+    ${field}
     <div class="field-error" id="${id}-err"></div>
   </div>`;
 }
@@ -1068,7 +1071,10 @@ function R10(){
 
     <!-- Sanctions -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Are you subject to any international sanctions?</div>
+      <div class="compliance-block-label">
+        Are you subject to any international sanctions?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">International sanctions are restrictions imposed by the EU, UN, US (OFAC), or UK against individuals, entities, or countries. Examples include asset freezes or travel bans linked to terrorism, proliferation, or serious human rights violations.</span></span>
+      </div>
       ${radioCardsHTML('rcSanctions',[
         {v:'no',label:'No, I am not subject to sanctions'},
         {v:'yes',label:'Yes'}
@@ -1083,6 +1089,9 @@ function R10(){
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes fraud, money laundering, tax evasion, insider trading, or similar offences. We are required to ask this to meet our legal obligations.</span></span>
       </div>
       ${radioCardsHTML('rcCriminal',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.criminalConviction||'no',2)}
+      <div id="criminalDetailWrap" class="collapsible${S.criminalConviction==='yes'?' open':''}">
+        ${fieldHTML('criminalDetail','Please provide details','textarea',S.criminalDetail||'','e.g. nature of offence, jurisdiction, date','true')}
+      </div>
       <div class="field-error" id="criminal-err"></div>
     </div>
 
@@ -1336,9 +1345,7 @@ function validateStep(){
       ok=false;
     }
     if(S.criminalConviction==='yes'){
-      const e=document.getElementById('criminal-err');
-      if(e){e.textContent='Please contact us directly to discuss your application.';e.classList.add('visible');}
-      ok=false;
+      if(!document.getElementById('criminalDetail')?.value?.trim()) fail('criminalDetail','Please provide details of the conviction');
     }
   } else if(id===12){
     if(!S.tcAccepted||!S.blindpayAccepted){
@@ -1394,6 +1401,7 @@ function collectData(){
     S.volumeIncomeExplain=g('volumeIncomeExplain')||'';
   } else if(id===10){
     S.pepPosition=g('pepPosition')||'';
+    S.criminalDetail=g('criminalDetail')||'';
     S.pepInstitution=g('pepInstitution')||'';
     S.pepCountry=g('pepCountry')||'';
     S.pepDates=g('pepDates')||'';
@@ -1525,7 +1533,13 @@ function onRadioSelect(grp,val){
   else if(grp==='rcAnnualIncome'){S.annualIncome=val;}
   else if(grp==='rcHighRisk'){onHighRiskToggle(val);}
   else if(grp==='rcSanctions'){S.sanctionsAnswer=val;S.sanctionsConfirm=(val==='no');saveState();}
-  else if(grp==='rcCriminal'){S.criminalConviction=val;saveState();}
+  else if(grp==='rcCriminal'){
+    S.criminalConviction=val;
+    const w=document.getElementById('criminalDetailWrap');
+    if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    if(val!=='yes'){S.criminalDetail='';}
+    saveState();
+  }
   else if(grp==='rcPEP'){
     S.isPEP=val;
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
