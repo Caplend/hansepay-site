@@ -81,13 +81,11 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 .mobile-menu-link:last-of-type,.mobile-menu-sub:last-of-type{border-bottom:none}
 .mobile-menu-cta{margin-top:16px}
 @media(max-width:768px){.nav-links{display:none}.nav-burger{display:flex}.nav-inner{justify-content:space-between}.nav-logo{margin-right:0}.nav-cta{display:none}.nav-signin{display:none}}
-/* ── LANG TOGGLE ── */
-.nav-lang{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:3px;}
-nav.scrolled .nav-lang{background:rgba(11,25,41,.06);border-color:rgba(11,25,41,.12);}
-.nav-lang-btn{padding:4px 10px;border-radius:100px;border:none;font-family:var(--font-ui,sans-serif);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .18s ease;background:transparent;color:rgba(255,255,255,.45);}
-nav.scrolled .nav-lang-btn{color:rgba(11,25,41,.4);}
-.nav-lang-btn.active{background:rgba(255,255,255,.18);color:#fff;}
-nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
+/* ── LANG TOGGLE (floating, fixed bottom-right) ── */
+.hp-lang-float{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;align-items:center;gap:2px;background:rgba(11,25,41,.92);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:4px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,.28);}
+.nav-lang-btn{padding:6px 13px;border-radius:100px;border:none;font-family:var(--font-ui,sans-serif);font-size:12px;font-weight:700;letter-spacing:.06em;cursor:pointer;transition:all .18s ease;background:transparent;color:rgba(255,255,255,.55);}
+.nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
+@media(max-width:768px){.hp-lang-float{bottom:16px;right:16px;}}
 .mobile-lang-toggle{display:flex;gap:6px;padding:16px 0 8px;border-top:1px solid rgba(255,255,255,.07);margin-top:4px;}
 .mobile-lang-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:transparent;font-family:var(--font-ui,sans-serif);font-size:13px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;}
 .mobile-lang-btn.active{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
@@ -227,16 +225,17 @@ nav.scrolled .nav-lang-btn.active{background:var(--n500,#1E4E80);color:#fff;}
 
     </ul>
     <div class="nav-right">
-      <div class="nav-lang" id="nav-lang-toggle">
-        <button class="nav-lang-btn active" id="nav-btn-de" onclick="HP.setLang('de')">DE</button>
-        <button class="nav-lang-btn" id="nav-btn-en" onclick="HP.setLang('en')">EN</button>
-      </div>
       <button class="btn nav-signin" id="nav-signin-btn" onclick="openSignIn()" data-i18n="nav.signin">Sign in</button>
       <a href="/onboarding.html" class="btn nav-cta" data-i18n="nav.cta">Open an account</a>
       <button class="nav-burger" id="nav-burger" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
+<!-- Floating language toggle (fixed bottom-right) -->
+<div class="hp-lang-float" id="nav-lang-toggle">
+  <button class="nav-lang-btn active" id="nav-btn-de" onclick="HP.setLang('de')">DE</button>
+  <button class="nav-lang-btn" id="nav-btn-en" onclick="HP.setLang('en')">EN</button>
+</div>
 <!-- Sign-in modal -->
 <div class="hp-signin-overlay" id="hp-signin-overlay" onclick="if(event.target===this)closeSignIn()" style="display:none">
   <div class="hp-signin-modal" id="hp-signin-modal" role="dialog" aria-modal="true">

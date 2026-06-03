@@ -26,10 +26,6 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
 .footer-social-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.35);transition:color .15s;text-decoration:none}.footer-social-link:hover{color:rgba(255,255,255,.75)}
 .footer-social-link svg{width:14px;height:14px}
 @media(max-width:768px){footer{padding:64px 0 36px}.footer-grid{margin-bottom:48px;gap:36px}}
-/* ── LANGUAGE SWITCH ── */
-.lang-switch{position:fixed;bottom:24px;right:24px;z-index:300;display:inline-flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(11,25,41,.92);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.15);border-radius:var(--r-pill);font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:.04em;text-decoration:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .18s,color .18s,border-color .18s;box-shadow:0 4px 16px rgba(0,0,0,.28)}
-.lang-switch:hover{background:rgba(30,78,128,.95);color:#fff;border-color:rgba(141,189,230,.35)}
-.lang-switch svg{width:14px;height:14px;opacity:.7}
 `;
     document.head.appendChild(st);
   }
@@ -98,15 +94,4 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
   var tmp = document.createElement('div');
   tmp.innerHTML = FOOTER_HTML;
   while (tmp.firstChild) s.parentNode.insertBefore(tmp.firstChild, s);
-
-  // 3. Inject language switch (fixed bottom-right, links to German page)
-  if (!document.getElementById('hp-lang-switch')) {
-    var sw = document.createElement('a');
-    sw.id = 'hp-lang-switch';
-    sw.className = 'lang-switch';
-    sw.href = 'hansepay-landing.html';
-    sw.setAttribute('aria-label', 'Zur deutschen Version wechseln');
-    sw.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> DE';
-    document.body.appendChild(sw);
-  }
 })();
