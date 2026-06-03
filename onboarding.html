@@ -309,7 +309,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
     <select id="vModalDocType" style="width:100%;padding:12px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;margin-bottom:24px;outline:none">
       <option value="passport">Passport</option>
       <option value="national_id">National ID card</option>
-      <option value="driving_licence">Driving licence</option>
+      
     </select>
     <button onclick="submitVerify()" style="width:100%;padding:13px;border-radius:100px;border:none;background:var(--n800);color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer">Confirm &#8594; continue</button>
     <p style="font-size:11.5px;color:var(--ink3);text-align:center;margin-top:12px">Simulated for demo — in production this launches Signicat</p>
@@ -430,7 +430,7 @@ const PHASE_HELP = {
   review:"Almost done! Review your details, accept our terms, and submit. We'll review your application within 1–2 business days."
 };
 
-const COUNTRIES = ['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belarus','Belgium','Bolivia','Bosnia and Herzegovina','Brazil','Bulgaria','Cambodia','Canada','Chile','China','Colombia','Costa Rica','Croatia','Cyprus','Czech Republic','Denmark','Ecuador','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Germany','Ghana','Greece','Guatemala','Honduras','Hungary','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kosovo','Kuwait','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Malta','Mexico','Moldova','Mongolia','Montenegro','Morocco','Netherlands','New Zealand','Nigeria','North Macedonia','Norway','Pakistan','Palestine','Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sweden','Switzerland','Taiwan','Thailand','Tunisia','Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Venezuela','Vietnam','Yemen','Zimbabwe'];
+const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belarus','Belgium','Bolivia','Bosnia and Herzegovina','Brazil','Bulgaria','Cambodia','Canada','Chile','China','Colombia','Costa Rica','Croatia','Cyprus','Czech Republic','Denmark','Ecuador','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Ghana','Greece','Guatemala','Honduras','Hungary','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kosovo','Kuwait','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Malta','Mexico','Moldova','Mongolia','Montenegro','Morocco','Netherlands','New Zealand','Nigeria','North Macedonia','Norway','Pakistan','Palestine','Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sweden','Switzerland','Taiwan','Thailand','Tunisia','Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Venezuela','Vietnam','Yemen','Zimbabwe'];
 
 function getActiveSteps(){
   let s=[1,2,'3a','3b',4,5];
@@ -602,12 +602,12 @@ function R2(){
 
 function R3a(){
   const phoneCodes=[
-    ['+49','🇩🇪 +49 Germany'],['+43','🇦🇹 +43 Austria'],['+41','🇨🇭 +41 Switzerland'],
+    ['+49','🇩🇪 +49 Germany'],['+371','🇱🇻 +371 Latvia'],['+43','🇦🇹 +43 Austria'],['+41','🇨🇭 +41 Switzerland'],
     ['+44','🇬🇧 +44 UK'],['+33','🇫🇷 +33 France'],['+31','🇳🇱 +31 Netherlands'],
     ['+32','🇧🇪 +32 Belgium'],['+34','🇪🇸 +34 Spain'],['+39','🇮🇹 +39 Italy'],
     ['+351','🇵🇹 +351 Portugal'],['+48','🇵🇱 +48 Poland'],['+46','🇸🇪 +46 Sweden'],
     ['+45','🇩🇰 +45 Denmark'],['+47','🇳🇴 +47 Norway'],['+358','🇫🇮 +358 Finland'],
-    ['+371','🇱🇻 +371 Latvia'],['+370','🇱🇹 +370 Lithuania'],['+372','🇪🇪 +372 Estonia'],
+    ['+370','🇱🇹 +370 Lithuania'],['+372','🇪🇪 +372 Estonia'],
     ['+420','🇨🇿 +420 Czech Republic'],['+421','🇸🇰 +421 Slovakia'],['+36','🇭🇺 +36 Hungary'],
     ['+40','🇷🇴 +40 Romania'],['+359','🇧🇬 +359 Bulgaria'],['+385','🇭🇷 +385 Croatia'],
     ['+353','🇮🇪 +353 Ireland'],['+352','🇱🇺 +352 Luxembourg'],['+356','🇲🇹 +356 Malta'],
@@ -719,7 +719,7 @@ function R5(){
             ${i>=2?`<button type="button" onclick="removeCitizenshipRow(${i})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px;padding:0 6px;flex-shrink:0">×</button>`:''}
           </div>`).join('')}
       </div>
-      <button type="button" onclick="addCitizenshipRow()" class="toggle-link" style="margin-bottom:0">+ Add citizenship</button>
+      <a class="toggle-link" onclick="addCitizenshipRow()" style="margin-bottom:0;cursor:pointer">+ Add citizenship</a>
       <div style="font-size:12px;color:var(--ink3);margin-top:6px">All citizenships are required for regulatory compliance.</div>
     </div>
 
@@ -1550,7 +1550,12 @@ const ISO2 = {AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AD:'Andorra',AO:'Angola
 const COUNTRY_LIST = Object.entries(ISO2).map(([iso,name])=>({iso,name,search:(iso+' '+name).toLowerCase()}));
 
 function fuzzyCountrySearch(q){
-  if(!q)return COUNTRY_LIST.slice(0,40);
+  if(!q){
+    const priority=['DE','LV'];
+    const prioItems=priority.map(iso=>({iso,name:ISO2[iso],search:(iso+' '+ISO2[iso]).toLowerCase()}));
+    const rest=COUNTRY_LIST.filter(c=>!priority.includes(c.iso)).slice(0,38);
+    return [...prioItems,...rest];
+  }
   const lq=q.toLowerCase().trim();
   // Exact ISO match first
   const exact=COUNTRY_LIST.filter(c=>c.iso.toLowerCase()===lq);
