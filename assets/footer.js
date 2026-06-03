@@ -65,9 +65,10 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
         <div class="footer-col-title">Legal</div>
         <ul class="footer-links">
           <li><a class="footer-link" href="imprint.html">Imprint</a></li>
-          <li><a class="footer-link" href="#">Privacy policy</a></li>
-          <li><a class="footer-link" href="#">Terms of service</a></li>
-          <li><a class="footer-link" href="#">Complaints</a></li>
+          <li><a class="footer-link" href="privacy.html">Privacy policy</a></li>
+          <li><a class="footer-link" href="terms.html">Terms of service</a></li>
+          <li><a class="footer-link" href="complaints.html">Complaints</a></li>
+          <li><a class="footer-link" href="cookie-policy.html">Cookie policy</a></li>
           <li><a class="footer-link" href="about-licenses.html">Licences</a></li>
         </ul>
       </div>
