@@ -457,7 +457,7 @@ const S = {
   hasMultipleCitizenships:'no',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
-  highRiskAnswer:'no',highRiskSectors:[],volumeIncomeExplain:'',
+  highRiskAnswer:'no',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
   sanctionsAnswer:'no',criminalConviction:'no',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
@@ -918,6 +918,9 @@ function R8(){
         {v:'intl',label:'International transfers'},
         {v:'other',label:'Other'}
       ],S.paymentTypes)}
+      <div class="collapsible${S.paymentTypes.includes('other')?' open':''}" id="payTypesOtherWrap">
+        ${fieldHTML('paymentTypesOther','Please describe','text',S.paymentTypesOther,'e.g. import payments, currency conversion…')}
+      </div>
       <div class="field-error" id="paymentTypes-err"></div>
     </div>
 
@@ -965,9 +968,13 @@ function R9(){
         {v:'student',label:'Student'},{v:'retired',label:'Retired'},
         {v:'homemaker',label:'Homemaker'},{v:'other',label:'Other'}
       ],S.employmentStatus?[S.employmentStatus]:[])}
+      <div class="collapsible${S.employmentStatus==='other'?' open':''}" id="empOtherWrap">
+        ${fieldHTML('employmentStatusOther','Please describe','text',S.employmentStatusOther,'e.g. freelancer, part-time')}
+      </div>
       <div class="field-error" id="employmentStatus-err"></div>
     </div>
 
+    <div id="industryWrap" style="display:${shouldShowIndustry()?'block':'none'}">
     <div class="field-group">
       <label>Industry</label>
       <input type="text" id="industrySearch" placeholder="Search or select your industry…" autocomplete="off" value="${esc(S.industry)}"
@@ -993,6 +1000,7 @@ function R9(){
       </div>
       <div class="field-error" id="industry-err"></div>
     </div>
+    </div><!-- /industryWrap -->
 
     <div class="field-group">
       <label>Approximate annual income before tax</label>
@@ -1006,7 +1014,7 @@ function R9(){
 
     <div class="field-group">
       <label style="display:flex;align-items:center;gap:7px">
-        Is any part of your income connected to a higher-risk sector?
+        Do you receive income from, sell to, or provide services connected to any of the following sectors?
         <span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Higher-risk sectors include gambling, crypto-assets, defence, precious metals, art &amp; luxury goods, NGOs, or predominantly cash-based businesses.</span></span>
       </label>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.highRiskAnswer||'no',2)}
@@ -1021,6 +1029,9 @@ function R9(){
           {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
           {v:'cash',label:'Cash-intensive business'},{v:'other-hr',label:'Other'}
         ],S.highRiskSectors)}
+        <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
+          ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther)}
+        </div>
       </div>
     </div>
 
@@ -1371,6 +1382,9 @@ function collectData(){
   } else if(id===9){
     S.incomeSource=g('incomeSource')||S.incomeSource;
     S.incomeSourceOther=g('incomeSourceOther')||'';
+    S.paymentTypesOther=g('paymentTypesOther')||'';
+    S.employmentStatusOther=g('employmentStatusOther')||'';
+    S.highRiskSectorsOther=g('highRiskSectorsOther')||'';
     S.industry=document.getElementById('industrySearch')?.value?.trim()||S.industry;
     S.volumeIncomeExplain=g('volumeIncomeExplain')||'';
   } else if(id===10){
@@ -1431,6 +1445,7 @@ function attachAll(id){
       S.incomeSource=is.value;
       const w=document.getElementById('incOtherWrap');
       if(w) w.className='collapsible'+(is.value==='Other'?' open':'');
+      updateIndustryVisibility();
       saveState();
     });
   }
@@ -1522,10 +1537,7 @@ function onRadioSelect(grp,val){
 }
 
 function onChipClick(grpId,val,grpEl,chip){
-  if(grpId==='cgPayTypes'){
-    toggleArr(S.paymentTypes,val);
-    chip.classList.toggle('selected',S.paymentTypes.includes(val));
-  } else if(grpId==='cgRegions'){
+  if(grpId==='cgRegions'){
     toggleArr(S.paymentRegions,val);
     chip.classList.toggle('selected',S.paymentRegions.includes(val));
     const w=document.getElementById('otherCountriesWrap');if(w)w.style.display=S.paymentRegions.includes('other')?'block':'none';
@@ -1533,7 +1545,15 @@ function onChipClick(grpId,val,grpEl,chip){
     if(val==='none'){S.highRiskSectors=['none'];}
     else{S.highRiskSectors=S.highRiskSectors.filter(v=>v!=='none');toggleArr(S.highRiskSectors,val);}
     grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',S.highRiskSectors.includes(c.dataset.val)));
-    recheckVolIncBanner();
+    // "Other" reveals free text
+    const hw=document.getElementById('hrsOtherWrap');
+    if(hw)hw.className='collapsible'+(S.highRiskSectors.includes('other-hr')?' open':'');
+  } else if(grpId==='cgPayTypes'){
+    toggleArr(S.paymentTypes,val);
+    grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',S.paymentTypes.includes(c.dataset.val)));
+    // "Other" reveals free text
+    const po=document.getElementById('payTypesOtherWrap');
+    if(po)po.className='collapsible'+(S.paymentTypes.includes('other')?' open':'');
   } else if(grpId==='cgHRW'){
     if(val==='none'){S.highRiskWealth=['none'];}
     else{S.highRiskWealth=S.highRiskWealth.filter(v=>v!=='none');toggleArr(S.highRiskWealth,val);}
@@ -1541,6 +1561,11 @@ function onChipClick(grpId,val,grpEl,chip){
   } else if(grpId==='cgEmployment'){
     S.employmentStatus=S.employmentStatus===val?'':val;
     grpEl.querySelectorAll('.chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===S.employmentStatus));
+    // "Other" reveals free text
+    const ew=document.getElementById('empOtherWrap');
+    if(ew)ew.className='collapsible'+(S.employmentStatus==='other'?' open':'');
+    // Update industry visibility based on new employment status
+    updateIndustryVisibility();
   }
 }
 
@@ -1928,11 +1953,25 @@ function autoAdvanceIfSingleChoice(stepId){
 // ── Sanctions radio card ───────────────────────────────────────────────────
 // sanctionsAnswer state field (new — replaces sanctionsConfirm checkbox)
 
+// ── Industry conditional visibility ──────────────────────────────────────
+const NON_BUSINESS_STATUS=['unemployed','student','retired','homemaker'];
+const NON_BUSINESS_SOURCE=['Pension','Student support','Family support','Savings'];
+function shouldShowIndustry(){
+  if(!S.incomeSource&&!S.employmentStatus)return false;
+  const bySrc=S.incomeSource&&!NON_BUSINESS_SOURCE.includes(S.incomeSource);
+  const bySts=S.employmentStatus&&!NON_BUSINESS_STATUS.includes(S.employmentStatus);
+  return !!(bySrc||bySts);
+}
+function updateIndustryVisibility(){
+  const w=document.getElementById('industryWrap');
+  if(w)w.style.display=shouldShowIndustry()?'block':'none';
+}
+
 function onHighRiskToggle(val){
   S.highRiskAnswer=val;
   const w=document.getElementById('highRiskDetailWrap');
   if(w)w.style.display=val==='yes'?'block':'none';
-  if(val==='no'){S.highRiskSectors=[];}
+  if(val==='no'){S.highRiskSectors=[];S.highRiskSectorsOther='';}
   saveState();
 }
 
@@ -2203,7 +2242,7 @@ function startFresh(){
     hasMultipleCitizenships:'no',citizenships:[],
     accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
     incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
-    highRiskSectors:[],volumeIncomeExplain:'',
+    highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
     isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
     wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
     highRiskWealth:[],canProvideDocs:'',
