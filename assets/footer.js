@@ -37,7 +37,7 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
     <div class="footer-grid">
       <div>
         <div class="footer-logo"><img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay" /><span class="footer-logo-text">HansePay</span></div>
-        <p class="footer-tagline">Commercial FX, made in Hamburg.</p>
+        <p class="footer-tagline">Bridging markets.</p>
         <p class="footer-legal">&#169; 2026 Caplend Technologies GmbH<br>HansePay is a brand of Caplend Technologies GmbH</p>
       </div>
       <div>
