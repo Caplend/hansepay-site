@@ -1603,49 +1603,46 @@ window.startVerify=function(){
   const countryOpts=Object.entries(ISO2).map(([iso,name])=>
     `<option value="${iso}">${flagEmoji(iso)} ${name}</option>`).join('');
 
+  // Build verify page HTML safely (no nested template literals)
+  var vHtml = '<!DOCTYPE html><html><head><title>Identity Verification</title>';
+  vHtml += '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400&display=swap" rel="stylesheet">';
+  vHtml += '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Inter,sans-serif;background:#EBF4FB;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}.card{background:#fff;border-radius:20px;padding:40px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(11,25,41,.12)}.logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}.logo-text{font-family:"Libre Baskerville",serif;font-size:20px;color:#0B1929}h2{font-size:22px;font-family:"Libre Baskerville",serif;color:#0B1929;margin-bottom:8px}p{color:#3D5A73;font-size:14px;line-height:1.6;margin-bottom:20px}.steps{background:#EBF4FB;border-radius:12px;padding:16px 18px;margin-bottom:22px;display:flex;flex-direction:column;gap:10px}.step-r{display:flex;align-items:center;gap:10px;font-size:13.5px;color:#3D5A73}label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7A9AB0;margin-bottom:6px}select{width:100%;padding:12px 14px;border:1.5px solid #DDE6EF;border-radius:10px;font-family:inherit;font-size:14px;color:#0B1929;background:#fff;margin-bottom:18px;outline:none}select:focus{border-color:#2E6BAD}button{width:100%;padding:13px;border-radius:100px;border:none;background:#0B1929;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}.note{font-size:11.5px;color:#B0C4D8;text-align:center;margin-top:12px}</style>';
+  vHtml += '</head><body><div class="card">';
+  vHtml += '<div class="logo"><span style="font-size:22px">🛡️</span><span class="logo-text">HansePay</span></div>';
+  vHtml += '<h2>Verify your identity.</h2>';
+  vHtml += '<p>A quick document and liveness check. Takes about 2 minutes.</p>';
+  vHtml += '<div class="steps"><div class="step-r"><span>📋</span> <b>Document photo</b></div>';
+  vHtml += '<div class="step-r"><span>🤳</span> <b>Liveness check</b></div>';
+  vHtml += '<div class="step-r"><span>✅</span> <b>Instant review</b></div></div>';
+  vHtml += '<label>Country that issued your document</label>';
+  vHtml += '<select id="vdc"><option value="">Select country...</option>';
+  Object.entries(ISO2).forEach(function(entry){
+    vHtml += '<option value="' + entry[0] + '">' + flagEmoji(entry[0]) + ' ' + entry[1] + '</option>';
+  });
+  vHtml += '</select>';
+  vHtml += '<label>Document type</label>';
+  vHtml += '<select id="vdt"><option value="passport">Passport</option><option value="national_id">National ID card</option><option value="driving_licence">Driving licence</option></select>';
+  vHtml += '<button id="vbtn">Start verification</button>';
+  vHtml += '<div class="note">Simulated for demo purposes</div>';
+  vHtml += '</div></body></html>';
+
   const w=window.open('about:blank','_blank');
   if(w){
-    w.document.write(`<!DOCTYPE html><html><head><title>Identity Verification — HansePay</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400&display=swap" rel="stylesheet">
-<style>*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#EBF4FB;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.card{background:#fff;border-radius:20px;padding:40px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(11,25,41,.12)}
-.logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.logo-text{font-family:'Libre Baskerville',serif;font-size:20px;color:#0B1929}
-h2{font-size:22px;font-family:'Libre Baskerville',serif;color:#0B1929;margin-bottom:8px;line-height:1.3}
-p{color:#3D5A73;font-size:14px;line-height:1.6;margin-bottom:20px}
-.steps{background:#EBF4FB;border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:12px}
-.step-row{display:flex;align-items:center;gap:12px;font-size:13.5px;color:#3D5A73}
-.step-icon{width:32px;height:32px;border-radius:8px;background:#fff;border:1.5px solid #DDE6EF;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7A9AB0;margin-bottom:6px}
-select{width:100%;padding:12px 14px;border:1.5px solid #DDE6EF;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;color:#0B1929;background:#fff;margin-bottom:18px;outline:none}
-select:focus{border-color:#2E6BAD;box-shadow:0 0 0 3px rgba(46,107,173,.1)}
-button{width:100%;padding:14px;border-radius:100px;border:none;background:#0B1929;color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
-button:hover{background:#163659}
-.note{font-size:11.5px;color:#B0C4D8;text-align:center;margin-top:12px}</style></head>
-<body><div class="card">
-  <div class="logo">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8DBDE6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    <span class="logo-text">HansePay</span>
-  </div>
-  <h2>Verify your identity.</h2>
-  <p>A quick document and liveness check powered by Signicat. Takes 2–3 minutes.</p>
-  <div class="steps">
-    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><b>Document photo</b> &nbsp;— passport, ID or licence</div>
-    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg></div><b>Liveness check</b> &nbsp;— a brief selfie</div>
-    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><b>Instant review</b></div>
-  </div>
-  <label>Country that issued your document</label>
-  <select id="docCountry"><option value="">Select country…</option>${countryOpts}</select>
-  <label>Document type</label>
-  <select id="docType"><option value="passport">Passport</option><option value="national_id">National ID card</option><option value="driving_licence">Driving licence</option></select>
-  <button onclick="complete()">Start verification →</button>
-  <div class="note">Simulated for demo purposes</div>
-</div>
-<script>function complete(){var dc=document.getElementById('docCountry').value;if(!dc){document.getElementById('docCountry').style.borderColor='#dc2626';return;}if(window.opener)window.opener.postMessage({type:'hp_verify_complete',docISO:dc,docType:document.getElementById('docType').value},'*');window.close();}<\/script></body></html>\`);
+    w.document.write(vHtml);
     w.document.close();
+    // Wire the button after the page is written
+    setTimeout(function(){
+      try{
+        var vbtn=w.document.getElementById('vbtn');
+        if(vbtn)vbtn.addEventListener('click',function(){
+          var dc=w.document.getElementById('vdc').value;
+          if(!dc){w.document.getElementById('vdc').style.borderColor='#dc2626';return;}
+          if(window.opener)window.opener.postMessage({type:'hp_verify_complete',docISO:dc,docType:w.document.getElementById('vdt').value},'*');
+          w.close();
+        });
+      }catch(e){}
+    },100);
   }
-
   // Listen for postMessage back from the verify tab
   const onMsg=function(e){
     if(!e.data||e.data.type!=='hp_verify_complete')return;
