@@ -6,6 +6,10 @@
   "contactEmail": "hello@hansepay.com",
   "defaultAuthor": "HansePay Team",
   "postsPerPage": 9,
+  "comingSoonMode": true,
   "maintenanceMode": false,
-  "googleAnalyticsId": ""
+  "googleAnalyticsId": "",
+  "salesReps": [
+    { "id": "rep_001", "name": "Phil Carstensen", "email": "phil.carstensen@caplend.de", "color": "#1E4E80", "priority": 1, "active": true }
+  ]
 }

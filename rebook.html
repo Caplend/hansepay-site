@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reschedule Your HansePay Call</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--off);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+.rb-nav{background:var(--n800);padding:18px 28px;display:flex;align-items:center;gap:10px}
+.rb-nav-logo{font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:400;color:#fff;letter-spacing:-.01em}
+.rb-nav img{width:28px;height:28px;object-fit:contain}
+
+/* CONTENT */
+.rb-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:48px 20px}
+.rb-card{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(11,25,41,.10);width:100%;max-width:560px;overflow:hidden}
+
+.rb-hero{background:var(--n800);background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:32px 36px}
+.rb-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(141,189,230,.15);color:var(--n200);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:var(--r-pill);margin-bottom:14px}
+.rb-hero-name{font-family:'Playfair Display',Georgia,serif;font-size:1.75rem;font-weight:400;color:#fff;line-height:1.25;margin-bottom:6px}
+.rb-hero-sub{font-size:14px;color:rgba(255,255,255,.6);line-height:1.5}
+.rb-hero-current{margin-top:18px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border-radius:var(--r-md);padding:13px 16px;font-size:13px;color:rgba(255,255,255,.75)}
+.rb-hero-current-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+
+/* STEPS */
+.rb-body{padding:32px 36px}
+.rb-step{display:none}
+.rb-step.active{display:block}
+
+/* Calendar (reuse booking.html patterns) */
+.rb-step-title{font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;font-weight:600;color:var(--n800);margin-bottom:6px}
+.rb-step-sub{font-size:14px;color:var(--ink3);margin-bottom:24px}
+
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.cal-month{font-size:16px;font-weight:600;color:var(--n700)}
+.cal-arrow{background:none;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-pill);width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink2);font-size:16px;transition:.15s}
+.cal-arrow:hover{background:var(--n050);border-color:var(--n200)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-day-hdr{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:center;padding:6px 0}
+.cal-day{text-align:center;padding:8px 4px;border-radius:var(--r-md);cursor:pointer;font-size:14px;color:var(--ink2);transition:.12s;border:1.5px solid transparent;min-height:38px;display:flex;align-items:center;justify-content:center}
+.cal-day:hover:not(.inactive):not(.past){background:var(--n050);border-color:var(--n200)}
+.cal-day.selected{background:var(--n500);color:#fff;font-weight:600;border-color:var(--n500)}
+.cal-day.today{font-weight:700;color:var(--n500)}
+.cal-day.inactive,.cal-day.past,.cal-day.weekend{color:#ccd4dc;cursor:default}
+.cal-day.empty{cursor:default}
+
+.slots-wrap{margin-top:24px}
+.slots-title{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.slot-btn{padding:10px 8px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);background:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;transition:.15s;text-align:center}
+.slot-btn:hover{border-color:var(--n400);color:var(--n500);background:var(--n050)}
+.slot-btn.selected{border-color:var(--n500);background:var(--n050);color:var(--n500);font-weight:600}
+.slots-loading,.slots-empty{text-align:center;color:var(--ink3);font-size:13px;padding:20px 0}
+
+/* Confirm step */
+.confirm-card{background:#f7fafd;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);padding:22px 24px;margin-bottom:22px}
+.confirm-row{display:flex;align-items:baseline;justify-content:space-between;padding:6px 0;font-size:14px}
+.confirm-label{color:var(--ink3);font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.confirm-value{color:var(--ink);font-weight:600;font-size:15px}
+.confirm-date{font-family:'Playfair Display',Georgia,serif;font-size:1.25rem;color:var(--n800);font-weight:400;margin-bottom:4px}
+.confirm-time{font-size:14px;color:var(--n400)}
+
+/* Success */
+.success-wrap{text-align:center;padding:20px 0}
+.success-check{width:64px;height:64px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px}
+.success-title{font-family:'Playfair Display',Georgia,serif;font-size:1.6rem;font-weight:400;color:var(--n800);margin-bottom:8px}
+.success-sub{font-size:15px;color:var(--ink2);line-height:1.6;margin-bottom:24px}
+.success-detail{background:#f7fafd;border-radius:var(--r-lg);padding:18px 22px;margin-bottom:24px;text-align:left}
+.success-detail-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0}
+.success-detail-key{color:var(--ink3)}
+.success-detail-val{color:var(--ink);font-weight:500}
+
+/* Buttons */
+.rb-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 28px;border-radius:var(--r-pill);font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .18s;text-decoration:none;width:100%}
+.rb-btn-primary{background:var(--n500);color:#fff}
+.rb-btn-primary:hover{background:var(--n600)}
+.rb-btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.rb-btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid rgba(11,25,41,.14);margin-top:10px}
+.rb-btn-ghost:hover{background:var(--n050)}
+
+/* Error */
+.rb-error{background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--r-md);padding:14px 18px;margin-bottom:18px;font-size:13.5px;color:#991b1b;display:none}
+.rb-error.show{display:block}
+
+/* Spinner */
+.spinner{display:inline-block;width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Loading skeleton */
+.rb-loading{text-align:center;padding:60px 20px;color:var(--ink3);font-size:14px}
+
+@media(max-width:540px){
+  .rb-hero,.rb-body{padding:24px 22px}
+  .slots-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav class="rb-nav">
+  <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay" />
+  <span class="rb-nav-logo">HansePay</span>
+</nav>
+
+<div class="rb-wrap">
+  <div class="rb-card">
+    <!-- Hero panel (filled after token load) -->
+    <div class="rb-hero" id="rbHero">
+      <div class="rb-loading" style="color:rgba(255,255,255,.5)">Loading your booking…</div>
+    </div>
+
+    <!-- Content steps -->
+    <div class="rb-body">
+      <div class="rb-error" id="rbError"></div>
+
+      <!-- Step 1: loading / token validation -->
+      <div class="rb-step active" id="stepLoading">
+        <div style="text-align:center;padding:24px 0;color:var(--ink3);font-size:14px">Loading…</div>
+      </div>
+
+      <!-- Step 2: date + time selection -->
+      <div class="rb-step" id="stepPick">
+        <div class="rb-step-title">Pick a new date.</div>
+        <div class="rb-step-sub">Select a day and time that works better for you.</div>
+
+        <div class="cal-nav">
+          <button class="cal-arrow" id="calPrev" onclick="calShift(-1)">‹</button>
+          <span class="cal-month" id="calMonthLabel"></span>
+          <button class="cal-arrow" id="calNext" onclick="calShift(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+
+        <div class="slots-wrap" id="slotsWrap" style="display:none">
+          <div class="slots-title" id="slotsTitle">Available times</div>
+          <div class="slots-grid" id="slotsGrid"></div>
+        </div>
+
+        <div style="margin-top:24px">
+          <button class="rb-btn rb-btn-primary" id="btnPickNext" disabled onclick="goConfirm()">Review &amp; confirm →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: confirm -->
+      <div class="rb-step" id="stepConfirm">
+        <div class="rb-step-title">Confirm your new time.</div>
+        <div class="rb-step-sub">This will replace your existing booking.</div>
+
+        <div class="confirm-card" id="confirmCard"></div>
+
+        <button class="rb-btn rb-btn-primary" id="btnConfirm" onclick="submitRebook()">Confirm reschedule</button>
+        <button class="rb-btn rb-btn-ghost" onclick="goBack()">← Choose a different time</button>
+      </div>
+
+      <!-- Step 4: success -->
+      <div class="rb-step" id="stepDone">
+        <div class="success-wrap">
+          <div class="success-check">✅</div>
+          <div class="success-title" id="successTitle">You're rescheduled!</div>
+          <div class="success-sub" id="successSub">Your new time is confirmed. We've sent an updated calendar invite and confirmation email.</div>
+          <div class="success-detail" id="successDetail"></div>
+          <a href="/booking.html" class="rb-btn rb-btn-ghost" style="width:auto;display:inline-flex">Book a different call</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var TOKEN = new URLSearchParams(location.search).get('token') || '';
+var BOOKING = null;
+var selectedDate = null; // 'YYYY-MM-DD'
+var selectedSlot = null; // { label, startISO, endISO }
+var viewYear, viewMonth;
+
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAYS   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+
+function show(id){ document.querySelectorAll('.rb-step').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function showError(msg){ var e=document.getElementById('rbError'); e.textContent=msg; e.classList.add('show'); setTimeout(()=>e.classList.remove('show'),5000); }
+function fmtDate(iso){ var d=new Date(iso); return d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Europe/Berlin'}); }
+function fmtTime(iso){ return new Date(iso).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}); }
+
+// ── Load booking ──────────────────────────────────────────────────────────────
+if(!TOKEN){
+  document.getElementById('rbHero').innerHTML = '<div style="color:rgba(255,255,255,.6);padding:8px 0">No booking token provided. Please use the link from your confirmation email.</div>';
+  show('stepLoading');
+} else {
+  fetch('/api/booking/rebook/' + TOKEN)
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.error){ renderHeroError(data.error); return; }
+      BOOKING = data;
+      renderHero(data);
+      initCalendar();
+      show('stepPick');
+    })
+    .catch(()=>renderHeroError('Could not load your booking. Please try again or contact us.'));
+}
+
+function renderHeroError(msg){
+  document.getElementById('rbHero').innerHTML = '<div style="color:rgba(255,255,255,.65);font-size:14px">'+msg+'</div>';
+}
+
+function renderHero(b){
+  var lang = (b.lead && b.lead.lang === 'de') ? 'de' : 'en';
+  var firstName = (b.lead && b.lead.firstName) || '';
+  var badgeLabel = lang==='de' ? 'Termin verschieben' : 'Reschedule your call';
+  var greeting = lang==='de' ? ('Hallo '+firstName+',') : ('Hi '+firstName+',');
+  var subLine = lang==='de' ? 'Wählen Sie einen neuen Termin für Ihr HansePay-Gespräch.' : 'Pick a new time for your HansePay discovery call.';
+  var currentLabel = lang==='de' ? 'Aktueller Termin' : 'Current booking';
+
+  document.getElementById('rbHero').innerHTML =
+    '<div class="rb-hero-badge">↔ '+badgeLabel+'</div>'+
+    '<div class="rb-hero-name">'+greeting+'</div>'+
+    '<div class="rb-hero-sub">'+subLine+'</div>'+
+    (b.slot && b.slot.startISO ? '<div class="rb-hero-current"><div><div class="rb-hero-current-label">'+currentLabel+'</div><div>'+fmtDate(b.slot.startISO)+' &bull; '+fmtTime(b.slot.startISO)+'</div></div></div>' : '');
+
+  // Localise page
+  document.documentElement.lang = lang;
+  if(lang==='de'){
+    document.title = 'Termin verschieben — HansePay';
+    document.getElementById('stepPick').querySelector('.rb-step-title').textContent = 'Neues Datum wählen.';
+    document.getElementById('stepPick').querySelector('.rb-step-sub').textContent = 'Wählen Sie einen Ihnen besser passenden Termin.';
+    document.getElementById('btnPickNext').textContent = 'Weiter →';
+    document.getElementById('stepConfirm').querySelector('.rb-step-title').textContent = 'Neuen Termin bestätigen.';
+    document.getElementById('stepConfirm').querySelector('.rb-step-sub').textContent = 'Dieser Termin ersetzt Ihren bisherigen.';
+    document.getElementById('btnConfirm').textContent = 'Termin bestätigen';
+    document.querySelector('#stepConfirm .rb-btn-ghost').textContent = '← Anderen Termin wählen';
+  }
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────────
+function initCalendar(){
+  var now = new Date();
+  viewYear  = now.getFullYear();
+  viewMonth = now.getMonth();
+  renderCal();
+}
+
+function calShift(delta){
+  viewMonth += delta;
+  if(viewMonth > 11){ viewMonth=0; viewYear++; }
+  if(viewMonth < 0) { viewMonth=11; viewYear--; }
+  renderCal();
+}
+
+function renderCal(){
+  var lang = BOOKING && BOOKING.lead && BOOKING.lead.lang === 'de' ? 'de' : 'en';
+  var monthNames = lang==='de'
+    ? ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember']
+    : MONTHS;
+  document.getElementById('calMonthLabel').textContent = monthNames[viewMonth] + ' ' + viewYear;
+
+  var grid = document.getElementById('calGrid');
+  var dayLabels = lang==='de' ? ['Mo','Di','Mi','Do','Fr','Sa','So'] : DAYS;
+  var html = dayLabels.map(d=>'<div class="cal-day-hdr">'+d+'</div>').join('');
+
+  var first = new Date(viewYear, viewMonth, 1);
+  var startDow = (first.getDay() + 6) % 7; // Mon=0
+  var daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var minDate = new Date(today.getTime() + 2*3600000); // 2h notice
+
+  for(var i=0; i<startDow; i++) html += '<div class="cal-day empty"></div>';
+  for(var d=1; d<=daysInMonth; d++){
+    var dt = new Date(viewYear, viewMonth, d);
+    var iso = dt.toISOString().split('T')[0];
+    var dow = dt.getDay(); // 0=Sun,6=Sat
+    var isPast = dt < today;
+    var isWeekend = dow===0||dow===6;
+    var cls = 'cal-day';
+    if(isPast||isWeekend) cls += ' inactive';
+    if(dt.getTime()===today.getTime()) cls += ' today';
+    if(iso===selectedDate) cls += ' selected';
+    var onclick = (!isPast&&!isWeekend) ? ' onclick="pickDate(\''+iso+'\')"' : '';
+    html += '<div class="'+cls+'"'+onclick+'>'+d+'</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function pickDate(iso){
+  selectedDate = iso;
+  selectedSlot = null;
+  document.getElementById('btnPickNext').disabled = true;
+  renderCal();
+  var lang = BOOKING && BOOKING.lead && BOOKING.lead.lang === 'de' ? 'de' : 'en';
+  var sw = document.getElementById('slotsWrap');
+  var sg = document.getElementById('slotsGrid');
+  var st = document.getElementById('slotsTitle');
+  sw.style.display = 'block';
+  sg.innerHTML = '<div class="slots-loading">'+(lang==='de'?'Zeiten werden geladen…':'Loading available times…')+'</div>';
+  st.textContent = (lang==='de'?'Verfügbare Zeiten — ':'')+new Date(iso+'T12:00:00Z').toLocaleDateString(lang==='de'?'de-DE':'en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  fetch('/api/booking/availability?date='+iso)
+    .then(r=>r.json())
+    .then(data=>{
+      var slots = data.slots || [];
+      if(!slots.length){ sg.innerHTML='<div class="slots-empty">'+(lang==='de'?'Keine Zeiten verfügbar — bitte anderen Tag wählen.':'No slots available for this day. Try another date.')+'</div>'; return; }
+      sg.innerHTML = slots.map(function(s){
+        return '<button class="slot-btn'+(s.startISO===( selectedSlot&&selectedSlot.startISO)?'" selected':'"')+
+          '" onclick="pickSlot('+JSON.stringify(s).replace(/"/g,'&quot;')+')">'+s.label+'</button>';
+      }).join('');
+    })
+    .catch(()=>{ sg.innerHTML='<div class="slots-empty">Could not load slots. Please try again.</div>'; });
+}
+
+function pickSlot(slot){
+  selectedSlot = slot;
+  document.getElementById('btnPickNext').disabled = false;
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  event.target.classList.add('selected');
+}
+
+// ── Confirm ───────────────────────────────────────────────────────────────────
+function goConfirm(){
+  if(!selectedSlot) return;
+  var lang = BOOKING && BOOKING.lead && BOOKING.lead.lang === 'de' ? 'de' : 'en';
+  var labels = lang==='de'
+    ? {date:'Datum', time:'Uhrzeit', duration:'Dauer', min:'30 Minuten'}
+    : {date:'Date', time:'Time', duration:'Duration', min:'30 minutes'};
+  document.getElementById('confirmCard').innerHTML =
+    '<div class="confirm-date">'+fmtDate(selectedSlot.startISO)+'</div>'+
+    '<div class="confirm-time">'+fmtTime(selectedSlot.startISO)+' · '+labels.min+'</div>';
+  show('stepConfirm');
+  window.scrollTo(0,0);
+}
+
+function goBack(){
+  show('stepPick');
+  window.scrollTo(0,0);
+}
+
+function submitRebook(){
+  var btn = document.getElementById('btnConfirm');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  fetch('/api/booking/rebook/'+TOKEN, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ slot: selectedSlot })
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    if(data.error){ showError(data.error); btn.disabled=false; btn.textContent='Confirm reschedule'; return; }
+    var lang = BOOKING && BOOKING.lead && BOOKING.lead.lang === 'de' ? 'de' : 'en';
+    var firstName = (BOOKING.lead && BOOKING.lead.firstName) || '';
+    if(lang==='de'){
+      document.getElementById('successTitle').textContent = 'Alles geregelt, '+firstName+'!';
+      document.getElementById('successSub').textContent = 'Ihr neuer Termin ist bestätigt. Wir haben eine aktualisierte Einladung und Bestätigungs-E-Mail gesendet.';
+    } else {
+      document.getElementById('successTitle').textContent = 'You\'re all set, '+firstName+'!';
+    }
+    document.getElementById('successDetail').innerHTML =
+      '<div class="success-detail-row"><span class="success-detail-key">'+(lang==='de'?'Neuer Termin':'New time')+'</span><span class="success-detail-val">'+fmtDate(selectedSlot.startISO)+'</span></div>'+
+      '<div class="success-detail-row"><span class="success-detail-key">'+(lang==='de'?'Uhrzeit':'Time')+'</span><span class="success-detail-val">'+fmtTime(selectedSlot.startISO)+'</span></div>'+
+      (data.meetLink ? '<div class="success-detail-row"><span class="success-detail-key">Google Meet</span><span class="success-detail-val"><a href="'+data.meetLink+'" style="color:var(--n500)">Join →</a></span></div>' : '');
+    show('stepDone');
+    window.scrollTo(0,0);
+  })
+  .catch(()=>{
+    showError('Something went wrong. Please try again.');
+    btn.disabled=false;
+    btn.textContent='Confirm reschedule';
+  });
+}
+</script>
+</body>
+</html>

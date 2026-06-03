@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sales Pipeline — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Sales Pipeline</div>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="/hansepay/admin/crm.html">Open CRM</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- KPIs -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="k-pipeline">—</div><div class="stat-label">Open pipeline</div><div class="stat-sub" id="k-weighted"></div></div>
+      <div class="stat-card"><div class="stat-value" id="k-win">—</div><div class="stat-label">Win rate</div><div class="stat-sub" id="k-closed"></div></div>
+      <div class="stat-card"><div class="stat-value" id="k-avg">—</div><div class="stat-label">Avg. won deal</div><div class="stat-sub" id="k-wonval"></div></div>
+      <div class="stat-card"><div class="stat-value" id="k-health">—</div><div class="stat-label">Avg. health score</div><div class="stat-sub" id="k-count"></div></div>
+    </div>
+
+    <!-- Kanban -->
+    <div class="card card-pad" style="margin-bottom:24px">
+      <div class="card-title">Pipeline — drag a deal to move it between stages</div>
+      <div class="kanban" id="kanban"><div class="empty" style="grid-column:1/-1">Loading…</div></div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="section-grid" style="grid-template-columns:1fr 1fr">
+      <div class="card card-pad">
+        <div class="card-title">Customer health distribution</div>
+        <canvas id="health-chart" height="150"></canvas>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div class="card-pad" style="padding-bottom:0"><div class="card-title" style="margin-bottom:4px">Churn watchlist</div>
+          <div class="muted" style="font-size:.8125rem;margin-bottom:14px">Active accounts that need attention — sorted by lowest health.</div></div>
+        <table class="data-table">
+          <thead><tr><th>Account</th><th>Health</th><th>Risk</th><th>Idle</th><th>Value</th></tr></thead>
+          <tbody id="churn-rows"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="components.js"></script>
+<script>
+var H=window.HPAdmin; H.renderSidebar('sales');
+var A=H.authFetch, esc=H.escapeHtml;
+var STAGES=[['lead','Lead'],['qualified','Qualified'],['proposal','Proposal'],['won','Won'],['lost','Lost']];
+var healthChart;
+
+function load(){
+  A('/api/sales/summary').then(function(r){return r.json();}).then(function(s){
+    var t=s.totals;
+    document.getElementById('k-pipeline').textContent=H.eur(t.pipelineValue);
+    document.getElementById('k-weighted').textContent='Weighted: '+H.eur(t.weightedPipeline);
+    document.getElementById('k-win').textContent=t.winRate+'%';
+    document.getElementById('k-closed').textContent=t.won+' won · '+t.lost+' lost';
+    document.getElementById('k-avg').textContent=H.eur(t.avgDeal);
+    document.getElementById('k-wonval').textContent='Won total: '+H.eur(t.wonValue);
+    document.getElementById('k-health').textContent=t.avgHealth;
+    document.getElementById('k-count').textContent=t.customers+' customers · '+t.open+' open';
+    renderKanban(s.byStage);
+    renderChurn(s.churnRisk);
+    renderHealth(s.healthDist);
+  }).catch(function(){});
+}
+
+function renderKanban(byStage){
+  var k=document.getElementById('kanban');
+  k.innerHTML=STAGES.map(function(st){
+    var key=st[0], col=byStage[key]||{count:0,value:0,customers:[]};
+    var cards=col.customers.sort(function(a,b){return (b.estValueEur||0)-(a.estValueEur||0);}).map(function(c){
+      var hc=H.healthColor(c.health);
+      return '<div class="kcard" draggable="true" data-id="'+c.id+'" data-stage="'+key+'">'+
+        '<div class="kcard-co">'+esc(c.company||c.name||'—')+'</div>'+
+        '<div class="kcard-meta">'+esc(c.name||'')+(c.industry?' · '+esc(c.industry):'')+'</div>'+
+        '<div class="kcard-foot"><span class="kcard-val">'+H.eur(c.estValueEur)+'</span>'+
+        '<span class="health"><span class="health-num" style="color:'+hc+'">'+c.health+'</span>'+
+        (c.churnRisk==='high'?' <span class="risk-high">●</span>':c.churnRisk==='medium'?' <span class="risk-medium">●</span>':'')+'</span></div>'+
+      '</div>';
+    }).join('');
+    return '<div class="kcol" data-stage="'+key+'">'+
+      '<div class="kcol-head"><span class="kcol-title">'+st[1]+' ('+col.count+')</span><span class="kcol-total">'+H.eur(col.value)+'</span></div>'+
+      cards+'</div>';
+  }).join('');
+  wireDrag();
+}
+
+function wireDrag(){
+  var dragId=null, dragFrom=null;
+  document.querySelectorAll('.kcard').forEach(function(card){
+    card.addEventListener('dragstart',function(e){dragId=card.dataset.id;dragFrom=card.dataset.stage;card.classList.add('dragging');});
+    card.addEventListener('dragend',function(){card.classList.remove('dragging');});
+    card.addEventListener('click',function(){window.location.href='/hansepay/admin/crm.html';});
+  });
+  document.querySelectorAll('.kcol').forEach(function(col){
+    col.addEventListener('dragover',function(e){e.preventDefault();col.classList.add('drop');});
+    col.addEventListener('dragleave',function(){col.classList.remove('drop');});
+    col.addEventListener('drop',function(e){
+      e.preventDefault(); col.classList.remove('drop');
+      var toStage=col.dataset.stage;
+      if(!dragId||toStage===dragFrom)return;
+      A('/api/customers/'+dragId,{method:'PUT',body:JSON.stringify({stage:toStage})}).then(function(r){return r.json();}).then(function(){
+        H.toast('Moved to '+toStage); load();
+      });
+    });
+  });
+}
+
+function renderChurn(list){
+  var tb=document.getElementById('churn-rows');
+  if(!list.length){tb.innerHTML='<tr><td colspan="5" class="empty">No accounts at risk 🎉</td></tr>';return;}
+  tb.innerHTML=list.map(function(c){
+    return '<tr onclick="window.location.href=\'/hansepay/admin/crm.html\'">'+
+      '<td class="t-strong">'+esc(c.company||c.name||'—')+'</td>'+
+      '<td>'+H.healthHtml({score:c.health})+'</td>'+
+      '<td><span class="risk-'+c.churnRisk+'" style="font-weight:600;font-size:.75rem">●&nbsp;'+c.churnRisk+'</span></td>'+
+      '<td>'+(c.daysSinceContact!=null?c.daysSinceContact+'d':'—')+'</td>'+
+      '<td class="t-strong">'+H.eur(c.estValueEur)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderHealth(dist){
+  var ctx=document.getElementById('health-chart').getContext('2d');
+  var labels=['Excellent','Good','Watch','At risk'];
+  var data=[dist.excellent||0,dist.good||0,dist.watch||0,dist['at-risk']||0];
+  var colors=['#16a34a','#65a30d','#d97706','#dc2626'];
+  if(healthChart)healthChart.destroy();
+  healthChart=new Chart(ctx,{type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderWidth:0}]},
+    options:{responsive:true,cutout:'62%',plugins:{legend:{position:'right',labels:{font:{family:'Inter',size:12},color:'#3D5A73',padding:14,usePointStyle:true}}}}});
+}
+
+load();
+</script>
+</body>
+</html>

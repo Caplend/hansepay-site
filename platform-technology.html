@@ -242,8 +242,8 @@ a{color:inherit;text-decoration:none}
     <h1>The infrastructure behind<br><em>every transfer.</em></h1>
     <p class="page-hero-sub">How HansePay moves money in minutes at a fraction of the cost. The technology is hidden by design, but here is what runs underneath when you need to know.</p>
     <div class="page-hero-actions">
-      <a href="index.html#contact" class="btn btn-white-fill">Open a business account</a>
-      <a href="index.html#contact" class="btn btn-ghost-white">Talk to a specialist</a>
+      <a href="index.html#contact" class="btn btn-white-fill" data-i18n="cta.open-account">Open a business account</a>
+      <a href="index.html#contact" class="btn btn-ghost-white" data-i18n="cta.book-call">Talk to a specialist</a>
     </div>
   </div>
 </section>
@@ -263,7 +263,7 @@ a{color:inherit;text-decoration:none}
       <div style="font-family:var(--font-display);font-size:clamp(36px,5vw,64px);font-weight:400;letter-spacing:-.04em;color:var(--n800);line-height:1">
         1&thinsp;EMT&ensp;=&ensp;1&thinsp;EUR
       </div>
-      <p style="font-size:14px;font-weight:400;color:var(--ink3);margin-top:14px">Always 1:1. Fixed by law under MiCAR. Not a market price.</p>
+      <p style="font-size:14px;font-weight:400;color:var(--ink3);margin-top:14px" data-i18n="platform-tech.s1.equation-note">Always 1:1. Fixed by law under MiCAR. Not a market price.</p>
     </div>
 
     <div class="tile-grid-3">
@@ -297,9 +297,9 @@ a{color:inherit;text-decoration:none}
 <section class="section" style="background:#f7f8fc" id="how-it-works">
   <div class="container">
     <div class="sec-intro">
-      <span class="eyebrow">How it works</span>
-      <h2 class="section-head" style="margin-top:12px">Six hops versus <em>one.</em></h2>
-      <p class="lede" style="margin-top:20px">Every bank in the correspondent chain adds a fee, a spread, and a day of delay. EMT settlement collapses the entire chain into a single atomic step.</p>
+      <span class="eyebrow" data-i18n="platform-tech.s2.eyebrow">How it works</span>
+      <h2 class="section-head" style="margin-top:12px" data-i18n-html="platform-tech.s2.h2">Six hops versus <em>one.</em></h2>
+      <p class="lede" style="margin-top:20px" data-i18n="platform-tech.s2.p">Every bank in the correspondent chain adds a fee, a spread, and a day of delay. EMT settlement collapses the entire chain into a single atomic step.</p>
     </div>
 
     <div class="hflow-section">
@@ -308,19 +308,19 @@ a{color:inherit;text-decoration:none}
       <div class="hflow-track bank">
         <div class="hflow-track-label bank" style="display:flex;align-items:center;gap:6px">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Today, with a bank
+          <span data-i18n="platform-tech.s2.track-bank-label">Today, with a bank</span>
         </div>
         <div class="hflow-chain">
 
           <div class="hflow-node">
-            <div class="hflow-node-name">Sender bank</div>
-            <div class="hflow-node-sub">Wire initiated</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-sender">Sender bank</div>
+            <div class="hflow-node-sub" data-i18n="platform-tech.s2.node-sender-sub">Wire initiated</div>
           </div>
 
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
-            <div class="hflow-node-name">Correspondent 1</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-corr1">Correspondent 1</div>
             <div class="hflow-node-chips">
               <span class="flow-chip">+0.20%</span>
               <span class="flow-chip">+€25</span>
@@ -330,7 +330,7 @@ a{color:inherit;text-decoration:none}
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
-            <div class="hflow-node-name">Correspondent 2</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-corr2">Correspondent 2</div>
             <div class="hflow-node-chips">
               <span class="flow-chip">+0.15%</span>
               <span class="flow-chip time">+1 day</span>
@@ -340,14 +340,14 @@ a{color:inherit;text-decoration:none}
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
-            <div class="hflow-node-name">SWIFT network</div>
-            <div class="hflow-node-sub">Routing layer</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-swift">SWIFT network</div>
+            <div class="hflow-node-sub" data-i18n="platform-tech.s2.node-swift-sub">Routing layer</div>
           </div>
 
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line"></div><svg class="hflow-arrowhead" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node">
-            <div class="hflow-node-name">Correspondent 3</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-corr3">Correspondent 3</div>
             <div class="hflow-node-chips">
               <span class="flow-chip">+€30</span>
               <span class="flow-chip time">+1–2 days</span>
@@ -364,7 +364,7 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="hflow-foot bank">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          3–5 business days &nbsp;&middot;&nbsp; €60–€180 fees &nbsp;&middot;&nbsp; ~1.2% spread
+          <span data-i18n="platform-tech.s2.foot-bank">3–5 business days &nbsp;&middot;&nbsp; €60–€180 fees &nbsp;&middot;&nbsp; ~1.2% spread</span>
         </div>
       </div>
 
@@ -374,33 +374,33 @@ a{color:inherit;text-decoration:none}
       <div class="hflow-track hp">
         <div class="hflow-track-label hp" style="display:flex;align-items:center;gap:6px">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          With HansePay
+          <span data-i18n="platform-tech.s2.track-hp-label">With HansePay</span>
         </div>
         <div class="hflow-chain">
 
           <div class="hflow-node hp">
-            <div class="hflow-node-name">Sender bank</div>
-            <div class="hflow-node-sub hp">Rate locked instantly</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-sender">Sender bank</div>
+            <div class="hflow-node-sub hp" data-i18n="platform-tech.s2.node-sender-sub-hp">Rate locked instantly</div>
           </div>
 
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line hp"></div><svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node hp">
-            <div class="hflow-node-name">EMT settlement</div>
-            <div class="hflow-node-sub hp">Atomic conversion</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-emt">EMT settlement</div>
+            <div class="hflow-node-sub hp" data-i18n="platform-tech.s2.node-emt-sub">Atomic conversion</div>
           </div>
 
           <div class="hflow-connector"><div class="hflow-arrow"><div class="hflow-line hp"></div><svg class="hflow-arrowhead hp" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
 
           <div class="hflow-node hp">
-            <div class="hflow-node-name">Recipient bank</div>
-            <div class="hflow-node-sub hp">Credited same session</div>
+            <div class="hflow-node-name" data-i18n="platform-tech.s2.node-recipient">Recipient bank</div>
+            <div class="hflow-node-sub hp" data-i18n="platform-tech.s2.node-recipient-sub-hp">Credited same session</div>
           </div>
 
         </div>
         <div class="hflow-foot hp">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Minutes &nbsp;&middot;&nbsp; 0.15%–0.75% all-in &nbsp;&middot;&nbsp; Rate locked at quote
+          <span data-i18n="platform-tech.s2.foot-hp">Minutes &nbsp;&middot;&nbsp; 0.15%–0.75% all-in &nbsp;&middot;&nbsp; Rate locked at quote</span>
         </div>
       </div>
 
@@ -419,48 +419,48 @@ a{color:inherit;text-decoration:none}
         <p class="lede" style="margin-top:20px">Every PayPal balance you hold is e-money, regulated under the same EU framework as a HansePay EMT, held under the same custody rules. HansePay operates in the same legal category. The difference is what we built on top: real-time cross-border settlement from 0.15%.</p>
         <p style="font-size:14px;font-weight:600;color:var(--n500);margin-top:20px;display:flex;align-items:center;gap:8px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Same regulatory category as PayPal. Different economics.
+          <span data-i18n="platform-tech.s3.tagline">Same regulatory category as PayPal. Different economics.</span>
         </p>
       </div>
 
       <!-- Money spectrum -->
       <div>
-        <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px">Where e-money sits</p>
+        <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px" data-i18n="platform-tech.s3.spectrum-label">Where e-money sits</p>
         <div class="tile-grid-4" style="background:rgba(11,25,41,.06)">
           <div class="spectrum-tile">
             <!-- Banknote icon -->
             <svg class="spectrum-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-            <div class="spectrum-label">Traditional</div>
-            <div class="spectrum-name">Bargeld</div>
-            <div class="spectrum-en">Cash</div>
-            <div class="spectrum-examples" style="margin-top:4px">Coins &amp; notes</div>
+            <div class="spectrum-label" data-i18n="platform-tech.s3.sp1.label">Traditional</div>
+            <div class="spectrum-name" data-i18n="platform-tech.s3.sp1.name">Bargeld</div>
+            <div class="spectrum-en" data-i18n="platform-tech.s3.sp1.en">Cash</div>
+            <div class="spectrum-examples" style="margin-top:4px" data-i18n="platform-tech.s3.sp1.examples">Coins &amp; notes</div>
           </div>
           <div class="spectrum-tile">
             <!-- Landmark / bank building icon -->
             <svg class="spectrum-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
-            <div class="spectrum-label">Traditional</div>
-            <div class="spectrum-name">Giralgeld</div>
-            <div class="spectrum-en">Book money</div>
-            <div class="spectrum-examples" style="margin-top:4px">Bank account</div>
+            <div class="spectrum-label" data-i18n="platform-tech.s3.sp2.label">Traditional</div>
+            <div class="spectrum-name" data-i18n="platform-tech.s3.sp2.name">Giralgeld</div>
+            <div class="spectrum-en" data-i18n="platform-tech.s3.sp2.en">Book money</div>
+            <div class="spectrum-examples" style="margin-top:4px" data-i18n="platform-tech.s3.sp2.examples">Bank account</div>
           </div>
           <div class="spectrum-tile active" style="border-left:3px solid var(--n300)">
             <!-- Smartphone icon -->
             <svg class="spectrum-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            <div class="spectrum-label active">E-money</div>
-            <div class="spectrum-name">E-Geld</div>
-            <div class="spectrum-en">Electronic money</div>
-            <div class="spectrum-examples active" style="margin-top:4px">PayPal · HansePay</div>
+            <div class="spectrum-label active" data-i18n="platform-tech.s3.sp3.label">E-money</div>
+            <div class="spectrum-name" data-i18n="platform-tech.s3.sp3.name">E-Geld</div>
+            <div class="spectrum-en" data-i18n="platform-tech.s3.sp3.en">Electronic money</div>
+            <div class="spectrum-examples active" style="margin-top:4px" data-i18n="platform-tech.s3.sp3.examples">PayPal · HansePay</div>
           </div>
           <div class="spectrum-tile">
             <!-- Hexagon icon (crypto / unregulated digital assets) -->
             <svg class="spectrum-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/></svg>
-            <div class="spectrum-label">Unregulated</div>
-            <div class="spectrum-name">Krypto</div>
-            <div class="spectrum-en">Crypto-assets</div>
-            <div class="spectrum-examples" style="margin-top:4px">Bitcoin, ETH</div>
+            <div class="spectrum-label" data-i18n="platform-tech.s3.sp4.label">Unregulated</div>
+            <div class="spectrum-name" data-i18n="platform-tech.s3.sp4.name">Krypto</div>
+            <div class="spectrum-en" data-i18n="platform-tech.s3.sp4.en">Crypto-assets</div>
+            <div class="spectrum-examples" style="margin-top:4px" data-i18n="platform-tech.s3.sp4.examples">Bitcoin, ETH</div>
           </div>
         </div>
-        <p style="font-size:11px;color:var(--ink3);margin-top:10px;line-height:1.55">E-money is fixed in value (1:1 to EUR), issued by a licensed institution, and regulated under EU law. Not a crypto-asset.</p>
+        <p style="font-size:11px;color:var(--ink3);margin-top:10px;line-height:1.55" data-i18n="platform-tech.s3.spectrum-note">E-money is fixed in value (1:1 to EUR), issued by a licensed institution, and regulated under EU law. Not a crypto-asset.</p>
       </div>
     </div>
   </div>
@@ -472,14 +472,14 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div class="two-col" style="align-items:start">
       <div>
-        <span class="eyebrow">The cost stack</span>
-        <h2 class="section-head" style="margin-top:12px">1.2% versus 0.15%–0.75%. Here is <em>where the difference goes.</em></h2>
-        <p class="lede" style="margin-top:20px">Every fee in cross-border banking maps to infrastructure built around the system's own latency. Remove the latency, and most of those layers disappear.</p>
+        <span class="eyebrow" data-i18n="platform-tech.s4.eyebrow">The cost stack</span>
+        <h2 class="section-head" style="margin-top:12px" data-i18n-html="platform-tech.s4.h2">1.2% versus 0.15%–0.75%. Here is <em>where the difference goes.</em></h2>
+        <p class="lede" style="margin-top:20px" data-i18n="platform-tech.s4.p">Every fee in cross-border banking maps to infrastructure built around the system's own latency. Remove the latency, and most of those layers disappear.</p>
         <div class="chart-savings-callout">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          HansePay is typically 8× cheaper, structurally
+          <span data-i18n="platform-tech.s4.callout">HansePay is typically 8× cheaper, structurally</span>
         </div>
-        <p class="chart-note">Indicative breakdown for a small to mid cross-border wire. Actual bank costs vary by corridor, volume, and relationship.</p>
+        <p class="chart-note" data-i18n="platform-tech.s4.chart-note">Indicative breakdown for a small to mid cross-border wire. Actual bank costs vary by corridor, volume, and relationship.</p>
       </div>
 
       <!-- Stacked bar chart -->
@@ -514,34 +514,34 @@ a{color:inherit;text-decoration:none}
         <div class="chart-totals-row">
           <div class="chart-total-col">
             <div class="chart-total bank">1.20%</div>
-            <div class="chart-col-label">Bank wire</div>
+            <div class="chart-col-label" data-i18n="platform-tech.s4.col-bank">Bank wire</div>
           </div>
           <div class="chart-total-col">
             <div class="chart-total hp">0.15%</div>
-            <div class="chart-col-label hp">HansePay</div>
+            <div class="chart-col-label hp" data-i18n="platform-tech.s4.col-hp">HansePay</div>
           </div>
         </div>
         <!-- Legends: full-width 2-col grid, no overlap possible -->
         <div class="chart-legends">
           <div>
-            <div class="chart-legend-group-label">Bank wire breakdown</div>
+            <div class="chart-legend-group-label" data-i18n="platform-tech.s4.legend-bank-title">Bank wire breakdown</div>
             <div class="chart-legend-list">
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#263238"></span>FX spread<span class="chart-legend-pct">0.55%</span></div>
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#455a64"></span>Correspondent fees<span class="chart-legend-pct">0.30%</span></div>
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#607d8b"></span>Settlement risk<span class="chart-legend-pct">0.20%</span></div>
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#90a4ae"></span>SWIFT fees<span class="chart-legend-pct">0.10%</span></div>
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#b0bec5"></span>Lift fee<span class="chart-legend-pct">0.05%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#263238"></span><span data-i18n="platform-tech.s4.legend-fx-spread">FX spread</span><span class="chart-legend-pct">0.55%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#455a64"></span><span data-i18n="platform-tech.s4.legend-corr-fees">Correspondent fees</span><span class="chart-legend-pct">0.30%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#607d8b"></span><span data-i18n="platform-tech.s4.legend-settlement-risk">Settlement risk</span><span class="chart-legend-pct">0.20%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#90a4ae"></span><span data-i18n="platform-tech.s4.legend-swift-fees">SWIFT fees</span><span class="chart-legend-pct">0.10%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#b0bec5"></span><span data-i18n="platform-tech.s4.legend-lift-fee">Lift fee</span><span class="chart-legend-pct">0.05%</span></div>
             </div>
           </div>
           <div>
-            <div class="chart-legend-group-label hp">HansePay breakdown</div>
+            <div class="chart-legend-group-label hp" data-i18n="platform-tech.s4.legend-hp-title">HansePay breakdown</div>
             <div class="chart-legend-list">
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--n500)"></span>FX spread<span class="chart-legend-pct">0.13%</span></div>
-              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--n200)"></span>Network fee<span class="chart-legend-pct">0.02%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--n500)"></span><span data-i18n="platform-tech.s4.legend-fx-spread">FX spread</span><span class="chart-legend-pct">0.13%</span></div>
+              <div class="chart-legend-item"><span class="chart-legend-dot" style="background:var(--n200)"></span><span data-i18n="platform-tech.s4.legend-network-fee">Network fee</span><span class="chart-legend-pct">0.02%</span></div>
             </div>
           </div>
         </div>
-        <p class="chart-note">Chart not to scale. At true scale the bank bar would be 8&times; taller.</p>
+        <p class="chart-note" data-i18n="platform-tech.s4.chart-note2">Chart not to scale. At true scale the bank bar would be 8&times; taller.</p>
       </div>
     </div>
   </div>
@@ -560,40 +560,40 @@ a{color:inherit;text-decoration:none}
     <div class="rate-cards">
       <!-- Bank card -->
       <div class="rate-card">
-        <div class="rate-card-label bank">Traditional bank</div>
+        <div class="rate-card-label bank" data-i18n="platform-tech.s5.card-bank-label">Traditional bank</div>
         <div class="rate-card-row">
-          <div class="rate-card-caption">Rate quoted</div>
+          <div class="rate-card-caption" data-i18n="platform-tech.s5.rate-quoted">Rate quoted</div>
           <div class="rate-num neutral">1.0850</div>
         </div>
         <div class="rate-divider">
           <svg width="14" height="20" viewBox="0 0 14 20" fill="none"><path d="M7 0v16M1 10l6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-top:4px">3 days later</div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-top:4px" data-i18n="platform-tech.s5.delay-bank">3 days later</div>
         </div>
         <div class="rate-card-row">
-          <div class="rate-card-caption">Rate executed</div>
+          <div class="rate-card-caption" data-i18n="platform-tech.s5.rate-executed">Rate executed</div>
           <div class="rate-num bad">1.0843</div>
         </div>
-        <span class="rate-badge bad" style="align-self:center">&#8722;7 pips slippage</span>
-        <div class="rate-note" style="margin-top:12px">On a €100,000 transfer, 7 pips = <strong style="color:#b83232">€70 lost</strong> to execution gap.</div>
+        <span class="rate-badge bad" style="align-self:center" data-i18n="platform-tech.s5.badge-bank">&#8722;7 pips slippage</span>
+        <div class="rate-note" style="margin-top:12px" data-i18n-html="platform-tech.s5.note-bank">On a €100,000 transfer, 7 pips = <strong style="color:#b83232">€70 lost</strong> to execution gap.</div>
       </div>
 
       <!-- HansePay card -->
       <div class="rate-card" style="border-color:rgba(30,78,128,.18)">
-        <div class="rate-card-label hp">HansePay</div>
+        <div class="rate-card-label hp" data-i18n="platform-tech.s5.card-hp-label">HansePay</div>
         <div class="rate-card-row">
-          <div class="rate-card-caption">Rate quoted</div>
+          <div class="rate-card-caption" data-i18n="platform-tech.s5.rate-quoted">Rate quoted</div>
           <div class="rate-num neutral">1.0850</div>
         </div>
         <div class="rate-divider">
           <svg width="14" height="20" viewBox="0 0 14 20" fill="none"><path d="M7 0v16M1 10l6 6 6-6" stroke="var(--n300)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--n300);margin-top:4px">Instantly</div>
+          <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--n300);margin-top:4px" data-i18n="platform-tech.s5.delay-hp">Instantly</div>
         </div>
         <div class="rate-card-row">
-          <div class="rate-card-caption">Rate executed</div>
+          <div class="rate-card-caption" data-i18n="platform-tech.s5.rate-executed">Rate executed</div>
           <div class="rate-num good">1.0850</div>
         </div>
-        <span class="rate-badge good" style="align-self:center">&#10003;&nbsp;Locked atomically</span>
-        <div class="rate-note" style="margin-top:12px">Same rate at quote, execution, and settlement. <strong style="color:var(--n500)">Zero slippage by design.</strong></div>
+        <span class="rate-badge good" style="align-self:center" data-i18n="platform-tech.s5.badge-hp">&#10003;&nbsp;Locked atomically</span>
+        <div class="rate-note" style="margin-top:12px" data-i18n-html="platform-tech.s5.note-hp">Same rate at quote, execution, and settlement. <strong style="color:var(--n500)">Zero slippage by design.</strong></div>
       </div>
     </div>
   </div>
@@ -604,37 +604,37 @@ a{color:inherit;text-decoration:none}
 <section class="section" style="background:#f7f8fc" id="why-it-matters">
   <div class="container">
     <div class="sec-intro">
-      <span class="eyebrow">Why it matters</span>
-      <h2 class="section-head" style="margin-top:12px">What changes when settlement and <em>payment become one thing.</em></h2>
+      <span class="eyebrow" data-i18n="platform-tech.s6.eyebrow">Why it matters</span>
+      <h2 class="section-head" style="margin-top:12px" data-i18n-html="platform-tech.s6.h2">What changes when settlement and <em>payment become one thing.</em></h2>
     </div>
     <div class="tile-grid-4">
       <div class="tile">
         <div class="tile-icon-wrap">
           <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-        <div class="tile-title">Settlement in minutes</div>
-        <div class="tile-body">Your supplier gets paid the same day. Reconciliation lands in your accounting system before your AP team has finished their coffee.</div>
+        <div class="tile-title" data-i18n="platform-tech.s6.t1.title">Settlement in minutes</div>
+        <div class="tile-body" data-i18n="platform-tech.s6.t1.body">Your supplier gets paid the same day. Reconciliation lands in your accounting system before your AP team has finished their coffee.</div>
       </div>
       <div class="tile">
         <div class="tile-icon-wrap">
           <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 16 11 18 15 14"/></svg>
         </div>
-        <div class="tile-title">Same-day reconciliation</div>
-        <div class="tile-body">Final settlement in minutes means the confirmation hits your accounting system the same day, not the same week. AP work compresses from days to hours.</div>
+        <div class="tile-title" data-i18n="platform-tech.s6.t2.title">Same-day reconciliation</div>
+        <div class="tile-body" data-i18n="platform-tech.s6.t2.body">Final settlement in minutes means the confirmation hits your accounting system the same day, not the same week. AP work compresses from days to hours.</div>
       </div>
       <div class="tile">
         <div class="tile-icon-wrap">
           <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <div class="tile-title">FX locked before execution</div>
-        <div class="tile-body">Deterministic pricing. No slippage, no surprise on settlement date, no need to build buffers around bank execution lag.</div>
+        <div class="tile-title" data-i18n="platform-tech.s6.t3.title">FX locked before execution</div>
+        <div class="tile-body" data-i18n="platform-tech.s6.t3.body">Deterministic pricing. No slippage, no surprise on settlement date, no need to build buffers around bank execution lag.</div>
       </div>
       <div class="tile">
         <div class="tile-icon-wrap">
           <svg class="tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
         </div>
-        <div class="tile-title">Structurally lower cost</div>
-        <div class="tile-body">Without correspondent banks, SWIFT fees, or settlement-risk premiums, the cost stack collapses. The savings are in the architecture.</div>
+        <div class="tile-title" data-i18n="platform-tech.s6.t4.title">Structurally lower cost</div>
+        <div class="tile-body" data-i18n="platform-tech.s6.t4.body">Without correspondent banks, SWIFT fees, or settlement-risk premiums, the cost stack collapses. The savings are in the architecture.</div>
       </div>
     </div>
   </div>
@@ -646,31 +646,31 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div class="two-col-w">
       <div>
-        <span class="eyebrow">Regulatory stack</span>
-        <h2 class="section-head" style="margin-top:12px">Built on the strictest digital money framework <em>in the world.</em></h2>
-        <p class="lede" style="margin-top:20px">Every euro you send through HansePay sits inside this stack. Customer funds are segregated, the licensed entity is MiCAR-authorised, our German operation is supervised under BaFin.</p>
-        <p class="lede" style="margin-top:16px">You never touch a token. You never see a wallet. The infrastructure does what infrastructure should do: it disappears.</p>
+        <span class="eyebrow" data-i18n="platform-tech.s7.eyebrow">Regulatory stack</span>
+        <h2 class="section-head" style="margin-top:12px" data-i18n-html="platform-tech.s7.h2">Built on the strictest digital money framework <em>in the world.</em></h2>
+        <p class="lede" style="margin-top:20px" data-i18n="platform-tech.s7.p1">Every euro you send through HansePay sits inside this stack. Customer funds are segregated, the licensed entity is MiCAR-authorised, our German operation is supervised under BaFin.</p>
+        <p class="lede" style="margin-top:16px" data-i18n="platform-tech.s7.p2">You never touch a token. You never see a wallet. The infrastructure does what infrastructure should do: it disappears.</p>
         <a href="#" style="display:inline-flex;align-items:center;gap:6px;margin-top:28px;font-size:14px;font-weight:600;color:var(--n200);transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--n200)'">
-          Read about our licences
+          <span data-i18n="platform-tech.s7.licences-link">Read about our licences</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </a>
       </div>
       <div class="pyramid">
         <div class="pyr-layer" style="width:152px">
-          <div class="pyr-layer-text">Customer</div>
-          <div class="pyr-layer-sub">Fiat in &middot; fiat out</div>
+          <div class="pyr-layer-text" data-i18n="platform-tech.s7.pyr1.text">Customer</div>
+          <div class="pyr-layer-sub" data-i18n="platform-tech.s7.pyr1.sub">Fiat in &middot; fiat out</div>
         </div>
         <div class="pyr-layer" style="width:228px">
-          <div class="pyr-layer-text">HansePay</div>
-          <div class="pyr-layer-sub">Germany &middot; BaFin oversight</div>
+          <div class="pyr-layer-text" data-i18n="platform-tech.s7.pyr2.text">HansePay</div>
+          <div class="pyr-layer-sub" data-i18n="platform-tech.s7.pyr2.sub">Germany &middot; BaFin oversight</div>
         </div>
         <div class="pyr-layer" style="width:320px">
           <div class="pyr-layer-text">BaFin-regulated entity</div>
           <div class="pyr-layer-sub">MiCAR-authorised &middot; EU law</div>
         </div>
         <div class="pyr-layer" style="width:420px;max-width:100%">
-          <div class="pyr-layer-text">EU Regulators</div>
-          <div class="pyr-layer-sub">MiCAR framework &middot; EBA &middot; ECB</div>
+          <div class="pyr-layer-text" data-i18n="platform-tech.s7.pyr4.text">EU Regulators</div>
+          <div class="pyr-layer-sub" data-i18n="platform-tech.s7.pyr4.sub">MiCAR framework &middot; EBA &middot; ECB</div>
         </div>
       </div>
     </div>
@@ -683,8 +683,8 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div style="max-width:720px;margin:0 auto">
       <div style="text-align:center;margin-bottom:56px">
-        <span class="eyebrow">FAQ</span>
-        <h2 class="section-head" style="margin-top:12px">Questions CFOs <em>ask us first.</em></h2>
+        <span class="eyebrow" data-i18n="platform-tech.s8.eyebrow">FAQ</span>
+        <h2 class="section-head" style="margin-top:12px" data-i18n-html="platform-tech.s8.h2">Questions CFOs <em>ask us first.</em></h2>
       </div>
       <div class="faq-list">
         <div class="faq-item">
@@ -696,24 +696,24 @@ a{color:inherit;text-decoration:none}
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">What happens to my money if HansePay fails?</span>
+            <span class="faq-q-text" data-i18n="platform-tech.s8.q3">What happens to my money if HansePay fails?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <div class="faq-a">Customer funds sit in segregated accounts at tier-1 European banks, ring-fenced from HansePay's operating capital. In an insolvency, those funds are not part of the insolvency estate. They are legally protected under MiCAR Article 75 and returned to clients at par value.</div>
+          <div class="faq-a" data-i18n="platform-tech.s8.a3">Customer funds sit in segregated accounts at tier-1 European banks, ring-fenced from HansePay's operating capital. In an insolvency, those funds are not part of the insolvency estate. They are legally protected under MiCAR Article 75 and returned to clients at par value.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">How does my auditor classify EMT holdings?</span>
+            <span class="faq-q-text" data-i18n="platform-tech.s8.q4">How does my auditor classify EMT holdings?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="faq-a">As a cash equivalent, on the same balance-sheet line as your operating account. EMTs are treated as electronic money under EU law. No special tax treatment, no capital-gains tracking, no mark-to-market on every transaction.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">What if the settlement network has issues?</span>
+            <span class="faq-q-text" data-i18n="platform-tech.s8.q6">What if the settlement network has issues?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <div class="faq-a">The settlement infrastructure is multi-rail. If a primary network is congested, transactions route through redundant rails automatically. The user experience is unchanged. Settlement may take slightly longer in the rare fallback case, but the rate-lock and cost economics are preserved.</div>
+          <div class="faq-a" data-i18n="platform-tech.s8.a6">The settlement infrastructure is multi-rail. If a primary network is congested, transactions route through redundant rails automatically. The user experience is unchanged. Settlement may take slightly longer in the rare fallback case, but the rate-lock and cost economics are preserved.</div>
         </div>
       </div>
     </div>
@@ -725,12 +725,12 @@ a{color:inherit;text-decoration:none}
 <section class="cta-band">
   <div class="container">
     <div class="cta-inner">
-      <div><span class="eyebrow cta-eyebrow">Get started</span></div>
-      <h2 class="cta-head" style="margin-top:16px">Ready for a real <em>FX team?</em></h2>
-      <p class="cta-sub">Open an account in minutes or speak directly with a foreign exchange specialist. No minimum volumes, no contract lock-in.</p>
+      <div><span class="eyebrow cta-eyebrow" data-i18n="gs.eyebrow">Get started</span></div>
+      <h2 class="cta-head" data-i18n-html="gs.h2" style="margin-top:16px">Ready for a real <em>FX team?</em></h2>
+      <p class="cta-sub" data-i18n="gs.sub">Open an account in minutes or speak directly with a foreign exchange specialist. No minimum volumes, no contract lock-in.</p>
       <div class="cta-actions">
-        <a href="index.html#contact" class="btn btn-white-fill">Open a business account</a>
-        <a href="index.html#contact" class="btn btn-ghost-white">Talk to a specialist</a>
+        <a href="index.html#contact" class="btn btn-white-fill" data-i18n="cta.open-account">Open a business account</a>
+        <a href="index.html#contact" class="btn btn-ghost-white" data-i18n="cta.book-call">Talk to a specialist</a>
       </div>
     </div>
   </div>

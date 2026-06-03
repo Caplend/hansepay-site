@@ -1,0 +1,10 @@
+[
+  { "id": "act_seed00001", "customerId": "cust_seed0001", "type": "booking", "title": "New lead from booking", "body": "Discovery call booked", "by": "system", "at": "2026-04-12T10:00:00.000Z" },
+  { "id": "act_seed00002", "customerId": "cust_seed0001", "type": "meeting", "title": "Discovery call held", "body": "Strong fit. Pain: slow bank settlement, opaque FX margins.", "by": "Admin User", "at": "2026-04-18T09:00:00.000Z" },
+  { "id": "act_seed00003", "customerId": "cust_seed0001", "type": "stage_change", "title": "Stage: Qualified → Proposal", "body": "", "by": "Admin User", "at": "2026-05-28T09:00:00.000Z" },
+  { "id": "act_seed00004", "customerId": "cust_seed0002", "type": "stage_change", "title": "Stage: Proposal → Won", "body": "Contract signed.", "by": "Admin User", "at": "2026-03-20T10:00:00.000Z" },
+  { "id": "act_seed00005", "customerId": "cust_seed0002", "type": "call", "title": "Quarterly check-in", "body": "Happy. Open to reference call.", "by": "Admin User", "at": "2026-05-30T14:00:00.000Z" },
+  { "id": "act_seed00006", "customerId": "cust_seed0003", "type": "email", "title": "Sent multi-currency overview", "body": "Shared pricing + onboarding doc.", "by": "Admin User", "at": "2026-05-20T11:00:00.000Z" },
+  { "id": "act_seed00007", "customerId": "cust_seed0007", "type": "meeting", "title": "Proposal walkthrough", "body": "Reviewed USD/JPY pricing. Decision next week.", "by": "Admin User", "at": "2026-05-26T15:00:00.000Z" },
+  { "id": "act_seed00008", "customerId": "cust_seed0008", "type": "note", "title": "Volume alert", "body": "Monthly volume down ~40% vs Q4. Needs proactive outreach.", "by": "system", "at": "2026-05-01T10:00:00.000Z" }
+]

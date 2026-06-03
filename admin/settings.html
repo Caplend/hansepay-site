@@ -80,6 +80,28 @@ a { color: inherit; text-decoration: none; }
 .integration-input::placeholder { color:var(--ink3); }
 .coming-soon { font-size:0.75rem; font-weight:600; color:var(--ink3); background:#f3f4f6; padding:4px 10px; border-radius:var(--r-pill); }
 
+/* AVATAR PREVIEW */
+.avatar-row { display:flex; align-items:flex-start; gap:14px; }
+.avatar-preview { width:48px; height:48px; border-radius:50%; background:var(--n500); object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.875rem; font-weight:700; color:#fff; overflow:hidden; margin-top:4px; }
+.avatar-preview img { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; }
+.btn-upload-avatar { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:transparent; border:1.5px solid rgba(11,25,41,0.15); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.8125rem; font-weight:600; color:var(--ink2); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.btn-upload-avatar:hover { border-color:var(--n300); color:var(--n500); background:rgba(11,25,41,0.03); }
+.btn-upload-avatar:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* PASSWORD FIELD TOGGLE */
+.password-row { display:flex; align-items:center; gap:8px; }
+.password-row input { flex:1; }
+.btn-toggle { padding:8px 12px; background:transparent; border:1.5px solid rgba(11,25,41,0.1); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:600; color:var(--ink2); cursor:pointer; white-space:nowrap; transition:all 0.15s; }
+.btn-toggle:hover { border-color:var(--n300); color:var(--n500); }
+
+/* KEY STATUS */
+.key-status { font-size:0.8125rem; color:var(--ink3); display:flex; align-items:center; gap:6px; margin-top:6px; }
+.key-status.saved { color:#166534; }
+
+/* SELECT */
+.field select { width:100%; padding:10px 13px; border:1.5px solid rgba(11,25,41,0.1); border-radius:var(--r-md); font-family:'Inter',sans-serif; font-size:0.875rem; color:var(--ink); background:#fff; outline:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233D5A73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; transition:border-color 0.15s; }
+.field select:focus { border-color:var(--n300); box-shadow:0 0 0 3px rgba(59,123,196,0.08); }
+
 /* SAVE BAR */
 .save-bar { padding-top:8px; display:flex; align-items:center; gap:14px; }
 .btn-save { padding:12px 32px; background:var(--n500); color:#fff; border:none; border-radius:var(--r-pill); font-family:'Inter',sans-serif; font-size:0.9375rem; font-weight:600; cursor:pointer; transition:background 0.15s; }
@@ -108,6 +130,27 @@ a { color: inherit; text-decoration: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
+    <a href="/hansepay/admin/bookings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </a>
+    <a href="/hansepay/admin/calendar.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Calendar
+    </a>
+    <span class="nav-section">Growth</span>
+    <a href="/hansepay/admin/sales.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Sales Pipeline
+    </a>
+    <a href="/hansepay/admin/crm.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers (CRM)
+    </a>
+    <a href="/hansepay/admin/marketing.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Marketing
+    </a>
     <span class="nav-section">Content</span>
     <a href="/hansepay/admin/posts.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -116,6 +159,15 @@ a { color: inherit; text-decoration: none; }
     <a href="/hansepay/admin/new-post.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       New Post
+    </a>
+    <span class="nav-section">Optimise</span>
+    <a href="/hansepay/admin/seo.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      SEO Manager
+    </a>
+    <a href="/hansepay/admin/analytics.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <span class="nav-section">Admin</span>
     <a href="/hansepay/admin/users.html" class="nav-item">
@@ -153,6 +205,96 @@ a { color: inherit; text-decoration: none; }
 
   <div class="content">
     <h1 class="page-heading">Settings</h1>
+
+    <!-- My Profile -->
+    <div class="settings-card">
+      <div class="settings-card-title">My Profile</div>
+      <div class="settings-card-desc">Update how you appear on blog posts and across the admin.</div>
+      <div class="settings-divider"></div>
+
+      <div class="fields-row">
+        <div class="field">
+          <label for="p-name">Display Name</label>
+          <input type="text" id="p-name" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="p-role">Job Title / Role</label>
+          <input type="text" id="p-role" placeholder="e.g. Head of Sales" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="p-bio">Short Bio</label>
+        <textarea id="p-bio" rows="3" maxlength="200" placeholder="Brief description that appears on blog posts you author."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="p-avatar">Avatar <span class="hint">Upload a photo or paste a URL</span></label>
+        <div class="avatar-row">
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="file" id="p-avatar-file" accept="image/*" style="display:none;" onchange="uploadAvatarFile(this)" />
+              <button type="button" class="btn-upload-avatar" id="avatar-upload-btn" onclick="document.getElementById('p-avatar-file').click()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload photo
+              </button>
+              <span id="avatar-upload-status" style="font-size:0.8rem;color:var(--ink3);display:none;">Uploading…</span>
+            </div>
+            <input type="text" id="p-avatar" placeholder="https://..." oninput="updateAvatarPreview()" style="font-size:0.8125rem;" />
+          </div>
+          <div class="avatar-preview" id="avatar-preview-wrap">
+            <img id="avatar-preview-img" src="" alt="" style="display:none;" />
+            <span id="avatar-preview-initials">?</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="p-linkedin">LinkedIn URL <span class="hint">Shown on blog posts for SEO author attribution</span></label>
+        <input type="url" id="p-linkedin" placeholder="https://linkedin.com/in/your-name" />
+      </div>
+
+      <div class="save-bar" style="padding-top:4px;">
+        <button class="btn-save" id="save-profile-btn" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+    <!-- AI Integration -->
+    <div class="settings-card">
+      <div class="settings-card-title">AI Integration</div>
+      <div class="settings-card-desc">Configure Claude AI to generate blog content. Your API key is stored securely and never exposed to the browser.</div>
+      <div class="settings-divider"></div>
+
+      <div class="field">
+        <label for="p-claude-key">Claude API Key</label>
+        <div class="password-row">
+          <input type="password" id="p-claude-key" placeholder="sk-ant-api03-..." autocomplete="off" />
+          <button type="button" class="btn-toggle" onclick="toggleKeyVisibility()">Show</button>
+        </div>
+        <div class="key-status" id="key-status"><span>No key saved</span></div>
+        <div style="font-size:0.8125rem;color:var(--ink3);margin-top:8px;line-height:1.5;">
+          Used to generate blog content with AI. Get your key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--n400);text-decoration:underline;">console.anthropic.com</a>.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="p-ai-model">Model</label>
+        <select id="p-ai-model">
+          <option value="claude-opus-4-5">claude-opus-4-5</option>
+          <option value="claude-sonnet-4-5" selected>claude-sonnet-4-5</option>
+          <option value="claude-haiku-4-5">claude-haiku-4-5</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="p-ai-prompt">System Prompt <span class="hint">(HansePay context)</span></label>
+        <textarea id="p-ai-prompt" rows="7">You are a content writer for HansePay, a B2B FX payments company based in Germany. HansePay helps European companies manage cross-border payments, foreign exchange, and treasury operations. You write SEO-optimised blog content that educates finance teams on FX topics and positions HansePay as a trusted, knowledgeable partner. Always write in a professional yet accessible tone. Include practical examples, comparison tables where relevant, and end with a CTA for HansePay's services.</textarea>
+      </div>
+
+      <div class="save-bar" style="padding-top:4px;">
+        <button class="btn-save" id="save-ai-btn" onclick="saveAiSettings()">Save AI Settings</button>
+      </div>
+    </div>
 
     <!-- Site Settings -->
     <div class="settings-card">
@@ -201,6 +343,14 @@ a { color: inherit; text-decoration: none; }
         </div>
         <input class="integration-input" type="text" id="s-ga-id" placeholder="G-XXXXXXXXXX" />
       </div>
+      <div class="integration-item">
+        <div class="integration-icon" style="background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:700">🔍</div>
+        <div class="integration-info">
+          <div class="integration-name">Tavily Web Search</div>
+          <div class="integration-desc">Enables live web search in AI lead research and lead generation. Add <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:11px">TAVILY_API_KEY</code> in Railway → Variables. Free tier: 1,000 searches/mo at <a href="https://tavily.com" target="_blank" style="color:var(--n500)">tavily.com</a>.</div>
+        </div>
+        <span id="tavily-status" class="coming-soon">Not configured</span>
+      </div>
 
       <div class="integration-item">
         <div class="integration-icon" style="background:#fef9c3">M</div>
@@ -218,6 +368,22 @@ a { color: inherit; text-decoration: none; }
           <div class="integration-desc">Post alerts to a Slack channel when new content is published.</div>
         </div>
         <span class="coming-soon">Coming soon</span>
+      </div>
+    </div>
+
+    <!-- Sales Reps -->
+    <div class="settings-card">
+      <div class="settings-card-title">Sales reps &amp; routing</div>
+      <div class="settings-card-desc">New bookings are auto-assigned to the highest-priority active rep. Drag to reorder priority, or use the arrows.</div>
+      <div class="settings-divider"></div>
+
+      <div id="reps-list" style="margin-bottom:16px"></div>
+
+      <button onclick="addRep()" style="display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);border:1.5px dashed rgba(11,25,41,.18);background:transparent;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;color:var(--ink2);cursor:pointer;transition:.15s" onmouseover="this.style.background='var(--n050)'" onmouseout="this.style.background='transparent'">
+        + Add rep
+      </button>
+      <div style="margin-top:16px">
+        <button class="btn-save" style="padding:9px 20px;font-size:.8125rem" onclick="saveReps()">Save reps</button>
       </div>
     </div>
 
@@ -274,7 +440,261 @@ function populateForm(s) {
   if (s.contactEmail !== undefined) document.getElementById('s-contact-email').value = s.contactEmail || '';
   if (s.postsPerPage !== undefined) document.getElementById('s-posts-per-page').value = s.postsPerPage || '';
   if (s.googleAnalyticsId !== undefined) document.getElementById('s-ga-id').value = s.googleAnalyticsId || '';
+  // Load sales reps
+  salesReps = Array.isArray(s.salesReps) ? s.salesReps.map(function(r,i) {
+    return { id:r.id||'rep_'+Date.now()+i, name:r.name||'', email:r.email||'', color:r.color||'#1E4E80', priority:r.priority||i+1, active:r.active!==false };
+  }) : [];
+  renderReps();
 }
+
+// ── Profile & AI helpers ─────────────────────────────────────
+
+async function uploadAvatarFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var btn = document.getElementById('avatar-upload-btn');
+  var status = document.getElementById('avatar-upload-status');
+  btn.disabled = true;
+  status.style.display = 'inline';
+  status.textContent = 'Uploading…';
+  try {
+    var token = localStorage.getItem('hp_token');
+    var fd = new FormData();
+    fd.append('image', file);
+    var res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: fd
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    var data = await res.json();
+    document.getElementById('p-avatar').value = data.url;
+    updateAvatarPreview();
+    status.textContent = 'Uploaded!';
+    setTimeout(function() { status.style.display = 'none'; }, 2000);
+  } catch(e) {
+    status.textContent = 'Upload failed';
+    setTimeout(function() { status.style.display = 'none'; }, 3000);
+  } finally {
+    btn.disabled = false;
+    input.value = '';
+  }
+}
+
+function updateAvatarPreview() {
+  var url = document.getElementById('p-avatar').value.trim();
+  var img = document.getElementById('avatar-preview-img');
+  var initials = document.getElementById('avatar-preview-initials');
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    initials.style.display = 'none';
+    img.onerror = function() {
+      img.style.display = 'none';
+      initials.style.display = '';
+    };
+  } else {
+    img.style.display = 'none';
+    initials.style.display = '';
+  }
+}
+
+function setKeyStatus(hasSavedKey) {
+  var el = document.getElementById('key-status');
+  if (hasSavedKey) {
+    el.className = 'key-status saved';
+    el.innerHTML = '<span>&#10003; API key saved</span>';
+    document.getElementById('p-claude-key').placeholder = '••••••••••• (saved)';
+  } else {
+    el.className = 'key-status';
+    el.innerHTML = '<span>No key saved</span>';
+  }
+}
+
+function toggleKeyVisibility() {
+  var input = document.getElementById('p-claude-key');
+  var btn = document.querySelector('.btn-toggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+
+// Load current user profile into form
+authFetch('/api/auth/me')
+  .then(function(r) {
+    if (!r.ok) return null;
+    return r.json();
+  })
+  .then(function(u) {
+    if (!u) return;
+    document.getElementById('p-name').value = u.name || '';
+    document.getElementById('p-role').value = u.role || '';
+    document.getElementById('p-bio').value = u.bio || '';
+    document.getElementById('p-avatar').value    = u.avatarUrl || '';
+    document.getElementById('p-linkedin').value  = u.linkedin  || '';
+    updateAvatarPreview();
+    // Set initials in avatar preview
+    if (u.name) {
+      document.getElementById('avatar-preview-initials').textContent = u.name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    }
+    // AI model preference & key status
+    if (u.aiModel) {
+      var sel = document.getElementById('p-ai-model');
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === u.aiModel) { sel.selectedIndex = i; break; }
+      }
+    }
+    if (u.aiSystemPrompt) {
+      document.getElementById('p-ai-prompt').value = u.aiSystemPrompt;
+    }
+    setKeyStatus(!!u.hasClaudeKey);
+  })
+  .catch(function() {});
+
+function saveProfile() {
+  var btn = document.getElementById('save-profile-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  var body = {
+    name:     document.getElementById('p-name').value.trim(),
+    role:     document.getElementById('p-role').value.trim(),
+    bio:      document.getElementById('p-bio').value.trim(),
+    avatarUrl:document.getElementById('p-avatar').value.trim(),
+    linkedin: document.getElementById('p-linkedin').value.trim()
+  };
+
+  authFetch('/api/users/profile', { method: 'PUT', body: JSON.stringify(body) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || 'Save failed.');
+      // Update localStorage so sidebar/topbar reflect changes immediately
+      var stored = JSON.parse(localStorage.getItem('hp_user') || '{}');
+      stored.name = body.name || stored.name;
+      stored.role = body.role || stored.role;
+      stored.bio = body.bio;
+      stored.avatarUrl = body.avatarUrl;
+      localStorage.setItem('hp_user', JSON.stringify(stored));
+      // Update sidebar & topbar
+      var initials = (body.name || stored.name || '').split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase() || 'A';
+      document.getElementById('sidebar-avatar').textContent = initials;
+      document.getElementById('topbar-avatar').textContent = initials;
+      document.getElementById('sidebar-name').textContent = body.name || stored.name;
+      document.getElementById('topbar-name').textContent = body.name || stored.name;
+      document.getElementById('avatar-preview-initials').textContent = initials;
+      showToast('Profile saved', 'success');
+    })
+    .catch(function(err) { showToast(err.message || 'Error saving profile.', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Save Profile'; });
+}
+
+function saveAiSettings() {
+  var btn = document.getElementById('save-ai-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  var keyVal = document.getElementById('p-claude-key').value.trim();
+  var body = {
+    aiModel: document.getElementById('p-ai-model').value,
+    aiSystemPrompt: document.getElementById('p-ai-prompt').value.trim()
+  };
+  // Only include claudeApiKey if the user actually typed something
+  if (keyVal) { body.claudeApiKey = keyVal; }
+
+  authFetch('/api/users/profile', { method: 'PUT', body: JSON.stringify(body) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || 'Save failed.');
+      if (keyVal) {
+        setKeyStatus(true);
+        document.getElementById('p-claude-key').value = '';
+      }
+      showToast('AI settings saved', 'success');
+    })
+    .catch(function(err) { showToast(err.message || 'Error saving AI settings.', 'error'); })
+    .finally(function() { btn.disabled = false; btn.textContent = 'Save AI Settings'; });
+}
+
+// ── Sales reps ────────────────────────────────────────────────
+
+var salesReps = [];
+var REP_COLORS = ['#1E4E80','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#c2410c','#4f46e5'];
+
+function renderReps() {
+  var el = document.getElementById('reps-list');
+  if (!salesReps.length) {
+    el.innerHTML = '<div style="color:var(--ink3);font-size:.875rem;padding:8px 0">No reps yet. Add one below.</div>';
+    return;
+  }
+  el.innerHTML = salesReps.map(function(r, i) {
+    return '<div class="rep-row" id="reprow-' + i + '" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(11,25,41,.06)">' +
+      // Color swatch
+      '<input type="color" value="' + r.color + '" oninput="salesReps[' + i + '].color=this.value;document.getElementById(\'rep-dot-' + i + '\').style.background=this.value" style="width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none">' +
+      // Name
+      '<input type="text" value="' + escapeHtml(r.name) + '" placeholder="Full name" oninput="salesReps[' + i + '].name=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+      // Email
+      '<input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="Email (optional)" oninput="salesReps[' + i + '].email=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+      // Priority arrows
+      '<div style="display:flex;flex-direction:column;gap:2px">' +
+        (i > 0 ? '<button onclick="moveRep(' + i + ',-1)" title="Move up" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▲</button>' : '<span style="width:22px"></span>') +
+        (i < salesReps.length-1 ? '<button onclick="moveRep(' + i + ',1)" title="Move down" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▼</button>' : '<span style="width:22px"></span>') +
+      '</div>' +
+      // Active toggle
+      '<label style="display:flex;align-items:center;gap:5px;font-size:.8125rem;color:var(--ink2);cursor:pointer;white-space:nowrap">' +
+        '<input type="checkbox" ' + (r.active !== false ? 'checked' : '') + ' onchange="salesReps[' + i + '].active=this.checked" style="accent-color:var(--n500)"> Active' +
+      '</label>' +
+      // Remove
+      '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>' +
+    '</div>';
+  }).join('');
+}
+
+function addRep() {
+  var colorIdx = salesReps.length % REP_COLORS.length;
+  salesReps.push({ id: 'rep_' + Date.now(), name: '', email: '', color: REP_COLORS[colorIdx], priority: salesReps.length + 1, active: true });
+  renderReps();
+  // Focus the new name input
+  var rows = document.querySelectorAll('[id^="reprow-"]');
+  if (rows.length) { var inp = rows[rows.length-1].querySelector('input[type="text"]'); if(inp) inp.focus(); }
+}
+
+function removeRep(i) {
+  if (!confirm('Remove ' + (salesReps[i].name || 'this rep') + '?')) return;
+  salesReps.splice(i, 1);
+  salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
+  renderReps();
+}
+
+function moveRep(i, delta) {
+  var j = i + delta;
+  if (j < 0 || j >= salesReps.length) return;
+  var tmp = salesReps[i]; salesReps[i] = salesReps[j]; salesReps[j] = tmp;
+  salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
+  renderReps();
+}
+
+function saveReps() {
+  var invalid = salesReps.filter(function(r) { return !r.name.trim(); });
+  if (invalid.length) { showToast('Each rep needs a name.', 'error'); return; }
+  salesReps.forEach(function(r, i) { r.priority = i + 1; });
+
+  authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
+    var updated = Object.assign({}, current, { salesReps: salesReps });
+    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
+  }).then(function(r) { return r.json(); }).then(function() {
+    showToast('Sales reps saved ✓');
+  }).catch(function() { showToast('Failed to save reps.', 'error'); });
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Site settings ────────────────────────────────────────────
 
 // Load settings on page load
 authFetch('/api/settings')

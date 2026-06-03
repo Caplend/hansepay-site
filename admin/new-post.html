@@ -89,6 +89,69 @@ a { color: inherit; text-decoration: none; }
 .content-textarea { min-height: 400px; font-family: monospace; font-size: 0.8125rem; line-height: 1.7; }
 .word-count { font-size: 0.75rem; color: var(--ink3); margin-top: 7px; }
 
+/* RICH TOOLBAR */
+.toolbar {
+  background: #fff;
+  border: 1px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(11,25,41,0.1);
+}
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(11,25,41,0.12);
+  margin: 0 5px;
+  flex-shrink: 0;
+}
+.tb-btn {
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--ink2);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: all 0.12s;
+  line-height: 1;
+}
+.tb-btn:hover { background: var(--n050); border-color: var(--n200); color: var(--n500); }
+.tb-btn.mono { font-family: monospace; font-size: 0.8125rem; }
+.tb-btn.ai-btn {
+  background: linear-gradient(135deg, var(--n500), var(--n400));
+  color: #fff;
+  border-color: transparent;
+  padding: 0 12px;
+  font-weight: 600;
+}
+.tb-btn.ai-btn:hover { background: linear-gradient(135deg, var(--n600), var(--n500)); }
+.toolbar-spacer { flex: 1; }
+
+/* Attach toolbar to content field */
+.content-editor-wrap .toolbar {
+  border-bottom: none;
+}
+.content-editor-wrap .field textarea {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 /* Preview toggle */
 .preview-toggle-btn {
   display: inline-flex;
@@ -131,6 +194,9 @@ a { color: inherit; text-decoration: none; }
 .md-preview ul, .md-preview ol { margin: 10px 0 14px 22px; }
 .md-preview li { margin-bottom: 4px; }
 .md-preview strong { font-weight: 600; color: var(--n700); }
+.md-preview table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.875rem; }
+.md-preview th, .md-preview td { padding: 8px 12px; border: 1px solid rgba(11,25,41,0.12); text-align: left; }
+.md-preview th { background: var(--n050); font-weight: 600; color: var(--n700); }
 
 /* RIGHT PANEL */
 .right-panel { background: #fff; border-radius: var(--r-lg); border: 1px solid rgba(11,25,41,0.08); box-shadow: 0 1px 4px rgba(11,25,41,0.04); padding: 24px; position: sticky; top: 80px; }
@@ -138,9 +204,10 @@ a { color: inherit; text-decoration: none; }
 
 .field select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
 
-.checkbox-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
-.checkbox-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--n500); }
-.checkbox-row label { font-size: 0.875rem; color: var(--ink2); cursor: pointer; font-weight: 500; }
+.checkbox-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+.checkbox-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--n500); flex-shrink: 0; margin-top: 2px; }
+.checkbox-row .checkbox-label-wrap label { font-size: 0.875rem; color: var(--ink2); cursor: pointer; font-weight: 500; display: block; }
+.checkbox-row .checkbox-label-wrap .checkbox-sub { font-size: 0.6875rem; color: var(--ink3); margin-top: 2px; }
 
 .btn-save {
   width: 100%;
@@ -185,11 +252,294 @@ a { color: inherit; text-decoration: none; }
 .image-preview-remove:hover { background: rgba(6,13,26,0.95); }
 .image-uploading { font-size: 0.8125rem; color: var(--ink3); text-align: center; padding: 12px; }
 
+/* AUTHOR SECTION */
+.author-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(11,25,41,0.07);
+}
+.author-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.author-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--n800);
+}
+.author-toggle-btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--n400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  padding: 2px 4px;
+  border-radius: var(--r-sm);
+  transition: color 0.12s;
+}
+.author-toggle-btn:hover { color: var(--n500); }
+.author-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.author-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--n100);
+  object-fit: cover;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--n500);
+  overflow: hidden;
+}
+.author-avatar-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.author-info-name { font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.author-info-role { font-size: 0.75rem; color: var(--ink3); margin-top: 1px; }
+.author-edit-form { display: none; }
+.author-edit-form.open { display: block; }
+.author-edit-form .afield { margin-bottom: 10px; }
+.author-edit-form .afield label { font-size: 0.75rem; font-weight: 600; color: var(--ink2); display: block; margin-bottom: 4px; }
+.author-edit-form .afield input,
+.author-edit-form .afield textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.author-edit-form .afield input:focus,
+.author-edit-form .afield textarea:focus {
+  border-color: var(--n300);
+  box-shadow: 0 0 0 3px rgba(59,123,196,0.08);
+}
+.author-edit-form .afield textarea { resize: vertical; }
+
+/* PANEL SECTION DIVIDER */
+.panel-divider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid rgba(11,25,41,0.07);
+}
+
+/* FIELD SUB TEXT */
+.field-sub {
+  font-size: 0.6875rem;
+  color: var(--ink3);
+  margin-top: 4px;
+}
+
 /* TOAST */
 .toast { position:fixed; bottom:24px; right:24px; background:var(--n800); color:#fff; padding:12px 20px; border-radius:var(--r-md); font-size:0.8125rem; font-weight:500; z-index:1000; opacity:0; transform:translateY(8px); transition:all 0.25s; pointer-events:none; }
 .toast.show { opacity:1; transform:none; }
 .toast.success { background:#166534; }
 .toast.error { background:#dc2626; }
+
+/* AI MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(6,13,26,0.55);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal-box {
+  background: #fff;
+  border-radius: var(--r-lg);
+  width: 640px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(6,13,26,0.25);
+  animation: modalIn 0.18s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--n800);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(11,25,41,0.06);
+  color: var(--ink2);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+  font-family: 'Inter', sans-serif;
+}
+.modal-close:hover { background: rgba(11,25,41,0.12); }
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid rgba(11,25,41,0.08); display: flex; gap: 10px; flex-shrink: 0; }
+.btn-primary {
+  padding: 10px 20px;
+  background: var(--n500);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--n600); }
+.btn-secondary {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--ink2);
+  border: 1.5px solid rgba(11,25,41,0.12);
+  border-radius: var(--r-pill);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--n300); color: var(--n500); background: var(--n050); }
+
+/* AI MODAL FORM */
+.ai-form .ai-field { margin-bottom: 16px; }
+.ai-form .ai-field label { font-size: 0.8125rem; font-weight: 600; color: var(--ink2); display: block; margin-bottom: 6px; }
+.ai-form .ai-field input,
+.ai-form .ai-field select {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1.5px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ai-form .ai-field input:focus,
+.ai-form .ai-field select:focus {
+  border-color: var(--n300);
+  box-shadow: 0 0 0 3px rgba(59,123,196,0.08);
+}
+.ai-form .ai-field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 34px;
+  cursor: pointer;
+}
+.sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.section-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.section-check:hover { border-color: var(--n200); background: var(--n050); }
+.section-check input[type="checkbox"] { accent-color: var(--n500); cursor: pointer; }
+.section-check span { font-size: 0.8125rem; color: var(--ink2); font-weight: 500; }
+
+/* AI STREAMING OUTPUT */
+.ai-output { display: none; }
+.ai-output.visible { display: block; }
+.ai-stream-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.ai-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(30,78,128,0.2);
+  border-top-color: var(--n500);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.ai-stream-textarea {
+  width: 100%;
+  min-height: 280px;
+  padding: 14px;
+  border: 1.5px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md);
+  font-family: monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--off);
+  resize: vertical;
+  outline: none;
+}
+.ai-done-text {
+  font-size: 0.8125rem;
+  color: #166534;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.ai-error-msg {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+.ai-error-msg a { color: var(--n400); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -208,6 +558,27 @@ a { color: inherit; text-decoration: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
+    <a href="/hansepay/admin/bookings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </a>
+    <a href="/hansepay/admin/calendar.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Calendar
+    </a>
+    <span class="nav-section">Growth</span>
+    <a href="/hansepay/admin/sales.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Sales Pipeline
+    </a>
+    <a href="/hansepay/admin/crm.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers (CRM)
+    </a>
+    <a href="/hansepay/admin/marketing.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Marketing
+    </a>
     <span class="nav-section">Content</span>
     <a href="/hansepay/admin/posts.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -216,6 +587,15 @@ a { color: inherit; text-decoration: none; }
     <a href="/hansepay/admin/new-post.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       New Post
+    </a>
+    <span class="nav-section">Optimise</span>
+    <a href="/hansepay/admin/seo.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      SEO Manager
+    </a>
+    <a href="/hansepay/admin/analytics.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <span class="nav-section">Admin</span>
     <a href="/hansepay/admin/users.html" class="nav-item">
@@ -273,8 +653,34 @@ a { color: inherit; text-decoration: none; }
         </div>
 
         <div class="editor-card">
-          <div class="field">
+          <div class="field content-editor-wrap">
             <label for="f-content">Content <span class="hint">(Markdown)</span></label>
+
+            <!-- RICH TOOLBAR -->
+            <div class="toolbar" id="rich-toolbar">
+              <!-- Text group -->
+              <div class="toolbar-group">
+                <button class="tb-btn mono" title="Insert H2 heading" onclick="tbInsert('h2')">H2</button>
+                <button class="tb-btn mono" title="Insert H3 heading" onclick="tbInsert('h3')">H3</button>
+                <button class="tb-btn" title="Bold selection" onclick="tbWrap('bold')"><strong>B</strong></button>
+                <button class="tb-btn" title="Italic selection" onclick="tbWrap('italic')"><em>I</em></button>
+              </div>
+              <div class="toolbar-sep"></div>
+              <!-- Blocks group -->
+              <div class="toolbar-group">
+                <button class="tb-btn" title="Insert comparison table" onclick="tbInsert('table')">&#9776; Table</button>
+                <button class="tb-btn" title="Insert info callout" onclick="tbInsert('callout-info')">&#128161; Info</button>
+                <button class="tb-btn" title="Insert warning callout" onclick="tbInsert('callout-warning')">&#9888;&#65039; Warning</button>
+                <button class="tb-btn" title="Insert key point callout" onclick="tbInsert('callout-success')">&#9989; Key point</button>
+                <button class="tb-btn" title="Insert stat block" onclick="tbInsert('stat')">&#128202; Stat</button>
+                <button class="tb-btn" title="Insert CTA block" onclick="tbInsert('cta')">CTA</button>
+                <button class="tb-btn mono" title="Insert horizontal rule" onclick="tbInsert('hr')">&#8212;&#8212;&#8212;</button>
+              </div>
+              <div class="toolbar-spacer"></div>
+              <!-- AI button -->
+              <button class="tb-btn ai-btn" onclick="openAiModal()">&#10024; AI Generate</button>
+            </div>
+
             <textarea class="content-textarea" id="f-content" rows="22" placeholder="## Introduction&#10;&#10;Write your article in Markdown…" oninput="onContentInput()"></textarea>
             <div class="word-count" id="word-count">0 words &middot; ~0 min read</div>
             <button class="preview-toggle-btn" id="preview-btn" onclick="togglePreview()">
@@ -296,6 +702,11 @@ a { color: inherit; text-decoration: none; }
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
+        </div>
+
+        <div class="field">
+          <label for="f-pubdate">Publication Date</label>
+          <input type="date" id="f-pubdate" />
         </div>
 
         <div class="field">
@@ -321,11 +732,22 @@ a { color: inherit; text-decoration: none; }
 
         <div class="checkbox-row">
           <input type="checkbox" id="f-featured" />
-          <label for="f-featured">Featured post</label>
+          <div class="checkbox-label-wrap">
+            <label for="f-featured">Featured post</label>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="f-show-listing" checked />
+          <div class="checkbox-label-wrap">
+            <label for="f-show-listing">Show in blog listing</label>
+            <div class="checkbox-sub">Uncheck to publish without appearing in the blog feed</div>
+          </div>
         </div>
 
         <!-- Header Image -->
-        <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(11,25,41,0.07)">
+        <hr class="panel-divider" />
+        <div>
           <div style="font-size:0.875rem;font-weight:600;color:var(--n800);margin-bottom:12px">Header Image</div>
           <div id="image-upload-wrap">
             <div class="image-upload-area" id="upload-area">
@@ -343,6 +765,49 @@ a { color: inherit; text-decoration: none; }
           </div>
         </div>
 
+        <!-- Author Section -->
+        <div class="author-section">
+          <div class="author-section-header">
+            <div class="author-section-title">Author</div>
+            <button class="author-toggle-btn" id="author-toggle-btn" onclick="toggleAuthorEdit()">Edit</button>
+          </div>
+
+          <!-- Author display (collapsed view) -->
+          <div class="author-display" id="author-display">
+            <div class="author-avatar-img" id="author-avatar-display">
+              <span id="author-avatar-initials">?</span>
+            </div>
+            <div>
+              <div class="author-info-name" id="author-display-name">—</div>
+              <div class="author-info-role" id="author-display-role"></div>
+            </div>
+          </div>
+
+          <!-- Author edit form (expanded) -->
+          <div class="author-edit-form" id="author-edit-form">
+            <div class="afield">
+              <label for="f-author-name">Name</label>
+              <input type="text" id="f-author-name" placeholder="e.g. Phil Carstensen" oninput="syncAuthorDisplay()" />
+            </div>
+            <div class="afield">
+              <label for="f-author-role">Role / Title</label>
+              <input type="text" id="f-author-role" placeholder="e.g. Head of Sales" oninput="syncAuthorDisplay()" />
+            </div>
+            <div class="afield">
+              <label for="f-author-bio">Short Bio</label>
+              <textarea id="f-author-bio" rows="2" placeholder="Optional short bio…"></textarea>
+            </div>
+            <div class="afield">
+              <label for="f-author-avatar">Avatar URL</label>
+              <input type="text" id="f-author-avatar" placeholder="https://…" oninput="syncAuthorDisplay()" />
+            </div>
+            <div class="afield">
+              <label for="f-author-linkedin">LinkedIn URL</label>
+              <input type="url" id="f-author-linkedin" placeholder="https://linkedin.com/in/…" />
+            </div>
+          </div>
+        </div>
+
         <button class="btn-save" id="save-btn" onclick="savePost()">Save Post</button>
         <a href="/hansepay/admin/posts.html" class="btn-cancel">Cancel</a>
       </div>
@@ -353,14 +818,96 @@ a { color: inherit; text-decoration: none; }
 
 <div class="toast" id="toast"></div>
 
+<!-- AI GENERATE MODAL -->
+<div class="modal-backdrop" id="ai-modal" onclick="handleModalBackdropClick(event)">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
+    <div class="modal-header">
+      <div class="modal-title" id="ai-modal-title">&#10024; AI Generate Article</div>
+      <button class="modal-close" onclick="closeAiModal()" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Form view -->
+      <div class="ai-form" id="ai-form">
+        <div class="ai-field">
+          <label for="ai-topic">Topic / Title</label>
+          <input type="text" id="ai-topic" placeholder="e.g. Top 5 virtual IBAN providers for European companies" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="ai-field">
+            <label for="ai-tone">Tone</label>
+            <select id="ai-tone">
+              <option value="professional">Professional</option>
+              <option value="conversational">Conversational</option>
+              <option value="technical">Technical</option>
+              <option value="comparative">Comparative</option>
+            </select>
+          </div>
+          <div class="ai-field">
+            <label for="ai-length">Length</label>
+            <select id="ai-length">
+              <option value="short">Short (~600 words)</option>
+              <option value="medium" selected>Medium (~1200 words)</option>
+              <option value="long">Long (~2500 words)</option>
+            </select>
+          </div>
+        </div>
+        <div class="ai-field">
+          <label>Sections to include</label>
+          <div class="sections-grid">
+            <label class="section-check">
+              <input type="checkbox" id="sec-intro" checked />
+              <span>Introduction</span>
+            </label>
+            <label class="section-check">
+              <input type="checkbox" id="sec-keypoints" checked />
+              <span>Key points / How it works</span>
+            </label>
+            <label class="section-check">
+              <input type="checkbox" id="sec-table" checked />
+              <span>Comparison table</span>
+            </label>
+            <label class="section-check">
+              <input type="checkbox" id="sec-proscons" checked />
+              <span>Pros &amp; Cons</span>
+            </label>
+            <label class="section-check">
+              <input type="checkbox" id="sec-cta" checked />
+              <span>HansePay CTA</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streaming output view -->
+      <div class="ai-output" id="ai-output">
+        <div class="ai-stream-header">
+          <div class="ai-spinner" id="ai-spinner"></div>
+          <span id="ai-status-text">Generating…</span>
+        </div>
+        <textarea class="ai-stream-textarea" id="ai-stream-content" readonly placeholder="Content will appear here…"></textarea>
+        <div class="ai-done-text" id="ai-done-msg" style="display:none"></div>
+      </div>
+
+      <!-- Error view -->
+      <div id="ai-error-wrap" style="display:none"></div>
+    </div>
+    <div class="modal-footer" id="ai-modal-footer">
+      <button class="btn-primary" id="ai-generate-btn" onclick="runAiGenerate()">Generate &#8594;</button>
+      <button class="btn-secondary" onclick="closeAiModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// Auth guard
+// ── Auth guard ─────────────────────────────────────────────────────────────────
 var token = localStorage.getItem('hp_token');
 if (!token) { window.location.href = '/hansepay/admin/login.html'; }
 
-// Validate token
-fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
-  .then(function(r) { if (!r.ok) { localStorage.removeItem('hp_token'); window.location.href = '/hansepay/admin/login.html'; } });
+fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', {
+  headers: { 'Authorization': 'Bearer ' + token }
+}).then(function(r) {
+  if (!r.ok) { localStorage.removeItem('hp_token'); window.location.href = '/hansepay/admin/login.html'; }
+});
 
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
 if (user && user.name) {
@@ -391,51 +938,80 @@ function showToast(msg, type) {
   setTimeout(function() { t.className = 'toast'; }, 3000);
 }
 
-// Determine edit vs create mode
+// ── Determine edit vs create mode ──────────────────────────────────────────────
 var editId = new URLSearchParams(window.location.search).get('id');
+
+// Set today's date as default for new posts
+(function() {
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-pubdate').value = today;
+})();
+
+// Auto-populate author from user profile for new posts
+(function() {
+  if (!editId && user) {
+    var nameEl = document.getElementById('f-author-name');
+    var roleEl = document.getElementById('f-author-role');
+    var bioEl  = document.getElementById('f-author-bio');
+    var avEl   = document.getElementById('f-author-avatar');
+    if (user.name)      nameEl.value = user.name;
+    if (user.role)      roleEl.value = user.role;
+    if (user.bio)       bioEl.value  = user.bio;
+    if (user.avatarUrl) avEl.value   = user.avatarUrl;
+    if (user.linkedin)  document.getElementById('f-author-linkedin').value = user.linkedin;
+    syncAuthorDisplay();
+  }
+})();
+
 if (editId) {
   document.getElementById('page-heading').textContent = 'Edit Post';
   document.title = 'Edit Post — HansePay Admin';
 
   authFetch('/api/posts/' + editId)
     .then(function(r) { return r.json(); })
-    .then(function(p) {
-      document.getElementById('f-title').value = p.title || '';
-      document.getElementById('f-slug').value = p.slug || '';
-      document.getElementById('f-excerpt').value = p.excerpt || '';
-      document.getElementById('f-content').value = p.content || '';
-      document.getElementById('f-status').value = p.status || 'draft';
-      document.getElementById('f-category').value = p.category || 'FX Education';
-      document.getElementById('f-tags').value = (p.tags || []).join(', ');
-      document.getElementById('f-readtime').value = p.readTime || '';
-      document.getElementById('f-featured').checked = !!p.featured;
-      updateWordCount();
-      if (p.featuredImage) { setImagePreview(p.featuredImage); document.getElementById('f-image-url-input').value = p.featuredImage; }
-    })
+    .then(function(p) { populateForm(p); })
     .catch(function() {
-      // Fallback: try listing all posts
       authFetch('/api/posts?status=all')
         .then(function(r) { return r.json(); })
         .then(function(posts) {
           var arr = Array.isArray(posts) ? posts : (posts.posts || posts.data || []);
           var p = arr.find(function(x) { return (x.id || x._id) === editId; });
           if (!p) { showToast('Post not found', 'error'); return; }
-          document.getElementById('f-title').value = p.title || '';
-          document.getElementById('f-slug').value = p.slug || '';
-          document.getElementById('f-excerpt').value = p.excerpt || '';
-          document.getElementById('f-content').value = p.content || '';
-          document.getElementById('f-status').value = p.status || 'draft';
-          document.getElementById('f-category').value = p.category || 'FX Education';
-          document.getElementById('f-tags').value = (p.tags || []).join(', ');
-          document.getElementById('f-readtime').value = p.readTime || '';
-          document.getElementById('f-featured').checked = !!p.featured;
-          updateWordCount();
-          if (p.featuredImage) { setImagePreview(p.featuredImage); document.getElementById('f-image-url-input').value = p.featuredImage; }
+          populateForm(p);
         });
     });
 }
 
-// Auto-slug
+function populateForm(p) {
+  document.getElementById('f-title').value    = p.title    || '';
+  document.getElementById('f-slug').value     = p.slug     || '';
+  document.getElementById('f-excerpt').value  = p.excerpt  || '';
+  document.getElementById('f-content').value  = p.content  || '';
+  document.getElementById('f-status').value   = p.status   || 'draft';
+  document.getElementById('f-category').value = p.category || 'FX Education';
+  document.getElementById('f-tags').value     = (p.tags || []).join(', ');
+  document.getElementById('f-readtime').value = p.readTime || '';
+  document.getElementById('f-featured').checked = !!p.featured;
+
+  // New fields
+  document.getElementById('f-show-listing').checked = p.showInListing !== false;
+  document.getElementById('f-author-name').value   = p.author     || '';
+  document.getElementById('f-author-role').value   = p.authorRole || '';
+  document.getElementById('f-author-bio').value    = p.authorBio  || '';
+  document.getElementById('f-author-avatar').value   = p.authorAvatar   || '';
+  document.getElementById('f-author-linkedin').value = p.authorLinkedin || '';
+  document.getElementById('f-pubdate').value         = (p.publishedAt || '').split('T')[0];
+
+  updateWordCount();
+  syncAuthorDisplay();
+
+  if (p.featuredImage) {
+    setImagePreview(p.featuredImage);
+    document.getElementById('f-image-url-input').value = p.featuredImage;
+  }
+}
+
+// ── Auto-slug ──────────────────────────────────────────────────────────────────
 var slugUserEdited = false;
 document.getElementById('f-slug').addEventListener('input', function() { slugUserEdited = true; });
 
@@ -453,7 +1029,7 @@ function onTitleInput() {
   }
 }
 
-// Word count + preview debounce
+// ── Word count + preview ───────────────────────────────────────────────────────
 var previewTimer;
 function onContentInput() {
   updateWordCount();
@@ -500,6 +1076,7 @@ function togglePreview() {
   }
 }
 
+// ── Save post ──────────────────────────────────────────────────────────────────
 function savePost() {
   var btn = document.getElementById('save-btn');
   var title = document.getElementById('f-title').value.trim();
@@ -518,16 +1095,23 @@ function savePost() {
     .filter(Boolean);
 
   var body = {
-    title: title,
-    slug: document.getElementById('f-slug').value.trim() || slugify(title),
-    excerpt: document.getElementById('f-excerpt').value.trim(),
-    content: document.getElementById('f-content').value,
-    status: document.getElementById('f-status').value,
-    category: document.getElementById('f-category').value,
-    tags: tags,
-    readTime: parseInt(document.getElementById('f-readtime').value) || null,
-    featured: document.getElementById('f-featured').checked,
-    featuredImage: document.getElementById('f-image-url').value || null
+    title:        title,
+    slug:         document.getElementById('f-slug').value.trim() || slugify(title),
+    excerpt:      document.getElementById('f-excerpt').value.trim(),
+    content:      document.getElementById('f-content').value,
+    status:       document.getElementById('f-status').value,
+    category:     document.getElementById('f-category').value,
+    tags:         tags,
+    readTime:     parseInt(document.getElementById('f-readtime').value) || null,
+    featured:     document.getElementById('f-featured').checked,
+    featuredImage:document.getElementById('f-image-url').value || null,
+    showInListing:document.getElementById('f-show-listing').checked,
+    author:       document.getElementById('f-author-name').value.trim() || (user && user.name) || 'HansePay Editorial',
+    authorRole:   document.getElementById('f-author-role').value.trim(),
+    authorBio:      document.getElementById('f-author-bio').value.trim(),
+    authorLinkedin: document.getElementById('f-author-linkedin').value.trim(),
+    authorAvatar: document.getElementById('f-author-avatar').value.trim(),
+    publishedAt:  document.getElementById('f-pubdate').value || new Date().toISOString().split('T')[0]
   };
 
   var url = editId ? '/api/posts/' + editId : '/api/posts';
@@ -551,7 +1135,7 @@ function savePost() {
     });
 }
 
-// ── Image upload ──────────────────────────────────────────────────────────────
+// ── Image upload ───────────────────────────────────────────────────────────────
 function handleImageUpload(input) {
   if (!input.files || !input.files[0]) return;
   var file = input.files[0];
@@ -561,10 +1145,10 @@ function handleImageUpload(input) {
   var formData = new FormData();
   formData.append('image', file);
 
-  var token = localStorage.getItem('hp_token');
-  fetch('/api/upload', {
+  var tok = localStorage.getItem('hp_token');
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/upload', {
     method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + token },
+    headers: { 'Authorization': 'Bearer ' + tok },
     body: formData
   })
   .then(function(r) { return r.json(); })
@@ -595,7 +1179,7 @@ function setImagePreview(url) {
   wrap.innerHTML =
     '<div class="image-preview">' +
     '<img src="' + url + '" alt="Header image" onerror="this.parentNode.innerHTML=\'<div style=\\\"color:red;font-size:0.8125rem;padding:8px\\\">Could not load image</div>\'">' +
-    '<button class="image-preview-remove" onclick="removeImage()">✕ Remove</button>' +
+    '<button class="image-preview-remove" onclick="removeImage()">&#10005; Remove</button>' +
     '</div>';
   document.getElementById('f-image-url').value = url;
   document.getElementById('f-image-url-input').value = url;
@@ -618,19 +1202,377 @@ function restoreUploadArea() {
     '</div>';
 }
 
-// Populate image field when editing existing post
-(function() {
-  var origLoad = window.onload;
-  var origInit = typeof initEdit === 'function' ? initEdit : null;
-  // Hook into post load to populate image preview
-  var _origPopulate = window.populateForm;
-  window.populateFormImage = function(post) {
-    if (post.featuredImage) {
-      setImagePreview(post.featuredImage);
-      document.getElementById('f-image-url-input').value = post.featuredImage;
-    }
+// ── Author section ─────────────────────────────────────────────────────────────
+var authorEditOpen = false;
+
+function toggleAuthorEdit() {
+  authorEditOpen = !authorEditOpen;
+  var form = document.getElementById('author-edit-form');
+  var display = document.getElementById('author-display');
+  var btn = document.getElementById('author-toggle-btn');
+  if (authorEditOpen) {
+    form.classList.add('open');
+    display.style.display = 'none';
+    btn.textContent = 'Done';
+  } else {
+    form.classList.remove('open');
+    display.style.display = 'flex';
+    btn.textContent = 'Edit';
+    syncAuthorDisplay();
+  }
+}
+
+function syncAuthorDisplay() {
+  var name   = document.getElementById('f-author-name').value.trim();
+  var role   = document.getElementById('f-author-role').value.trim();
+  var avatar = document.getElementById('f-author-avatar').value.trim();
+
+  var displayName = document.getElementById('author-display-name');
+  var displayRole = document.getElementById('author-display-role');
+  var avatarWrap  = document.getElementById('author-avatar-display');
+  var avatarInit  = document.getElementById('author-avatar-initials');
+
+  displayName.textContent = name || '—';
+  displayRole.textContent = role || '';
+
+  if (avatar) {
+    avatarWrap.innerHTML = '<img src="' + avatar + '" alt="' + name + '" onerror="this.style.display=\'none\'" />';
+  } else if (name) {
+    var inits = name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
+    avatarWrap.innerHTML = '<span>' + inits + '</span>';
+  } else {
+    avatarWrap.innerHTML = '<span>?</span>';
+  }
+}
+
+// ── Rich toolbar insert helpers ────────────────────────────────────────────────
+function tbInsert(type) {
+  var ta = document.getElementById('f-content');
+  var start = ta.selectionStart;
+  var end   = ta.selectionEnd;
+  var val   = ta.value;
+  var snippet = '';
+
+  var blocks = {
+    h2: '\n## Heading\n',
+    h3: '\n### Heading\n',
+    table:
+      '\n| Provider | Feature 1 | Feature 2 | Pricing |\n' +
+      '|----------|-----------|-----------|----------|\n' +
+      '| **HansePay** | ✅ | ✅ | Competitive |\n' +
+      '| Competitor A | ✅ | ❌ | High |\n' +
+      '| Competitor B | ❌ | ✅ | Medium |\n',
+    'callout-info':
+      '\n<div class="callout callout-info">\n' +
+      '<strong>💡 Pro tip:</strong> Write your tip here.\n' +
+      '</div>\n',
+    'callout-warning':
+      '\n<div class="callout callout-warning">\n' +
+      '<strong>⚠️ Important:</strong> Write your warning here.\n' +
+      '</div>\n',
+    'callout-success':
+      '\n<div class="callout callout-success">\n' +
+      '<strong>✅ Key point:</strong> Write your key point here.\n' +
+      '</div>\n',
+    stat:
+      '\n<div class="stat-block">\n' +
+      '<span class="stat-number">XX%</span>\n' +
+      '<span class="stat-label">Your statistic label here</span>\n' +
+      '</div>\n',
+    cta:
+      '\n<div class="cta-block">\n' +
+      '<strong>Ready to optimise your FX costs?</strong><br>\n' +
+      'Book a free 30-minute discovery call with a HansePay FX specialist — no commitment required.\n\n' +
+      '[Talk to our team →](booking.html)\n' +
+      '</div>\n',
+    hr: '\n\n---\n\n'
   };
-})();
+
+  snippet = blocks[type] || '';
+  if (!snippet) return;
+
+  ta.value = val.substring(0, start) + snippet + val.substring(end);
+  var newPos = start + snippet.length;
+  ta.selectionStart = ta.selectionEnd = newPos;
+  ta.focus();
+  onContentInput();
+}
+
+function tbWrap(type) {
+  var ta = document.getElementById('f-content');
+  var start = ta.selectionStart;
+  var end   = ta.selectionEnd;
+  var val   = ta.value;
+  var sel   = val.substring(start, end) || (type === 'bold' ? 'bold text' : 'italic text');
+  var wrapped;
+  if (type === 'bold')   wrapped = '**' + sel + '**';
+  if (type === 'italic') wrapped = '*'  + sel + '*';
+  ta.value = val.substring(0, start) + wrapped + val.substring(end);
+  ta.selectionStart = start;
+  ta.selectionEnd   = start + wrapped.length;
+  ta.focus();
+  onContentInput();
+}
+
+// ── AI Generate Modal ──────────────────────────────────────────────────────────
+function openAiModal() {
+  resetAiModal();
+  document.getElementById('ai-modal').classList.add('open');
+  document.getElementById('ai-topic').focus();
+}
+
+function closeAiModal() {
+  document.getElementById('ai-modal').classList.remove('open');
+}
+
+function handleModalBackdropClick(e) {
+  if (e.target === document.getElementById('ai-modal')) closeAiModal();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('ai-modal').classList.contains('open')) {
+    closeAiModal();
+  }
+});
+
+function resetAiModal() {
+  aiMeta = null;
+  document.getElementById('ai-form').style.display = '';
+  document.getElementById('ai-output').classList.remove('visible');
+  document.getElementById('ai-error-wrap').style.display = 'none';
+  document.getElementById('ai-stream-content').value = '';
+  document.getElementById('ai-done-msg').style.display = 'none';
+  document.getElementById('ai-spinner').style.display = '';
+  document.getElementById('ai-status-text').textContent = 'Generating…';
+
+  var footer = document.getElementById('ai-modal-footer');
+  footer.innerHTML =
+    '<button class="btn-primary" id="ai-generate-btn" onclick="runAiGenerate()">Generate &#8594;</button>' +
+    '<button class="btn-secondary" onclick="closeAiModal()">Cancel</button>';
+}
+
+function runAiGenerate() {
+  var topic = document.getElementById('ai-topic').value.trim();
+  if (!topic) {
+    document.getElementById('ai-topic').focus();
+    return;
+  }
+
+  var sections = [];
+  if (document.getElementById('sec-intro').checked)     sections.push('introduction');
+  if (document.getElementById('sec-keypoints').checked) sections.push('keypoints');
+  if (document.getElementById('sec-table').checked)     sections.push('comparison_table');
+  if (document.getElementById('sec-proscons').checked)  sections.push('pros_cons');
+  if (document.getElementById('sec-cta').checked)       sections.push('cta');
+
+  var payload = {
+    topic:    topic,
+    tone:     document.getElementById('ai-tone').value,
+    length:   document.getElementById('ai-length').value,
+    sections: sections
+  };
+
+  // Switch to output view
+  document.getElementById('ai-form').style.display = 'none';
+  document.getElementById('ai-output').classList.add('visible');
+  document.getElementById('ai-error-wrap').style.display = 'none';
+
+  var footer = document.getElementById('ai-modal-footer');
+  footer.innerHTML = '<button class="btn-secondary" onclick="resetAiModal()">Start over</button>';
+
+  var streamEl = document.getElementById('ai-stream-content');
+  streamEl.value = '';
+
+  var tok2 = localStorage.getItem('hp_token');
+  fetch('/api/ai/generate-post', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + tok2,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  }).then(function(r) {
+    if (!r.ok) {
+      return r.json().then(function(d) {
+        throw new Error(d.message || d.error || 'API error ' + r.status);
+      });
+    }
+
+    var reader = r.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    // Accumulates raw stream text until the META block has been extracted
+    var rawAccum    = '';
+    var metaParsed  = false;
+    aiMeta          = null;
+
+    function tryParseMeta() {
+      // Try to extract <<<META>>>...<<<END-META>>> from rawAccum
+      var startTag = '<<<META>>>';
+      var endTag   = '<<<END-META>>>';
+      var si = rawAccum.indexOf(startTag);
+      var ei = rawAccum.indexOf(endTag);
+      if (si === -1 || ei === -1) return false;
+      var jsonStr = rawAccum.slice(si + startTag.length, ei).trim();
+      try {
+        aiMeta = JSON.parse(jsonStr);
+        // Update status line to show title was found
+        document.getElementById('ai-status-text').textContent =
+          'Writing: ' + (aiMeta.title ? '"' + aiMeta.title.slice(0, 40) + '…"' : 'article…');
+      } catch(e) { aiMeta = null; }
+      // The body starts after <<<END-META>>>
+      var bodyStart = rawAccum.slice(ei + endTag.length);
+      // Strip leading newlines
+      bodyStart = bodyStart.replace(/^\n+/, '');
+      streamEl.value = bodyStart;
+      metaParsed = true;
+      return true;
+    }
+
+    function pump() {
+      return reader.read().then(function(result) {
+        if (result.done) {
+          if (!metaParsed) tryParseMeta();
+          onStreamDone(streamEl.value);
+          return;
+        }
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\n');
+        buffer = lines.pop();
+        lines.forEach(function(line) {
+          line = line.trim();
+          if (!line || !line.startsWith('data:')) return;
+          var data = line.slice(5).trim();
+          if (data === '[DONE]') { if (!metaParsed) tryParseMeta(); onStreamDone(streamEl.value); return; }
+          try {
+            var parsed = JSON.parse(data);
+            if (parsed.text) {
+              rawAccum += parsed.text;
+              if (!metaParsed) {
+                // Try to parse META; if done, body text goes to textarea
+                if (!tryParseMeta()) {
+                  // Still in META block — don't show raw JSON to user yet
+                  document.getElementById('ai-status-text').textContent = 'Planning article…';
+                }
+              } else {
+                // META already extracted — append directly to body textarea
+                streamEl.value += parsed.text;
+              }
+            }
+            if (parsed.warning === 'max_tokens_reached') {
+              document.getElementById('ai-status-text').textContent = 'Article truncated (token limit reached) — you can still use and edit the content below.';
+            }
+          } catch(e) {}
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(function(err) {
+    document.getElementById('ai-output').classList.remove('visible');
+    var errWrap = document.getElementById('ai-error-wrap');
+    errWrap.style.display = 'block';
+
+    var msg = err.message || 'An error occurred.';
+    var isApiKeyError = msg.toLowerCase().indexOf('api key') !== -1 || msg.toLowerCase().indexOf('not configured') !== -1;
+    if (isApiKeyError) {
+      errWrap.innerHTML =
+        '<div class="ai-error-msg">Add your Claude API key in <a href="/hansepay/admin/settings.html">Settings → AI Integration</a> to use this feature.</div>';
+    } else {
+      errWrap.innerHTML = '<div class="ai-error-msg">' + msg + '</div>';
+    }
+
+    footer.innerHTML =
+      '<button class="btn-secondary" onclick="resetAiModal()">Try again</button>' +
+      '<button class="btn-secondary" onclick="closeAiModal()">Close</button>';
+  });
+}
+
+// Stores structured metadata emitted by Claude before the article body
+var aiMeta = null;
+
+function onStreamDone(content) {
+  var words = content.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('ai-spinner').style.display = 'none';
+  document.getElementById('ai-status-text').textContent = 'Done';
+
+  var doneEl = document.getElementById('ai-done-msg');
+  doneEl.style.display = 'flex';
+
+  // Show a preview card of what will be populated
+  var metaPreview = '';
+  if (aiMeta) {
+    var imgUrl = aiMeta.imageQuery
+      ? 'https://loremflickr.com/800/400/' + aiMeta.imageQuery.trim().replace(/\s+/g, ',')
+      : '';
+    metaPreview =
+      '<div style="background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin:12px 0;font-size:12px;line-height:1.7">' +
+      '<div style="font-weight:700;color:#1e3a8a;margin-bottom:6px">✅ ' + words.toLocaleString() + ' words · Fields ready to fill</div>' +
+      '<div><strong>Title:</strong> ' + (aiMeta.title || '—') + '</div>' +
+      '<div><strong>Slug:</strong> ' + (aiMeta.slug || '—') + '</div>' +
+      '<div><strong>Category:</strong> ' + (aiMeta.category || '—') + ' &nbsp;|&nbsp; <strong>Read time:</strong> ' + (aiMeta.readTime || '?') + ' min</div>' +
+      '<div><strong>Tags:</strong> ' + ((aiMeta.tags || []).join(', ') || '—') + '</div>' +
+      (imgUrl ? '<div style="margin-top:10px"><strong>Image:</strong><br><img src="' + imgUrl + '" style="margin-top:6px;width:100%;height:80px;object-fit:cover;border-radius:6px" alt="preview"></div>' : '') +
+      '</div>';
+    doneEl.innerHTML = metaPreview;
+  } else {
+    doneEl.textContent = '✅ Done — ' + words.toLocaleString() + ' words';
+  }
+
+  var footer = document.getElementById('ai-modal-footer');
+  footer.innerHTML =
+    '<button class="btn-primary" onclick="insertAiContent()">Insert into editor</button>' +
+    '<button class="btn-secondary" onclick="resetAiModal()">Start over</button>';
+}
+
+function insertAiContent() {
+  var content = document.getElementById('ai-stream-content').value;
+  document.getElementById('f-content').value = content;
+  onContentInput();
+
+  // Populate all fields from Claude's metadata
+  if (aiMeta) {
+    if (aiMeta.title) {
+      document.getElementById('f-title').value = aiMeta.title;
+      slugUserEdited = false; // allow slug to be set
+    }
+    if (aiMeta.slug) {
+      document.getElementById('f-slug').value = aiMeta.slug;
+      slugUserEdited = true; // lock slug after setting
+    }
+    if (aiMeta.excerpt)  document.getElementById('f-excerpt').value  = aiMeta.excerpt;
+    if (aiMeta.category) {
+      var catEl = document.getElementById('f-category');
+      // Try to match; fallback to first option
+      for (var i = 0; i < catEl.options.length; i++) {
+        if (catEl.options[i].value === aiMeta.category) { catEl.selectedIndex = i; break; }
+      }
+    }
+    if (aiMeta.tags && aiMeta.tags.length) {
+      document.getElementById('f-tags').value = aiMeta.tags.join(', ');
+    }
+    if (aiMeta.readTime) {
+      document.getElementById('f-readtime').value = aiMeta.readTime;
+    }
+    // Featured image from Unsplash based on imageQuery
+    if (aiMeta.imageQuery) {
+      var imgUrl = 'https://loremflickr.com/1200/630/' + aiMeta.imageQuery.trim().replace(/\s+/g, ',');
+      document.getElementById('f-image-url').value = imgUrl;
+      document.getElementById('f-image-url-input').value = imgUrl;
+      setImagePreview(imgUrl);
+    }
+    // Store SEO fields for when the SEO manager is updated
+    if (aiMeta.seoTitle || aiMeta.seoDescription) {
+      document.getElementById('f-title').dataset.seoTitle = aiMeta.seoTitle || '';
+      document.getElementById('f-title').dataset.seoDesc  = aiMeta.seoDescription || '';
+    }
+    // Sync author display in case it was auto-populated before
+    if (typeof syncAuthorDisplay === 'function') syncAuthorDisplay();
+  }
+
+  closeAiModal();
+  showToast('Article + all fields inserted ✓', 'success');
+}
 </script>
 </body>
 </html>

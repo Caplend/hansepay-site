@@ -269,18 +269,17 @@ a{color:inherit;text-decoration:none}
   box-shadow:0 32px 80px rgba(11,25,41,.13),0 8px 24px rgba(11,25,41,.08)}
 @media(max-width:960px){.currencies-globe-wrap{display:none}}
 .currencies-content-col{}
-.currency-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.ccy-chip{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-md);background:#fff;transition:all .15s;cursor:default}
-.ccy-chip:hover{border-color:var(--n200);background:var(--n050)}
+/* Uniform pill chips, centred rows — matches the platform coverage layout */
+.currency-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
+.ccy-chip{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-pill);background:#fff;transition:all .15s;cursor:default;flex:0 0 auto}
+.ccy-chip:hover{border-color:var(--n200);background:var(--n050);transform:translateY(-1px)}
 .ccy-chip.globe-active{border-color:rgba(201,169,97,.5);background:rgba(201,169,97,.06);box-shadow:0 0 0 1px rgba(201,169,97,.18),0 2px 10px rgba(201,169,97,.08)}
 .ccy-chip.globe-active .ccy-code{color:#a07828}
 .ccy-chip.globe-active .ccy-flag{filter:drop-shadow(0 0 3px rgba(201,169,97,.5))}
-.ccy-flag{font-size:15px;line-height:1;flex-shrink:0}
-.ccy-code{font-size:12px;font-weight:700;color:var(--n700);letter-spacing:.01em}
-.ccy-name{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.corridor-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:16px}
-.corridor-badge{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:var(--r-md);background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);font-size:11px;font-weight:600;color:#15803d;letter-spacing:.02em}
-.corridor-dot{width:5px;height:5px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.ccy-flag{font-size:16px;line-height:1;flex-shrink:0}
+.ccy-code{font-size:13px;font-weight:700;color:var(--n700);letter-spacing:.01em}
+/* Code-only chips (like the coverage page) keep every pill the same size */
+.ccy-name{display:none}
 
 /* PLATFORM SHOWCASE */
 .showcase-layout{display:grid;grid-template-columns:1fr 1.15fr;gap:72px;align-items:center}
@@ -372,14 +371,6 @@ a{color:inherit;text-decoration:none}
   .seg-body{padding:18px 20px}
   .ins-body{padding:18px 20px}
 }
-@media(max-width:640px){
-  .currency-grid{grid-template-columns:repeat(2,1fr)}
-  .corridor-row{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:380px){
-  .currency-grid{grid-template-columns:1fr}
-  .corridor-row{grid-template-columns:1fr}
-}
 @media(max-width:480px){
   .view-toggle{bottom:16px;right:16px;padding:3px}
   .view-toggle a{padding:5px 10px;font-size:11px}
@@ -400,8 +391,8 @@ a{color:inherit;text-decoration:none}
       <h1 class="hero-headline">Cross-border<br>payments, <em>reimagined.</em></h1>
       <p class="hero-sub">Stop overpaying on every international transfer. HansePay gives mid-sized European businesses direct access to interbank FX rates, zero markup, same-day settlement, BaFin regulated.</p>
       <div class="hero-actions">
-        <a href="#contact" class="btn btn-white-fill">Open an account</a>
-        <a href="#contact" class="btn btn-ghost-white">Talk to our team</a>
+        <a href="/onboarding.html" class="btn btn-white-fill" data-i18n="cta.open-account">Open an account</a>
+        <a href="booking.html" class="btn btn-ghost-white" data-i18n="cta.book-call">Book a call</a>
       </div>
     </div>
     <!-- Globe moved to currencies section -->
@@ -414,19 +405,19 @@ a{color:inherit;text-decoration:none}
     <div class="trust-inner">
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div><div class="trust-txt-main">BaFin Regulated</div><div class="trust-txt-sub">EU-licensed E-Money Institution</div></div>
+        <div><div class="trust-txt-main" data-i18n="index.trust.1.title">BaFin Regulated</div><div class="trust-txt-sub" data-i18n="index.trust.1.sub">EU-licensed E-Money Institution</div></div>
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <div><div class="trust-txt-main">Mid-Market Rate</div><div class="trust-txt-sub">No hidden markups</div></div>
+        <div><div class="trust-txt-main" data-i18n="index.trust.2.title">Mid-Market Rate</div><div class="trust-txt-sub" data-i18n="index.trust.2.sub">No hidden markups</div></div>
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        <div><div class="trust-txt-main">Live Pricing</div><div class="trust-txt-sub">Real-time rates around the clock</div></div>
+        <div><div class="trust-txt-main" data-i18n="index.trust.3.title">Live Pricing</div><div class="trust-txt-sub" data-i18n="index.trust.3.sub">Real-time rates around the clock</div></div>
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <div><div class="trust-txt-main">Dedicated Expert</div><div class="trust-txt-sub">Direct contacts, no call centre</div></div>
+        <div><div class="trust-txt-main" data-i18n="index.trust.4.title">Dedicated Expert</div><div class="trust-txt-sub" data-i18n="index.trust.4.sub">Direct contacts, no call centre</div></div>
       </div>
     </div>
   </div>
@@ -449,13 +440,13 @@ a{color:inherit;text-decoration:none}
       <div class="calc-card reveal">
         <!-- Volume slider -->
         <div class="calc-row">
-          <div class="calc-lbl"><span>Annual FX volume</span><span class="calc-lbl-val" id="hp-vol-disp">1.000.000 €</span></div>
+          <div class="calc-lbl"><span data-i18n="index.calc.lbl.vol">Annual FX volume</span><span class="calc-lbl-val" id="hp-vol-disp">1.000.000 €</span></div>
           <input type="range" class="hp-range" id="hp-vol" min="100000" max="50000000" step="50000" value="1000000" style="--pct:1.8%">
           <div class="hp-range-labels"><span>€100k</span><span>€50M</span></div>
         </div>
         <!-- Currency -->
         <div class="calc-row">
-          <div class="calc-lbl"><span>Currency pair</span><span id="hp-cat-lbl" style="font-size:11px;font-weight:600;background:var(--n050);color:var(--n500);padding:2px 9px;border-radius:4px">Major</span></div>
+          <div class="calc-lbl"><span data-i18n="index.calc.lbl.ccy">Currency pair</span><span id="hp-cat-lbl" style="font-size:11px;font-weight:600;background:var(--n050);color:var(--n500);padding:2px 9px;border-radius:4px">Major</span></div>
           <div class="calc-select-wrap">
             <select class="calc-select" id="hp-ccy">
               <optgroup label="Major currencies">
@@ -493,31 +484,31 @@ a{color:inherit;text-decoration:none}
         </div>
         <!-- Provider -->
         <div class="calc-row">
-          <div class="calc-lbl"><span>Current provider</span><span id="hp-margin-hint" style="font-size:11px;color:var(--ink3)">~2.50%</span></div>
+          <div class="calc-lbl"><span data-i18n="index.calc.lbl.provider">Current provider</span><span id="hp-margin-hint" style="font-size:11px;color:var(--ink3)">~2.50%</span></div>
           <div class="calc-select-wrap">
             <select class="calc-select" id="hp-bank">
-              <option value="major_de">Major German bank (Deutsche Bank, Commerzbank)</option>
-              <option value="sparkasse">Sparkasse / Volksbank</option>
-              <option value="international">International bank (HSBC, BNP Paribas)</option>
-              <option value="broker">FX broker / specialist</option>
+              <option value="major_de" data-i18n="calc.bank.major_de">Major German bank (Deutsche Bank, Commerzbank)</option>
+              <option value="sparkasse" data-i18n="calc.bank.sparkasse">Sparkasse / Volksbank</option>
+              <option value="international" data-i18n="calc.bank.international">International bank (HSBC, BNP Paribas)</option>
+              <option value="broker" data-i18n="calc.bank.broker">FX broker / specialist</option>
             </select>
             <svg class="calc-arrow" style="width:16px;height:16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
         <!-- Payments per month -->
         <div class="calc-row">
-          <div class="calc-lbl"><span>Payments per month</span><span class="calc-lbl-val" id="hp-pay-disp">25</span></div>
+          <div class="calc-lbl"><span data-i18n="index.calc.lbl.payments">Payments per month</span><span class="calc-lbl-val" id="hp-pay-disp">25</span></div>
           <input type="range" class="hp-range" id="hp-pay" min="1" max="500" step="1" value="25" style="--pct:4.8%">
           <div class="hp-range-labels"><span>1</span><span>500</span></div>
         </div>
         <div class="calc-divider"></div>
         <div class="calc-result">
-          <div class="calc-result-row"><span class="calc-result-lbl">Saved on FX margins</span><span class="calc-result-val" id="hp-margin-save">22.000 €</span></div>
-          <div class="calc-result-row"><span class="calc-result-lbl">Saved on per-payment fees</span><span class="calc-result-val" id="hp-fee-save">8.400 €</span></div>
-          <div class="calc-saving"><span class="calc-saving-lbl">Total annual saving</span><span class="calc-saving-val" id="hp-total-save">30.400 €</span></div>
+          <div class="calc-result-row"><span class="calc-result-lbl" data-i18n="index.calc.res.margins">Saved on FX margins</span><span class="calc-result-val" id="hp-margin-save">22.000 €</span></div>
+          <div class="calc-result-row"><span class="calc-result-lbl" data-i18n="index.calc.res.fees">Saved on per-payment fees</span><span class="calc-result-val" id="hp-fee-save">8.400 €</span></div>
+          <div class="calc-saving"><span class="calc-saving-lbl" data-i18n="index.calc.res.total">Total annual saving</span><span class="calc-saving-val" id="hp-total-save">30.400 €</span></div>
         </div>
-        <p class="calc-disclaimer">Estimates based on industry-standard margins. Major pairs: bank 2.5%, HansePay 0.3%. Bank wire fee €38, HansePay €10. Exact saving depends on your transaction history.</p>
-        <a href="tools-calculator.html" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px">Full calculator with detailed breakdown &rarr;</a>
+        <p class="calc-disclaimer" data-i18n="index.calc.disclaimer">Estimates based on industry-standard margins. Major pairs: bank 2.5%, HansePay 0.3%. Bank wire fee €38, HansePay €10. Exact saving depends on your transaction history.</p>
+        <a href="tools-calculator.html" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:20px" data-i18n="index.calc.cta">Full calculator with detailed breakdown →</a>
       </div>
     </div>
   </div>
@@ -536,23 +527,23 @@ a{color:inherit;text-decoration:none}
       <div class="vp-metrics reveal d1">
         <div class="vp-metric">
           <div class="vp-metric-value">0%</div>
-          <div class="vp-metric-label">FX markup</div>
-          <div class="vp-metric-sub">Mid-market rate, always</div>
+          <div class="vp-metric-label" data-i18n="index.vp.m1.label">FX markup</div>
+          <div class="vp-metric-sub" data-i18n="index.vp.m1.sub">Mid-market rate, always</div>
         </div>
         <div class="vp-metric">
-          <div class="vp-metric-value">Same<br>day</div>
-          <div class="vp-metric-label">Settlement</div>
-          <div class="vp-metric-sub">Most corridors, within hours</div>
+          <div class="vp-metric-value" data-i18n-html="index.vp.m2.value">Same<br>day</div>
+          <div class="vp-metric-label" data-i18n="index.vp.m2.label">Settlement</div>
+          <div class="vp-metric-sub" data-i18n="index.vp.m2.sub">Most corridors, within hours</div>
         </div>
         <div class="vp-metric">
           <div class="vp-metric-value">35+</div>
-          <div class="vp-metric-label">Currencies</div>
-          <div class="vp-metric-sub">45+ markets covered</div>
+          <div class="vp-metric-label" data-i18n="index.vp.m3.label">Currencies</div>
+          <div class="vp-metric-sub" data-i18n="index.vp.m3.sub">45+ markets covered</div>
         </div>
         <div class="vp-metric">
           <div class="vp-metric-value">&lt;10 min</div>
-          <div class="vp-metric-label">Onboarding</div>
-          <div class="vp-metric-sub">Fully digital, no paperwork</div>
+          <div class="vp-metric-label" data-i18n="index.vp.m4.label">Onboarding</div>
+          <div class="vp-metric-sub" data-i18n="index.vp.m4.sub">Fully digital, no paperwork</div>
         </div>
       </div>
     </div>
@@ -565,9 +556,9 @@ a{color:inherit;text-decoration:none}
 <section class="section how-section">
   <div class="container">
     <div class="how-intro">
-      <span class="eyebrow reveal">How it works</span>
-      <h2 class="section-head reveal d1" style="margin-top:12px">From quote to <em>cleared funds</em> in four steps.</h2>
-      <p class="lede reveal d2" style="margin-top:16px">No paperwork delays, no opaque pricing. Just fast, precise FX execution the way it should be.</p>
+      <span class="eyebrow reveal" data-i18n="index.how.eyebrow">How it works</span>
+      <h2 class="section-head reveal d1" style="margin-top:12px" data-i18n-html="index.how.h2">From quote to <em>cleared funds</em> in four steps.</h2>
+      <p class="lede reveal d2" style="margin-top:16px" data-i18n="index.how.sub">No paperwork delays, no opaque pricing. Just fast, precise FX execution the way it should be.</p>
     </div>
     <div class="how-grid">
       <div class="how-step reveal"><div class="how-num">1</div><div class="how-title">Open an account</div><div class="how-desc">Online application in under 10 minutes. No paperwork, no bank appointments, digital ID verification included.</div></div>
@@ -603,10 +594,10 @@ a{color:inherit;text-decoration:none}
           </div>
           <div class="showcase-feat">
             <div class="showcase-feat-dot"></div>
-            <div><div class="showcase-feat-title">API &amp; bulk payments</div><div class="showcase-feat-desc">Integrate with your ERP or TMS. Send hundreds of payments from one CSV upload.</div></div>
+            <div><div class="showcase-feat-title" data-i18n="index.platform.f4.title">API &amp; bulk payments</div><div class="showcase-feat-desc" data-i18n="index.platform.f4.desc">Integrate with your ERP or TMS. Send hundreds of payments from one CSV upload.</div></div>
           </div>
         </div>
-        <a href="platform.html" class="btn btn-ghost-white" style="margin-top:36px">Explore the platform &rarr;</a>
+        <a href="platform.html" class="btn btn-ghost-white" style="margin-top:36px" data-i18n="index.platform.cta">Explore the platform &rarr;</a>
       </div>
       <!-- Right: App UI (premium glass frame) -->
       <div>
@@ -734,16 +725,8 @@ a{color:inherit;text-decoration:none}
           <div class="ccy-chip" data-ccy="THB"><span class="ccy-flag">🇹🇭</span><span class="ccy-code">THB</span><span class="ccy-name">Thai Baht</span></div>
           <div class="ccy-chip" data-ccy="VND"><span class="ccy-flag">🇻🇳</span><span class="ccy-code">VND</span><span class="ccy-name">Vietnamese Dong</span></div>
         </div>
-        <div class="corridor-row reveal">
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/USD · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/GBP · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/JPY · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/CAD · same day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/SGD · next day</span>
-          <span class="corridor-badge"><span class="corridor-dot"></span>EUR/AED · next day</span>
-        </div>
-        <p style="font-size:11.5px;color:var(--ink3);margin-top:14px;line-height:1.5">+27 more markets available &mdash; speak with your FX expert for full corridor availability.</p>
-        <a href="platform.html#currencies" class="btn btn-ghost-navy reveal" style="margin-top:20px">See full coverage &rarr;</a>
+        <p style="font-size:11.5px;color:var(--ink3);margin-top:18px;line-height:1.5" data-i18n="index.currencies.more">+27 more markets available &mdash; speak with your FX expert for full corridor availability.</p>
+        <a href="platform.html#currencies" class="btn btn-ghost-navy reveal" style="margin-top:20px" data-i18n="index.currencies.cta">See full coverage &rarr;</a>
       </div>
     </div>
   </div>
@@ -778,9 +761,9 @@ a{color:inherit;text-decoration:none}
         <a href="about-vision.html" class="btn btn-ghost-navy reveal d3">Learn more about us</a>
       </div>
       <div class="cred-card reveal d1">
-        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="cred-title">BaFin Licensed</div><div class="cred-desc">EU-regulated E-Money Institution under MiCAR. Direct German supervisory oversight by BaFin.</div></div></div>
-        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><div class="cred-title">Made in Hamburg</div><div class="cred-desc">Headquartered in Germany's gateway to the world, since 2023. Backed by Innovationsstarter Fonds Hamburg.</div></div></div>
-        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="cred-title">Institutional Expertise</div><div class="cred-desc">Founded and advised by experienced FX and finance professionals with backgrounds at leading institutional firms.</div></div></div>
+        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="cred-title" data-i18n="index.cred.1.title">BaFin Licensed</div><div class="cred-desc" data-i18n="index.cred.1.desc">EU-regulated E-Money Institution under MiCAR. Direct German supervisory oversight by BaFin.</div></div></div>
+        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div><div class="cred-title" data-i18n="index.cred.2.title">Made in Hamburg</div><div class="cred-desc" data-i18n="index.cred.2.desc">Headquartered in Germany's gateway to the world, since 2023. Backed by Innovationsstarter Fonds Hamburg.</div></div></div>
+        <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="cred-title" data-i18n="index.cred.3.title">Institutional Expertise</div><div class="cred-desc" data-i18n="index.cred.3.desc">Founded and advised by experienced FX and finance professionals with backgrounds at leading institutional firms.</div></div></div>
       </div>
     </div>
   </div>
@@ -791,10 +774,10 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div class="insights-header">
       <div>
-        <span class="eyebrow reveal">HANSEPAY INSIGHTS</span>
-        <h2 class="section-head reveal" style="margin-top:10px;margin-bottom:0">FX knowledge that moves<br><em>your business forward.</em></h2>
+        <span class="eyebrow reveal" data-i18n="index.insights.eyebrow">HANSEPAY INSIGHTS</span>
+        <h2 class="section-head reveal" style="margin-top:10px;margin-bottom:0" data-i18n-html="index.insights.h2">FX knowledge that moves<br><em>your business forward.</em></h2>
       </div>
-      <a href="/hansepay/blog.html" class="btn-outline reveal" style="flex-shrink:0">All articles →</a>
+      <a href="/hansepay/blog.html" class="btn-outline reveal" style="flex-shrink:0" data-i18n="index.insights.cta">All articles →</a>
     </div>
     <div class="ins-grid" id="ins-grid">
       <!-- Cards injected by JS -->
@@ -815,9 +798,9 @@ a{color:inherit;text-decoration:none}
           <div class="ins-thumb-bar"></div>
         </div>
         <div class="ins-body">
-          <span class="ins-tag">Treasury</span>
-          <div class="ins-title">Same-Day Euro Settlement: A Practical Guide for European Businesses</div>
-          <div class="ins-meta">HansePay Team · 6 min read</div>
+          <span class="ins-tag" data-i18n="index.ins.2.tag">Treasury</span>
+          <div class="ins-title" data-i18n="index.ins.2.title">Same-Day Euro Settlement: A Practical Guide for European Businesses</div>
+          <div class="ins-meta" data-i18n="index.ins.2.meta">HansePay Team · 6 min read</div>
         </div>
       </div>
       <div class="ins-card" style="background:#fff">
@@ -826,9 +809,9 @@ a{color:inherit;text-decoration:none}
           <div class="ins-thumb-bar"></div>
         </div>
         <div class="ins-body">
-          <span class="ins-tag">Compliance</span>
-          <div class="ins-title">BaFin Regulation: What It Means for Your Business's Money</div>
-          <div class="ins-meta">HansePay Team · 7 min read</div>
+          <span class="ins-tag" data-i18n="index.ins.3.tag">Compliance</span>
+          <div class="ins-title" data-i18n="index.ins.3.title">BaFin Regulation: What It Means for Your Business's Money</div>
+          <div class="ins-meta" data-i18n="index.ins.3.meta">HansePay Team · 7 min read</div>
         </div>
       </div>
     </div>
@@ -840,48 +823,48 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div style="max-width:720px;margin:0 auto">
       <div style="text-align:center;margin-bottom:56px">
-        <span class="eyebrow reveal">FAQ</span>
-        <h2 class="section-head reveal d1" style="margin-top:12px">Common <em>questions.</em></h2>
+        <span class="eyebrow reveal" data-i18n="index.faq.eyebrow">FAQ</span>
+        <h2 class="section-head reveal d1" style="margin-top:12px" data-i18n-html="index.faq.h2">Common <em>questions.</em></h2>
       </div>
       <div class="faq-list">
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">How fast are transfers?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q1">How fast are transfers?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <div class="faq-a">Most transfers on major corridors (EUR/USD, EUR/GBP, EUR/CHF) settle same day. Transfers to Asia and the Middle East typically settle next business day. Your dedicated FX expert confirms exact timings when you book.</div>
+          <div class="faq-a" data-i18n="index.faq.a1">Most transfers on major corridors (EUR/USD, EUR/GBP, EUR/CHF) settle same day. Transfers to Asia and the Middle East typically settle next business day. Your dedicated FX expert confirms exact timings when you book.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">What fees does HansePay charge?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q2">What fees does HansePay charge?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="faq-a">A single transparent transaction fee of 0.3–0.5%, depending on volume and currency pair. Zero markup on the exchange rate, you always receive the real mid-market rate. No monthly fees, no hidden charges, no minimum commitment.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">Which currencies and countries do you support?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q3">Which currencies and countries do you support?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="faq-a">45+ markets across the Americas, Africa, the Middle East, Asia &amp; Pacific, and Europe, including USD, GBP, JPY, AED, CNY, AUD, CAD, SGD, BRL, INR, KRW, ZAR, and more. Need a specific corridor? Get in touch, we can often arrange it on request.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">Is HansePay regulated and safe?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q4">Is HansePay regulated and safe?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <div class="faq-a">Yes. HansePay is a BaFin-regulated EU E-Money Institution. Client funds are held in fully segregated accounts. We comply with all applicable AML, KYC, and MiCAR regulations and are subject to regular audits under German and EU financial law.</div>
+          <div class="faq-a" data-i18n="index.faq.a4">Yes. HansePay is a BaFin-regulated EU E-Money Institution. Client funds are held in fully segregated accounts. We comply with all applicable AML, KYC, and MiCAR regulations and are subject to regular audits under German and EU financial law.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">How do I get started?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q5">How do I get started?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="faq-a">Open an account online in under 10 minutes, fully digital, no paperwork, no bank appointments. Digital ID verification is included. Once approved, your dedicated FX expert contacts you to walk through the platform and discuss your requirements.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
-            <span class="faq-q-text">Is there a minimum transfer amount?</span>
+            <span class="faq-q-text" data-i18n="index.faq.q6">Is there a minimum transfer amount?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
           <div class="faq-a">The minimum transfer is €50. There is no maximum. For large or complex transfers, your FX expert can arrange tailored rates and bespoke settlement options.</div>
@@ -894,10 +877,10 @@ a{color:inherit;text-decoration:none}
 <!-- CTA BAND -->
 <section class="cta-band" id="contact">
   <div class="container"><div class="cta-inner">
-    <div><span class="eyebrow cta-eyebrow">Get started</span></div>
-    <h2 class="cta-head" style="margin-top:16px">Ready for a real <em>FX team?</em></h2>
-    <p class="cta-sub">Open an account in minutes or speak directly with a foreign exchange specialist. No minimum volumes, no contract lock-in.</p>
-    <div class="cta-actions"><a href="#" class="btn btn-white-fill">Open a business account</a><a href="#" class="btn btn-ghost-white">Talk to a specialist</a></div>
+    <div><span class="eyebrow cta-eyebrow" data-i18n="index.cta.eyebrow">Get started</span></div>
+    <h2 class="cta-head" style="margin-top:16px" data-i18n-html="index.cta.h2">Ready for a real <em>FX team?</em></h2>
+    <p class="cta-sub" data-i18n="index.cta.sub">Open an account in minutes or speak directly with a foreign exchange specialist. No minimum volumes, no contract lock-in.</p>
+    <div class="cta-actions"><a href="#" class="btn btn-white-fill" data-i18n="cta.open-account">Open a business account</a><a href="#" class="btn btn-ghost-white" data-i18n="cta.talk-to-team">Talk to a specialist</a></div>
   </div></div>
 </section>
 
@@ -936,8 +919,14 @@ var fmt=function(n){return new Intl.NumberFormat('en-GB',{style:'currency',curre
   document.getElementById('hp-ccy').addEventListener('change',function(){
     var parts=this.value.split('|');
     cat=parts[1]||'major';
-    var labels={major:'Major',minor:'Minor',exotic:'Exotic'};
-    document.getElementById('hp-cat-lbl').textContent=labels[cat]||'Major';
+    var t=window.HP?window.HP.t.bind(window.HP):function(k){return k;};
+    var labels={major:t('calc.cat.major'),minor:t('calc.cat.minor'),exotic:t('calc.cat.exotic')};
+    document.getElementById('hp-cat-lbl').textContent=labels[cat]||t('calc.cat.major');
+    // Update optgroup labels
+    var og=document.querySelectorAll('#hp-ccy optgroup');
+    if(og[0])og[0].label=t('calc.cat.major')+' currencies';
+    if(og[1])og[1].label=t('calc.cat.minor')+' currencies';
+    if(og[2])og[2].label=t('calc.cat.exotic')+' currencies';
     compute();
   });
   document.getElementById('hp-bank').addEventListener('change',function(){bankKey=this.value;compute();});
@@ -951,6 +940,19 @@ var fmt=function(n){return new Intl.NumberFormat('en-GB',{style:'currency',curre
   compute();
 })();
 calcUpdate();
+
+// Re-apply calculator labels when language switches
+(function(){
+  var origSet = window.HP && window.HP.setLang;
+  if(!origSet) return;
+  var _set = origSet;
+  window.HP.setLang = function(lang) {
+    _set.call(window.HP, lang);
+    // Trigger currency change to refresh cat label + optgroup labels
+    var ccyEl = document.getElementById('hp-ccy');
+    if(ccyEl) ccyEl.dispatchEvent(new Event('change'));
+  };
+})();
 
 /* Scroll reveal disabled */
 
@@ -1289,5 +1291,6 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener
   }).catch(function(){});
 })();
 </script>
+<script src="assets/globe.js"></script>
 </body>
 </html>

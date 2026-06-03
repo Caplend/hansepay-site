@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Customers — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Customers</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="export-csv">Export CSV</button>
+      <button class="btn btn-ghost" id="export-xlsx">Export Excel</button>
+      <label class="btn btn-ghost" style="cursor:pointer" title="Import leads from CSV">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import CSV
+        <input type="file" accept=".csv" id="import-csv-file" style="display:none">
+      </label>
+      <button class="btn btn-ghost" id="btn-gen-leads" style="border-color:rgba(99,102,241,.35);color:#4f46e5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        Generate leads
+      </button>
+      <button class="btn btn-ghost" id="btn-outbound" style="border-color:rgba(99,102,241,.35);color:#4f46e5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        Add outbound lead
+      </button>
+      <button class="btn btn-primary" id="new-customer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New customer
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-value" id="s-total">—</div><div class="stat-label">Total customers</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-active">—</div><div class="stat-label">Active accounts</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-pipeline">—</div><div class="stat-label">Open pipeline value</div></div>
+      <div class="stat-card"><div class="stat-value" id="s-risk">—</div><div class="stat-label">Churn-risk accounts</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input class="search-input" id="search" type="text" placeholder="Search company, contact, email, industry…" />
+      <select class="select" id="f-stage"><option value="">All stages</option><option value="lead">Lead</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="won">Won</option><option value="lost">Lost</option></select>
+      <select class="select" id="f-status"><option value="">All statuses</option><option value="prospect">Prospect</option><option value="active">Active</option><option value="churned">Churned</option></select>
+      <select class="select" id="f-churn"><option value="">All health</option><option value="high">High churn risk</option><option value="medium">Medium churn risk</option><option value="low">Low risk</option></select>
+      <select class="select" id="f-source"><option value="">All sources</option><option value="booking">Booking</option><option value="manual">Manual</option><option value="referral">Referral</option><option value="web">Web</option><option value="import">Import</option></select>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="overflow:hidden">
+      <table class="data-table">
+        <thead><tr>
+          <th>Company</th><th>Contact</th><th>Stage</th><th>Status</th>
+          <th>Est. value</th><th>Health</th><th>Churn</th><th>Last contact</th>
+        </tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Drawer -->
+<div class="drawer-overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head" style="position:relative">
+    <button class="drawer-close" id="drawer-close">&times;</button>
+    <div id="drawer-title" style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;padding-right:30px">Customer</div>
+    <div id="drawer-sub" style="font-size:.8125rem;color:rgba(255,255,255,.6);margin-top:4px"></div>
+    <div id="drawer-health" style="margin-top:14px"></div>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<script src="components.js"></script>
+<script>
+var H = window.HPAdmin;
+H.renderSidebar('crm');
+var A = H.authFetch, esc = H.escapeHtml;
+
+var all = [];
+var current = null;
+var debounce;
+
+function stageBadge(s){ var l={lead:'Lead',qualified:'Qualified',proposal:'Proposal',won:'Won',lost:'Lost'}[s]||s; return '<span class="badge badge-'+s+'">'+l+'</span>'; }
+function statusBadge(s){ return '<span class="badge badge-'+s+'">'+s+'</span>'; }
+function churnBadge(r){
+  var map={high:'High',medium:'Medium',low:'Low',churned:'Churned'};
+  return '<span class="risk-'+r+'" style="font-weight:600;font-size:.75rem">●&nbsp;'+(map[r]||r)+'</span>';
+}
+
+function load(){
+  var qs=[];
+  var q=document.getElementById('search').value.trim(); if(q)qs.push('q='+encodeURIComponent(q));
+  ['stage','status','churn','source'].forEach(function(f){
+    var v=document.getElementById('f-'+f).value; if(v)qs.push((f==='churn'?'churn':f)+'='+v);
+  });
+  A('/api/customers'+(qs.length?'?'+qs.join('&'):'')).then(function(r){return r.json();}).then(function(list){
+    all=list; render(list);
+  }).catch(function(){});
+  // stats from unfiltered sales summary
+  A('/api/sales/summary').then(function(r){return r.json();}).then(function(s){
+    document.getElementById('s-total').textContent=H.num(s.totals.customers);
+    document.getElementById('s-pipeline').textContent=H.eur(s.totals.pipelineValue);
+    document.getElementById('s-risk').textContent=H.num(s.churnRisk.filter(function(c){return c.churnRisk==='high'||c.churnRisk==='medium';}).length);
+  }).catch(function(){});
+}
+
+// active-account count from current list (status active)
+function activeCount(list){ return list.filter(function(c){return c.status==='active';}).length; }
+
+function render(list){
+  var tb=document.getElementById('rows');
+  document.getElementById('s-active').textContent=H.num(activeCount(all));
+  if(!list.length){ tb.innerHTML='<tr><td colspan="8" class="empty">No customers match your filters.</td></tr>'; return; }
+  tb.innerHTML=list.map(function(c){
+    var name=((c.firstName||'')+' '+(c.lastName||'')).trim()||'—';
+    return '<tr onclick="openCustomer(\''+c.id+'\')">'+
+      '<td class="t-strong">'+esc(c.company||'—')+'<div class="muted" style="font-weight:400;font-size:.6875rem">'+esc(c.industry||'')+(c.country?' · '+esc(c.country):'')+'</div></td>'+
+      '<td>'+esc(name)+'<div class="muted" style="font-size:.6875rem">'+esc(c.email||'')+'</div></td>'+
+      '<td>'+stageBadge(c.stage)+'</td>'+
+      '<td>'+statusBadge(c.status)+'</td>'+
+      '<td class="t-strong">'+H.eur(c.estValueEur)+'</td>'+
+      '<td>'+H.healthHtml(c.health)+'</td>'+
+      '<td>'+churnBadge(c.health.churnRisk)+'</td>'+
+      '<td>'+H.timeAgo(c.lastContactAt)+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ── Drawer ──
+function openDrawer(){ document.getElementById('overlay').classList.add('open'); document.getElementById('drawer').classList.add('open'); }
+function closeDrawer(){ document.getElementById('overlay').classList.remove('open'); document.getElementById('drawer').classList.remove('open'); current=null; }
+document.getElementById('overlay').addEventListener('click',closeDrawer);
+document.getElementById('drawer-close').addEventListener('click',closeDrawer);
+
+window.openCustomer=function(id){
+  A('/api/customers/'+id).then(function(r){return r.json();}).then(function(c){
+    current=c; renderDrawer(c); openDrawer();
+  });
+};
+
+function selOpts(opts,val){ return opts.map(function(o){var v=o[0],l=o[1];return '<option value="'+v+'"'+(v===val?' selected':'')+'>'+l+'</option>';}).join(''); }
+
+function renderDrawer(c){
+  var name=((c.firstName||'')+' '+(c.lastName||'')).trim();
+  document.getElementById('drawer-title').textContent=c.company||name||'Customer';
+  document.getElementById('drawer-sub').innerHTML=esc(name)+(c.email?' · '+esc(c.email):'');
+  var hc=H.healthColor(c.health.score);
+  document.getElementById('drawer-health').innerHTML=
+    '<span class="chip" style="background:rgba(255,255,255,.12);color:#fff">Health '+c.health.score+'/100</span> '+
+    '<span class="chip" style="background:rgba(255,255,255,.12);color:#fff;text-transform:capitalize">'+churnLabel(c.health.churnRisk)+'</span>'+
+    (c.health.daysSinceContact!=null?' <span class="chip" style="background:rgba(255,255,255,.12);color:#fff">'+c.health.daysSinceContact+'d since contact</span>':'');
+
+  var body=document.getElementById('drawer-body');
+  body.innerHTML=
+    '<div class="card card-pad" style="margin-bottom:18px">'+
+      '<div class="field-row"><div class="field"><label>Stage</label><select id="e-stage">'+selOpts([['lead','Lead'],['qualified','Qualified'],['proposal','Proposal'],['won','Won'],['lost','Lost']],c.stage)+'</select></div>'+
+      '<div class="field"><label>Status</label><select id="e-status">'+selOpts([['prospect','Prospect'],['active','Active'],['churned','Churned']],c.status)+'</select></div></div>'+
+      '<div class="field-row"><div class="field"><label>Owner</label><input id="e-owner" value="'+esc(c.owner||'')+'"></div>'+
+      '<div class="field"><label>Next follow-up</label><input id="e-followup" type="date" value="'+(c.nextFollowUpAt?new Date(c.nextFollowUpAt).toISOString().slice(0,10):'')+'"></div></div>'+
+      '<button class="btn btn-primary btn-sm" id="save-stage" style="margin-top:4px">Save</button>'+
+    '</div>'+
+
+    '<div class="subhead" style="margin-top:0">Health factors</div>'+
+    '<ul style="list-style:none;margin-bottom:6px">'+(c.health.reasons.length?c.health.reasons.map(function(r){return '<li style="font-size:.8125rem;color:var(--ink2);padding:3px 0">• '+esc(r)+'</li>';}).join(''):'<li class="muted" style="font-size:.8125rem">No flags</li>')+'</ul>'+
+
+    '<div class="subhead">Profile</div>'+
+    '<div class="field-row"><div class="field"><label>First name</label><input id="e-firstName" value="'+esc(c.firstName||'')+'"></div><div class="field"><label>Last name</label><input id="e-lastName" value="'+esc(c.lastName||'')+'"></div></div>'+
+    '<div class="field"><label>Company</label><input id="e-company" value="'+esc(c.company||'')+'"></div>'+
+    '<div class="field-row"><div class="field"><label>Email</label><input id="e-email" value="'+esc(c.email||'')+'"></div><div class="field"><label>Phone</label><input id="e-phone" value="'+esc(c.phone||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Industry</label><input id="e-industry" value="'+esc(c.industry||'')+'"></div><div class="field"><label>Company size</label><input id="e-companySize" value="'+esc(c.companySize||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Country</label><input id="e-country" value="'+esc(c.country||'')+'"></div><div class="field"><label>City</label><input id="e-city" value="'+esc(c.city||'')+'"></div></div>'+
+    '<div class="field-row"><div class="field"><label>Monthly FX volume</label><input id="e-fxVolume" value="'+esc(c.fxVolume||'')+'"></div><div class="field"><label>Currency pairs</label><input id="e-currencyPairs" value="'+esc(c.currencyPairs||'')+'"></div></div>'+
+    '<div class="field"><label>Est. annual value (€)</label><input id="e-estValueEur" type="number" value="'+(c.estValueEur||0)+'"><div class="muted" style="font-size:.6875rem;margin-top:4px">Auto-estimated from FX volume; override if known.</div></div>'+
+    '<div class="field"><label>Tags (comma separated)</label><input id="e-tags" value="'+esc((c.tags||[]).join(', '))+'"></div>'+
+    '<div class="field"><label>Notes</label><textarea id="e-notes">'+esc(c.notes||'')+'</textarea></div>'+
+    '<button class="btn btn-primary btn-sm" id="save-profile">Save profile</button> '+
+    '<button class="btn btn-danger btn-sm" id="del-customer">Delete</button>'+
+
+    '<div class="subhead">AI research</div>'+
+    '<div id="research-panel">'+renderResearchPanel(c)+'</div>'+
+    '<button class="btn btn-ghost btn-sm" id="btn-research" style="margin-bottom:4px">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'+
+      (c.aiResearch ? 'Re-research' : 'Research with Claude')+'</button>'+
+    (c.researchedAt ? '<div class="muted" style="font-size:.6875rem;margin-bottom:12px">Last researched: '+H.fmtDate(c.researchedAt)+'</div>' : '')+
+
+    '<div class="subhead">Log activity</div>'+
+    '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting'],['linkedin','LinkedIn'],['outreach','Outreach sent']],'note')+'</select></div>'+
+    '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Sent intro email"></div></div>'+
+    '<div class="field"><label>Details</label><textarea id="a-body" placeholder="What happened?"></textarea></div>'+
+    '<button class="btn btn-ghost btn-sm" id="add-activity">Add to timeline</button>'+
+
+    '<div class="subhead">Activity timeline</div>'+
+    '<ul class="timeline" id="timeline">'+renderTimeline(c.activities)+'</ul>';
+
+  document.getElementById('save-stage').addEventListener('click',saveStage);
+  document.getElementById('save-profile').addEventListener('click',saveProfile);
+  document.getElementById('del-customer').addEventListener('click',delCustomer);
+  document.getElementById('add-activity').addEventListener('click',addActivity);
+  document.getElementById('btn-research').addEventListener('click',runResearch);
+}
+
+function renderResearchPanel(c){
+  if(!c.aiResearch) return '<div class="muted" style="font-size:.8125rem;margin-bottom:14px">No research yet. Click "Research with Claude" to generate an AI intelligence brief on this company.</div>';
+  var r=c.aiResearch;
+  var scoreColor=r.relevanceScore>=4?'#16a34a':r.relevanceScore>=3?'#d97706':'#6b7280';
+  var webBadge=r.webSearchUsed
+    ? '<span style="background:#dcfce7;color:#166534;font-size:.625rem;font-weight:700;padding:2px 7px;border-radius:var(--r-pill);margin-left:6px">🌐 live web</span>'
+    : '<span style="background:#f1f5f9;color:#64748b;font-size:.625rem;font-weight:700;padding:2px 7px;border-radius:var(--r-pill);margin-left:6px">training data</span>';
+  var sourcesHtml='';
+  if(r.sources&&r.sources.length){
+    sourcesHtml='<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(11,25,41,.07)"><div style="font-size:.625rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px">Sources</div>'+
+      r.sources.map(function(s){var d=s.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];return '<a href="'+esc(s)+'" target="_blank" rel="noopener" style="display:inline-block;font-size:.625rem;color:var(--n400);margin-right:8px;margin-bottom:3px;text-decoration:none;border-bottom:1px solid rgba(46,107,173,.2)">'+esc(d)+'</a>';}).join('')+'</div>';
+  }
+  return '<div style="background:var(--n050);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:14px;font-size:.8125rem">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<span style="font-weight:700;color:var(--n800)">Intelligence Brief'+webBadge+'</span>'+
+      '<span style="background:'+scoreColor+';color:#fff;padding:2px 9px;border-radius:var(--r-pill);font-size:.6875rem;font-weight:700">'+r.relevanceScore+'/5</span>'+
+    '</div>'+
+    (r.overview?'<p style="color:var(--ink2);line-height:1.5;margin-bottom:10px">'+esc(r.overview)+'</p>':'')+
+    (r.fxAngle?'<div style="border-left:3px solid var(--n400);padding:8px 12px;background:#fff;border-radius:0 6px 6px 0;margin-bottom:10px;color:var(--ink);font-style:italic">'+esc(r.fxAngle)+'</div>':'')+
+    (r.painPoints&&r.painPoints.length?'<div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Pain points</div>'+r.painPoints.map(function(p){return '<div style="padding:2px 0;color:var(--ink2)">· '+esc(p)+'</div>';}).join('')+'</div>':'')+
+    (r.outreachAngle?'<div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Opening angle</div><div style="color:var(--ink);background:#fff;border-radius:6px;padding:10px 12px;font-size:.8125rem;line-height:1.5">'+esc(r.outreachAngle)+'<button onclick="navigator.clipboard.writeText(\''+esc(r.outreachAngle).replace(/'/g,'\\\'')+'\')" title="Copy" style="float:right;background:none;border:none;cursor:pointer;color:var(--ink3);font-size:12px;padding:0 0 0 6px">📋</button></div></div>':'')+
+    (r.decisionMakers&&r.decisionMakers.length?'<div style="margin-bottom:4px"><div style="font-weight:700;color:var(--ink3);font-size:.6875rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Target roles</div><div style="display:flex;flex-wrap:wrap;gap:5px">'+r.decisionMakers.map(function(d){return '<span style="background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-pill);padding:3px 10px;font-size:.6875rem;color:var(--ink2)">'+esc(d)+'</span>';}).join('')+'</div></div>':'')+
+    (r.recentSignals&&r.recentSignals!=='No signals found'&&r.recentSignals!==null?'<div style="margin-top:10px;font-size:.6875rem;color:var(--ink2)"><b>📡 Signals:</b> '+esc(r.recentSignals)+'</div>':'')+
+    (r.linkedinUrl?'<div style="margin-top:8px"><a href="'+esc(r.linkedinUrl)+'" target="_blank" rel="noopener" style="font-size:.75rem;color:var(--n400);font-weight:600;text-decoration:none">LinkedIn →</a></div>':'')+
+    sourcesHtml+
+    (r.confidenceNote?'<div style="margin-top:8px;font-size:.625rem;color:var(--ink3);font-style:italic">'+esc(r.confidenceNote)+'</div>':'')+
+  '</div>';
+}
+
+function runResearch(){
+  var btn=document.getElementById('btn-research');
+  if(!current)return;
+  btn.disabled=true; btn.textContent='Researching…';
+  A('/api/customers/'+current.id+'/research',{method:'POST'})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error){H.toast(data.error,'error');}
+      else{
+        current.aiResearch=data.research; current.researchedAt=new Date().toISOString();
+        document.getElementById('research-panel').innerHTML=renderResearchPanel(current);
+        H.toast('Research complete ✓');
+        btn.textContent='Re-research';
+        load();
+      }
+    })
+    .catch(function(){H.toast('Research failed','error');})
+    .finally(function(){btn.disabled=false;});
+}
+
+function churnLabel(r){return {high:'High churn risk',medium:'Medium risk',low:'Low risk',churned:'Churned'}[r]||r;}
+
+var ACT_ICON={note:'✎',call:'☎',email:'✉',meeting:'◎',stage_change:'⇅',booking:'★'};
+function renderTimeline(acts){
+  if(!acts||!acts.length) return '<li class="muted" style="font-size:.8125rem">No activity yet.</li>';
+  return acts.map(function(a){
+    return '<li class="tl-item"><div class="tl-icon">'+(ACT_ICON[a.type]||'•')+'</div>'+
+      '<div class="tl-body"><div class="tl-title">'+esc(a.title||a.type)+'</div>'+
+      '<div class="tl-meta">'+H.fmtDateTime(a.at)+' · '+esc(a.by||'system')+'</div>'+
+      (a.body?'<div class="tl-text">'+esc(a.body)+'</div>':'')+'</div></li>';
+  }).join('');
+}
+
+function saveStage(){
+  var body={stage:document.getElementById('e-stage').value,status:document.getElementById('e-status').value,owner:document.getElementById('e-owner').value};
+  var fu=document.getElementById('e-followup').value; if(fu)body.nextFollowUpAt=new Date(fu).toISOString();
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
+    H.toast('Saved'); openCustomer(c.id); load();
+  });
+}
+function saveProfile(){
+  var fields=['firstName','lastName','company','email','phone','industry','companySize','country','city','fxVolume','currencyPairs','notes'];
+  var body={}; fields.forEach(function(f){body[f]=document.getElementById('e-'+f).value;});
+  body.estValueEur=parseInt(document.getElementById('e-estValueEur').value,10)||0;
+  body.tags=document.getElementById('e-tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
+    H.toast('Profile saved'); openCustomer(c.id); load();
+  });
+}
+function delCustomer(){
+  if(!confirm('Delete this customer and all its activity? This cannot be undone.'))return;
+  A('/api/customers/'+current.id,{method:'DELETE'}).then(function(r){
+    if(r.ok){H.toast('Deleted');closeDrawer();load();} else {r.json().then(function(e){H.toast(e.error||'Delete failed','error');});}
+  });
+}
+function addActivity(){
+  var body={type:document.getElementById('a-type').value,title:document.getElementById('a-title').value.trim(),body:document.getElementById('a-body').value.trim()};
+  if(!body.title&&!body.body){H.toast('Add a title or details','error');return;}
+  A('/api/customers/'+current.id+'/activities',{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(){
+    H.toast('Logged'); openCustomer(current.id); load();
+  });
+}
+
+// ── New customer ──
+document.getElementById('new-customer').addEventListener('click',function(){
+  A('/api/customers',{method:'POST',body:JSON.stringify({company:'New customer',source:'manual'})}).then(function(r){return r.json();}).then(function(c){
+    load(); openCustomer(c.id);
+  });
+});
+
+// ── Export ──
+function download(format){
+  var btn=document.getElementById('export-'+(format==='xlsx'?'xlsx':'csv'));
+  btn.disabled=true;
+  fetch(H.API+'/api/customers/export?format='+format,{headers:{'Authorization':'Bearer '+H.token}})
+    .then(function(r){return r.blob();}).then(function(blob){
+      var url=URL.createObjectURL(blob); var a=document.createElement('a');
+      a.href=url; a.download='hansepay-customers.'+(format==='xlsx'?'xlsx':'csv'); document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url); btn.disabled=false; H.toast('Exported '+format.toUpperCase());
+    }).catch(function(){btn.disabled=false;H.toast('Export failed','error');});
+}
+document.getElementById('export-csv').addEventListener('click',function(){download('csv');});
+document.getElementById('export-xlsx').addEventListener('click',function(){download('xlsx');});
+
+// ── Filters ──
+document.getElementById('search').addEventListener('input',function(){clearTimeout(debounce);debounce=setTimeout(load,250);});
+['f-stage','f-status','f-churn','f-source'].forEach(function(id){document.getElementById(id).addEventListener('change',load);});
+
+// ── Outbound quick-add ──
+document.getElementById('btn-outbound').addEventListener('click',function(){
+  var m=document.getElementById('outbound-modal');
+  if(m)m.style.display='flex';
+});
+
+// ── CSV Import ──
+document.getElementById('import-csv-file').addEventListener('change',function(e){
+  var file=e.target.files[0]; if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var lines=ev.target.result.split(/\r?\n/).filter(Boolean);
+    if(lines.length<2){H.toast('CSV must have a header row and at least one data row.','error');return;}
+    var headers=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim().toLowerCase();});
+    var map={company:['company','company name','firma','unternehmen'],
+             firstName:['first name','firstname','vorname'],lastName:['last name','lastname','nachname'],
+             email:['email','e-mail'],phone:['phone','tel','telefon'],website:['website','url'],
+             industry:['industry','branche'],country:['country','land'],fxVolume:['fx volume','fxvolume','monthly volume'],
+             notes:['notes','notizen','note']};
+    function col(key){var aliases=map[key]||[key];for(var i=0;i<aliases.length;i++){var idx=headers.indexOf(aliases[i]);if(idx!==-1)return idx;}return -1;}
+
+    var created=0,failed=0;
+    var promises=lines.slice(1).map(function(line){
+      var cols=line.split(',').map(function(v){return v.replace(/^"|"$/g,'').trim();});
+      var obj={source:'import'};
+      Object.keys(map).forEach(function(k){var i=col(k);if(i!==-1&&cols[i])obj[k]=cols[i];});
+      if(!obj.company&&!obj.email){failed++;return Promise.resolve();}
+      return A('/api/customers',{method:'POST',body:JSON.stringify(obj)})
+        .then(function(r){if(r.ok)created++;else failed++;}).catch(function(){failed++;});
+    });
+
+    Promise.all(promises).then(function(){
+      H.toast('Imported: '+created+' leads'+(failed?' ('+failed+' skipped)':''));
+      load(); e.target.value='';
+    });
+  };
+  reader.readAsText(file);
+});
+
+load();
+</script>
+
+<!-- Lead generation panel -->
+<div id="gen-leads-panel" style="display:none;position:fixed;inset:0;background:rgba(6,13,26,.5);z-index:700;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:960px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 -12px 60px rgba(6,13,26,.22);overflow:hidden">
+
+    <!-- Panel header -->
+    <div style="background:linear-gradient(135deg,#060D1A,#163659);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;color:#fff">Generate leads with AI</div>
+        <div style="font-size:.8125rem;color:rgba(255,255,255,.55);margin-top:3px" id="gen-web-status">Loading…</div>
+      </div>
+      <button onclick="document.getElementById('gen-leads-panel').style.display='none'" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px">×</button>
+    </div>
+
+    <!-- Two-column layout: criteria + results -->
+    <div style="display:flex;flex:1;overflow:hidden">
+
+      <!-- Left: criteria form -->
+      <div style="width:300px;flex-shrink:0;border-right:1px solid rgba(11,25,41,.08);padding:22px 20px;overflow-y:auto;background:#fafbfc">
+        <div style="font-size:.6875rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">Criteria</div>
+
+        <div class="field" style="margin-bottom:12px"><label>Industry *</label>
+          <input id="gl-industry" placeholder="e.g. Manufacturing, E-commerce" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+
+        <div class="field" style="margin-bottom:12px"><label>Country / Region</label>
+          <input id="gl-country" placeholder="e.g. Germany, DACH, EU" value="Germany, Europe" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+
+        <div class="field" style="margin-bottom:12px"><label>Company size</label>
+          <select id="gl-size" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)">
+            <option value="">Any size</option>
+            <option value="10–50 employees">Small (10–50)</option>
+            <option value="50–200 employees">Mid-market (50–200)</option>
+            <option value="200–1000 employees" selected>Growth (200–1000)</option>
+            <option value="1000+ employees">Enterprise (1000+)</option>
+          </select></div>
+
+        <div class="field" style="margin-bottom:12px"><label>Keywords</label>
+          <input id="gl-keywords" placeholder="export, import, international trade" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+
+        <div class="field" style="margin-bottom:12px"><label>Use case focus</label>
+          <input id="gl-usecase" placeholder="e.g. pays suppliers in Asia" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+
+        <div class="field" style="margin-bottom:18px"><label>Number of leads</label>
+          <select id="gl-count" style="width:100%;padding:8px 10px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)">
+            <option value="5">5</option>
+            <option value="8" selected>8</option>
+            <option value="12">12</option>
+          </select></div>
+
+        <button id="btn-gen-run" onclick="generateLeads()" style="width:100%;padding:11px;border-radius:var(--r-pill);border:none;background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer;transition:.15s">
+          Generate leads →
+        </button>
+        <div id="gen-error" style="color:#dc2626;font-size:.8125rem;margin-top:8px;display:none"></div>
+      </div>
+
+      <!-- Right: results -->
+      <div style="flex:1;overflow-y:auto;padding:22px 24px" id="gen-results">
+        <div style="text-align:center;color:var(--ink3);padding:60px 20px;font-size:.875rem">
+          Fill in the criteria on the left and click <b>Generate leads</b>.<br>
+          <span style="font-size:.8125rem;opacity:.7">With live web search enabled, Claude finds real, current companies.<br>Without it, it uses training data.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: add selected -->
+    <div id="gen-footer" style="display:none;padding:14px 24px;border-top:1px solid rgba(11,25,41,.08);background:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <span id="gen-selected-count" style="font-size:.875rem;color:var(--ink2)">0 leads selected</span>
+      <div style="display:flex;gap:10px">
+        <button onclick="selectAllLeads()" style="padding:8px 16px;border-radius:var(--r-pill);border:1.5px solid rgba(11,25,41,.12);background:#fff;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;color:var(--ink2);cursor:pointer">Select all</button>
+        <button id="btn-add-selected" onclick="addSelectedLeads()" style="padding:8px 20px;border-radius:var(--r-pill);border:none;background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;cursor:pointer" disabled>Add to CRM →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Outbound lead modal -->
+<div id="outbound-modal" style="display:none;position:fixed;inset:0;background:rgba(6,13,26,.5);z-index:600;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:18px;padding:30px 32px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(6,13,26,.25)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;color:var(--n800);margin-bottom:6px">Add outbound lead</div>
+    <div style="font-size:.875rem;color:var(--ink3);margin-bottom:20px">Manually add a prospect for outbound outreach.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Company *</label><input id="ob-company" placeholder="Acme GmbH" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Website</label><input id="ob-website" placeholder="acme.de" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">First name</label><input id="ob-firstName" placeholder="Alex" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Last name</label><input id="ob-lastName" placeholder="Müller" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Email</label><input id="ob-email" type="email" placeholder="alex@acme.de" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+      <div><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Industry</label><input id="ob-industry" placeholder="Manufacturing" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink)"></div>
+    </div>
+    <div style="margin-bottom:16px"><label style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px">Notes</label><textarea id="ob-notes" rows="2" placeholder="Where did you find this lead? Any context?" style="width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);resize:vertical"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button id="ob-save" onclick="saveOutbound()" style="flex:1;padding:11px;border-radius:var(--r-pill);border:none;background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer">Add &amp; research with AI</button>
+      <button id="ob-save-only" onclick="saveOutbound(false)" style="flex:1;padding:11px;border-radius:var(--r-pill);border:1.5px solid rgba(11,25,41,.12);background:#fff;color:var(--ink2);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;cursor:pointer">Add without research</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Lead generation ──
+var genLeadsData = [];
+var genSelected  = new Set();
+
+document.getElementById('btn-gen-leads').addEventListener('click', function(){
+  var panel = document.getElementById('gen-leads-panel');
+  panel.style.display = 'flex';
+  // Check web search status
+  H.authFetch('/api/settings').then(function(r){return r.json();}).then(function(){
+    var hasTavily = !!document.getElementById('gen-web-status'); // just a proxy
+    // We don't expose TAVILY status directly; show a neutral message
+    document.getElementById('gen-web-status').textContent = 'Fill in criteria and generate — Claude will search the web if configured.';
+  }).catch(function(){});
+});
+
+function generateLeads(){
+  var btn = document.getElementById('btn-gen-run');
+  var err = document.getElementById('gen-error');
+  err.style.display = 'none';
+  var industry = document.getElementById('gl-industry').value.trim();
+  var keywords = document.getElementById('gl-keywords').value.trim();
+  if(!industry && !keywords){ err.textContent='Please enter at least an industry or keywords.'; err.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Searching & generating…';
+  document.getElementById('gen-results').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--ink3)"><div style="font-size:1.5rem;margin-bottom:12px">🔍</div>Claude is researching the web for matching companies…<br><span style="font-size:.8125rem;opacity:.7">This may take 15–30 seconds.</span></div>';
+  document.getElementById('gen-footer').style.display = 'none';
+
+  H.authFetch('/api/customers/generate-leads', { method:'POST', body: JSON.stringify({
+    industry,
+    country:  document.getElementById('gl-country').value.trim(),
+    size:     document.getElementById('gl-size').value,
+    keywords,
+    useCase:  document.getElementById('gl-usecase').value.trim(),
+    count:    parseInt(document.getElementById('gl-count').value),
+  })})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.error){ err.textContent=data.error; err.style.display='block'; document.getElementById('gen-results').innerHTML=''; return; }
+    genLeadsData = data.leads || [];
+    genSelected  = new Set();
+    renderGenResults(data);
+    document.getElementById('gen-footer').style.display = 'flex';
+    updateGenFooter();
+  })
+  .catch(function(e){ err.textContent='Failed: '+e.message; err.style.display='block'; })
+  .finally(function(){ btn.disabled=false; btn.textContent='Generate leads →'; });
+}
+
+function renderGenResults(data){
+  var webBadge = data.webSearchUsed
+    ? '<span style="background:#dcfce7;color:#166534;font-size:.6875rem;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)">🌐 Live web · '+data.searchResultCount+' sources</span>'
+    : '<span style="background:#f1f5f9;color:#64748b;font-size:.6875rem;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)">Training data only · add TAVILY_API_KEY for live search</span>';
+
+  var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">'+
+    '<span style="font-size:.875rem;font-weight:700;color:var(--n800)">'+genLeadsData.length+' leads found</span>'+webBadge+'</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
+  html += genLeadsData.map(function(l,i){
+    var confColor={'high':'#16a34a','medium':'#d97706','low':'#9ca3af'}[l.confidence]||'#9ca3af';
+    return '<div class="gen-lead-card" data-idx="'+i+'" onclick="toggleGenLead('+i+',this)" style="border:1.5px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:.15s;background:#fff">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'+
+        '<div style="font-weight:700;color:var(--n800);font-size:.9375rem;flex:1;margin-right:8px">'+esc(l.company||'—')+'</div>'+
+        '<div style="width:16px;height:16px;border-radius:50%;border:2px solid rgba(11,25,41,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center" id="gl-check-'+i+'"></div>'+
+      '</div>'+
+      '<div style="font-size:.75rem;color:var(--ink3);margin-bottom:8px">'+esc(l.country||'')+(l.industry?' · '+esc(l.industry):'')+(l.size?' · '+esc(l.size):'')+'</div>'+
+      (l.fxAngle?'<div style="font-size:.8125rem;color:var(--ink2);line-height:1.4;margin-bottom:8px;font-style:italic">'+esc(l.fxAngle)+'</div>':'')+
+      (l.outreachAngle?'<div style="font-size:.75rem;background:var(--n050);border-radius:6px;padding:8px 10px;color:var(--ink);line-height:1.4;margin-bottom:8px">💬 '+esc(l.outreachAngle)+'</div>':'')+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+        (l.website?'<a href="https://'+esc(l.website)+'" target="_blank" onclick="event.stopPropagation()" style="font-size:.6875rem;color:var(--n400);text-decoration:none">🌐 '+esc(l.website)+'</a>':'')+
+        (l.linkedinUrl?'<a href="'+esc(l.linkedinUrl)+'" target="_blank" onclick="event.stopPropagation()" style="font-size:.6875rem;color:var(--n400);text-decoration:none">in/ LinkedIn</a>':'')+
+        '<span style="color:'+confColor+';font-size:.625rem;font-weight:700;margin-left:auto">●&nbsp;'+esc(l.confidence||'')+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  html += '</div>';
+
+  if(data.sources&&data.sources.length){
+    html += '<div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(11,25,41,.07)"><div style="font-size:.625rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">Web sources consulted</div>'+
+      data.sources.map(function(s){var d=s.replace(/^https?:\/\/(www\.)?/,'').split('/')[0];return '<a href="'+esc(s)+'" target="_blank" rel="noopener" style="display:inline-block;font-size:.6875rem;color:var(--n400);margin-right:10px;margin-bottom:4px;text-decoration:none;border-bottom:1px solid rgba(46,107,173,.25)">'+esc(d)+'</a>';}).join('')+'</div>';
+  }
+  document.getElementById('gen-results').innerHTML = html;
+}
+
+function toggleGenLead(i, card){
+  if(genSelected.has(i)){ genSelected.delete(i); card.style.borderColor='rgba(11,25,41,.1)'; card.style.background='#fff'; document.getElementById('gl-check-'+i).innerHTML=''; }
+  else{ genSelected.add(i); card.style.borderColor='var(--n500)'; card.style.background='var(--n050)'; document.getElementById('gl-check-'+i).innerHTML='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="#1E4E80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+  updateGenFooter();
+}
+
+function selectAllLeads(){
+  genLeadsData.forEach(function(_,i){
+    var card=document.querySelector('[data-idx="'+i+'"]');
+    if(!genSelected.has(i)&&card)toggleGenLead(i,card);
+  });
+}
+
+function updateGenFooter(){
+  document.getElementById('gen-selected-count').textContent = genSelected.size+' lead'+(genSelected.size!==1?'s':'')+' selected';
+  document.getElementById('btn-add-selected').disabled = genSelected.size===0;
+}
+
+function addSelectedLeads(){
+  var toAdd = Array.from(genSelected).map(function(i){return genLeadsData[i];}).filter(Boolean);
+  if(!toAdd.length)return;
+  var btn=document.getElementById('btn-add-selected'); btn.disabled=true; btn.textContent='Adding…';
+  var withResearch=confirm('Run AI research on each lead as it\'s added?\n\nThis will enrich each company immediately (uses Claude API credits).');
+
+  Promise.all(toAdd.map(function(l){
+    return H.authFetch('/api/customers',{method:'POST',body:JSON.stringify({
+      company:l.company,website:l.website||'',industry:l.industry||'',country:l.country||'',
+      fxVolume:'',notes:l.outreachAngle||'',source:'generated',stage:'lead',status:'prospect',
+      aiResearch: withResearch ? null : {
+        overview:'',fxAngle:l.fxAngle||'',painPoints:[],outreachAngle:l.outreachAngle||'',
+        decisionMakers:[],relevanceScore:3,confidenceNote:'From lead generation',
+        webSearchUsed:false,sources:[],linkedinUrl:l.linkedinUrl||null
+      }
+    })}).then(function(r){return r.json();}).then(function(c){
+      if(withResearch&&c.id){
+        return H.authFetch('/api/customers/'+c.id+'/research',{method:'POST'}).catch(function(){});
+      }
+    });
+  })).then(function(){
+    H.toast(toAdd.length+' leads added to CRM ✓');
+    document.getElementById('gen-leads-panel').style.display='none';
+    load();
+  }).finally(function(){ btn.disabled=false; btn.textContent='Add to CRM →'; });
+}
+
+function saveOutbound(withResearch){
+  withResearch = withResearch !== false;
+  var company = document.getElementById('ob-company').value.trim();
+  if(!company){document.getElementById('ob-company').focus();return;}
+  var body={
+    company, source:'outbound', stage:'lead', status:'prospect',
+    firstName: document.getElementById('ob-firstName').value.trim(),
+    lastName:  document.getElementById('ob-lastName').value.trim(),
+    email:     document.getElementById('ob-email').value.trim(),
+    website:   document.getElementById('ob-website').value.trim(),
+    industry:  document.getElementById('ob-industry').value.trim(),
+    notes:     document.getElementById('ob-notes').value.trim(),
+  };
+  var btn=document.getElementById('ob-save');
+  btn.disabled=true; btn.textContent='Adding…';
+  window.HPAdmin.authFetch('/api/customers',{method:'POST',body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(c){
+      document.getElementById('outbound-modal').style.display='none';
+      ['ob-company','ob-firstName','ob-lastName','ob-email','ob-website','ob-industry','ob-notes'].forEach(function(id){document.getElementById(id).value='';});
+      load();
+      if(withResearch && c.id){
+        // Auto-open the drawer and trigger research
+        window.openCustomer(c.id);
+        setTimeout(function(){
+          var rb=document.getElementById('btn-research');
+          if(rb){rb.click();}
+        }, 600);
+      } else {
+        window.HPAdmin.toast('Lead added ✓');
+      }
+    })
+    .catch(function(){window.HPAdmin.toast('Failed to add lead','error');})
+    .finally(function(){btn.disabled=false; btn.textContent='Add & research with AI';});
+}
+</script>
+</body>
+</html>

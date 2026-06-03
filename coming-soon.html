@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HansePay — Cross-border payments, reimagined.</title>
+<meta name="description" content="Global payment infrastructure for modern business. Mid-market rates, BaFin-regulated, dedicated expert service." />
+<link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+  --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ── TOP BAR (logo only, no nav links) ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 68px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px,5vw,88px);
+}
+.logo {
+  display: flex; align-items: center; gap: 13px;
+  font-family: var(--font-logo); font-size: 26px; font-weight: 400;
+  letter-spacing: -.02em; color: #fff;
+}
+.logo img { height: 38px; width: 38px; object-fit: contain; filter: brightness(0) invert(1); }
+
+/* ── LANGUAGE TOGGLE ── */
+.lang-toggle {
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  border-radius: var(--r-pill); padding: 3px; backdrop-filter: blur(8px);
+}
+.lang-btn {
+  padding: 5px 12px; border-radius: var(--r-pill); border: none;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600;
+  letter-spacing: .06em; cursor: pointer; transition: all .18s ease;
+  background: transparent; color: rgba(255,255,255,.5);
+}
+.lang-btn.active {
+  background: rgba(255,255,255,.18); color: #fff;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; align-items: center; overflow: hidden;
+  background: var(--n900);
+}
+@keyframes heroZoom{from{transform:scale(1.05)}to{transform:scale(1)}}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: url('https://images.pexels.com/photos/17458967/pexels-photo-17458967.jpeg?auto=compress&cs=tinysrgb&w=1920&q=85') center 38% / cover no-repeat;
+  animation: heroZoom 2.8s cubic-bezier(.22,.44,.45,.94) forwards;
+  filter: saturate(0.88) brightness(0.96);
+}
+.hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:
+    linear-gradient(108deg, rgba(6,13,26,.94) 0%, rgba(6,13,26,.80) 28%, rgba(6,13,26,.48) 52%, rgba(6,13,26,.22) 72%, rgba(6,13,26,.08) 100%),
+    linear-gradient(to top, rgba(6,13,26,.65) 0%, rgba(6,13,26,.18) 22%, transparent 48%),
+    linear-gradient(to bottom, rgba(6,13,26,.38) 0%, transparent 16%);
+}
+.hero-layout {
+  display: flex; flex-direction: column; justify-content: center;
+  min-height: 100vh; padding: 140px clamp(24px,5vw,88px) 72px;
+  max-width: 1440px; margin: 0 auto; width: 100%;
+  position: relative; z-index: 2;
+}
+@media(max-width:768px){.hero-layout{padding:104px clamp(20px,5vw,80px) 64px}}
+.hero-content { max-width: 640px; }
+
+.hero-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: var(--r-pill);
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  color: rgba(255,255,255,.9); margin-bottom: 28px; backdrop-filter: blur(8px);
+}
+.hero-chip-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); flex-shrink:0; box-shadow:0 0 6px var(--gold); }
+
+.hero-headline {
+  font-family: var(--font-display); font-size: clamp(48px,5.8vw,84px);
+  font-weight: 400; line-height: 1.02; letter-spacing: -.03em; color: #fff;
+  margin-bottom: 22px; text-shadow: 0 2px 32px rgba(6,13,26,.35);
+}
+.hero-headline em { font-style: italic; color: var(--n100); }
+
+.hero-sub {
+  font-size: clamp(15px,1.4vw,17px); font-weight: 300;
+  color: rgba(255,255,255,.7); line-height: 1.75;
+  max-width: 480px; margin-bottom: 36px;
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+@media(max-width:480px){.hero-actions{flex-direction:column;align-items:flex-start}}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; border-radius: var(--r-pill);
+  font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .18s ease;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-primary { background: var(--n500); color: #fff; }
+.btn-primary:hover { background: var(--n600); }
+.btn-ghost-white { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.45); }
+.btn-ghost-white:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.7); }
+
+/* ── WAITLIST MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(6,13,26,.7);
+  backdrop-filter: blur(6px); z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; transition: all .22s ease;
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  background: #fff; border-radius: 20px;
+  padding: 44px 40px; max-width: 420px; width: 90%;
+  text-align: center; position: relative;
+  transform: translateY(16px); transition: transform .22s ease;
+  box-shadow: 0 32px 80px rgba(6,13,26,.35);
+}
+.modal-overlay.open .modal { transform: none; }
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(11,25,41,.06); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: var(--ink3);
+  transition: background .15s;
+}
+.modal-close:hover { background: rgba(11,25,41,.12); }
+.modal-icon { font-size: 28px; margin-bottom: 16px; }
+.modal-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 400;
+  color: var(--n800); margin-bottom: 12px; letter-spacing: -.01em;
+}
+.modal-body { font-size: 15px; color: var(--ink2); line-height: 1.65; margin-bottom: 28px; }
+.modal-linkedin {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; border-radius: var(--r-pill);
+  background: #0a66c2; color: #fff;
+  font-size: 14px; font-weight: 600; text-decoration: none;
+  transition: background .15s;
+}
+.modal-linkedin:hover { background: #0958a8; }
+.modal-dismiss {
+  display: block; margin: 12px auto 0; background: none; border: none;
+  font-size: 13px; color: var(--ink3); cursor: pointer; font-family: var(--font-ui);
+  transition: color .15s;
+}
+.modal-dismiss:hover { color: var(--ink2); }
+
+/* ── BOOKING MODAL ── */
+.hp-bm-overlay{position:fixed;inset:0;z-index:9000;background:rgba(6,13,26,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .28s ease}
+.hp-bm-overlay.hp-bm-open{opacity:1;pointer-events:auto}
+.hp-bm-panel{width:100%;max-width:1060px;height:min(720px,90vh);border-radius:20px;overflow:hidden;display:flex;box-shadow:0 40px 100px rgba(6,13,26,.55);transform:translateY(18px) scale(.97);transition:transform .35s cubic-bezier(.22,.68,0,1.2),opacity .28s ease;opacity:0}
+.hp-bm-overlay.hp-bm-open .hp-bm-panel{transform:none;opacity:1}
+.hp-bm-left{width:300px;flex-shrink:0;background:linear-gradient(160deg,#0B1929 0%,#163659 100%);padding:36px 32px;display:flex;flex-direction:column}
+.hp-bm-logo{font-family:var(--font-logo);font-size:17px;color:#fff;margin-bottom:auto}
+.hp-bm-body{padding:28px 0}
+.hp-bm-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(141,189,230,.7);margin-bottom:12px}
+.hp-bm-headline{font-family:var(--font-display);font-size:26px;font-weight:400;color:#fff;line-height:1.18;letter-spacing:-.02em;margin-bottom:6px}
+.hp-bm-headline em{font-style:italic;color:#8DBDE6}
+.hp-bm-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.6}
+.hp-bm-right{flex:1;background:#F6F9FC;display:flex;flex-direction:column;min-width:0}
+.hp-bm-right-head{display:flex;justify-content:flex-end;padding:14px 18px;background:#F6F9FC;border-bottom:1px solid rgba(11,25,41,.06)}
+.hp-bm-close{width:32px;height:32px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;background:#fff;color:rgba(11,25,41,.45);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.hp-bm-close:hover{background:rgba(11,25,41,.05);color:var(--ink)}
+.hp-bm-iframe{flex:1;border:none;width:100%;display:block}
+@media(max-width:700px){.hp-bm-left{display:none}.hp-bm-overlay{padding:0}.hp-bm-panel{border-radius:0;max-height:100vh;height:100vh}}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--n900); padding: 28px clamp(24px,5vw,88px);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-logo { font-family: var(--font-logo); font-size: 16px; color: rgba(255,255,255,.55); }
+.footer-links { display: flex; align-items: center; gap: 24px; }
+.footer-link { font-size: 12px; color: rgba(255,255,255,.35); transition: color .15s; }
+.footer-link:hover { color: rgba(255,255,255,.65); }
+.footer-sep { color: rgba(255,255,255,.15); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <img src="assets/hansepay-mark-uploaded.png" alt="HansePay" />
+    HansePay
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-layout">
+    <div class="hero-content">
+      <div class="hero-chip">
+        <span class="hero-chip-dot"></span>
+        <span data-i18n="chip"></span>
+      </div>
+      <h1 class="hero-headline" data-i18n="headline-html"></h1>
+      <p class="hero-sub" data-i18n="sub"></p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="openBooking()">
+          <span data-i18n="cta-book"></span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <button class="btn btn-ghost-white" onclick="openWaitlist()">
+          <span data-i18n="cta-waitlist"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">HansePay</div>
+  <div class="footer-links">
+    <a href="/imprint.html" class="footer-link" data-i18n="footer-imprint"></a>
+    <span class="footer-sep">·</span>
+    <a href="/cookie-policy.html" class="footer-link" data-i18n="footer-cookies"></a>
+    <span class="footer-sep">·</span>
+    <span class="footer-link">© 2026 HansePay GmbH</span>
+  </div>
+</footer>
+
+<!-- Waitlist full modal -->
+<div class="modal-overlay" id="waitlist-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeWaitlist()" aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-icon">🔒</div>
+    <div class="modal-title" data-i18n="modal-title"></div>
+    <p class="modal-body" data-i18n="modal-body"></p>
+    <a href="https://www.linkedin.com/company/hansepay" target="_blank" rel="noopener" class="modal-linkedin">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      <span data-i18n="modal-linkedin"></span>
+    </a>
+    <button class="modal-dismiss" onclick="closeWaitlist()" data-i18n="modal-dismiss"></button>
+  </div>
+</div>
+
+<!-- Booking modal -->
+<div class="hp-bm-overlay" id="hp-bm-overlay">
+  <div class="hp-bm-panel">
+    <div class="hp-bm-left">
+      <div class="hp-bm-logo">HansePay</div>
+      <div class="hp-bm-body">
+        <div class="hp-bm-eyebrow" data-i18n="bm-eyebrow"></div>
+        <div class="hp-bm-headline" data-i18n="bm-headline-html"></div>
+        <p class="hp-bm-sub" style="margin-top:10px" data-i18n="bm-sub"></p>
+      </div>
+    </div>
+    <div class="hp-bm-right">
+      <div class="hp-bm-right-head">
+        <button class="hp-bm-close" id="hp-bm-close-btn" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <iframe class="hp-bm-iframe" id="hp-bm-iframe" src="" title="Book a discovery call"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Translations ──
+var translations = {
+  de: {
+    'chip':          'EU-reguliert · Hamburg',
+    'headline-html': 'Internationale Zahlungen,<br><em>neu gedacht.</em>',
+    'sub':           'Überweisungen in über 30 Währungen — zum echten Interbanken-Kurs, ohne versteckte Aufschläge. Schneller als Ihre Bank, günstiger als jede Alternative.',
+    'cta-book':      'Gespräch buchen',
+    'cta-waitlist':  'Warteliste beitreten',
+    'modal-title':   'Warteliste derzeit voll',
+    'modal-body':    'Wir nehmen unsere ersten Kunden sorgfältig an Bord, damit jeder die Aufmerksamkeit bekommt, die er verdient. Folgen Sie uns auf LinkedIn, um als Erster informiert zu werden.',
+    'modal-linkedin':'Auf LinkedIn folgen',
+    'modal-dismiss': 'Schließen',
+    'footer-imprint':'Impressum',
+    'footer-cookies':'Datenschutz & Cookies',
+    'bm-eyebrow':       'Erstgespräch',
+    'bm-headline-html': 'Sprechen Sie mit einem <em>FX-Experten.</em>',
+    'bm-sub':           '30 Minuten. Unverbindlich. Erfahren Sie genau, wie viel Ihr Unternehmen bei Auslandszahlungen sparen kann.',
+  },
+  en: {
+    'chip':          'EU-regulated · Hamburg',
+    'headline-html': 'Cross-border payments,<br><em>reimagined.</em>',
+    'sub':           'Send money in 30+ currencies at the real interbank rate — no markups, no surprises. Faster settlement, lower costs, every time.',
+    'cta-book':      'Book a call',
+    'cta-waitlist':  'Join the waitlist',
+    'modal-title':   'Waitlist is currently full',
+    'modal-body':    'We\'re onboarding our first clients carefully to ensure every customer gets the attention they deserve. Follow us on LinkedIn to be the first to know when we open up.',
+    'modal-linkedin':'Follow on LinkedIn',
+    'modal-dismiss': 'Dismiss',
+    'footer-imprint':'Imprint',
+    'footer-cookies':'Cookie Policy',
+    'bm-eyebrow':       'Discovery call',
+    'bm-headline-html': 'Talk to an <em>FX specialist.</em>',
+    'bm-sub':           '30 minutes. No commitment. See exactly how much your company could save on cross-border payments.',
+  }
+};
+
+var currentLang = 'de';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  var t = translations[lang];
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (!t[key]) return;
+    if (key.endsWith('-html')) { el.innerHTML = t[key]; }
+    else { el.textContent = t[key]; }
+  });
+  try { localStorage.setItem('hp_lang', lang); } catch(e) {}
+  // If booking modal is open, tell the iframe to switch too
+  var iframe = document.getElementById('hp-bm-iframe');
+  if (iframe && iframe.src && iframe.contentWindow) {
+    try { iframe.contentWindow.postMessage({ type: 'setLang', lang: lang }, '*'); } catch(e) {}
+  }
+  try { window.dispatchEvent(new CustomEvent('hp:langchange', { detail: { lang: lang } })); } catch(e) {}
+}
+
+// Init — priority: localStorage (explicit choice) → browser language → default DE
+(function() {
+  var lang = 'de';
+  try { var s = localStorage.getItem('hp_lang'); if (s === 'en' || s === 'de') { lang = s; setLang(lang); return; } } catch(e) {}
+  var langs = navigator.languages || (navigator.language ? [navigator.language] : []);
+  for (var i = 0; i < langs.length; i++) {
+    var l = (langs[i] || '').toLowerCase().split('-')[0];
+    if (l === 'en' || l === 'de') { lang = l; break; }
+  }
+  setLang(lang);
+})();
+
+// ── Waitlist ──
+function openWaitlist() { document.getElementById('waitlist-modal').classList.add('open'); }
+function closeWaitlist() { document.getElementById('waitlist-modal').classList.remove('open'); }
+document.getElementById('waitlist-modal').addEventListener('click', function(e) { if (e.target === this) closeWaitlist(); });
+
+// ── Booking ──
+function openBooking() {
+  var overlay = document.getElementById('hp-bm-overlay');
+  document.getElementById('hp-bm-iframe').src = '/booking.html?modal=1&lang=' + currentLang;
+  overlay.classList.add('hp-bm-open');
+  document.body.style.overflow = 'hidden';
+}
+function closeBooking() {
+  var overlay = document.getElementById('hp-bm-overlay');
+  overlay.classList.remove('hp-bm-open');
+  document.body.style.overflow = '';
+  setTimeout(function() { document.getElementById('hp-bm-iframe').src = ''; }, 300);
+}
+document.getElementById('hp-bm-overlay').addEventListener('click', function(e) { if (e.target === this) closeBooking(); });
+document.getElementById('hp-bm-close-btn').addEventListener('click', closeBooking);
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeWaitlist(); closeBooking(); } });
+</script>
+<script defer src="/assets/consent.js"></script>
+</body>
+</html>

@@ -334,6 +334,27 @@ a { color: inherit; text-decoration: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       Dashboard
     </a>
+    <a href="/hansepay/admin/bookings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </a>
+    <a href="/hansepay/admin/calendar.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Calendar
+    </a>
+    <span class="nav-section">Growth</span>
+    <a href="/hansepay/admin/sales.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Sales Pipeline
+    </a>
+    <a href="/hansepay/admin/crm.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers (CRM)
+    </a>
+    <a href="/hansepay/admin/marketing.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Marketing
+    </a>
     <span class="nav-section">Content</span>
     <a href="/hansepay/admin/posts.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -342,6 +363,15 @@ a { color: inherit; text-decoration: none; }
     <a href="/hansepay/admin/new-post.html" class="nav-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       New Post
+    </a>
+    <span class="nav-section">Optimise</span>
+    <a href="/hansepay/admin/seo.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      SEO Manager
+    </a>
+    <a href="/hansepay/admin/analytics.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <span class="nav-section">Admin</span>
     <a href="/hansepay/admin/users.html" class="nav-item">
@@ -379,6 +409,27 @@ a { color: inherit; text-decoration: none; }
   </div>
 
   <div class="content">
+
+    <!-- Launch mode banner -->
+    <div id="launch-banner" style="display:none;background:#fff;border:1.5px solid rgba(11,25,41,.1);border-radius:14px;padding:18px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="launch-dot" style="width:10px;height:10px;border-radius:50%;background:#f59e0b;flex-shrink:0;box-shadow:0 0 0 3px rgba(245,158,11,.15);"></div>
+        <div>
+          <div style="font-size:0.9375rem;font-weight:600;color:var(--n800);" id="launch-label">Coming Soon Mode — site is hidden</div>
+          <div style="font-size:0.8125rem;color:var(--ink3);margin-top:2px;" id="launch-sub">Public visitors see the coming soon page. Share the preview link to show the full site.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <button id="copy-preview-btn" onclick="copyPreviewLink()" style="padding:8px 16px;border-radius:100px;border:1.5px solid rgba(11,25,41,.12);background:transparent;font-family:'Inter',sans-serif;font-size:0.8125rem;font-weight:600;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy preview link
+        </button>
+        <button id="launch-toggle-btn" onclick="toggleLaunchMode()" style="padding:8px 20px;border-radius:100px;border:none;font-family:'Inter',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:all .15s;background:var(--n500);color:#fff;">
+          Go Live
+        </button>
+      </div>
+    </div>
+
     <!-- Stat cards -->
     <div class="stats-grid">
       <div class="stat-card">
@@ -386,16 +437,16 @@ a { color: inherit; text-decoration: none; }
         <div class="stat-label">Total Pageviews</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="stat-published">—</div>
-        <div class="stat-label">Published Posts</div>
+        <div class="stat-value" id="stat-bookings">—</div>
+        <div class="stat-label">Total Bookings</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="stat-draft">—</div>
-        <div class="stat-label">Draft Posts</div>
+        <div class="stat-value" id="stat-newleads">—</div>
+        <div class="stat-label">New Leads</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="stat-users">—</div>
-        <div class="stat-label">Team Members</div>
+        <div class="stat-value" id="stat-won">—</div>
+        <div class="stat-label">Won Deals</div>
       </div>
     </div>
 
@@ -500,9 +551,9 @@ authFetch('/api/analytics/summary')
   })
   .then(function(data) {
     document.getElementById('stat-pageviews').textContent = (data.totalPageviews || 0).toLocaleString();
-    document.getElementById('stat-published').textContent = data.postsPublished || 0;
-    document.getElementById('stat-draft').textContent = data.postsDraft || 0;
-    document.getElementById('stat-users').textContent = data.totalUsers || 0;
+    document.getElementById('stat-bookings').textContent = (data.totalBookings || 0).toLocaleString();
+    document.getElementById('stat-newleads').textContent = (data.newLeads || 0).toLocaleString();
+    document.getElementById('stat-won').textContent = (data.wonDeals || 0).toLocaleString();
 
     var days = data.viewsLast30Days || [];
     var labels = days.map(function(d) {
@@ -583,6 +634,127 @@ authFetch('/api/posts?status=all')
     }).join('');
   })
   .catch(function() {});
+
+// ── Launch mode banner ────────────────────────────────────────────────────────
+var currentSettings = {};
+
+authFetch('/api/settings')
+  .then(function(r) { return r.json(); })
+  .then(function(s) {
+    currentSettings = s;
+    updateLaunchBanner(s.comingSoonMode);
+  })
+  .catch(function() {});
+
+function updateLaunchBanner(comingSoon) {
+  var banner = document.getElementById('launch-banner');
+  var dot    = document.getElementById('launch-dot');
+  var label  = document.getElementById('launch-label');
+  var sub    = document.getElementById('launch-sub');
+  var btn    = document.getElementById('launch-toggle-btn');
+  var copyBtn = document.getElementById('copy-preview-btn');
+  banner.style.display = 'flex';
+  if (comingSoon) {
+    dot.style.background = '#f59e0b';
+    dot.style.boxShadow  = '0 0 0 3px rgba(245,158,11,.15)';
+    label.textContent    = 'Coming Soon Mode — site is hidden from public';
+    sub.textContent      = 'Public visitors see the coming soon page. Share the preview link to show the full site.';
+    btn.textContent      = '🚀 Go Live';
+    btn.style.background = 'var(--n500)';
+    copyBtn.style.display = 'flex';
+  } else {
+    dot.style.background = '#22c55e';
+    dot.style.boxShadow  = '0 0 0 3px rgba(34,197,94,.15)';
+    label.textContent    = 'Site is Live';
+    sub.textContent      = 'The full site is publicly accessible at your domain.';
+    btn.textContent      = 'Switch to Coming Soon';
+    btn.style.background = '#6b7280';
+    copyBtn.style.display = 'none';
+  }
+}
+
+function toggleLaunchMode() {
+  var btn = document.getElementById('launch-toggle-btn');
+  btn.disabled = true;
+  var newMode = !currentSettings.comingSoonMode;
+  authFetch('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify(Object.assign({}, currentSettings, { comingSoonMode: newMode }))
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(s) {
+      currentSettings = s;
+      updateLaunchBanner(s.comingSoonMode);
+      var msg = s.comingSoonMode ? 'Coming Soon mode enabled.' : '🚀 Site is now live!';
+      showToast(msg);
+    })
+    .catch(function() { showToast('Failed to update.', 'error'); })
+    .finally(function() { btn.disabled = false; });
+}
+
+function copyPreviewLink() {
+  var btn = document.getElementById('copy-preview-btn');
+  btn.disabled = true;
+  authFetch('/api/settings/preview-link')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.disabled = false;
+      if (!d.url) {
+        showPreviewUrlPopup(null);
+        return;
+      }
+      // Try clipboard API first, fall back to showing the URL
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(d.url).then(function() {
+          btn.innerHTML = '✓ Copied!';
+          setTimeout(function() {
+            btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy preview link';
+          }, 2000);
+        }).catch(function() { showPreviewUrlPopup(d.url); });
+      } else {
+        showPreviewUrlPopup(d.url);
+      }
+    })
+    .catch(function() { btn.disabled = false; showToast('Could not fetch preview link.', 'error'); });
+}
+
+function showPreviewUrlPopup(url) {
+  // Remove existing popup if any
+  var existing = document.getElementById('preview-url-popup');
+  if (existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.id = 'preview-url-popup';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  popup.innerHTML = url
+    ? '<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:520px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.25)">' +
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;font-weight:600;color:#0B1929;margin-bottom:8px">Preview Link</div>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:14px">Copy this link and share it. Anyone with this link can browse the full site.</p>' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+        '<input id="preview-url-input" type="text" value="' + url + '" readonly style="flex:1;padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-size:0.8125rem;font-family:\'Inter\',sans-serif;color:#0B1929;outline:none;background:#f9fafb" onclick="this.select()" />' +
+        '<button onclick="var i=document.getElementById(\'preview-url-input\');i.select();document.execCommand(\'copy\');this.textContent=\'✓\';setTimeout(function(){this.textContent=\'Copy\'},1500,this)" style="padding:9px 16px;background:#1E4E80;color:#fff;border:none;border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer">Copy</button>' +
+      '</div>' +
+      '<button onclick="document.getElementById(\'preview-url-popup\').remove()" style="margin-top:16px;width:100%;padding:9px;background:transparent;border:1.5px solid rgba(11,25,41,.1);border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;color:#3D5A73;cursor:pointer">Close</button>' +
+      '</div>'
+    : '<div style="background:#fff;border-radius:14px;padding:28px 32px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.25)">' +
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;font-weight:600;color:#0B1929;margin-bottom:8px">Preview token not set</div>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:8px">Add a <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">PREVIEW_TOKEN</code> environment variable in Railway to enable the shareable preview link.</p>' +
+      '<p style="font-size:0.8125rem;color:#3D5A73;margin-bottom:16px">Example: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px">PREVIEW_TOKEN = hansepay2026</code></p>' +
+      '<button onclick="document.getElementById(\'preview-url-popup\').remove()" style="width:100%;padding:9px;background:#1E4E80;color:#fff;border:none;border-radius:8px;font-family:\'Inter\',sans-serif;font-size:0.8125rem;font-weight:600;cursor:pointer">Got it</button>' +
+      '</div>';
+  document.body.appendChild(popup);
+  popup.addEventListener('click', function(e) { if (e.target === popup) popup.remove(); });
+  // Select the input for easy copying
+  if (url) setTimeout(function() { var i = document.getElementById('preview-url-input'); if(i){i.focus();i.select();} }, 50);
+}
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(function() { t.className = 'toast'; }, 3200);
+}
 </script>
 </body>
 </html>

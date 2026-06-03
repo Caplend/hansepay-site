@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --n900:#060D1A; --n800:#0B1929; --n700:#0F2540; --n600:#163659;
+  --n500:#1E4E80; --n400:#2E6BAD; --n300:#3B7BC4; --n200:#8DBDE6;
+  --n100:#C4DDEF; --n050:#EBF4FB; --off:#F5F1EA; --gold:#C9A961;
+  --ink:#0B1929; --ink2:#3D5A73; --ink3:#7A9AB0;
+  --r-sm:6px; --r-md:10px; --r-lg:16px; --r-pill:100px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--off); color: var(--ink); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--n800);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 20px 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.sidebar-admin-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  display: block;
+  margin-top: 4px;
+}
+.sidebar-nav { flex: 1; padding: 18px 12px; overflow-y: auto; }
+.nav-section {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+  padding: 12px 12px 6px;
+  margin-top: 4px;
+  display: block;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active {
+  background: var(--n600);
+  color: #fff;
+  font-weight: 600;
+  border-left-color: var(--gold);
+}
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.sidebar-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--n500);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.sidebar-user-info { overflow: hidden; }
+.sidebar-user-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user-email {
+  font-size: 0.6875rem;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.signout-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: none;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  text-align: left;
+}
+.signout-link:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75); }
+.signout-link svg { width: 14px; height: 14px; }
+
+/* MAIN */
+.main { flex: 1; margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--n800);
+}
+.topbar-avatar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 14px 5px 5px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(11,25,41,0.09);
+  background: var(--off);
+}
+.topbar-avatar-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--n500);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+}
+.topbar-avatar-name { font-size: 0.8125rem; font-weight: 500; color: var(--ink2); }
+.content { padding: 32px; flex: 1; }
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 22px 20px;
+  border: 1px solid rgba(11,25,41,0.08);
+  box-shadow: 0 1px 4px rgba(11,25,41,0.04);
+}
+.stat-icon {
+  width: 34px; height: 34px;
+  border-radius: var(--r-md);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.stat-icon svg { width: 17px; height: 17px; }
+.stat-icon-blue { background: var(--n050); color: var(--n400); }
+.stat-icon-gold { background: #fef9ec; color: #a07a2a; }
+.stat-icon-green { background: #f0fdf4; color: #16a34a; }
+.stat-icon-purple { background: #f5f3ff; color: #7c3aed; }
+.stat-icon-teal { background: #f0fdfa; color: #0f766e; }
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--n800);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* SECTION HEADINGS */
+.section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--n800);
+}
+.section-subtitle {
+  font-size: 0.8125rem;
+  color: var(--ink3);
+  margin-top: 3px;
+}
+
+/* CARD BASE */
+.card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(11,25,41,0.08);
+  box-shadow: 0 1px 4px rgba(11,25,41,0.04);
+  margin-bottom: 24px;
+}
+.card-header {
+  padding: 20px 24px 0;
+}
+.card-body {
+  padding: 20px 24px 24px;
+}
+.card-header + .card-body {
+  padding-top: 18px;
+}
+
+/* FUNNEL */
+.funnel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px 24px 24px;
+}
+.funnel-step {
+  position: relative;
+  padding: 14px 0 0;
+}
+.funnel-step:first-child { padding-top: 0; }
+.funnel-step-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.funnel-step-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.funnel-step-count {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--n800);
+}
+.funnel-bar-track {
+  width: 100%;
+  height: 28px;
+  background: var(--n050);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  position: relative;
+}
+.funnel-bar-fill {
+  height: 100%;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.02em;
+  transition: width 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.funnel-bar-1 { background: var(--n400); }
+.funnel-bar-2 { background: var(--n300); }
+.funnel-bar-3 { background: var(--gold); }
+.funnel-dropoff {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 2px 4px;
+  font-size: 0.75rem;
+  color: var(--ink3);
+}
+.funnel-dropoff-pct {
+  font-weight: 600;
+  color: #dc2626;
+  font-size: 0.75rem;
+}
+.funnel-arrow {
+  color: var(--ink3);
+  font-size: 0.75rem;
+}
+
+/* CHART CARD */
+.chart-card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: 24px 24px 20px;
+  border: 1px solid rgba(11,25,41,0.08);
+  box-shadow: 0 1px 4px rgba(11,25,41,0.04);
+  margin-bottom: 24px;
+}
+.chart-card-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--n800);
+  margin-bottom: 20px;
+}
+
+/* BOTTOM GRID */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.table-card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(11,25,41,0.08);
+  box-shadow: 0 1px 4px rgba(11,25,41,0.04);
+  overflow: hidden;
+}
+.table-card-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(11,25,41,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.table-card-title { font-size: 0.875rem; font-weight: 600; color: var(--n800); }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: 10px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(11,25,41,0.06);
+  background: #fafbfc;
+}
+.data-table td {
+  padding: 11px 18px;
+  font-size: 0.8125rem;
+  color: var(--ink2);
+  border-bottom: 1px solid rgba(11,25,41,0.04);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--n050); }
+.data-table td.rank-cell {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--n200);
+  width: 36px;
+  text-align: center;
+  padding-right: 8px;
+}
+.data-table td.path-cell {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: var(--ink);
+  font-size: 0.8125rem;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-table td.count-cell {
+  font-weight: 600;
+  color: var(--n700);
+  font-size: 0.8125rem;
+  text-align: right;
+}
+.data-table td.pct-cell {
+  font-size: 0.75rem;
+  color: var(--ink3);
+  text-align: right;
+  padding-left: 8px;
+}
+.pct-bar {
+  display: inline-block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--n200);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.event-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink);
+  font-feature-settings: 'tnum';
+}
+.event-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--n050);
+  color: var(--n500);
+  margin-left: 6px;
+}
+
+/* LOADING / EMPTY STATE */
+.loading-cell {
+  text-align: center;
+  color: var(--ink3);
+  padding: 32px 16px !important;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 1280px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1024px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .bottom-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div>
+      <div class="sidebar-brand">HansePay</div>
+      <span class="sidebar-admin-badge">Admin</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <span class="nav-section">Main</span>
+    <a href="/admin/index.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="/admin/bookings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </a>
+    <a href="/hansepay/admin/calendar.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Calendar
+    </a>
+    <span class="nav-section">Growth</span>
+    <a href="/hansepay/admin/sales.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Sales Pipeline
+    </a>
+    <a href="/hansepay/admin/crm.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers (CRM)
+    </a>
+    <a href="/hansepay/admin/marketing.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Marketing
+    </a>
+    <span class="nav-section">Content</span>
+    <a href="/admin/posts.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Posts
+    </a>
+    <a href="/admin/new-post.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Post
+    </a>
+    <span class="nav-section">Optimise</span>
+    <a href="/admin/seo.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      SEO Manager
+    </a>
+    <a href="/admin/analytics.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <span class="nav-section">Admin</span>
+    <a href="/admin/users.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </a>
+    <a href="/admin/settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+      Settings
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-name">Admin</div>
+        <div class="sidebar-user-email" id="sidebar-email">admin@hansepay.com</div>
+      </div>
+    </div>
+    <button class="signout-link" onclick="signOut()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Analytics</div>
+    <div class="topbar-avatar">
+      <div class="topbar-avatar-circle" id="topbar-avatar">A</div>
+      <span class="topbar-avatar-name" id="topbar-name">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- Stats row: 5 cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <div class="stat-value" id="stat-pageviews">—</div>
+        <div class="stat-label">Total Pageviews</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="stat-value" id="stat-modal-opens">—</div>
+        <div class="stat-label">Modal Opens</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-teal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-value" id="stat-bookings">—</div>
+        <div class="stat-label">Bookings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-gold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="stat-value" id="stat-won-deals">—</div>
+        <div class="stat-label">Won Deals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="stat-value" id="stat-conversion">—</div>
+        <div class="stat-label">Conversion Rate</div>
+      </div>
+    </div>
+
+    <!-- Booking Funnel -->
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title">Booking Funnel</div>
+        <div class="section-subtitle">Visitor journey from page view to confirmed booking</div>
+      </div>
+      <div class="funnel-container" id="funnel-container">
+        <!-- Step 1 -->
+        <div class="funnel-step">
+          <div class="funnel-step-header">
+            <span class="funnel-step-label">Page Views</span>
+            <span class="funnel-step-count" id="funnel-val-1">—</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill funnel-bar-1" id="funnel-bar-1" style="width:0%">
+              <span id="funnel-bar-label-1"></span>
+            </div>
+          </div>
+        </div>
+        <!-- Dropoff 1→2 -->
+        <div class="funnel-dropoff" id="funnel-dropoff-1">
+          <span class="funnel-arrow">&#8595;</span>
+          <span class="funnel-dropoff-pct" id="funnel-drop-pct-1">—</span>
+          <span>drop-off to modal opens</span>
+        </div>
+        <!-- Step 2 -->
+        <div class="funnel-step">
+          <div class="funnel-step-header">
+            <span class="funnel-step-label">Modal Opens</span>
+            <span class="funnel-step-count" id="funnel-val-2">—</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill funnel-bar-2" id="funnel-bar-2" style="width:0%">
+              <span id="funnel-bar-label-2"></span>
+            </div>
+          </div>
+        </div>
+        <!-- Dropoff 2→3 -->
+        <div class="funnel-dropoff" id="funnel-dropoff-2">
+          <span class="funnel-arrow">&#8595;</span>
+          <span class="funnel-dropoff-pct" id="funnel-drop-pct-2">—</span>
+          <span>drop-off to confirmed bookings</span>
+        </div>
+        <!-- Step 3 -->
+        <div class="funnel-step">
+          <div class="funnel-step-header">
+            <span class="funnel-step-label">Bookings</span>
+            <span class="funnel-step-count" id="funnel-val-3">—</span>
+          </div>
+          <div class="funnel-bar-track">
+            <div class="funnel-bar-fill funnel-bar-3" id="funnel-bar-3" style="width:0%">
+              <span id="funnel-bar-label-3"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Traffic Chart -->
+    <div class="chart-card">
+      <div class="chart-card-title">Traffic — last 30 days</div>
+      <canvas id="traffic-chart" height="80"></canvas>
+    </div>
+
+    <!-- Bottom 2-col grid -->
+    <div class="bottom-grid">
+
+      <!-- Top Pages table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Top Pages</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th>Page</th>
+              <th style="text-align:right;">Views</th>
+              <th style="text-align:right;padding-left:8px;">% Total</th>
+            </tr>
+          </thead>
+          <tbody id="top-pages-body">
+            <tr><td colspan="4" class="loading-cell">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Funnel Events table -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Funnel Events</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th style="text-align:right;">Count</th>
+            </tr>
+          </thead>
+          <tbody id="events-body">
+            <tr><td colspan="2" class="loading-cell">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script>
+var BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
+var token = localStorage.getItem('hp_token');
+if (!token) { window.location.href = '/admin/login.html'; }
+
+var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+
+function setUserUI(u) {
+  if (!u || !u.name) return;
+  var initials = u.name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initials;
+  document.getElementById('topbar-avatar').textContent = initials;
+  document.getElementById('sidebar-name').textContent = u.name;
+  document.getElementById('topbar-name').textContent = u.name;
+  if (u.email) document.getElementById('sidebar-email').textContent = u.email;
+}
+
+if (user) setUserUI(user);
+
+fetch(BASE + '/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
+  .then(function(r) {
+    if (!r.ok) { localStorage.removeItem('hp_token'); window.location.href = '/admin/login.html'; }
+    return r.json();
+  })
+  .then(function(me) { setUserUI(me); })
+  .catch(function() {});
+
+function signOut() {
+  localStorage.removeItem('hp_token');
+  localStorage.removeItem('hp_user');
+  window.location.href = '/admin/login.html';
+}
+
+function authFetch(url, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign(
+    { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    opts.headers || {}
+  );
+  return fetch(BASE + url, opts);
+}
+
+function formatNumber(n) {
+  return (n || 0).toLocaleString();
+}
+
+function pct(num, den) {
+  if (!den || den === 0) return '0.0';
+  return ((num / den) * 100).toFixed(1);
+}
+
+function dropPct(from, to) {
+  if (!from || from === 0) return '0.0%';
+  var drop = from - to;
+  return ((drop / from) * 100).toFixed(1) + '%';
+}
+
+// Animate funnel bar widths after a short delay
+function animateFunnelBar(id, widthPct, labelText) {
+  setTimeout(function() {
+    var el = document.getElementById(id);
+    if (el) {
+      el.style.width = widthPct + '%';
+      var labelEl = document.getElementById(id.replace('funnel-bar-', 'funnel-bar-label-'));
+      if (labelEl && widthPct > 12) labelEl.textContent = labelText;
+    }
+  }, 120);
+}
+
+// Human-readable event names
+function eventLabel(key) {
+  var map = {
+    booking_modal_open: 'Booking modal opened',
+    booking_submitted: 'Booking form submitted',
+    booking_confirmed: 'Booking confirmed'
+  };
+  return map[key] || key.replace(/_/g, ' ');
+}
+
+// Load summary
+authFetch('/api/analytics/summary')
+  .then(function(r) {
+    if (r.status === 401) { localStorage.removeItem('hp_token'); window.location.href = '/admin/login.html'; return; }
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data) return;
+
+    var funnel = data.bookingFunnel || {};
+    var pageViews = funnel.pageViews || 0;
+    var modalOpens = funnel.modalOpens || 0;
+    var bookings = funnel.bookings || 0;
+    var totalPageviews = data.totalPageviews || 0;
+    var wonDeals = data.wonDeals || 0;
+
+    // Stats row
+    document.getElementById('stat-pageviews').textContent = formatNumber(totalPageviews);
+    document.getElementById('stat-modal-opens').textContent = formatNumber(modalOpens);
+    document.getElementById('stat-bookings').textContent = formatNumber(bookings);
+    document.getElementById('stat-won-deals').textContent = formatNumber(wonDeals);
+    var convRate = totalPageviews > 0 ? ((bookings / totalPageviews) * 100).toFixed(2) + '%' : '0.00%';
+    document.getElementById('stat-conversion').textContent = convRate;
+
+    // Funnel
+    var maxVal = Math.max(pageViews, modalOpens, bookings, 1);
+    var w1 = 100;
+    var w2 = Math.max((modalOpens / maxVal) * 100, 0);
+    var w3 = Math.max((bookings / maxVal) * 100, 0);
+
+    document.getElementById('funnel-val-1').textContent = formatNumber(pageViews);
+    document.getElementById('funnel-val-2').textContent = formatNumber(modalOpens);
+    document.getElementById('funnel-val-3').textContent = formatNumber(bookings);
+
+    document.getElementById('funnel-drop-pct-1').textContent = dropPct(pageViews, modalOpens);
+    document.getElementById('funnel-drop-pct-2').textContent = dropPct(modalOpens, bookings);
+
+    animateFunnelBar('funnel-bar-1', w1, formatNumber(pageViews) + ' views');
+    animateFunnelBar('funnel-bar-2', w2, formatNumber(modalOpens) + ' opens');
+    animateFunnelBar('funnel-bar-3', w3, formatNumber(bookings) + ' bookings');
+
+    // Traffic chart
+    var days = data.viewsLast30Days || [];
+    var labels = days.map(function(d) {
+      var dt = new Date(d.date);
+      return dt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+    });
+    var counts = days.map(function(d) { return d.count || 0; });
+
+    var ctx = document.getElementById('traffic-chart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Page Views',
+          data: counts,
+          borderColor: '#2E6BAD',
+          backgroundColor: 'rgba(46,107,173,0.07)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#2E6BAD',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0B1929',
+            titleColor: 'rgba(255,255,255,0.55)',
+            bodyColor: '#fff',
+            titleFont: { size: 11, family: 'Inter' },
+            bodyFont: { size: 13, family: 'Inter', weight: '600' },
+            padding: 10,
+            cornerRadius: 8,
+            displayColors: false,
+            callbacks: {
+              label: function(ctx) { return formatNumber(ctx.parsed.y) + ' views'; }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { font: { size: 11, family: 'Inter' }, color: '#7A9AB0', maxTicksLimit: 10 }
+          },
+          y: {
+            grid: { color: 'rgba(11,25,41,0.05)', drawBorder: false },
+            border: { display: false },
+            ticks: { font: { size: 11, family: 'Inter' }, color: '#7A9AB0', callback: function(v) { return formatNumber(v); } },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Top Pages table
+    var viewsByPage = data.viewsByPage || {};
+    var pageEntries = Object.keys(viewsByPage).map(function(k) {
+      return { path: k, views: viewsByPage[k] || 0 };
+    });
+    pageEntries.sort(function(a, b) { return b.views - a.views; });
+
+    var grandTotal = pageEntries.reduce(function(sum, e) { return sum + e.views; }, 0) || 1;
+    var tbody = document.getElementById('top-pages-body');
+    if (!pageEntries.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="loading-cell">No page data yet.</td></tr>';
+    } else {
+      tbody.innerHTML = pageEntries.map(function(e, i) {
+        var p = pct(e.views, grandTotal);
+        var barW = Math.round((e.views / pageEntries[0].views) * 60);
+        return '<tr>' +
+          '<td class="rank-cell">' + (i + 1) + '</td>' +
+          '<td class="path-cell" title="' + e.path + '">' + e.path + '</td>' +
+          '<td class="count-cell">' + formatNumber(e.views) + '</td>' +
+          '<td class="pct-cell"><span class="pct-bar" style="width:' + barW + 'px"></span>' + p + '%</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // Funnel Events table
+    var eventCounts = data.eventCounts || {};
+    var eventKeys = Object.keys(eventCounts);
+    var eventsBody = document.getElementById('events-body');
+    if (!eventKeys.length) {
+      eventsBody.innerHTML = '<tr><td colspan="2" class="loading-cell">No event data yet.</td></tr>';
+    } else {
+      // Sort by count descending
+      eventKeys.sort(function(a, b) { return (eventCounts[b] || 0) - (eventCounts[a] || 0); });
+      eventsBody.innerHTML = eventKeys.map(function(k) {
+        return '<tr>' +
+          '<td><span class="event-name">' + eventLabel(k) + '</span><span class="event-tag">' + k + '</span></td>' +
+          '<td class="count-cell">' + formatNumber(eventCounts[k]) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+  })
+  .catch(function(err) {
+    console.error('Analytics fetch error', err);
+  });
+</script>
+</body>
+</html>
