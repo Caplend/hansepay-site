@@ -18,31 +18,41 @@
 }
 html,body{height:100%;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:var(--n050)}
 body{display:flex;flex-direction:column;min-height:100vh}
-.onb-layout{display:flex;flex:1;min-height:100vh}
+.onb-layout{display:flex;flex-direction:column;flex:1;min-height:100vh}
 
-/* LEFT PANEL */
-.left-panel{width:300px;min-width:300px;background:var(--n800);display:flex;flex-direction:column;padding:32px 24px;position:sticky;top:0;height:100vh;overflow-y:auto}
-.left-logo{display:flex;align-items:center;gap:10px;margin-bottom:40px}
-.left-logo img{width:30px;height:30px;object-fit:contain}
-.left-logo-text{font-family:'Libre Baskerville',serif;font-size:18px;color:#fff;letter-spacing:.02em}
-.phase-list{flex:1;display:flex;flex-direction:column;gap:0}
-.phase-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;position:relative}
-.phase-item:not(:last-child)::after{content:'';position:absolute;left:11px;top:32px;width:2px;height:calc(100% - 12px);background:rgba(255,255,255,.15)}
-.phase-dot{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.2);font-size:10px;color:rgba(255,255,255,.5);font-weight:600;transition:.3s;z-index:1}
-.phase-item.current .phase-dot{background:var(--n400);border-color:var(--n300);color:#fff}
-.phase-item.done .phase-dot{background:var(--success);border-color:var(--success);color:#fff}
-.phase-label{font-size:13px;color:rgba(255,255,255,.5);font-weight:500;padding-top:3px;transition:.3s}
-.phase-item.current .phase-label{color:#fff;font-weight:600}
-.phase-item.done .phase-label{color:rgba(255,255,255,.7)}
-.left-help{margin-top:auto;padding-top:24px;border-top:1px solid rgba(255,255,255,.1)}
-.left-help p{font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.6}
+/* LEFT PANEL — kept in DOM for context text but hidden visually */
+.left-panel{display:none}
+
+/* TOP HEADER */
+.ob-topbar{background:var(--n800);background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ob-topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.ob-topbar-logo img{width:26px;height:26px;object-fit:contain}
+.ob-topbar-logo-text{font-family:'Libre Baskerville',serif;font-size:17px;font-weight:400;color:#fff;letter-spacing:.01em}
+.ob-topbar-exit{font-size:12.5px;color:rgba(255,255,255,.45);cursor:pointer;text-decoration:none;transition:.15s}
+.ob-topbar-exit:hover{color:rgba(255,255,255,.75)}
+
+/* HORIZONTAL STEPPER */
+.ob-stepper-wrap{background:#fff;border-bottom:1px solid rgba(11,25,41,.07);padding:0 40px;position:sticky;top:0;z-index:20}
+.ob-stepper{display:flex;align-items:flex-start;padding:20px 0 16px;gap:0}
+.ob-phase-item{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:default}
+/* Connector line — fills the gap between dots */
+.ob-phase-item:not(:first-child)::before{content:'';position:absolute;top:13px;left:calc(-50% + 14px);right:calc(50% + 14px);height:2px;background:#DDE6EF;transition:background .4s;z-index:0}
+.ob-phase-item.done:not(:first-child)::before{background:var(--n500)}
+.ob-phase-item.current:not(:first-child)::before{background:linear-gradient(90deg,var(--n500),#DDE6EF)}
+/* Dot */
+.ob-phase-dot{width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #DDE6EF;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#B0C4D8;transition:all .3s;z-index:1;position:relative}
+.ob-phase-item.done .ob-phase-dot{background:var(--n500);border-color:var(--n500);color:#fff}
+.ob-phase-item.current .ob-phase-dot{background:var(--n800);border-color:var(--n800);color:#fff;box-shadow:0 0 0 4px rgba(11,25,41,.1)}
+/* Label */
+.ob-phase-label{font-size:11.5px;font-weight:500;color:#B0C4D8;margin-top:7px;text-align:center;transition:color .3s;white-space:nowrap}
+.ob-phase-item.done .ob-phase-label{color:var(--ink3)}
+.ob-phase-item.current .ob-phase-label{color:var(--n800);font-weight:700}
 
 /* RIGHT PANEL */
-.right-panel{flex:1;display:flex;flex-direction:column;background:var(--n050);min-height:100vh}
-.progress-bar-wrap{height:4px;background:rgba(11,25,41,.08);position:sticky;top:0;z-index:10;overflow:hidden}
-.progress-bar-fill{height:4px;background:linear-gradient(90deg,var(--n600),var(--n400),var(--n200));transition:width .6s cubic-bezier(.4,0,.2,1);width:0}
-.right-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px 120px}
-.step-viewport{width:100%;max-width:520px}
+.right-panel{flex:1;display:flex;flex-direction:column;background:var(--n050)}
+.progress-bar-wrap{display:none}/* replaced by stepper */
+.right-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:36px 24px 120px}
+.step-viewport{width:100%;max-width:540px}
 
 /* CARD */
 .step-card{background:#fff;border-radius:20px;padding:44px 48px;box-shadow:0 4px 32px rgba(11,25,41,.08)}
@@ -216,7 +226,7 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 .review-val{color:var(--ink);font-weight:500;text-align:right}
 
 /* NAV FOOTER */
-.nav-footer{position:fixed;bottom:0;left:300px;right:0;background:rgba(245,241,234,.95);backdrop-filter:blur(8px);border-top:1px solid #E2DDD6;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.nav-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(235,244,251,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(11,25,41,.08);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;z-index:50}
 .nav-step-info{font-size:12.5px;color:var(--ink3)}
 .nav-step-info b{color:var(--ink);font-weight:600}
 .nav-btns{display:flex;gap:10px;align-items:center}
@@ -243,7 +253,7 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 .saved-btns{display:flex;gap:8px}
 
 /* MOBILE TOP */
-.mobile-top{display:none;background:var(--n800);flex-direction:column;position:sticky;top:0;z-index:20}
+.mobile-top{display:none}
 .mobile-top-inner{display:flex;align-items:center;padding:14px 20px}
 .mobile-logo{display:flex;align-items:center;gap:8px}
 .mobile-logo span{font-family:'Libre Baskerville',serif;font-size:16px;color:#fff}
@@ -271,12 +281,11 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 
 @media(max-width:768px){
   .left-panel{display:none}
-  .nav-footer{left:0}
-  .mobile-top{display:flex}
-  .step-card{padding:24px}
+  .mobile-top{display:none}
+  .step-card{padding:28px 24px}
   .field-row{grid-template-columns:1fr}
   .radio-cards.cols2{grid-template-columns:1fr}
-  .right-content{padding:24px 16px 120px}
+  .right-content{padding:20px 16px 100px}
 }
 </style>
 </head>
@@ -284,30 +293,28 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 
 <div id="toast"></div>
 
-<!-- MOBILE TOP BAR -->
-<div class="mobile-top" id="mobileTop">
-  <div class="mobile-top-inner">
-    <div class="mobile-logo">
-      <img src="/assets/hansepay-mark-uploaded.png" width="24" height="24" alt="">
-      <span>HansePay</span>
-    </div>
-    <div class="mobile-phase" id="mobilePhaseName">Account</div>
-  </div>
-  <div class="mobile-progress"><div class="mobile-progress-fill" id="mobileProgress" style="width:0"></div></div>
+<!-- TOP HEADER -->
+<header class="ob-topbar">
+  <a class="ob-topbar-logo" href="/">
+    <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay">
+    <span class="ob-topbar-logo-text">HansePay</span>
+  </a>
+  <a class="ob-topbar-exit" href="/">Save &amp; exit</a>
+</header>
+
+<!-- HORIZONTAL STEPPER -->
+<div class="ob-stepper-wrap">
+  <div class="ob-stepper" id="obStepper"></div>
 </div>
 
-<!-- MAIN LAYOUT -->
+<!-- MAIN LAYOUT (flex column) -->
 <div class="onb-layout" id="mainLayout">
 
+  <!-- Left panel: hidden but kept for JS context text compatibility -->
   <div class="left-panel" id="leftPanel">
-    <div class="left-logo">
-      <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay" style="filter:none">
-      <span class="left-logo-text">HansePay</span>
-    </div>
+    <div class="left-logo"></div>
     <div class="phase-list" id="phaseList"></div>
-    <div class="left-help">
-      <p id="leftHelpText"></p>
-    </div>
+    <div class="left-help"><p id="leftHelpText"></p></div>
   </div>
 
   <div class="right-panel">
@@ -1732,20 +1739,28 @@ function updateProgress(){
   const mp=document.getElementById('mobileProgress');if(mp)mp.style.width=pct+'%';
 }
 function updateLeftPanel(){
+  // Legacy left panel (hidden) — still update for compatibility
   const pl=document.getElementById('phaseList');
-  if(pl){
-    pl.innerHTML=PHASES.map((ph,i)=>{
-      const st=getPhaseStatus(ph.id);
-      return`<div class="phase-item ${st}">
-        <div class="phase-dot">${st==='done'?'✓':i+1}</div>
-        <div class="phase-label">${ph.label}</div>
-      </div>`;
-    }).join('');
-  }
+  if(pl){pl.innerHTML='';}
   const ht=document.getElementById('leftHelpText');
-  if(ht)ht.textContent=PHASE_HELP[getCurrentPhase()]||'';
-  const mpn=document.getElementById('mobilePhaseName');
-  if(mpn){const ph=PHASES.find(p=>p.id===getCurrentPhase());if(ph)mpn.textContent=ph.label;}
+  if(ht)ht.textContent='';
+
+  // Horizontal stepper
+  const stepper=document.getElementById('obStepper');
+  if(!stepper)return;
+  const items=[];
+  PHASES.forEach((ph,i)=>{
+    const st=getPhaseStatus(ph.id);
+    // Connector (before every item except first)
+    items.push(`<div class="ob-phase-item ${st}">
+      <div class="ob-phase-dot">${st==='done'
+        ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+        :(i+1)}
+      </div>
+      <div class="ob-phase-label">${ph.label}</div>
+    </div>`);
+  });
+  stepper.innerHTML=items.join('');
 }
 
 // =============================================================
@@ -1763,7 +1778,8 @@ function updateNavFooter(){
   const ph=PHASES.find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
   nf.innerHTML=`
-    <div class="nav-step-info">Step <b>${CI+1}</b> of <b>${steps.length-1}</b>${ph?' &mdash; '+ph.label:''}</div>
+    <div class="nav-step-info">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}
+      <span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
     <div class="nav-btns">${CI>0?`<button class="btn btn-ghost btn-sm" onclick="prevStep()">← Back</button>`:''}</div>`;
 }
 
