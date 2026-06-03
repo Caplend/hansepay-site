@@ -1604,55 +1604,62 @@ window.togglePayCountry=function(name){
 
 // ── Address autocomplete (OpenStreetMap Nominatim — free, no key) ─────────
 let addrTimer;
+window._addrResults=[];
 window.addrLookup=function(q){
   clearTimeout(addrTimer);
-  const drop=document.getElementById('addrDrop');
+  var drop=document.getElementById('addrDrop');
   if(!drop)return;
   if(!q||q.length<4){drop.style.display='none';return;}
-  addrTimer=setTimeout(async()=>{
-    try{
-      drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Searching…</div>';
-      drop.style.display='block';
-      const url='https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+
-        '&format=json&addressdetails=1&limit=7';
-      const res=await fetch(url,{headers:{'Accept-Language':'en-GB,en'}});
-      if(!res.ok)throw new Error(res.status);
-      const data=await res.json();
+  addrTimer=setTimeout(function(){
+    drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Searching…</div>';
+    drop.style.display='block';
+    var url='https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&addressdetails=1&limit=7';
+    fetch(url,{headers:{'Accept-Language':'en-GB,en'}})
+    .then(function(r){return r.json();})
+    .then(function(data){
       if(!data||!data.length){
-        drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">No results — try adding a house number or city name</div>';
+        drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">No results — try adding a house number or city</div>';
         return;
       }
-      // Filter to results that have a road component (actual addresses, not POIs)
-      const addrs=data.filter(r=>r.address&&(r.address.road||r.address.pedestrian||r.address.street||r.address.house_number));
-      const show=(addrs.length?addrs:data).slice(0,6);
-      drop.innerHTML=show.map(function(r){
-        const a=r.address||{};
-        const road=a.road||a.pedestrian||a.footway||a.street||'';
-        const no=a.house_number||'';
-        const streetFull=road+(no?' '+no:'');
-        const city=a.city||a.town||a.village||a.suburb||a.municipality||'';
-        const postcode=a.postcode||'';
-        const cc=(a.country_code||'').toUpperCase();
-        const line1=streetFull||r.display_name.split(',')[0]||'';
-        const line2=[postcode,city,ISO2[cc]||''].filter(Boolean).join(' ');
-        const payload=JSON.stringify({
+      // Prefer results with a road component
+      var addrs=data.filter(function(r){var a=r.address||{};return a.road||a.pedestrian||a.footway||a.house_number;});
+      var show=(addrs.length?addrs:data).slice(0,6);
+      window._addrResults=show.map(function(r){
+        var a=r.address||{};
+        var road=a.road||a.pedestrian||a.footway||a.street||'';
+        var no=a.house_number||'';
+        var streetFull=road+(no?' '+no:'');
+        return{
           street:streetFull||r.display_name.split(',')[0]||'',
-          city:city,postcode:postcode,
-          state:a.state||a.county||'',country:cc
-        });
+          city:a.city||a.town||a.village||a.suburb||a.municipality||'',
+          postcode:a.postcode||'',
+          state:a.state||a.county||'',
+          country:(a.country_code||'').toUpperCase(),
+          line1:streetFull||r.display_name.split(',')[0]||'',
+          line2:[a.postcode,a.city||a.town||a.village||'',ISO2[(a.country_code||'').toUpperCase()]||''].filter(Boolean).join(' ')
+        };
+      });
+      drop.innerHTML=window._addrResults.map(function(r,i){
         return '<div style="padding:11px 16px;cursor:pointer;border-bottom:1px solid #EEF3F8" '+
-          'onmouseover="this.style.background=\'var(--n050)\'" onmouseout="this.style.background=\'\'" '+
-          'onclick="fillAddress('+payload.replace(/"/g,\'&quot;\')+')">'+
-          '<div style="font-size:14px;font-weight:500;color:var(--ink)">'+esc(line1.trim())+'</div>'+
-          (line2?'<div style="font-size:12px;color:var(--ink3);margin-top:1px">'+esc(line2.trim())+'</div>':'')+
+          'onmouseover="this.style.background=\'var(--n050)\'" '+
+          'onmouseout="this.style.background=\'\'" '+
+          'onclick="window._pickAddr('+i+')">'+
+          '<div style="font-size:14px;font-weight:500;color:var(--ink)">'+esc(r.line1)+'</div>'+
+          (r.line2?'<div style="font-size:12px;color:var(--ink3);margin-top:1px">'+esc(r.line2)+'</div>':'')+
           '</div>';
       }).join('');
-      // Close on outside click
       var closeHide=function(e){if(!e.target.closest('#addrDrop')&&e.target.id!=='addrSearch'){drop.style.display='none';document.removeEventListener('click',closeHide);}};
       setTimeout(function(){document.addEventListener('click',closeHide);},50);
-    }catch(e){console.warn('[addr]',e);drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Could not search — please fill in manually</div>';}
+    })
+    .catch(function(){drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Could not search — please fill in manually</div>';});
   },400);
 };
+window._pickAddr=function(i){
+  var addr=window._addrResults[i];
+  if(addr)window.fillAddress(addr);
+  var drop=document.getElementById('addrDrop');if(drop)drop.style.display='none';
+};
+
 window.fillAddress=function(addr){
   const map={street:'street',city:'city',postcode:'postcode',state:'stateProvince'};
   Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&addr[k])el.value=addr[k];});
