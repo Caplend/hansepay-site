@@ -24,7 +24,7 @@ body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-sm
 img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 
-/* ── NAV — see assets/nav.js ── */
+/* ── NAV, see assets/nav.js ── */
 
 /* ── ARTICLE HERO ── */
 .article-hero{background:var(--n800);padding:72px 0 64px;position:relative;overflow:hidden}
@@ -108,7 +108,7 @@ a{color:inherit;text-decoration:none}
 .not-found a{display:inline-flex;align-items:center;gap:6px;padding:11px 24px;background:var(--n500);color:#fff;border-radius:var(--r-pill);font-size:14px;font-weight:600;transition:background .18s}
 .not-found a:hover{background:var(--n600)}
 
-/* ── FOOTER — see assets/footer.js ── */
+/* ── FOOTER, see assets/footer.js ── */
 
 /* ── GRADIENT HELPERS ── */
 .grad-fx{background:linear-gradient(135deg,#0F2540,#1E4E80)}
@@ -165,7 +165,7 @@ a{color:inherit;text-decoration:none}
     return last && last !== 'blog-post.html' ? last : null;
   }
 
-  /* ── mobile menu — handled by assets/nav.js ── */
+  /* ── mobile menu, handled by assets/nav.js ── */
 
   /* ── render article hero ── */
   function renderHero(post) {
@@ -187,7 +187,7 @@ a{color:inherit;text-decoration:none}
       '<span class="article-meta-sep"></span>' +
       '<span>' + fmtDate(post.publishedAt || post.createdAt) + '</span>' +
       '</div></div></section>';
-    document.title = post.title + ' — HansePay Insights';
+    document.title = post.title + ', HansePay Insights';
   }
 
   /* ── render article body ── */
@@ -284,7 +284,7 @@ a{color:inherit;text-decoration:none}
         </a>
       </div>`;
     document.getElementById('relatedSection').innerHTML = '';
-    document.title = 'Article Not Found — HansePay Insights';
+    document.title = 'Article Not Found, HansePay Insights';
   }
 
   /* ── main ── */
