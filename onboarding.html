@@ -724,12 +724,30 @@ function R6(){
 }
 
 function R7(){
+  const natFlag = S.primaryNationality ? flagEmoji(getISO(S.primaryNationality)) : '🏳';
   return`<div class="step-card" id="sCard">
     <h1 class="step-heading">Your citizenship.</h1>
-    <div style="margin-bottom:16px">
-      <label style="margin-bottom:8px;display:block">Primary nationality detected</label>
-      <div class="nationality-chip">🇩🇪 ${esc(S.primaryNationality)}</div>
-    </div>
+
+    ${S.primaryNationality
+      ? `<div style="margin-bottom:22px">
+          <label style="margin-bottom:8px;display:block">Nationality from your document</label>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="nationality-chip">${natFlag} ${esc(S.primaryNationality)}</div>
+            <a class="toggle-link" style="margin-bottom:0;font-size:12.5px" onclick="document.getElementById('natEditWrap').style.display='block';this.style.display='none'">Not correct? Change →</a>
+          </div>
+          <div id="natEditWrap" style="display:none;margin-top:10px">
+            <label>Select your correct nationality</label>
+            ${searchableSelectHTML('natSearch','natDrop','natHidden','Search nationality…',S.primaryNationality)}
+          </div>
+        </div>`
+      : `<div style="margin-bottom:22px">
+          <label>What is your nationality?</label>
+          <div style="font-size:13px;color:var(--ink3);margin-bottom:8px">We couldn't detect this automatically — please select below.</div>
+          ${searchableSelectHTML('natSearch','natDrop','natHidden','Search nationality…','')}
+          <div class="field-error" id="nationality-err"></div>
+        </div>`
+    }
+
     <div class="field-group">
       <label>Do you hold citizenship in any other country?</label>
       ${radioCardsHTML('rcOtherCit',[
@@ -1160,6 +1178,9 @@ function validateStep(){
     if(!document.getElementById('postcode')?.value.trim()) fail('postcode','Postcode is required');
     if(!S.countryOfResidence) fail('countryOfResidence','Country of residence is required');
     // actingOnBehalf removed from flow
+  } else if(id===7){
+    if(!S.primaryNationality) fail('nationality','Please select your nationality');
+    if(S.hasOtherCitizenship==='yes'&&!S.additionalCitizenships.length) fail('citizenship','Please add at least one additional citizenship');
   } else if(id===8){
     if(!S.accountPurpose) fail('accountPurpose','Please select an option');
     if(!S.paymentTypes.length) fail('paymentTypes','Please select at least one payment type');
@@ -1308,6 +1329,15 @@ function attachAll(id){
 
   // Searchable selects
   initSearchable('countrySearch','countryDrop','countryHidden',v=>{S.countryOfResidence=v;saveState();});
+  // Nationality picker (step 7 — shown when postMessage didn't set it, or user wants to correct)
+  initSearchable('natSearch','natDrop','natHidden',v=>{
+    S.primaryNationality=v;
+    // Recompute residence mismatch
+    const natISO=Object.entries(ISO2).find(([k,w])=>w===v)?.[0]||'';
+    const resISO=Object.entries(ISO2).find(([k,w])=>w===S.countryOfResidence)?.[0]||'';
+    S._residenceMismatch=(natISO&&resISO&&natISO!==resISO);
+    saveState();
+  });
   initSearchable('citizenSearch','citizenDrop',null,v=>{
     if(!S.additionalCitizenships.includes(v)){S.additionalCitizenships.push(v);renderCitizenChips();}
     const inp=document.getElementById('citizenSearch');if(inp)inp.value='';
@@ -1667,7 +1697,11 @@ window.startVerify=function(){
 // Fallback: if postMessage doesn't arrive (e.g. popup blocked),
 // the "I've completed it" button calls this manually.
 window.checkVerifyDone=function(){
-  S.primaryNationality=S.primaryNationality||'German';
+  // Don't default to German — clear it so step 7 prompts the user to pick
+  // their actual nationality. Only keep an existing value if it was set via postMessage.
+  if(S.primaryNationality==='German'&&!S.docCountry){
+    S.primaryNationality=''; // force the picker in step 7
+  }
   S.docVerified=true;
   saveState();
   const status=document.getElementById('verifyStatus');
