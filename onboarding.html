@@ -398,6 +398,7 @@ const S = {
   countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
   thirdPartyName:'',thirdPartyRelation:'',
   primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
+  hasMultipleCitizenships:'',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
   highRiskAnswer:'no',highRiskSectors:[],volumeIncomeExplain:'',
@@ -413,12 +414,12 @@ let CI = 0; // currentIndex
 let resendTimer = null;
 
 const PHASES = [
-  {id:'account',label:'Account',steps:[1,2,'3a','3b']},
-  {id:'about',label:'About you',steps:[4,5,'5b']},
-  {id:'identity',label:'Identity',steps:[6,7]},
-  {id:'financial',label:'Financial',steps:[8,9]},
+  {id:'account',  label:'Account',    steps:[1,2,'3a','3b']},
+  {id:'about',    label:'About you',  steps:[4,5,'5b']},
+  {id:'financial',label:'Financial',  steps:[8,9]},
   {id:'compliance',label:'Compliance',steps:[10,11]},
-  {id:'review',label:'Review',steps:[12,13,14]}
+  {id:'identity', label:'Verify',     steps:[6]},
+  {id:'review',   label:'Review',     steps:[12,13,14]}
 ];
 const PHASE_HELP = {
   account:"Creating your account only takes a few minutes. We'll ask for your name, email, and phone to get started.",
@@ -434,9 +435,9 @@ const COUNTRIES = ['Afghanistan','Albania','Algeria','Andorra','Angola','Argenti
 function getActiveSteps(){
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
-  s.push(6,7,8,9,10);
-  // Step 11 (source of wealth) removed — not required for standard users
-  s.push(12,13,14);
+  // Financial, compliance, then identity verify right before T&C
+  s.push(8,9,10);
+  s.push(6,12,13,14); // verify moved to just before T&C
   return s;
 }
 
@@ -693,6 +694,33 @@ function R5(){
       <label>Country of residence</label>
       ${searchableSelectHTML('countrySearch','countryDrop','countryHidden','Search country…',S.countryOfResidence)}
       <div class="field-error" id="countryOfResidence-err"></div>
+    </div>
+
+    <div class="section-header">Citizenship</div>
+    <div class="field-group">
+      <label>Do you hold more than one citizenship?</label>
+      ${radioCardsHTML('rcMultiCit',[
+        {v:'no', label:'No, just one'},
+        {v:'yes',label:'Yes, more than one'}
+      ],S.hasMultipleCitizenships,2)}
+      <div class="field-error" id="hasMultipleCitizenships-err"></div>
+    </div>
+
+    <div id="citizenshipListWrap" style="display:${S.hasMultipleCitizenships==='yes'?'block':'none'}">
+      <label style="margin-bottom:8px;display:block">Add all your citizenships</label>
+      <div id="citizenshipFields">
+        ${(S.citizenships.length>=1?S.citizenships:['']).concat(S.citizenships.length<2?['']:[]).map((c,i)=>`
+          <div class="citizenship-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center" id="cit-row-${i}">
+            <div class="country-search-wrap" style="flex:1">
+              <input type="text" id="citInp${i}" placeholder="Search country…" autocomplete="off" value="${esc(c)}"
+                oninput="filterCitSearch(${i},this.value)" onfocus="openCitDrop(${i})" style="border-radius:var(--r-md)">
+              <div class="country-drop" id="citDrop${i}" style="display:none"></div>
+            </div>
+            ${i>=2?`<button type="button" onclick="removeCitizenshipRow(${i})" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px;padding:0 6px;flex-shrink:0">×</button>`:''}
+          </div>`).join('')}
+      </div>
+      <button type="button" onclick="addCitizenshipRow()" class="toggle-link" style="margin-bottom:0">+ Add citizenship</button>
+      <div style="font-size:12px;color:var(--ink3);margin-top:6px">All citizenships are required for regulatory compliance.</div>
     </div>
 
   </div>`;
@@ -1100,10 +1128,10 @@ function R13(){
     <h1 class="step-heading">Review your details${S.firstName?', '+esc(S.firstName):''}.</h1>
     <p class="step-sub">Double-check everything before we submit.</p>
     ${rs('Account',1,rv('Email',S.email)+rv('Phone',S.phoneCountry+' '+S.phone))}
-    ${rs('Personal details',5,rv('Full name',[S.firstName,S.middleName,S.lastName].filter(Boolean).join(' '))+rv('Date of birth',S.dob)+rv('Primary nationality',S.primaryNationality))}
-    ${rs('Address',5,rv('Street',S.street+(S.addressLine2?' '+S.addressLine2:''))+rv('City',S.city)+rv('Postcode',S.postcode)+rv('Country',S.countryOfResidence)+(S.changedResidence==='yes'?rv('Previous country',S.previousCountry):''))}
-    ${rs('Acting on behalf',5,rv('For myself',S.actingOnBehalf==='yes'?'Yes':'No')+(S.actingOnBehalf==='no'?rv('Third party',S.thirdPartyName):''))}
-    ${rs('Account usage',8,rv('Purpose',S.accountPurpose)+rv('Monthly volume',S.monthlyVolume)+rv('Regions',S.paymentRegions.join(', ')))}
+    ${rs('Personal details',5,rv('Full name',[S.firstName,S.middleName,S.lastName].filter(Boolean).join(' '))+rv('Date of birth',S.dob))}
+    ${rs('Address',5,rv('Street',S.street+(S.addressLine2?' '+S.addressLine2:''))+rv('City',S.city)+rv('Postcode',S.postcode)+rv('Country',S.countryOfResidence))}
+    ${rs('Citizenship',5,rv('Multiple citizenships',S.hasMultipleCitizenships==='yes'?'Yes':'No')+(S.hasMultipleCitizenships==='yes'?rv('Citizenships',S.citizenships.filter(Boolean).join(', ')):''))}
+    ${rs('Account usage',8,rv('Purpose',S.accountPurpose)+rv('Monthly volume',S.monthlyVolume)+rv('Destination countries',S.otherCountries.join(', ')))}
     ${rs('Income & employment',9,rv('Income source',S.incomeSource)+rv('Employment',S.employmentStatus)+rv('Industry',S.industry)+rv('Annual income',S.annualIncome))}
     ${rs('Compliance',10,rv('PEP status',S.isPEP==='yes'?'Yes — '+S.pepPosition:'No')+rv('Sanctions confirmed',S.sanctionsConfirm?'Yes':'No'))}
     <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">Submit application</button>
@@ -1202,6 +1230,12 @@ function validateStep(){
     if(!document.getElementById('city')?.value.trim()) fail('city','City is required');
     if(!document.getElementById('postcode')?.value.trim()) fail('postcode','Postcode is required');
     if(!S.countryOfResidence) fail('countryOfResidence','Country of residence is required');
+    if(!S.hasMultipleCitizenships) fail('hasMultipleCitizenships','Please answer the citizenship question');
+    if(S.hasMultipleCitizenships==='yes'){
+      const filled=S.citizenships.filter(c=>c&&c.trim());
+      if(filled.length<2) fail('hasMultipleCitizenships','Please enter at least 2 citizenships');
+      else S.citizenships=filled;
+    }
     // actingOnBehalf removed from flow
   } else if(id===7){
     if(!S.primaryNationality) fail('nationality','Please select your nationality');
@@ -1354,6 +1388,8 @@ function attachAll(id){
 
   // Searchable selects
   initSearchable('countrySearch','countryDrop','countryHidden',v=>{S.countryOfResidence=v;saveState();});
+  // Citizenship row searches (Step 5)
+  if(S.hasMultipleCitizenships==='yes'){renderCitizenshipFields();}
   // Nationality picker (step 7 — shown when postMessage didn't set it, or user wants to correct)
   initSearchable('natSearch','natDrop','natHidden',v=>{
     S.primaryNationality=v;
@@ -1395,6 +1431,13 @@ function onRadioSelect(grp,val){
     const w=document.getElementById('prevCountryWrap');if(w)w.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcActingBehalf'){S.actingOnBehalf=val;}
+  else if(grp==='rcMultiCit'){
+    S.hasMultipleCitizenships=val;
+    const w=document.getElementById('citizenshipListWrap');
+    if(w)w.style.display=val==='yes'?'block':'none';
+    if(val==='no'){S.citizenships=[];}
+    saveState();
+  }
   else if(grp==='rcOtherCit'){
     S.hasOtherCitizenship=val;
     const w=document.getElementById('addCitizenWrap');if(w)w.style.display=val==='yes'?'block':'none';
@@ -1599,6 +1642,86 @@ window.togglePayCountry=function(name){
   // Update the flag chip visually
   document.querySelectorAll('[data-val="'+name+'"]').forEach(el=>el.classList.toggle('selected',S.otherCountries.includes(name)));
   renderOtherCChips();
+  saveState();
+};
+
+// ── Citizenship row management (Step 5) ───────────────────────────────────
+function renderCitizenshipFields(){
+  const wrap=document.getElementById('citizenshipFields');
+  if(!wrap)return;
+  const list=S.citizenships.length>=2?S.citizenships:[...S.citizenships,...Array(2-S.citizenships.length).fill('')];
+  wrap.innerHTML=list.map(function(c,i){
+    return '<div class="citizenship-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center" id="cit-row-'+i+'">'+
+      '<div class="country-search-wrap" style="flex:1">'+
+        '<input type="text" id="citInp'+i+'" placeholder="Search country…" autocomplete="off" value="'+esc(c)+'" '+
+          'oninput="filterCitSearch('+i+',this.value)" onfocus="openCitDrop('+i+')" style="border-radius:var(--r-md)">'+
+        '<div class="country-drop" id="citDrop'+i+'" style="display:none"></div>'+
+      '</div>'+
+      (i>=2?'<button type="button" onclick="removeCitizenshipRow('+i+')" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px;padding:0 6px;flex-shrink:0">\xd7</button>':'')+
+    '</div>';
+  }).join('');
+  // Wire up each row's search
+  list.forEach(function(_,i){ attachCitizenshipRowSearch(i); });
+}
+
+function attachCitizenshipRowSearch(i){
+  const inp=document.getElementById('citInp'+i);
+  const drop=document.getElementById('citDrop'+i);
+  if(!inp||!drop)return;
+  var focusIdx=-1;
+  function show(q){
+    const results=fuzzyCountrySearch(q||'');
+    drop.innerHTML=results.length
+      ? results.map(function(c,ri){
+          return '<div class="country-opt" data-name="'+esc(c.name)+'" onclick="setCitizenshipRow('+i+',\''+esc(c.name)+'\')">'+
+            '<span style="font-size:18px;flex-shrink:0">'+flagEmoji(c.iso)+'</span>'+
+            '<span class="cname">'+esc(c.name)+'</span></div>';
+        }).join('')
+      : '<div class="country-drop-empty">No match</div>';
+    drop.style.display='block';
+    focusIdx=-1;
+  }
+  inp.addEventListener('input',function(){show(inp.value);});
+  inp.addEventListener('focus',function(){show(inp.value||'');});
+  inp.addEventListener('keydown',function(e){
+    const opts=drop.querySelectorAll('.country-opt');
+    if(e.key==='ArrowDown'){e.preventDefault();focusIdx=Math.min(focusIdx+1,opts.length-1);opts.forEach(function(o,ri){o.classList.toggle('focused',ri===focusIdx);});}
+    else if(e.key==='ArrowUp'){e.preventDefault();focusIdx=Math.max(focusIdx-1,0);opts.forEach(function(o,ri){o.classList.toggle('focused',ri===focusIdx);});}
+    else if(e.key==='Enter'&&focusIdx>=0){e.preventDefault();const f=opts[focusIdx];if(f)setCitizenshipRow(i,f.dataset.name);}
+    else if(e.key==='Escape'){drop.style.display='none';}
+  });
+  document.addEventListener('click',function hd(e){if(!inp.contains(e.target)&&!drop.contains(e.target)){drop.style.display='none';}});
+}
+
+window.filterCitSearch=function(i,q){
+  const drop=document.getElementById('citDrop'+i);
+  if(!drop)return;
+  const results=fuzzyCountrySearch(q||'');
+  drop.innerHTML=results.map(function(c){
+    return '<div class="country-opt" onclick="setCitizenshipRow('+i+',\''+esc(c.name)+'\')">'+
+      '<span style="font-size:18px">'+flagEmoji(c.iso)+'</span><span class="cname">'+esc(c.name)+'</span></div>';
+  }).join('');
+  drop.style.display='block';
+};
+window.openCitDrop=function(i){
+  const inp=document.getElementById('citInp'+i);
+  const drop=document.getElementById('citDrop'+i);
+  if(inp&&drop){window.filterCitSearch(i,inp.value);}
+};
+window.setCitizenshipRow=function(i,name){
+  S.citizenships[i]=name;
+  const inp=document.getElementById('citInp'+i); if(inp)inp.value=name;
+  const drop=document.getElementById('citDrop'+i); if(drop)drop.style.display='none';
+  saveState();
+};
+window.addCitizenshipRow=function(){
+  S.citizenships.push('');
+  renderCitizenshipFields();
+  saveState();
+};
+window.removeCitizenshipRow=function(i){
+  S.citizenships.splice(i,1);
+  renderCitizenshipFields();
   saveState();
 };
 
