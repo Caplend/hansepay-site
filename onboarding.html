@@ -1642,7 +1642,7 @@ button:hover{background:#163659}
   <button onclick="complete()">Start verification →</button>
   <div class="note">Simulated for demo purposes</div>
 </div>
-<scr"+"ipt>function complete(){const dc=document.getElementById('docCountry').value;if(!dc){document.getElementById('docCountry').style.borderColor='#dc2626';return;}if(window.opener)window.opener.postMessage({type:'hp_verify_complete',docISO:dc,docType:document.getElementById('docType').value},'*');window.close();}</scr"+"ipt></body></html>\`);
+<script>function complete(){var dc=document.getElementById('docCountry').value;if(!dc){document.getElementById('docCountry').style.borderColor='#dc2626';return;}if(window.opener)window.opener.postMessage({type:'hp_verify_complete',docISO:dc,docType:document.getElementById('docType').value},'*');window.close();}<\/script></body></html>\`);
     w.document.close();
   }
 
