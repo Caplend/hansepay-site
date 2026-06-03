@@ -333,26 +333,86 @@ document.getElementById('btn-outbound').addEventListener('click',function(){
 });
 
 // ── CSV Import ──
+// Properly parses RFC 4180 CSV (handles quoted fields with commas inside)
+function parseCSVLine(line){
+  var result=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else{inQ=!inQ;}}
+    else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+    else{cur+=c;}
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+// German country name → English (for Standort parsing)
+var DE_COUNTRIES={'deutschland':'Germany','österreich':'Austria','schweiz':'Switzerland',
+  'frankreich':'France','niederlande':'Netherlands','belgien':'Belgium','spanien':'Spain',
+  'italien':'Italy','portugal':'Portugal','griechenland':'Greece','türkei':'Turkey',
+  'schweden':'Sweden','norwegen':'Norway','dänemark':'Denmark','finnland':'Finland',
+  'polen':'Poland','tschechien':'Czech Republic','ungarn':'Hungary','rumänien':'Romania',
+  'kroatien':'Croatia','schweiz':'Switzerland','luxemburg':'Luxembourg','irland':'Ireland',
+  'vereinigte arabische emirate':'United Arab Emirates','usa':'United States',
+  'vereinigte staaten':'United States','china':'China','japan':'Japan','indien':'India',
+  'australien':'Australia','kanada':'Canada','brasilien':'Brazil','malediven':'Maldives',
+  'marokko':'Morocco','seychellen':'Seychelles','mongolei':'Mongolia','nepal':'Nepal',
+  'vietnam':'Vietnam','südkorea':'South Korea','hongkong':'Hong Kong','äthiopien':'Ethiopia',
+  'montenegro':'Montenegro','slowenien':'Slovenia','singapur':'Singapore','malta':'Malta',
+  'zypern':'Cyprus','island':'Iceland','lettland':'Latvia','litauen':'Lithuania',
+  'estland':'Estonia','slowakei':'Slovakia','bulgarien':'Bulgaria','serbien':'Serbia',
+  'albanien':'Albania','nordmazedonien':'North Macedonia','bosnien':'Bosnia and Herzegovina'
+};
+function deToEn(name){return DE_COUNTRIES[name.toLowerCase()]||name;}
+
 document.getElementById('import-csv-file').addEventListener('change',function(e){
   var file=e.target.files[0]; if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
-    var lines=ev.target.result.split(/\r?\n/).filter(Boolean);
+    var raw=ev.target.result;
+    var lines=raw.split(/\r?\n/).filter(Boolean);
     if(lines.length<2){H.toast('CSV must have a header row and at least one data row.','error');return;}
-    var headers=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim().toLowerCase();});
-    var map={company:['company','company name','firma','unternehmen'],
-             firstName:['first name','firstname','vorname'],lastName:['last name','lastname','nachname'],
-             email:['email','e-mail'],phone:['phone','tel','telefon'],website:['website','url'],
-             industry:['industry','branche'],country:['country','land'],fxVolume:['fx volume','fxvolume','monthly volume'],
-             notes:['notes','notizen','note']};
-    function col(key){var aliases=map[key]||[key];for(var i=0;i<aliases.length;i++){var idx=headers.indexOf(aliases[i]);if(idx!==-1)return idx;}return -1;}
+
+    var headers=parseCSVLine(lines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim().toLowerCase();});
+
+    // Column alias map — includes common German trade show headers
+    var map={
+      company:  ['company','company name','firma','unternehmen','aussteller','aussteller (name)','name','exhibitor'],
+      firstName:['first name','firstname','vorname','fname'],
+      lastName: ['last name','lastname','nachname','lname'],
+      email:    ['email','e-mail','mail'],
+      phone:    ['phone','tel','telefon','telefonnummer'],
+      website:  ['website','url','web','homepage'],
+      industry: ['industry','branche','industrie','sektor'],
+      country:  ['country','land','herkunftsland'],
+      city:     ['city','stadt','ort'],
+      fxVolume: ['fx volume','fxvolume','monthly volume','volumen'],
+      notes:    ['notes','notizen','note','anmerkungen','kommentar'],
+      standort: ['standort','location','ort/land'] // special: "City, Country"
+    };
+    function col(key){var a=map[key]||[key];for(var i=0;i<a.length;i++){var idx=headers.indexOf(a[i]);if(idx!==-1)return idx;}return -1;}
 
     var created=0,failed=0;
     var promises=lines.slice(1).map(function(line){
-      var cols=line.split(',').map(function(v){return v.replace(/^"|"$/g,'').trim();});
+      if(!line.trim())return Promise.resolve();
+      var cols=parseCSVLine(line);
       var obj={source:'import'};
-      Object.keys(map).forEach(function(k){var i=col(k);if(i!==-1&&cols[i])obj[k]=cols[i];});
-      if(!obj.company&&!obj.email){failed++;return Promise.resolve();}
+      // Map known fields
+      ['company','firstName','lastName','email','phone','website','industry','country','city','fxVolume','notes'].forEach(function(k){
+        var i=col(k);if(i!==-1&&cols[i])obj[k]=cols[i];
+      });
+      // Special: parse Standort "City, Country" field
+      var sIdx=col('standort');
+      if(sIdx!==-1&&cols[sIdx]){
+        var parts=cols[sIdx].split(',');
+        if(parts.length>=2){
+          if(!obj.city)obj.city=parts.slice(0,-1).join(',').trim();
+          if(!obj.country){var rawC=parts[parts.length-1].trim();obj.country=deToEn(rawC);}
+        } else {
+          if(!obj.city)obj.city=cols[sIdx];
+        }
+      }
+      if(!obj.company&&!obj.email&&!obj.firstName){failed++;return Promise.resolve();}
       return A('/api/customers',{method:'POST',body:JSON.stringify(obj)})
         .then(function(r){if(r.ok)created++;else failed++;}).catch(function(){failed++;});
     });
@@ -362,7 +422,7 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
       load(); e.target.value='';
     });
   };
-  reader.readAsText(file);
+  reader.readAsText(file,'utf-8');
 });
 
 load();
