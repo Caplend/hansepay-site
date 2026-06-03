@@ -45,21 +45,21 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .step-viewport{width:100%;max-width:520px}
 
 /* CARD */
-.step-card{background:#fff;border-radius:var(--r-lg);padding:40px;box-shadow:0 2px 16px rgba(11,25,41,.07)}
+.step-card{background:#fff;border-radius:20px;padding:44px 48px;box-shadow:0 4px 32px rgba(11,25,41,.08)}
 .step-card.enter-right{animation:slideInRight 280ms ease-out both}
 .step-card.enter-left{animation:slideInLeft 280ms ease-out both}
 @keyframes slideInRight{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideInLeft{from{transform:translateX(-40px);opacity:0}to{transform:translateX(0);opacity:1}}
 
 .step-icon{text-align:center;margin-bottom:24px}
-.step-heading{font-family:'Libre Baskerville',serif;font-size:22px;color:var(--ink);margin-bottom:8px;line-height:1.3}
-.step-sub{font-size:13.5px;color:var(--ink2);margin-bottom:28px;line-height:1.5}
+.step-heading{font-family:'Libre Baskerville',serif;font-size:24px;color:var(--n800);margin-bottom:10px;line-height:1.25}
+.step-sub{font-size:14px;color:var(--ink3);margin-bottom:32px;line-height:1.55}
 
 /* FORM */
 .field-group{margin-bottom:18px}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
-input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],select,textarea{width:100%;padding:11px 14px;border:1.5px solid #D8E4ED;border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;transition:.2s;outline:none;-webkit-appearance:none}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--ink3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],select,textarea{width:100%;padding:12px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;transition:.18s;outline:none;-webkit-appearance:none}
 input:focus,select:focus,textarea:focus{border-color:var(--n400);box-shadow:0 0 0 3px rgba(46,107,173,.12)}
 input.error,select.error,textarea.error{border-color:var(--error)}
 .field-error{font-size:12px;color:var(--error);margin-top:4px;display:none}
@@ -84,20 +84,20 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 .check-row a{color:var(--n400);text-decoration:none}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.2s;text-decoration:none;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 28px;border-radius:var(--r-pill);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.2s;text-decoration:none;white-space:nowrap}
 .btn-primary{background:var(--n800);color:#fff;width:100%}
 .btn-primary:hover{background:var(--n700)}
 .btn-primary:disabled{background:#B8C9D9;cursor:not-allowed}
-.btn-ghost{background:transparent;color:var(--n500);border:1.5px solid var(--n300);width:100%}
-.btn-ghost:hover{background:var(--n050)}
+.btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid rgba(11,25,41,.15);width:100%}
+.btn-ghost:hover{background:var(--n050);border-color:var(--n200)}
 .btn-sm{padding:8px 16px;font-size:13px;width:auto}
 
 /* RADIO CARDS */
-.radio-cards{display:grid;gap:12px;margin-bottom:18px}
+.radio-cards{display:grid;gap:10px;margin-bottom:18px}
 .radio-cards.cols2{grid-template-columns:1fr 1fr}
-.radio-card{border:1.5px solid #D8E4ED;border-radius:var(--r-md);padding:16px;cursor:pointer;transition:.2s;position:relative;display:flex;align-items:flex-start;gap:12px}
-.radio-card:hover:not(.disabled){border-color:var(--n300);background:var(--n050)}
-.radio-card.selected{border-color:var(--n500);background:var(--n050)}
+.radio-card{border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:16px 18px;cursor:pointer;transition:.18s;position:relative;display:flex;align-items:flex-start;gap:12px;background:#fff}
+.radio-card:hover:not(.disabled){border-color:var(--n200);background:var(--n050);transform:translateY(-1px);box-shadow:0 3px 12px rgba(11,25,41,.06)}
+.radio-card.selected{border-color:var(--n500);background:var(--n050);box-shadow:0 0 0 1px var(--n500)}
 .radio-card.disabled{opacity:.5;cursor:not-allowed}
 .radio-card-icon{font-size:24px;flex-shrink:0;margin-top:2px}
 .radio-card-title{font-weight:600;font-size:14px;color:var(--ink)}
@@ -106,7 +106,7 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 
 /* CHIPS */
 .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-.chip{padding:7px 14px;border-radius:var(--r-pill);border:1.5px solid #D8E4ED;font-size:13px;font-weight:500;cursor:pointer;transition:.2s;background:#fff;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
+.chip{padding:7px 16px;border-radius:var(--r-pill);border:1.5px solid #DDE6EF;font-size:13px;font-weight:500;cursor:pointer;transition:.18s;background:#fff;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
 .chip:hover{border-color:var(--n300);color:var(--n500)}
 .chip.selected{border-color:var(--n500);background:var(--n050);color:var(--n500)}
 .chip .chip-x{font-size:12px;opacity:.6;cursor:pointer}
@@ -127,6 +127,16 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 
 /* SECTION HEADER */
 .section-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #E8EFF5}
+
+/* COUNTRY SEARCH DROP */
+.country-search-wrap{position:relative}
+.country-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:230px;overflow-y:auto}
+.country-opt{padding:10px 14px;font-size:14px;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:10px;transition:.12s}
+.country-opt:hover,.country-opt.focused{background:var(--n050);color:var(--n600)}
+.country-opt .ciso{font-size:11px;font-weight:700;color:var(--ink3);width:24px;flex-shrink:0;font-family:monospace}
+.country-opt .cname{flex:1}
+.country-opt .calready{font-size:11px;color:var(--n400);flex-shrink:0}
+.country-drop-empty{padding:14px;font-size:13px;color:var(--ink3);text-align:center}
 
 /* TOGGLE LINK */
 .toggle-link{font-size:13px;color:var(--n400);cursor:pointer;text-decoration:none;margin-bottom:14px;display:inline-block}
@@ -346,7 +356,7 @@ const S = {
   primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
-  highRiskSectors:[],volumeIncomeExplain:'',
+  highRiskAnswer:'no',highRiskSectors:[],volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
   highRiskWealth:[],canProvideDocs:'',
@@ -380,18 +390,12 @@ function getActiveSteps(){
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
   s.push(6,7,8,9,10);
-  if(S.isHighRisk) s.push(11);
+  // Step 11 (source of wealth) removed — not required for standard users
   s.push(12,13,14);
   return s;
 }
 
-function computeHighRisk(){
-  const hrs = S.highRiskSectors.filter(x=>x!=='none');
-  const highVol = ['10k-50k','over50k'].includes(S.monthlyVolume);
-  const lowInc = ['under15k','15k-30k'].includes(S.annualIncome);
-  const hrInd = ['Finance & Banking','Gambling & Gaming','Crypto-assets & Blockchain','Mining & Extractives'].includes(S.industry);
-  S.isHighRisk = S.isPEP==='yes' || hrs.length>0 || (highVol&&lowInc) || S.otherCountries.length>0 || hrInd;
-}
+function computeHighRisk(){ /* simplified — no EDD step */ }
 
 function saveState(){
   try{localStorage.setItem('hp_onb',JSON.stringify({s:S,ci:CI}));}catch(e){}
@@ -494,7 +498,7 @@ function renderStep(id){
     case 1:return R1();case 2:return R2();case'3a':return R3a();case'3b':return R3b();
     case 4:return R4();case 5:return R5();case'5b':return R5b();
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
-    case 10:return R10();case 11:return R11();case 12:return R12();case 13:return R13();
+    case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
   }
   return '';
@@ -772,17 +776,20 @@ function R8(){
         {v:'de-lv',label:'Germany & Latvia'},
         {v:'eu-eea',label:'Rest of EU/EEA'},
         {v:'uk',label:'United Kingdom'},
-        {v:'other',label:'Other countries'}
+        {v:'other',label:'Specific countries'}
       ],S.paymentRegions)}
       <div class="field-error" id="paymentRegions-err"></div>
     </div>
 
     <div id="otherCountriesWrap" style="display:${S.paymentRegions.includes('other')?'block':'none'}">
       <div class="field-group">
-        <label>Which other countries?</label>
-        ${searchableSelectHTML('otherCSearch','otherCDrop',null,'Search countries…','')}
+        <label>Which countries?</label>
+        <div class="country-search-wrap" id="cswWrap">
+          <input type="text" id="otherCSearch" placeholder="Search — e.g. US, United States, DE, China…" autocomplete="off" oninput="filterCountryDrop()" onfocus="openCountryDrop()" style="border-radius:var(--r-md)">
+          <div class="country-drop" id="otherCDrop" style="display:none"></div>
+        </div>
+        <div class="chip-group" id="otherCChips" style="margin-top:10px">${S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
       </div>
-      <div class="chip-group" id="otherCChips">${S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
     </div>
 
     <button class="btn btn-primary" onclick="nextStep()">Continue</button>
@@ -790,11 +797,9 @@ function R8(){
 }
 
 function R9(){
-  const highVol=['10k-50k','over50k'].includes(S.monthlyVolume);
-  const lowInc=['under15k','15k-30k'].includes(S.annualIncome);
-  const showBanner=highVol&&lowInc;
   return`<div class="step-card" id="sCard">
-    <h1 class="step-heading">Tell us about your income.</h1>
+    <h1 class="step-heading">Your income & work.</h1>
+    <p class="step-sub">A few quick questions to set up your account correctly.</p>
 
     ${selectHTML('incomeSource','Main source of income',
       ['Salary','Self-employment','Business ownership','Investments','Pension','Student support','Family support','Savings','Other'].map(s=>`<option value="${s}"${S.incomeSource===s?' selected':''}>${s}</option>`).join(''),
@@ -829,23 +834,22 @@ function R9(){
     </div>
 
     <div class="field-group">
-      <label>Is any part of your income connected to higher-risk sectors?</label>
-      ${chipGroupHTML('cgHRS',[
-        {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
-        {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals or stones'},
-        {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
-        {v:'cash',label:'Cash-intensive businesses'},{v:'none',label:'None of these'}
-      ],S.highRiskSectors)}
-      <div class="field-error" id="highRiskSectors-err"></div>
+      <label style="display:flex;align-items:center;gap:7px">
+        Is any part of your income connected to a higher-risk sector?
+        <span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Higher-risk sectors include gambling, crypto-assets, defence, precious metals, art &amp; luxury goods, NGOs, or predominantly cash-based businesses. Most people answer No.</span></span>
+      </label>
+      ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.highRiskAnswer||'no',2)}
     </div>
 
-    <div id="volIncBanner" style="display:${showBanner?'block':'none'}">
-      <div class="banner banner-warn">
-        <span class="banner-icon">⚠️</span>
-        <span>Your expected payment volume is higher than typical for the income you've indicated. Please briefly explain what will fund these payments.</span>
-      </div>
+    <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'}">
       <div class="field-group">
-        <textarea id="volumeIncomeExplain" rows="3" placeholder="E.g. I'll be managing payments on behalf of a family business…">${esc(S.volumeIncomeExplain)}</textarea>
+        <label>Which sector applies?</label>
+        ${chipGroupHTML('cgHRS',[
+          {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
+          {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals'},
+          {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
+          {v:'cash',label:'Cash-intensive business'},{v:'other-hr',label:'Other'}
+        ],S.highRiskSectors)}
       </div>
     </div>
 
@@ -1112,7 +1116,8 @@ function validateStep(){
     if(!S.employmentStatus) fail('employmentStatus','Please select your work situation');
     if(!document.getElementById('industry')?.value) fail('industry','Please select your industry');
     if(!S.annualIncome) fail('annualIncome','Please select your annual income');
-    if(!S.highRiskSectors.length) fail('highRiskSectors','Please select at least one option (or "None of these")');
+    // highRiskSectors: only required if they said Yes to high-risk
+    if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please specify which sector applies.');
   } else if(id===10){
     if(!S.isPEP) fail('pep','Please answer this question');
     if(S.isPEP==='yes'){
@@ -1249,11 +1254,8 @@ function attachAll(id){
     const inp=document.getElementById('citizenSearch');if(inp)inp.value='';
     saveState();
   });
-  initSearchable('otherCSearch','otherCDrop',null,v=>{
-    if(!S.otherCountries.includes(v)){S.otherCountries.push(v);renderOtherCChips();computeHighRisk();}
-    const inp=document.getElementById('otherCSearch');if(inp)inp.value='';
-    saveState();
-  });
+  // New fuzzy country search for payment destinations
+  attachCountrySearch();
 
   // Upload drag/drop
   document.querySelectorAll('.upload-zone').forEach(z=>{
@@ -1284,8 +1286,9 @@ function onRadioSelect(grp,val){
     const w=document.getElementById('addCitizenWrap');if(w)w.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcPurpose'){S.accountPurpose=val;}
-  else if(grp==='rcVolume'){S.monthlyVolume=val;recheckVolIncBanner();}
-  else if(grp==='rcAnnualIncome'){S.annualIncome=val;recheckVolIncBanner();}
+  else if(grp==='rcVolume'){S.monthlyVolume=val;}
+  else if(grp==='rcAnnualIncome'){S.annualIncome=val;}
+  else if(grp==='rcHighRisk'){onHighRiskToggle(val);}
   else if(grp==='rcPEP'){
     S.isPEP=val;
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
@@ -1329,11 +1332,7 @@ function toggleArr(arr,val){
   if(i===-1) arr.push(val); else arr.splice(i,1);
 }
 
-function recheckVolIncBanner(){
-  const hv=['10k-50k','over50k'].includes(S.monthlyVolume);
-  const li=['under15k','15k-30k'].includes(S.annualIncome);
-  const w=document.getElementById('volIncBanner');if(w)w.style.display=(hv&&li)?'block':'none';
-}
+function recheckVolIncBanner(){ /* removed — volume/income mismatch banner removed for UX */ }
 
 // =============================================================
 // SEARCHABLE SELECT
@@ -1373,6 +1372,76 @@ function renderCitizenChips(){
   w.innerHTML=S.additionalCitizenships.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeCitizen('${esc(c)}')">×</span></div>`).join('');
 }
 function removeCitizen(c){S.additionalCitizenships=S.additionalCitizenships.filter(x=>x!==c);renderCitizenChips();saveState();}
+
+// ── Fuzzy country search with ISO-2 support ────────────────────────────────
+const ISO2 = {AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AD:'Andorra',AO:'Angola',AR:'Argentina',AM:'Armenia',AU:'Australia',AT:'Austria',AZ:'Azerbaijan',BH:'Bahrain',BD:'Bangladesh',BY:'Belarus',BE:'Belgium',BO:'Bolivia',BA:'Bosnia and Herzegovina',BR:'Brazil',BG:'Bulgaria',KH:'Cambodia',CA:'Canada',CL:'Chile',CN:'China',CO:'Colombia',CR:'Costa Rica',HR:'Croatia',CY:'Cyprus',CZ:'Czech Republic',DK:'Denmark',EC:'Ecuador',EG:'Egypt',EE:'Estonia',ET:'Ethiopia',FI:'Finland',FR:'France',GE:'Georgia',DE:'Germany',GH:'Ghana',GR:'Greece',GT:'Guatemala',HN:'Honduras',HU:'Hungary',IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',IE:'Ireland',IL:'Israel',IT:'Italy',JP:'Japan',JO:'Jordan',KZ:'Kazakhstan',KE:'Kenya',XK:'Kosovo',KW:'Kuwait',LV:'Latvia',LB:'Lebanon',LY:'Libya',LT:'Lithuania',LU:'Luxembourg',MY:'Malaysia',MT:'Malta',MX:'Mexico',MD:'Moldova',MN:'Mongolia',ME:'Montenegro',MA:'Morocco',NL:'Netherlands',NZ:'New Zealand',NG:'Nigeria',MK:'North Macedonia',NO:'Norway',PK:'Pakistan',PS:'Palestine',PA:'Panama',PY:'Paraguay',PE:'Peru',PH:'Philippines',PL:'Poland',PT:'Portugal',QA:'Qatar',RO:'Romania',RU:'Russia',SA:'Saudi Arabia',SN:'Senegal',RS:'Serbia',SG:'Singapore',SK:'Slovakia',SI:'Slovenia',ZA:'South Africa',KR:'South Korea',ES:'Spain',SE:'Sweden',CH:'Switzerland',TW:'Taiwan',TH:'Thailand',TN:'Tunisia',TR:'Turkey',UG:'Uganda',UA:'Ukraine',AE:'United Arab Emirates',GB:'United Kingdom',US:'United States',UY:'Uruguay',VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe'};
+// Build combined list: { iso, name, search: "us united states" }
+const COUNTRY_LIST = Object.entries(ISO2).map(([iso,name])=>({iso,name,search:(iso+' '+name).toLowerCase()}));
+
+function fuzzyCountrySearch(q){
+  if(!q)return COUNTRY_LIST.slice(0,40);
+  const lq=q.toLowerCase().trim();
+  // Exact ISO match first
+  const exact=COUNTRY_LIST.filter(c=>c.iso.toLowerCase()===lq);
+  const starts=COUNTRY_LIST.filter(c=>c.search.startsWith(lq)&&!exact.includes(c));
+  const contains=COUNTRY_LIST.filter(c=>c.search.includes(lq)&&!exact.includes(c)&&!starts.includes(c));
+  return [...exact,...starts,...contains].slice(0,18);
+}
+
+function attachCountrySearch(){
+  const inp=document.getElementById('otherCSearch');
+  const drop=document.getElementById('otherCDrop');
+  if(!inp||!drop)return;
+  let focusIdx=-1;
+
+  function renderDrop(q){
+    const results=fuzzyCountrySearch(q||'');
+    if(!results.length){drop.innerHTML='<div class="country-drop-empty">No countries found</div>';return;}
+    drop.innerHTML=results.map((c,i)=>{
+      const already=S.otherCountries.includes(c.name);
+      return`<div class="country-opt${already?' calready-opt':''}" data-name="${esc(c.name)}" data-idx="${i}" onclick="selectPayCountry('${esc(c.name)}')">
+        <span class="ciso">${esc(c.iso)}</span>
+        <span class="cname">${esc(c.name)}</span>
+        ${already?'<span class="calready">Added ✓</span>':''}
+      </div>`;
+    }).join('');
+    focusIdx=-1;
+  }
+
+  inp.addEventListener('input',()=>{renderDrop(inp.value);drop.style.display='block';});
+  inp.addEventListener('focus',()=>{renderDrop(inp.value||'');drop.style.display='block';});
+  inp.addEventListener('keydown',e=>{
+    const opts=drop.querySelectorAll('.country-opt');
+    if(e.key==='ArrowDown'){e.preventDefault();focusIdx=Math.min(focusIdx+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('focused',i===focusIdx));}
+    else if(e.key==='ArrowUp'){e.preventDefault();focusIdx=Math.max(focusIdx-1,0);opts.forEach((o,i)=>o.classList.toggle('focused',i===focusIdx));}
+    else if(e.key==='Enter'&&focusIdx>=0){e.preventDefault();const focused=opts[focusIdx];if(focused)selectPayCountry(focused.dataset.name);}
+    else if(e.key==='Escape'){drop.style.display='none';}
+  });
+  document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!drop.contains(e.target))drop.style.display='none';});
+}
+
+window.openCountryDrop=function(){
+  const drop=document.getElementById('otherCDrop');
+  const inp=document.getElementById('otherCSearch');
+  if(drop&&inp){const q=inp.value;const all=document.querySelectorAll('.country-opt').length;if(!all){import('./countrySearch').catch(()=>{});} drop.style.display='block';}
+};
+window.filterCountryDrop=function(){const inp=document.getElementById('otherCSearch');const drop=document.getElementById('otherCDrop');if(inp&&drop){drop.style.display='block';}};
+
+window.selectPayCountry=function(name){
+  if(!S.otherCountries.includes(name)){S.otherCountries.push(name);renderOtherCChips();}
+  const inp=document.getElementById('otherCSearch'); if(inp)inp.value='';
+  const drop=document.getElementById('otherCDrop'); if(drop)drop.style.display='none';
+  saveState();
+};
+
+// Handle highRiskAnswer Yes/No toggle
+function onHighRiskToggle(val){
+  S.highRiskAnswer=val;
+  const w=document.getElementById('highRiskDetailWrap');
+  if(w)w.style.display=val==='yes'?'block':'none';
+  if(val==='no'){S.highRiskSectors=[];}
+  saveState();
+}
 
 function renderOtherCChips(){
   const w=document.getElementById('otherCChips');if(!w)return;
