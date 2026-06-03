@@ -18,7 +18,9 @@ const app = express();
 const PORT = process.env.PORT || 4200;
 const JWT_SECRET = 'hansepay-cms-secret-2024';
 const DATA_DIR = path.join(__dirname, 'data');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+// Uploads must live INSIDE the Railway volume mount so they survive deployments.
+// The volume is mounted at /app/data — keeping uploads as a subdirectory there.
+const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
 
 // Startup diagnostics — visible in Railway → Deployments → View logs
 console.log('[startup] __dirname  :', __dirname);
