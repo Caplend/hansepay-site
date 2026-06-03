@@ -232,21 +232,30 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 .nav-btns{display:flex;gap:10px;align-items:center}
 
 /* SUCCESS */
-.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;text-align:center;background:var(--off)}
-.success-check{margin-bottom:32px}
-.success-check svg .circle{stroke-dasharray:283;stroke-dashoffset:283;animation:drawCircle .6s ease forwards .2s}
-.success-check svg .check{stroke-dasharray:100;stroke-dashoffset:100;animation:drawCheck .4s ease forwards .8s}
+.success-page{display:flex;flex-direction:column;min-height:100vh;background:var(--n050)}
+.success-hero{background:var(--n800);background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:40px 24px 48px;text-align:center;position:relative;overflow:hidden}
+.success-hero::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:32px;background:var(--n050);border-radius:32px 32px 0 0}
+.success-check-ring{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;position:relative;z-index:1}
+.success-check-ring svg .circle{stroke-dasharray:283;stroke-dashoffset:283;animation:drawCircle .7s cubic-bezier(.4,0,.2,1) forwards .2s}
+.success-check-ring svg .check{stroke-dasharray:100;stroke-dashoffset:100;animation:drawCheck .4s ease forwards .9s}
 @keyframes drawCircle{to{stroke-dashoffset:0}}
 @keyframes drawCheck{to{stroke-dashoffset:0}}
-.success-heading{font-family:'Libre Baskerville',serif;font-size:28px;margin-bottom:12px}
-.success-sub{font-size:15px;color:var(--ink2);margin-bottom:32px}
-.success-progress{background:#fff;border-radius:var(--r-lg);padding:24px;width:100%;max-width:440px;text-align:left;margin-bottom:24px}
-.success-progress-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #F0F4F8;font-size:13.5px}
-.success-progress-item:last-child{border-bottom:none}
-.success-progress-icon{font-size:18px;flex-shrink:0;margin-top:1px}
-.success-progress-text{color:var(--ink2);line-height:1.5}
-.success-ref{font-size:13px;color:var(--ink3);margin-bottom:28px;background:#fff;padding:10px 20px;border-radius:var(--r-pill);display:inline-block}
-.success-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.success-hero-title{font-family:'Libre Baskerville',serif;font-size:28px;font-weight:400;color:#fff;margin-bottom:8px;position:relative;z-index:1}
+.success-hero-sub{font-size:14.5px;color:rgba(255,255,255,.6);position:relative;z-index:1}
+.success-body{flex:1;padding:32px 24px 48px;display:flex;flex-direction:column;align-items:center}
+.success-card{background:#fff;border-radius:var(--r-lg);border:1px solid rgba(11,25,41,.08);box-shadow:0 2px 16px rgba(11,25,41,.06);padding:24px 28px;width:100%;max-width:480px;margin-bottom:16px}
+.success-card-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:16px}
+.success-step-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #EEF3F8}
+.success-step-row:last-child{border-bottom:none}
+.success-step-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.success-step-icon.done{background:#dcfce7}
+.success-step-icon.pending{background:#FEF9C3}
+.success-step-label{font-size:14px;font-weight:600;color:var(--ink);flex:1}
+.success-step-status{font-size:12px;font-weight:600}
+.success-step-status.done{color:#16a34a}
+.success-step-status.pending{color:#854d0e}
+.success-ref-pill{background:#fff;border:1.5px solid rgba(11,25,41,.1);border-radius:var(--r-pill);padding:8px 20px;font-size:12.5px;color:var(--ink3);margin-bottom:24px;font-family:monospace;letter-spacing:.05em}
+.success-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%;max-width:480px}
 
 /* SAVED BANNER */
 .saved-banner{background:#fff;border:1.5px solid var(--n100);border-radius:var(--r-md);padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--ink2)}
@@ -352,25 +361,72 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 
 <!-- SUCCESS PAGE -->
 <div id="successPage" style="display:none">
-  <div class="success-wrap">
-    <div class="success-check">
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-        <circle class="circle" cx="40" cy="40" r="36" stroke="#1A7A4A" stroke-width="4" fill="none"/>
-        <path class="check" d="M24 40 L35 52 L56 28" stroke="#1A7A4A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
+  <div class="success-page">
+
+    <!-- Gradient hero -->
+    <div class="success-hero">
+      <div class="success-check-ring">
+        <svg width="44" height="44" viewBox="0 0 80 80" fill="none">
+          <circle class="circle" cx="40" cy="40" r="36" stroke="rgba(255,255,255,.8)" stroke-width="4" fill="none"/>
+          <path class="check" d="M24 40 L35 52 L56 28" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+      </div>
+      <h1 class="success-hero-title" id="successHeading">Application submitted.</h1>
+      <p class="success-hero-sub">We're reviewing everything now.</p>
     </div>
-    <h1 class="success-heading" id="successHeading">You're all set!</h1>
-    <p class="success-sub">We're reviewing your application.</p>
-    <div class="success-progress">
-      <div class="success-progress-item"><span class="success-progress-icon">✅</span><div class="success-progress-text">Account created</div></div>
-      <div class="success-progress-item"><span class="success-progress-icon">✅</span><div class="success-progress-text">Identity verified</div></div>
-      <div class="success-progress-item"><span class="success-progress-icon">⏳</span><div class="success-progress-text"><b>Compliance review</b> — 1–2 business days</div></div>
-      <div class="success-progress-item"><span class="success-progress-icon">📧</span><div class="success-progress-text" id="successEmailLine">We'll email you when your account is approved</div></div>
-    </div>
-    <div class="success-ref" id="successRef">Reference: HP-00000000</div>
-    <div class="success-btns">
-      <a href="/" class="btn btn-primary" style="width:auto;min-width:180px">Explore HansePay</a>
-      <a href="/booking.html" class="btn btn-ghost" style="width:auto;min-width:180px">Book a discovery call</a>
+
+    <!-- Body -->
+    <div class="success-body">
+
+      <!-- Status card -->
+      <div class="success-card">
+        <div class="success-card-title">Application status</div>
+        <div class="success-step-row">
+          <div class="success-step-icon done">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="success-step-label">Account created</div>
+          <span class="success-step-status done">Complete</span>
+        </div>
+        <div class="success-step-row">
+          <div class="success-step-icon done">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </div>
+          <div class="success-step-label">Identity verified</div>
+          <span class="success-step-status done">Complete</span>
+        </div>
+        <div class="success-step-row">
+          <div class="success-step-icon pending">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="success-step-label">Compliance review<div style="font-size:12px;color:var(--ink3);font-weight:400;margin-top:1px">1–2 business days</div></div>
+          <span class="success-step-status pending">In review</span>
+        </div>
+        <div class="success-step-row">
+          <div class="success-step-icon" style="background:var(--n050)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div class="success-step-label">Account activation<div style="font-size:12px;color:var(--ink3);font-weight:400;margin-top:1px" id="successEmailLine">You will be notified by email</div></div>
+          <span class="success-step-status" style="color:var(--ink3)">Pending</span>
+        </div>
+      </div>
+
+      <!-- What's next card -->
+      <div class="success-card">
+        <div class="success-card-title">While you wait</div>
+        <div style="font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:16px">Our compliance team reviews all applications manually to meet EU regulatory requirements. You'll receive a confirmation email once your account is approved.</div>
+        <div style="font-size:13px;color:var(--ink3)">Questions? Contact us at <a href="mailto:hello@hansepay.com" style="color:var(--n400)">hello@hansepay.com</a></div>
+      </div>
+
+      <!-- Reference -->
+      <div class="success-ref-pill" id="successRef">HP-00000000</div>
+
+      <!-- CTAs -->
+      <div class="success-btns">
+        <a href="/" class="btn btn-primary" style="width:auto;min-width:200px">Back to HansePay</a>
+        <a href="/booking.html" class="btn btn-ghost" style="width:auto;min-width:200px">Book a discovery call</a>
+      </div>
+
     </div>
   </div>
 </div>
@@ -398,7 +454,7 @@ const S = {
   countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
   thirdPartyName:'',thirdPartyRelation:'',
   primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
-  hasMultipleCitizenships:'',citizenships:[],
+  hasMultipleCitizenships:'no',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
   highRiskAnswer:'no',highRiskSectors:[],volumeIncomeExplain:'',
@@ -1143,8 +1199,8 @@ function R14(){
     document.getElementById('mainLayout').style.display='none';
     document.getElementById('mobileTop').style.display='none';
     document.getElementById('successPage').style.display='block';
-    document.getElementById('successHeading').textContent=`You're all set${S.firstName?', '+S.firstName:''}!`;
-    document.getElementById('successEmailLine').textContent=`We'll email you at ${S.email} when your account is approved`;
+    document.getElementById('successHeading').textContent='Application submitted'+(S.firstName?', '+S.firstName:'')+'.';
+    if(S.email)document.getElementById('successEmailLine').textContent='We\'ll email you at '+S.email+' once approved';
     document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
     const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
   },50);
@@ -1230,7 +1286,7 @@ function validateStep(){
     if(!document.getElementById('city')?.value.trim()) fail('city','City is required');
     if(!document.getElementById('postcode')?.value.trim()) fail('postcode','Postcode is required');
     if(!S.countryOfResidence) fail('countryOfResidence','Country of residence is required');
-    if(!S.hasMultipleCitizenships) fail('hasMultipleCitizenships','Please answer the citizenship question');
+    // hasMultipleCitizenships defaults to 'no' so no "must answer" check needed
     if(S.hasMultipleCitizenships==='yes'){
       const filled=S.citizenships.filter(c=>c&&c.trim());
       if(filled.length<2) fail('hasMultipleCitizenships','Please enter at least 2 citizenships');
@@ -2144,6 +2200,7 @@ function startFresh(){
     countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
     thirdPartyName:'',thirdPartyRelation:'',
     primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
+    hasMultipleCitizenships:'no',citizenships:[],
     accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
     incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
     highRiskSectors:[],volumeIncomeExplain:'',
