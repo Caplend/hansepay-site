@@ -226,7 +226,7 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 .review-val{color:var(--ink);font-weight:500;text-align:right}
 
 /* NAV FOOTER */
-.nav-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(235,244,251,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(11,25,41,.08);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.nav-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(11,25,41,.07);padding:14px 40px;display:flex;align-items:center;gap:16px;z-index:50}
 .nav-step-info{font-size:12.5px;color:var(--ink3)}
 .nav-step-info b{color:var(--ink);font-weight:600}
 .nav-btns{display:flex;gap:10px;align-items:center}
@@ -382,7 +382,7 @@ const S = {
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
   highRiskWealth:[],canProvideDocs:'',
   tcAccepted:false,blindpayAccepted:false,
-  isHighRisk:false,applicationRef:''
+  isHighRisk:false,applicationRef:'',_residenceMismatch:false,docCountry:'',_residenceMismatch:false,docCountry:''
 };
 
 let CI = 0; // currentIndex
@@ -572,7 +572,6 @@ function R2(){
     <p class="step-sub">We sent a verification link to <b>${esc(S.email)}</b></p>
     <p style="font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px">Click the link in the email to verify your address. If you don't see it, check your spam folder. The link expires in 24 hours.</p>
     <button class="btn btn-ghost" style="margin-bottom:12px" onclick="showToast('Verification email resent!')">Resend email</button>
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -630,7 +629,6 @@ function R4(){
       {v:'company',icon:'🏢',label:'Company',desc:'For businesses and organisations',badge:'Coming soon',dis:true}
     ],S.accountType,2)}
     <div class="field-error" id="accountType-err"></div>
-    <button class="btn btn-primary" style="margin-top:8px" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -652,6 +650,13 @@ function R5(){
     </div>
 
     <div class="section-header">Address</div>
+    <div class="field-group" style="position:relative">
+      <label>Search your address</label>
+      <input type="text" id="addrSearch" placeholder="Start typing your address…" autocomplete="off"
+        oninput="addrLookup(this.value)" style="border-radius:var(--r-md)">
+      <div id="addrDrop" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:220px;overflow-y:auto"></div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:5px">Or fill in manually below.</div>
+    </div>
     ${fieldHTML('street','Street address','text',S.street,'','true')}
     <a class="toggle-link" onclick="toggleCollapse('line2Wrap',this,'+ Add address line 2','− Hide line 2')">+ Add address line 2</a>
     <div class="collapsible${S.addressLine2?' open':''}" id="line2Wrap">${fieldHTML('addressLine2','Address line 2','text',S.addressLine2)}</div>
@@ -666,7 +671,6 @@ function R5(){
       <div class="field-error" id="countryOfResidence-err"></div>
     </div>
 
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -686,7 +690,6 @@ function R5b(){
       </div>
       <div class="upload-files" id="tpFileList"></div>
     </div>
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -743,11 +746,11 @@ function R7(){
       <div class="chip-group" id="citizenChips">${S.additionalCitizenships.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeCitizen('${esc(c)}')">×</span></div>`).join('')}</div>
     </div>
     ${(()=>{
-      const residenceCountry=ISO2[Object.entries(ISO2).find(([k,v])=>v===S.countryOfResidence)?.[0]||'']||S.countryOfResidence;
-      const citizenshipCountry=S.primaryNationality;
-      const mismatch = residenceCountry && citizenshipCountry && residenceCountry!==citizenshipCountry;
+      // Show "changed residence?" only if document issuing country ≠ residence country,
+      // OR if user holds dual/multiple citizenship (set in this step)
+      const mismatch = S._residenceMismatch || S.hasOtherCitizenship==='yes';
       if(!mismatch)return '';
-      return `<div class="field-group">
+      return `<div class="field-group" style="margin-top:16px">
         <label>Have you changed your country of residence in the last 12 months?</label>
         ${radioCardsHTML('rcChangedRes',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.changedResidence,2)}
       </div>
@@ -756,7 +759,6 @@ function R7(){
       </div>`;
     })()}
     <p style="font-size:12px;color:var(--ink3);margin-bottom:20px">This helps us meet EU anti-money-laundering requirements.</p>
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -805,18 +807,14 @@ function R8(){
 
     <div class="field-group">
       <label>Which countries will you usually send payments to?</label>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-        ${[['🇩🇪','Germany'],['🇺🇸','USA'],['🇨🇳','China'],['🇬🇧','United Kingdom'],['🇫🇷','France'],['🇮🇳','India'],['🇯🇵','Japan'],['🇦🇪','UAE'],['🇵🇱','Poland'],['🇨🇭','Switzerland']].map(([flag,name])=>`<div class="chip${S.otherCountries.includes(name)?' selected':''}" onclick="togglePayCountry('${name}')" data-val="${name}">${flag} ${name}</div>`).join('')}
-      </div>
       <div class="country-search-wrap">
-        <input type="text" id="otherCSearch" placeholder="Search for another country — e.g. BR, Brazil, SE, Sweden…" autocomplete="off" oninput="filterCountryDrop()" onfocus="openCountryDrop()" style="border-radius:var(--r-md)">
+        <input type="text" id="otherCSearch" placeholder="Search countries — type a name or 2-letter code (DE, US, CN…)" autocomplete="off" oninput="filterCountryDrop()" onfocus="openCountryDrop()" style="border-radius:var(--r-md)">
         <div class="country-drop" id="otherCDrop" style="display:none"></div>
       </div>
-      <div class="chip-group" id="otherCChips" style="margin-top:10px">${S.otherCountries.filter(c=>!['Germany','USA','China','United Kingdom','France','India','Japan','UAE','Poland','Switzerland'].includes(c)).map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
+      <div class="chip-group" id="otherCChips" style="margin-top:10px">${S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
       <div class="field-error" id="paymentRegions-err"></div>
     </div>
 
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -882,7 +880,7 @@ function R9(){
     <div class="field-group">
       <label style="display:flex;align-items:center;gap:7px">
         Is any part of your income connected to a higher-risk sector?
-        <span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Higher-risk sectors include gambling, crypto-assets, defence, precious metals, art &amp; luxury goods, NGOs, or predominantly cash-based businesses. Most people answer No.</span></span>
+        <span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Higher-risk sectors include gambling, crypto-assets, defence, precious metals, art &amp; luxury goods, NGOs, or predominantly cash-based businesses.</span></span>
       </label>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.highRiskAnswer||'no',2)}
     </div>
@@ -899,7 +897,6 @@ function R9(){
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -948,7 +945,6 @@ function R10(){
       <div class="field-error" id="criminal-err"></div>
     </div>
 
-    <button class="btn btn-primary" style="margin-top:24px" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -1012,7 +1008,6 @@ function R11(){
       </div>
     </div>
 
-    <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -1173,7 +1168,7 @@ function validateStep(){
   } else if(id===9){
     if(!document.getElementById('incomeSource')?.value) fail('incomeSource','Please select your income source');
     if(!S.employmentStatus) fail('employmentStatus','Please select your work situation');
-    if(!document.getElementById('industry')?.value) fail('industry','Please select your industry');
+    if(!S.industry) fail('industry','Please select your industry');
     if(!S.annualIncome) fail('annualIncome','Please select your annual income');
     // highRiskSectors: only required if they said Yes to high-risk
     if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please specify which sector applies.');
@@ -1240,7 +1235,7 @@ function collectData(){
   } else if(id===9){
     S.incomeSource=g('incomeSource')||S.incomeSource;
     S.incomeSourceOther=g('incomeSourceOther')||'';
-    S.industry=g('industry')||S.industry;
+    S.industry=document.getElementById('industrySearch')?.value?.trim()||S.industry;
     S.volumeIncomeExplain=g('volumeIncomeExplain')||'';
   } else if(id===10){
     S.pepPosition=g('pepPosition')||'';
@@ -1440,6 +1435,16 @@ function renderCitizenChips(){
 function removeCitizen(c){S.additionalCitizenships=S.additionalCitizenships.filter(x=>x!==c);renderCitizenChips();saveState();}
 
 // ── Fuzzy country search with ISO-2 support ────────────────────────────────
+// Flag emoji from ISO-2 code
+function flagEmoji(iso){
+  if(!iso||iso.length!==2)return'🏳';
+  return iso.toUpperCase().split('').map(c=>String.fromCodePoint(c.charCodeAt(0)+127397)).join('');
+}
+// Get ISO-2 from full country name
+function getISO(name){
+  return Object.entries(ISO2).find(([k,v])=>v===name)?.[0]||'';
+}
+
 const ISO2 = {AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AD:'Andorra',AO:'Angola',AR:'Argentina',AM:'Armenia',AU:'Australia',AT:'Austria',AZ:'Azerbaijan',BH:'Bahrain',BD:'Bangladesh',BY:'Belarus',BE:'Belgium',BO:'Bolivia',BA:'Bosnia and Herzegovina',BR:'Brazil',BG:'Bulgaria',KH:'Cambodia',CA:'Canada',CL:'Chile',CN:'China',CO:'Colombia',CR:'Costa Rica',HR:'Croatia',CY:'Cyprus',CZ:'Czech Republic',DK:'Denmark',EC:'Ecuador',EG:'Egypt',EE:'Estonia',ET:'Ethiopia',FI:'Finland',FR:'France',GE:'Georgia',DE:'Germany',GH:'Ghana',GR:'Greece',GT:'Guatemala',HN:'Honduras',HU:'Hungary',IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',IE:'Ireland',IL:'Israel',IT:'Italy',JP:'Japan',JO:'Jordan',KZ:'Kazakhstan',KE:'Kenya',XK:'Kosovo',KW:'Kuwait',LV:'Latvia',LB:'Lebanon',LY:'Libya',LT:'Lithuania',LU:'Luxembourg',MY:'Malaysia',MT:'Malta',MX:'Mexico',MD:'Moldova',MN:'Mongolia',ME:'Montenegro',MA:'Morocco',NL:'Netherlands',NZ:'New Zealand',NG:'Nigeria',MK:'North Macedonia',NO:'Norway',PK:'Pakistan',PS:'Palestine',PA:'Panama',PY:'Paraguay',PE:'Peru',PH:'Philippines',PL:'Poland',PT:'Portugal',QA:'Qatar',RO:'Romania',RU:'Russia',SA:'Saudi Arabia',SN:'Senegal',RS:'Serbia',SG:'Singapore',SK:'Slovakia',SI:'Slovenia',ZA:'South Africa',KR:'South Korea',ES:'Spain',SE:'Sweden',CH:'Switzerland',TW:'Taiwan',TH:'Thailand',TN:'Tunisia',TR:'Turkey',UG:'Uganda',UA:'Ukraine',AE:'United Arab Emirates',GB:'United Kingdom',US:'United States',UY:'Uruguay',VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe'};
 // Build combined list: { iso, name, search: "us united states" }
 const COUNTRY_LIST = Object.entries(ISO2).map(([iso,name])=>({iso,name,search:(iso+' '+name).toLowerCase()}));
@@ -1466,7 +1471,7 @@ function attachCountrySearch(){
     drop.innerHTML=results.map((c,i)=>{
       const already=S.otherCountries.includes(c.name);
       return`<div class="country-opt${already?' calready-opt':''}" data-name="${esc(c.name)}" data-idx="${i}" onclick="selectPayCountry('${esc(c.name)}')">
-        <span class="ciso">${esc(c.iso)}</span>
+        <span style="font-size:18px;flex-shrink:0;line-height:1">${flagEmoji(c.iso)}</span>
         <span class="cname">${esc(c.name)}</span>
         ${already?'<span class="calready">Added ✓</span>':''}
       </div>`;
@@ -1540,27 +1545,124 @@ window.togglePayCountry=function(name){
   saveState();
 };
 
+// ── Address autocomplete (OpenStreetMap Nominatim — free, no key) ─────────
+let addrTimer;
+window.addrLookup=function(q){
+  clearTimeout(addrTimer);
+  const drop=document.getElementById('addrDrop');
+  if(!drop)return;
+  if(!q||q.length<4){drop.style.display='none';return;}
+  addrTimer=setTimeout(async()=>{
+    try{
+      const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=6&countrycodes=de,at,ch,nl,be,fr,pl,dk,se,fi,no,lu,ie,es,it,pt,gb,us,ca,au`;
+      const res=await fetch(url,{headers:{'Accept-Language':'en'}});
+      const data=await res.json();
+      if(!data.length){drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">No results — try a more specific address</div>';drop.style.display='block';return;}
+      drop.innerHTML=data.map(r=>{
+        const a=r.address;
+        const road=(a.road||a.pedestrian||a.street||'');
+        const no=(a.house_number||'');
+        const streetFull=[road,no].filter(Boolean).join(' ');
+        const display=r.display_name.split(',').slice(0,3).join(',');
+        return`<div style="padding:11px 16px;font-size:13.5px;cursor:pointer;color:var(--ink);border-bottom:1px solid #EEF3F8;transition:.12s"
+          onmouseover="this.style.background='var(--n050)'" onmouseout="this.style.background=''"
+          onclick="fillAddress(${JSON.stringify({street:streetFull,city:a.city||a.town||a.village||a.municipality||'',postcode:a.postcode||'',state:a.state||a.county||'',country:a.country_code?a.country_code.toUpperCase():''})})">
+          ${esc(display)}
+        </div>`;
+      }).join('');
+      drop.style.display='block';
+      document.addEventListener('click',function hide(e){if(!e.target.closest('#addrDrop')&&!document.getElementById('addrSearch')?.contains(e.target)){drop.style.display='none';document.removeEventListener('click',hide);}});
+    }catch(e){drop.style.display='none';}
+  },350);
+};
+window.fillAddress=function(addr){
+  const map={street:'street',city:'city',postcode:'postcode',state:'stateProvince'};
+  Object.entries(map).forEach(([k,id])=>{const el=document.getElementById(id);if(el&&addr[k])el.value=addr[k];});
+  if(addr.street){S.street=addr.street;}
+  if(addr.city){S.city=addr.city;}
+  if(addr.postcode){S.postcode=addr.postcode;}
+  if(addr.state){S.stateProvince=addr.state;}
+  // Set country via ISO2 lookup
+  if(addr.country){
+    const fullName=ISO2[addr.country]||addr.country;
+    S.countryOfResidence=fullName;
+    const hidden=document.getElementById('countryHidden');if(hidden)hidden.value=fullName;
+    const search=document.getElementById('countrySearch');if(search)search.value=fullName;
+  }
+  const drop=document.getElementById('addrDrop');if(drop)drop.style.display='none';
+  saveState();
+};
+
 // ── New-tab identity verification ─────────────────────────────────────────
 window.startVerify=function(){
   const btn=document.getElementById('verifyBtn');
   const status=document.getElementById('verifyStatus');
   if(btn)btn.style.display='none';
   if(status)status.style.display='block';
-  // Open simulated Signicat verification in new tab
+
+  const countryOpts=Object.entries(ISO2).map(([iso,name])=>
+    `<option value="${iso}">${flagEmoji(iso)} ${name}</option>`).join('');
+
   const w=window.open('about:blank','_blank');
   if(w){
-    w.document.write('<html><head><title>Identity Verification — HansePay</title><style>body{font-family:Inter,sans-serif;background:#EBF4FB;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}.card{background:#fff;border-radius:16px;padding:40px;max-width:480px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(11,25,41,.1)}h2{font-family:Georgia,serif;color:#0B1929;margin-bottom:8px}p{color:#3D5A73;font-size:14px;line-height:1.6}button{margin-top:24px;padding:13px 32px;border-radius:100px;border:none;background:#1E4E80;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}button:hover{background:#163659}</style></head><body><div class="card"><div style="font-size:40px;margin-bottom:16px">🪪</div><h2>Identity Verification</h2><p>This is a simulated Signicat identity verification. In production, you would scan your ID and complete a liveness check here.</p><p style="margin-top:12px">Click the button below to simulate a successful verification, then return to the HansePay tab.</p><button onclick="window.close()">Complete verification →</button></div></body></html>');
+    w.document.write(`<!DOCTYPE html><html><head><title>Identity Verification — HansePay</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:wght@400&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#EBF4FB;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.card{background:#fff;border-radius:20px;padding:40px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(11,25,41,.12)}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.logo-text{font-family:'Libre Baskerville',serif;font-size:20px;color:#0B1929}
+h2{font-size:22px;font-family:'Libre Baskerville',serif;color:#0B1929;margin-bottom:8px;line-height:1.3}
+p{color:#3D5A73;font-size:14px;line-height:1.6;margin-bottom:20px}
+.steps{background:#EBF4FB;border-radius:12px;padding:18px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:12px}
+.step-row{display:flex;align-items:center;gap:12px;font-size:13.5px;color:#3D5A73}
+.step-icon{width:32px;height:32px;border-radius:8px;background:#fff;border:1.5px solid #DDE6EF;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7A9AB0;margin-bottom:6px}
+select{width:100%;padding:12px 14px;border:1.5px solid #DDE6EF;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;color:#0B1929;background:#fff;margin-bottom:18px;outline:none}
+select:focus{border-color:#2E6BAD;box-shadow:0 0 0 3px rgba(46,107,173,.1)}
+button{width:100%;padding:14px;border-radius:100px;border:none;background:#0B1929;color:#fff;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer}
+button:hover{background:#163659}
+.note{font-size:11.5px;color:#B0C4D8;text-align:center;margin-top:12px}</style></head>
+<body><div class="card">
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8DBDE6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span class="logo-text">HansePay</span>
+  </div>
+  <h2>Verify your identity.</h2>
+  <p>A quick document and liveness check powered by Signicat. Takes 2–3 minutes.</p>
+  <div class="steps">
+    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><b>Document photo</b> &nbsp;— passport, ID or licence</div>
+    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg></div><b>Liveness check</b> &nbsp;— a brief selfie</div>
+    <div class="step-row"><div class="step-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E4E80" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><b>Instant review</b></div>
+  </div>
+  <label>Country that issued your document</label>
+  <select id="docCountry"><option value="">Select country…</option>${countryOpts}</select>
+  <label>Document type</label>
+  <select id="docType"><option value="passport">Passport</option><option value="national_id">National ID card</option><option value="driving_licence">Driving licence</option></select>
+  <button onclick="complete()">Start verification →</button>
+  <div class="note">Simulated for demo purposes</div>
+</div>
+<scr"+"ipt>function complete(){const dc=document.getElementById('docCountry').value;if(!dc){document.getElementById('docCountry').style.borderColor='#dc2626';return;}if(window.opener)window.opener.postMessage({type:'hp_verify_complete',docISO:dc,docType:document.getElementById('docType').value},'*');window.close();}</scr"+"ipt></body></html>\`);
     w.document.close();
   }
-};
-window.checkVerifyDone=function(){
-  // Simulate success
-  S.primaryNationality='German';
-  S.docVerified=true;
-  saveState();
-  const status=document.getElementById('verifyStatus');
-  if(status)status.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:#166534"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><div style="font-weight:600;font-size:14px">Identity verified</div><div style="font-size:13px;opacity:.8">Continue to the next step.</div></div></div>';
-  setTimeout(()=>nextStep(),1200);
+
+  // Listen for postMessage back from the verify tab
+  const onMsg=function(e){
+    if(!e.data||e.data.type!=='hp_verify_complete')return;
+    window.removeEventListener('message',onMsg);
+    const iso=e.data.docISO;
+    S.docCountry=ISO2[iso]||iso;
+    S.primaryNationality=ISO2[iso]||iso;
+    S.docVerified=true;
+    // Flag if residence country != document issuing country
+    const resISO=Object.entries(ISO2).find(([k,v])=>v===S.countryOfResidence)?.[0]||'';
+    S._residenceMismatch=(iso&&resISO&&iso!==resISO);
+    saveState();
+    const status=document.getElementById('verifyStatus');
+    if(status)status.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:#166534;background:#dcfce7;border-radius:10px;padding:14px 18px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><b>Identity verified.</b> Continuing…</div></div>';
+    setTimeout(()=>nextStep(),900);
+  };
+  window.addEventListener('message',onMsg);
 };
 
 // ── Sanctions radio card ───────────────────────────────────────────────────
@@ -1576,7 +1678,7 @@ function onHighRiskToggle(val){
 
 function renderOtherCChips(){
   const w=document.getElementById('otherCChips');if(!w)return;
-  w.innerHTML=S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('');
+  w.innerHTML=S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('');
 }
 function removeOtherC(c){S.otherCountries=S.otherCountries.filter(x=>x!==c);renderOtherCChips();computeHighRisk();saveState();}
 
@@ -1777,10 +1879,13 @@ function updateNavFooter(){
   nf.style.display='flex';
   const ph=PHASES.find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
+  // Steps with their own primary action button (don't show generic Continue in footer)
+  const hasOwnAction=[1,'3a','3b',6].includes(id);
   nf.innerHTML=`
-    <div class="nav-step-info">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}
-      <span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
-    <div class="nav-btns">${CI>0?`<button class="btn btn-ghost btn-sm" onclick="prevStep()">← Back</button>`:''}</div>`;
+    <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
+    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
+    <div style="flex:1;min-width:90px;display:flex;justify-content:flex-end">${hasOwnAction?'':
+      `<button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="nextStep()">Continue →</button>`}</div>`;
 }
 
 // =============================================================
