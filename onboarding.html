@@ -456,7 +456,7 @@ const S = {
   primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
   hasMultipleCitizenships:'no',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
-  incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
+  incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',industryOther:'',annualIncome:'',
   highRiskAnswer:'no',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
   sanctionsAnswer:'no',criminalConviction:'no',sanctionsConfirm:false,
@@ -998,6 +998,9 @@ function R9(){
           <div class="industry-tile-label">${o.v}</div>
         </div>`).join('')}
       </div>
+      <div class="collapsible${S.industry==='Other'?' open':''}" id="industryOtherWrap">
+        ${fieldHTML('industryOther','Please specify your industry','text',S.industryOther||'')}
+      </div>
       <div class="field-error" id="industry-err"></div>
     </div>
     </div><!-- /industryWrap -->
@@ -1030,7 +1033,7 @@ function R9(){
           {v:'cash',label:'Cash-intensive business'},{v:'other-hr',label:'Other'}
         ],S.highRiskSectors)}
         <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
-          ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther)}
+          ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
         </div>
       </div>
     </div>
@@ -1316,6 +1319,7 @@ function validateStep(){
     if(!document.getElementById('incomeSource')?.value) fail('incomeSource','Please select your income source');
     if(!S.employmentStatus) fail('employmentStatus','Please select your work situation');
     if(!S.industry) fail('industry','Please select your industry');
+    if(S.industry==='Other'&&!document.getElementById('industryOther')?.value?.trim()) fail('industryOther','Please specify your industry');
     if(!S.annualIncome) fail('annualIncome','Please select your annual income');
     // highRiskSectors: only required if they said Yes to high-risk
     if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please specify which sector applies.');
@@ -1382,6 +1386,7 @@ function collectData(){
   } else if(id===9){
     S.incomeSource=g('incomeSource')||S.incomeSource;
     S.incomeSourceOther=g('incomeSourceOther')||'';
+    S.industryOther=g('industryOther')||'';
     S.paymentTypesOther=g('paymentTypesOther')||'';
     S.employmentStatusOther=g('employmentStatusOther')||'';
     S.highRiskSectorsOther=g('highRiskSectorsOther')||'';
@@ -1701,6 +1706,10 @@ window.selectIndustry=function(val){
   if(inp)inp.value=val;
   const grid=document.getElementById('industryGrid');
   if(grid)grid.style.display='none';
+  // Show free text if "Other" is selected
+  const ow=document.getElementById('industryOtherWrap');
+  if(ow)ow.className='collapsible'+(val==='Other'?' open':'');
+  if(val!=='Other')S.industryOther='';
   saveState();
 };
 window.filterIndustry=function(q){
@@ -2241,7 +2250,7 @@ function startFresh(){
     primaryNationality:'German',hasOtherCitizenship:'',additionalCitizenships:[],
     hasMultipleCitizenships:'no',citizenships:[],
     accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
-    incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
+    incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',industryOther:'',annualIncome:'',
     highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
     isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
     wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
