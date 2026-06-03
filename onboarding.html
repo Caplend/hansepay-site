@@ -16,7 +16,7 @@
   --success:#1A7A4A;--error:#C0392B;--warn:#B8761A;
   --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
 }
-html,body{height:100%;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:var(--off)}
+html,body{height:100%;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:var(--n050)}
 body{display:flex;flex-direction:column;min-height:100vh}
 .onb-layout{display:flex;flex:1;min-height:100vh}
 
@@ -38,9 +38,9 @@ body{display:flex;flex-direction:column;min-height:100vh}
 .left-help p{font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.6}
 
 /* RIGHT PANEL */
-.right-panel{flex:1;display:flex;flex-direction:column;background:var(--off);min-height:100vh}
-.progress-bar-wrap{height:3px;background:rgba(0,0,0,.08);position:sticky;top:0;z-index:10}
-.progress-bar-fill{height:3px;background:var(--n400);transition:width .5s ease;width:0}
+.right-panel{flex:1;display:flex;flex-direction:column;background:var(--n050);min-height:100vh}
+.progress-bar-wrap{height:4px;background:rgba(11,25,41,.08);position:sticky;top:0;z-index:10;overflow:hidden}
+.progress-bar-fill{height:4px;background:linear-gradient(90deg,var(--n600),var(--n400),var(--n200));transition:width .6s cubic-bezier(.4,0,.2,1);width:0}
 .right-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 24px 120px}
 .step-viewport{width:100%;max-width:520px}
 
@@ -128,6 +128,19 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 /* SECTION HEADER */
 .section-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #E8EFF5}
 
+/* COMPLIANCE BLOCKS */
+.compliance-block{background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:14px}
+.compliance-block-label{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:14px;line-height:1.5}
+
+/* INDUSTRY TILES */
+.industry-tile{border:1.5px solid #E2EBF3;border-radius:var(--r-md);padding:12px 10px;cursor:pointer;transition:.18s;text-align:center;background:#fff}
+.industry-tile:hover{border-color:var(--n200);background:var(--n050);transform:translateY(-1px)}
+.industry-tile.selected{border-color:var(--n500);background:var(--n050);box-shadow:0 0 0 1px var(--n500)}
+.industry-tile-icon{width:36px;height:36px;border-radius:9px;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto 7px;color:var(--n600)}
+.industry-tile.selected .industry-tile-icon{background:var(--n100);color:var(--n700)}
+.industry-tile-label{font-size:11.5px;font-weight:600;color:var(--ink2);line-height:1.3}
+.industry-tile.selected .industry-tile-label{color:var(--n700)}
+
 /* COUNTRY SEARCH DROP */
 .country-search-wrap{position:relative}
 .country-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:230px;overflow-y:auto}
@@ -170,9 +183,9 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 /* TOOLTIP */
 .tooltip-wrap{position:relative;display:inline-flex;align-items:center}
 .tooltip-icon{width:17px;height:17px;border-radius:50%;background:var(--n100);color:var(--n600);font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-left:6px;flex-shrink:0}
-.tooltip-box{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:280px;background:var(--n800);color:#fff;font-size:12.5px;line-height:1.6;padding:12px 14px;border-radius:var(--r-md);z-index:100;pointer-events:none;opacity:0;transition:.2s;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.tooltip-box{text-transform:none;letter-spacing:0;font-weight:400;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:280px;background:var(--n800);color:#fff;font-size:12.5px;line-height:1.6;padding:12px 14px;border-radius:var(--r-md);z-index:100;pointer-events:none;opacity:0;transition:.2s;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .tooltip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--n800)}
-.tooltip-icon:hover + .tooltip-box,.tooltip-icon:focus + .tooltip-box{opacity:1}
+.tooltip-icon:hover + .tooltip-box,.tooltip-icon:focus + .tooltip-box{text-transform:none;letter-spacing:0;font-weight:400;opacity:1}
 
 /* T&C */
 .tc-box{max-height:220px;overflow-y:auto;padding:16px;border:1.5px solid #D8E4ED;border-radius:var(--r-md);font-size:13px;color:var(--ink2);line-height:1.7;margin-bottom:16px;background:#FAFCFF}
@@ -288,7 +301,7 @@ input[readonly]{background:#F5F1EA;color:var(--ink2);cursor:default}
 
   <div class="left-panel" id="leftPanel">
     <div class="left-logo">
-      <img src="/assets/hansepay-mark-uploaded.png" alt="">
+      <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay" style="filter:none">
       <span class="left-logo-text">HansePay</span>
     </div>
     <div class="phase-list" id="phaseList"></div>
@@ -357,7 +370,8 @@ const S = {
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',annualIncome:'',
   highRiskAnswer:'no',highRiskSectors:[],volumeIncomeExplain:'',
-  isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
+  isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
+  sanctionsAnswer:'no',criminalConviction:'no',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
   highRiskWealth:[],canProvideDocs:'',
   tcAccepted:false,blindpayAccepted:false,
@@ -645,24 +659,6 @@ function R5(){
       <div class="field-error" id="countryOfResidence-err"></div>
     </div>
 
-    <div class="field-group" style="margin-top:8px">
-      <label>Have you changed your country of residence in the last 12 months?</label>
-      ${radioCardsHTML('rcChangedRes',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.changedResidence,2)}
-    </div>
-    <div id="prevCountryWrap" style="display:${S.changedResidence==='yes'?'block':'none'}">
-      ${selectHTML('previousCountry','Which country did you move from?',countryOptsHTML(S.previousCountry))}
-    </div>
-
-    <div class="section-header">Account use</div>
-    <div class="field-group">
-      <label>Are you opening this account for yourself?</label>
-      ${radioCardsHTML('rcActingBehalf',[
-        {v:'yes',label:'Yes, for myself'},
-        {v:'no',label:'No, I\'m acting on behalf of another person or entity'}
-      ],S.actingOnBehalf)}
-      <div class="field-error" id="actingOnBehalf-err"></div>
-    </div>
-
     <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
 }
@@ -689,19 +685,31 @@ function R5b(){
 
 function R6(){
   return`<div class="step-card" id="sCard">
-    <div class="step-icon"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><path d="M32 8 L52 16 L52 34 C52 45 43 54 32 57 C21 54 12 45 12 34 L12 16 Z" stroke="var(--n800)" stroke-width="2.5" fill="none"/><path d="M24 32 L30 38 L40 26" stroke="var(--n800)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+    <div class="step-icon">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+    </div>
     <h1 class="step-heading">Let's verify your identity.</h1>
     <p class="step-sub">Takes 2–3 minutes. Have your ID ready.</p>
-    <div style="background:var(--n050);border-radius:var(--r-md);padding:20px;margin-bottom:20px">
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">📋</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Document photo</b>Passport, national ID or driving licence</div></div>
-        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">🤳</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Liveness check</b>A brief selfie video</div></div>
-        <div style="display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:var(--ink2)"><span style="font-size:20px">✅</span><div><b style="color:var(--ink);display:block;margin-bottom:2px">Instant review</b>Automated in seconds</div></div>
-      </div>
+
+    <div style="background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:0;margin-bottom:24px;overflow:hidden">
+      ${[
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/><line x1="7" y1="7.5" x2="10" y2="7.5"/></svg>`,title:'Document photo',desc:'Passport, national ID or driving licence'},
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/><circle cx="18" cy="6" r="2" fill="var(--n200)" stroke="none"/><circle cx="18" cy="6" r="4" stroke="var(--n300)" stroke-width="1" fill="none"/></svg>`,title:'Liveness check',desc:'A brief selfie to confirm it\'s you'},
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,title:'Instant review',desc:'Automated — usually done in seconds'},
+      ].map((r,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:16px 20px${i<2?';border-bottom:1px solid #EEF3F8':''}">
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.icon}</div>
+        <div><div style="font-weight:600;font-size:14px;color:var(--ink)">${r.title}</div><div style="font-size:13px;color:var(--ink3);margin-top:2px">${r.desc}</div></div>
+      </div>`).join('')}
     </div>
-    <p style="font-size:12.5px;color:var(--ink3);margin-bottom:6px">Powered by Signicat — bank-grade identity verification</p>
-    <p style="font-size:12px;color:var(--ink3);margin-bottom:16px;font-style:italic">Click below to simulate a successful verification</p>
-    <button class="btn btn-primary" id="verifyBtn" onclick="simulateVerify()">Start verification →</button>
+
+    <div id="verifyStatus" style="display:none;background:var(--n050);border-radius:var(--r-md);padding:18px 20px;margin-bottom:16px;text-align:center">
+      <div style="font-size:14px;font-weight:600;color:var(--n700);margin-bottom:6px">Verification in progress</div>
+      <div style="font-size:13px;color:var(--ink3)">A verification window is open in a new tab. Complete it there and return here — the page will update automatically.</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px;width:auto" onclick="checkVerifyDone()">I've completed it →</button>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:14px">Secured by Signicat · bank-grade identity verification</p>
+    <button class="btn btn-primary" id="verifyBtn" onclick="startVerify()">Start verification →</button>
   </div>`;
 }
 
@@ -727,6 +735,19 @@ function R7(){
       </div>
       <div class="chip-group" id="citizenChips">${S.additionalCitizenships.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeCitizen('${esc(c)}')">×</span></div>`).join('')}</div>
     </div>
+    ${(()=>{
+      const residenceCountry=ISO2[Object.entries(ISO2).find(([k,v])=>v===S.countryOfResidence)?.[0]||'']||S.countryOfResidence;
+      const citizenshipCountry=S.primaryNationality;
+      const mismatch = residenceCountry && citizenshipCountry && residenceCountry!==citizenshipCountry;
+      if(!mismatch)return '';
+      return `<div class="field-group">
+        <label>Have you changed your country of residence in the last 12 months?</label>
+        ${radioCardsHTML('rcChangedRes',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.changedResidence,2)}
+      </div>
+      <div id="prevCountryWrap" style="display:${S.changedResidence==='yes'?'block':'none'}">
+        ${selectHTML('previousCountry','Which country did you move from?',countryOptsHTML(S.previousCountry))}
+      </div>`;
+    })()}
     <p style="font-size:12px;color:var(--ink3);margin-bottom:20px">This helps us meet EU anti-money-laundering requirements.</p>
     <button class="btn btn-primary" onclick="nextStep()">Continue</button>
   </div>`;
@@ -738,11 +759,16 @@ function R8(){
 
     <div class="field-group">
       <label>What will you mainly use your account for?</label>
-      ${radioCardsHTML('rcPurpose',[
-        {v:'personal',icon:'👤',label:'Personal payments'},
-        {v:'business',icon:'💼',label:'Business payments'},
-        {v:'both',icon:'🔄',label:'Both'}
-      ],S.accountPurpose)}
+      <div class="radio-cards" id="rcPurpose">
+        ${[
+          {v:'personal',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,label:'Personal payments',desc:'Transfers and payments for personal use'},
+          {v:'business',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>`,label:'Business payments',desc:'Supplier, employee or client payments'},
+          {v:'both',svg:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>`,label:'Both',desc:'Personal and business use'}
+        ].map(o=>`<div class="radio-card${S.accountPurpose===o.v?' selected':''}" onclick="selectRC('rcPurpose','${o.v}')">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--n600)">${o.svg}</div>
+          <div><div class="radio-card-title">${o.label}</div><div class="radio-card-desc">${o.desc}</div></div>
+        </div>`).join('')}
+      </div>
       <div class="field-error" id="accountPurpose-err"></div>
     </div>
 
@@ -771,25 +797,16 @@ function R8(){
     </div>
 
     <div class="field-group">
-      <label>Which regions will payments usually involve?</label>
-      ${chipGroupHTML('cgRegions',[
-        {v:'de-lv',label:'Germany & Latvia'},
-        {v:'eu-eea',label:'Rest of EU/EEA'},
-        {v:'uk',label:'United Kingdom'},
-        {v:'other',label:'Specific countries'}
-      ],S.paymentRegions)}
-      <div class="field-error" id="paymentRegions-err"></div>
-    </div>
-
-    <div id="otherCountriesWrap" style="display:${S.paymentRegions.includes('other')?'block':'none'}">
-      <div class="field-group">
-        <label>Which countries?</label>
-        <div class="country-search-wrap" id="cswWrap">
-          <input type="text" id="otherCSearch" placeholder="Search — e.g. US, United States, DE, China…" autocomplete="off" oninput="filterCountryDrop()" onfocus="openCountryDrop()" style="border-radius:var(--r-md)">
-          <div class="country-drop" id="otherCDrop" style="display:none"></div>
-        </div>
-        <div class="chip-group" id="otherCChips" style="margin-top:10px">${S.otherCountries.map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
+      <label>Which countries will you usually send payments to?</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        ${[['🇩🇪','Germany'],['🇺🇸','USA'],['🇨🇳','China'],['🇬🇧','United Kingdom'],['🇫🇷','France'],['🇮🇳','India'],['🇯🇵','Japan'],['🇦🇪','UAE'],['🇵🇱','Poland'],['🇨🇭','Switzerland']].map(([flag,name])=>`<div class="chip${S.otherCountries.includes(name)?' selected':''}" onclick="togglePayCountry('${name}')" data-val="${name}">${flag} ${name}</div>`).join('')}
       </div>
+      <div class="country-search-wrap">
+        <input type="text" id="otherCSearch" placeholder="Search for another country — e.g. BR, Brazil, SE, Sweden…" autocomplete="off" oninput="filterCountryDrop()" onfocus="openCountryDrop()" style="border-radius:var(--r-md)">
+        <div class="country-drop" id="otherCDrop" style="display:none"></div>
+      </div>
+      <div class="chip-group" id="otherCChips" style="margin-top:10px">${S.otherCountries.filter(c=>!['Germany','USA','China','United Kingdom','France','India','Japan','UAE','Poland','Switzerland'].includes(c)).map(c=>`<div class="chip selected" data-val="${esc(c)}">${esc(c)} <span class="chip-x" onclick="removeOtherC('${esc(c)}')">×</span></div>`).join('')}</div>
+      <div class="field-error" id="paymentRegions-err"></div>
     </div>
 
     <button class="btn btn-primary" onclick="nextStep()">Continue</button>
@@ -819,9 +836,31 @@ function R9(){
       <div class="field-error" id="employmentStatus-err"></div>
     </div>
 
-    ${selectHTML('industry','Industry',
-      ['Finance & Banking','Technology & Software','Healthcare & Pharmaceuticals','Manufacturing','Retail & E-commerce','Logistics & Transport','Real Estate','Legal Services','Consulting & Advisory','Education','Agriculture & Food','Construction','Media & Entertainment','Energy & Utilities','Hospitality & Tourism','NGO / Non-profit','Gambling & Gaming','Crypto-assets & Blockchain','Mining & Extractives','Telecommunications','Government / Public sector','Other'].map(s=>`<option value="${s}"${S.industry===s?' selected':''}>${s}</option>`).join(''),
-    true)}
+    <div class="field-group">
+      <label>Industry</label>
+      <input type="text" id="industrySearch" placeholder="Search or select your industry…" autocomplete="off" value="${esc(S.industry)}"
+        oninput="filterIndustry(this.value)" onfocus="showIndustryGrid()" style="border-radius:var(--r-md);margin-bottom:10px">
+      <div id="industryGrid" style="display:${S.industry?'none':'grid'};grid-template-columns:repeat(3,1fr);gap:8px">
+        ${[
+          {v:'Manufacturing',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="6" height="14"/><rect x="9" y="3" width="6" height="18"/><rect x="16" y="10" width="6" height="11"/></svg>`},
+          {v:'Retail & E-commerce',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`},
+          {v:'Logistics & Transport',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`},
+          {v:'Technology & Software',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`},
+          {v:'Finance & Banking',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="1"/><path d="M7 10V6a5 5 0 0 1 10 0v4"/><line x1="12" y1="14" x2="12" y2="18"/></svg>`},
+          {v:'Healthcare & Pharmaceuticals',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`},
+          {v:'Real Estate',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`},
+          {v:'Consulting & Advisory',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`},
+          {v:'Construction',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="2 20 22 20 12 4 2 20"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17.5"/></svg>`},
+          {v:'Agriculture & Food',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22c1.25-1.25 2.5-2.5 3.75-2.5C8 19.5 8 22 10.5 22c2.5 0 2.5-2.5 5-2.5 1.25 0 2.5 1.25 3.75 2.5"/><path d="M12 13C6.5 13 2 8.5 2 3c3.5 0 6.5 1.5 8.5 4 .75-2 2-3.5 3.5-4.5.5 2 .25 4-.5 5.5 1.5-.5 3-1 4.5-.5-1 2-3 3.5-6 4.5z"/></svg>`},
+          {v:'Energy & Utilities',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`},
+          {v:'Other',icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`}
+        ].map(o=>`<div class="industry-tile${S.industry===o.v?' selected':''}" onclick="selectIndustry('${o.v.replace(/'/g,"\\'")}')">
+          <div class="industry-tile-icon">${o.icon}</div>
+          <div class="industry-tile-label">${o.v}</div>
+        </div>`).join('')}
+      </div>
+      <div class="field-error" id="industry-err"></div>
+    </div>
 
     <div class="field-group">
       <label>Approximate annual income before tax</label>
@@ -859,37 +898,50 @@ function R9(){
 
 function R10(){
   return`<div class="step-card" id="sCard">
-    <h1 class="step-heading">A few compliance questions.</h1>
-    <p class="step-sub">Required by EU AML regulations.</p>
+    <h1 class="step-heading">A few quick declarations.</h1>
+    <p class="step-sub">Required by EU anti-money-laundering regulations.</p>
 
-    <div class="section-header">Section A — Politically Exposed Person</div>
-    <div class="field-group">
-      <label style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-        Are you, or have you been in the last 12 months, a politically exposed person?
-        <span class="tooltip-wrap">
-          <span class="tooltip-icon" tabindex="0">i</span>
-          <span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes their immediate family members and close associates.</span>
-        </span>
-      </label>
+    <!-- PEP -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">
+        Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise.</span></span>
+      </div>
       ${radioCardsHTML('rcPEP',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.isPEP,2)}
       <div class="field-error" id="pep-err"></div>
+      <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'};margin-top:4px">
+        <div class="field-row">
+          ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
+          ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
+        </div>
+        <div class="field-row">
+          ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
+          ${fieldHTML('pepDates','Dates held','text',S.pepDates,'e.g. 2018–2023')}
+        </div>
+      </div>
     </div>
 
-    <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
-      ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
-      ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
-      ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
-      ${fieldHTML('pepDates','Dates held (from–to)','text',S.pepDates,'e.g. 2018–2023')}
+    <!-- Sanctions -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Are you subject to any international sanctions?</div>
+      ${radioCardsHTML('rcSanctions',[
+        {v:'no',label:'No, I am not subject to sanctions'},
+        {v:'yes',label:'Yes'}
+      ],S.sanctionsAnswer||'no',1)}
+      <div class="field-error" id="sanctions-err"></div>
     </div>
 
-    <div class="section-header">Section B — Sanctions</div>
-    <div class="check-row" style="margin-bottom:8px">
-      <input type="checkbox" id="sanctionsCheck" ${S.sanctionsConfirm?'checked':''}>
-      <label for="sanctionsCheck">I confirm that I am not subject to international sanctions and will not use this account to directly or indirectly transact with sanctioned persons, entities, or prohibited jurisdictions.</label>
+    <!-- Criminal conviction -->
+    <div class="compliance-block" style="margin-bottom:0">
+      <div class="compliance-block-label">
+        Have you ever been convicted of a serious financial crime?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes fraud, money laundering, tax evasion, insider trading, or similar offences. We are required to ask this to meet our legal obligations.</span></span>
+      </div>
+      ${radioCardsHTML('rcCriminal',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.criminalConviction||'no',2)}
+      <div class="field-error" id="criminal-err"></div>
     </div>
-    <div class="field-error" id="sanctions-err"></div>
 
-    <button class="btn btn-primary" style="margin-top:16px" onclick="nextStep()">Continue</button>
+    <button class="btn btn-primary" style="margin-top:24px" onclick="nextStep()">Continue</button>
   </div>`;
 }
 
@@ -1105,12 +1157,12 @@ function validateStep(){
     if(!document.getElementById('city')?.value.trim()) fail('city','City is required');
     if(!document.getElementById('postcode')?.value.trim()) fail('postcode','Postcode is required');
     if(!S.countryOfResidence) fail('countryOfResidence','Country of residence is required');
-    if(!S.actingOnBehalf) fail('actingOnBehalf','Please make a selection');
+    // actingOnBehalf removed from flow
   } else if(id===8){
     if(!S.accountPurpose) fail('accountPurpose','Please select an option');
     if(!S.paymentTypes.length) fail('paymentTypes','Please select at least one payment type');
     if(!S.monthlyVolume) fail('monthlyVolume','Please select a volume range');
-    if(!S.paymentRegions.length) fail('paymentRegions','Please select at least one region');
+    if(!S.otherCountries.length) fail('paymentRegions','Please add at least one destination country');
   } else if(id===9){
     if(!document.getElementById('incomeSource')?.value) fail('incomeSource','Please select your income source');
     if(!S.employmentStatus) fail('employmentStatus','Please select your work situation');
@@ -1125,9 +1177,14 @@ function validateStep(){
       if(!document.getElementById('pepInstitution')?.value.trim()) fail('pepInstitution','Institution is required');
       if(!document.getElementById('pepCountry')?.value) fail('pepCountry','Country is required');
     }
-    if(!S.sanctionsConfirm){
+    if(S.sanctionsAnswer==='yes'){
       const e=document.getElementById('sanctions-err');
-      if(e){e.textContent='You must confirm the sanctions declaration';e.classList.add('visible');}
+      if(e){e.textContent='We are unable to open an account for individuals subject to sanctions.';e.classList.add('visible');}
+      ok=false;
+    }
+    if(S.criminalConviction==='yes'){
+      const e=document.getElementById('criminal-err');
+      if(e){e.textContent='Please contact us directly to discuss your application.';e.classList.add('visible');}
       ok=false;
     }
   } else if(id===12){
@@ -1289,6 +1346,8 @@ function onRadioSelect(grp,val){
   else if(grp==='rcVolume'){S.monthlyVolume=val;}
   else if(grp==='rcAnnualIncome'){S.annualIncome=val;}
   else if(grp==='rcHighRisk'){onHighRiskToggle(val);}
+  else if(grp==='rcSanctions'){S.sanctionsAnswer=val;S.sanctionsConfirm=(val==='no');saveState();}
+  else if(grp==='rcCriminal'){S.criminalConviction=val;saveState();}
   else if(grp==='rcPEP'){
     S.isPEP=val;
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
@@ -1435,6 +1494,71 @@ window.selectPayCountry=function(name){
 };
 
 // Handle highRiskAnswer Yes/No toggle
+// ── Industry tile selector ─────────────────────────────────────────────────
+const ALL_INDUSTRIES=['Finance & Banking','Technology & Software','Healthcare & Pharmaceuticals','Manufacturing','Retail & E-commerce','Logistics & Transport','Real Estate','Legal Services','Consulting & Advisory','Education','Agriculture & Food','Construction','Media & Entertainment','Energy & Utilities','Hospitality & Tourism','NGO / Non-profit','Gambling & Gaming','Crypto-assets & Blockchain','Mining & Extractives','Telecommunications','Government / Public sector','Other'];
+
+window.selectIndustry=function(val){
+  S.industry=val;
+  const inp=document.getElementById('industrySearch');
+  if(inp)inp.value=val;
+  const grid=document.getElementById('industryGrid');
+  if(grid)grid.style.display='none';
+  saveState();
+};
+window.filterIndustry=function(q){
+  const grid=document.getElementById('industryGrid');
+  if(!grid)return;
+  if(!q){grid.style.display='grid';S.industry='';saveState();return;}
+  // Filter tiles
+  grid.style.display='grid';
+  grid.querySelectorAll('.industry-tile').forEach(t=>{
+    t.style.display=t.querySelector('.industry-tile-label').textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+};
+window.showIndustryGrid=function(){
+  const grid=document.getElementById('industryGrid');
+  if(grid&&!S.industry)grid.style.display='grid';
+};
+
+// ── Payment country toggle (flag chips) ────────────────────────────────────
+window.togglePayCountry=function(name){
+  if(S.otherCountries.includes(name)){
+    S.otherCountries=S.otherCountries.filter(c=>c!==name);
+  } else {
+    S.otherCountries.push(name);
+  }
+  // Update the flag chip visually
+  document.querySelectorAll('[data-val="'+name+'"]').forEach(el=>el.classList.toggle('selected',S.otherCountries.includes(name)));
+  renderOtherCChips();
+  saveState();
+};
+
+// ── New-tab identity verification ─────────────────────────────────────────
+window.startVerify=function(){
+  const btn=document.getElementById('verifyBtn');
+  const status=document.getElementById('verifyStatus');
+  if(btn)btn.style.display='none';
+  if(status)status.style.display='block';
+  // Open simulated Signicat verification in new tab
+  const w=window.open('about:blank','_blank');
+  if(w){
+    w.document.write('<html><head><title>Identity Verification — HansePay</title><style>body{font-family:Inter,sans-serif;background:#EBF4FB;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}.card{background:#fff;border-radius:16px;padding:40px;max-width:480px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(11,25,41,.1)}h2{font-family:Georgia,serif;color:#0B1929;margin-bottom:8px}p{color:#3D5A73;font-size:14px;line-height:1.6}button{margin-top:24px;padding:13px 32px;border-radius:100px;border:none;background:#1E4E80;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif}button:hover{background:#163659}</style></head><body><div class="card"><div style="font-size:40px;margin-bottom:16px">🪪</div><h2>Identity Verification</h2><p>This is a simulated Signicat identity verification. In production, you would scan your ID and complete a liveness check here.</p><p style="margin-top:12px">Click the button below to simulate a successful verification, then return to the HansePay tab.</p><button onclick="window.close()">Complete verification →</button></div></body></html>');
+    w.document.close();
+  }
+};
+window.checkVerifyDone=function(){
+  // Simulate success
+  S.primaryNationality='German';
+  S.docVerified=true;
+  saveState();
+  const status=document.getElementById('verifyStatus');
+  if(status)status.innerHTML='<div style="display:flex;align-items:center;gap:10px;color:#166534"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><div style="font-weight:600;font-size:14px">Identity verified</div><div style="font-size:13px;opacity:.8">Continue to the next step.</div></div></div>';
+  setTimeout(()=>nextStep(),1200);
+};
+
+// ── Sanctions radio card ───────────────────────────────────────────────────
+// sanctionsAnswer state field (new — replaces sanctionsConfirm checkbox)
+
 function onHighRiskToggle(val){
   S.highRiskAnswer=val;
   const w=document.getElementById('highRiskDetailWrap');
