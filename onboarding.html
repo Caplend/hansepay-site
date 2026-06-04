@@ -1585,8 +1585,10 @@ function onRadioSelect(grp,val){
     S.criminalConviction=val;
     const w=document.getElementById('criminalDetailWrap');
     if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('criminalYesExplain');
+    if(e)e.style.display=val==='yes'?'block':'none';
     if(val!=='yes'){S.criminalDetail='';}
-    saveState();
+    computeHighRisk();updateCitizenshipVisibility();saveState();
   }
   else if(grp==='rcPEP'){
     S.isPEP=val;
