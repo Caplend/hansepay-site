@@ -1006,7 +1006,6 @@ function R9(){
     <div class="field-group" style="margin-top:0">
       <div class="compliance-block-label">
         Are your funds or transactions connected to any regulated, cash-intensive, high-value, crypto, gambling, defence, charity, import/export, or other higher-risk activity?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Certain sectors carry higher regulatory risk. These include industries where cash is dominant, assets are hard to value, or there is elevated risk of misuse for financial crime.</span></span>
       </div>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.highRiskAnswer||'',2)}
       <div class="field-error" id="highRiskSectors-err"></div>
@@ -1031,10 +1030,8 @@ function R10(){
         A <b>politically exposed person (PEP)</b> holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes immediate family members and close associates.
       </div>
       <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
-        <div class="field-row">
-          ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
-          ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
-        </div>
+        ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
+        ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
         <div class="field-row">
           ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
           ${fieldHTML('pepDates','Dates held','text',S.pepDates,'e.g. 2018–2023')}
@@ -1347,6 +1344,7 @@ function validateStep(){
   } else if(id===8){
     if(!S.accountPurpose) fail('accountPurpose','Please select an option');
     if(!S.paymentTypes.length) fail('paymentTypes','Please select at least one payment type');
+    if(S.paymentTypes.includes('other')&&!document.getElementById('paymentTypesOther')?.value?.trim()) fail('paymentTypesOther','Please describe the other payment types');
     if(!S.monthlyVolume) fail('monthlyVolume','Please select a volume range');
     if(!S.otherCountries.length) fail('paymentRegions','Please add at least one destination country');
   } else if(id===9){
