@@ -1011,12 +1011,19 @@ function R9(){
       </div>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes — select all that apply'}],S.highRiskAnswer||'',2)}
       <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'};margin-top:12px">
-        ${chipGroupHTML('cgHRS',[
-          {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
-          {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals'},
-          {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
-          {v:'cash',label:'Cash intensive (e.g. restaurants, car washes)'},{v:'other-hr',label:'Other'}
-        ],S.highRiskSectors)}
+        <div class="chip-group" id="cgHRS" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+          ${[
+            {v:'crypto',label:'Crypto-assets'},
+            {v:'gambling',label:'Gambling'},
+            {v:'defence',label:'Defence / dual-use'},
+            {v:'metals',label:'Precious metals'},
+            {v:'art',label:'Art or luxury goods'},
+            {v:'ngo',label:'NGOs or charities'},
+            {v:'cash',label:'Cash intensive'},
+            {v:'other-hr',label:'Other'}
+          ].map(o=>`<div class="chip${S.highRiskSectors.includes(o.v)?' selected':''}" data-group="cgHRS" data-val="${o.v}" style="justify-content:center;text-align:center">${o.label}</div>`).join('')}
+        </div>
+        <div style="font-size:12px;color:var(--ink3);margin-top:4px">"Cash intensive" includes restaurants, car washes, retail and similar cash-dominant businesses.</div>
         <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
           ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
         </div>
