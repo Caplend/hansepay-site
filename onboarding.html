@@ -503,9 +503,7 @@ function getActiveSteps(){
 }
 
 function computeHighRisk(){
-  // Only actual risk flags — NOT payment destinations (those don't indicate personal risk)
-  const hrs=S.highRiskSectors.filter(v=>v!=='none');
-  S.isHighRisk=(S.isPEP==='yes')||hrs.length>0;
+  S.isHighRisk=(S.isPEP==='yes')||(S.highRiskAnswer==='yes');
 }
 
 function saveState(){
@@ -1007,28 +1005,10 @@ function R9(){
 
     <div class="field-group" style="margin-top:0">
       <div class="compliance-block-label">
-        Do you, or does your business, have any income from or connection to the following <b>higher-risk sectors</b>?
+        Are your funds or transactions connected to any regulated, cash-intensive, high-value, crypto, gambling, defence, charity, import/export, or other higher-risk activity?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Certain sectors carry higher regulatory risk. These include industries where cash is dominant, assets are hard to value, or there is elevated risk of misuse for financial crime.</span></span>
       </div>
-      ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes — select all that apply'}],S.highRiskAnswer||'',2)}
-      <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'};margin-top:12px">
-        <div class="chip-group" id="cgHRS" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
-          ${[
-            {v:'crypto',label:'Crypto-assets'},
-            {v:'gambling',label:'Gambling'},
-            {v:'defence',label:'Defence / dual-use'},
-            {v:'metals',label:'Precious metals'},
-            {v:'art',label:'Art or luxury goods'},
-            {v:'ngo',label:'NGOs or charities'},
-            {v:'cash',label:'Cash intensive'},
-            {v:'other-hr',label:'Other'}
-          ].map(o=>`<div class="chip${S.highRiskSectors.includes(o.v)?' selected':''}" data-group="cgHRS" data-val="${o.v}" style="justify-content:center;text-align:center">${o.label}</div>`).join('')}
-        </div>
-        <div style="font-size:12px;color:var(--ink3);margin-top:4px">"Cash intensive" includes restaurants, car washes, retail and similar cash-dominant businesses.</div>
-        <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
-          ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
-        </div>
-      </div>
+      ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.highRiskAnswer||'',2)}
       <div class="field-error" id="highRiskSectors-err"></div>
     </div>
 
@@ -1139,9 +1119,7 @@ function updateCitizenshipVisibility(){
 }
 
 function shouldShowCitizenship(){
-  // Show only when a genuine compliance flag is set — never just from payment destinations
-  const hasHighRiskSector=S.highRiskSectors.filter(v=>v!=='none').length>0;
-  return S.isPEP==='yes' || hasHighRiskSector || S.criminalConviction==='yes' || S.sanctionsAnswer==='yes';
+  return S.isPEP==='yes' || S.highRiskAnswer==='yes' || S.criminalConviction==='yes' || S.sanctionsAnswer==='yes';
 }
 
 function R11(){
@@ -1379,7 +1357,6 @@ function validateStep(){
     if(!S.annualIncome) fail('annualIncome','Please select your annual income');
     // highRiskSectors: only required if they said Yes to high-risk
     if(!S.highRiskAnswer) fail('highRiskSectors','Please answer this question');
-    if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please select at least one sector that applies');
   } else if(id===10){
     if(!S.isPEP) fail('pep','Please answer this question');
     if(S.isPEP==='yes'){
