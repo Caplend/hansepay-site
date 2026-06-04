@@ -170,6 +170,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 .toggle-link:hover{text-decoration:underline}
 .collapsible{display:none;margin-bottom:4px}
 .collapsible.open{display:block}
+.collapsible .field-group label{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--ink2);margin-bottom:5px}
 
 /* READONLY */
 .readonly-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--n800);border-radius:var(--r-md);margin-bottom:10px}
@@ -461,7 +462,7 @@ const S = {
   hasMultipleCitizenships:'no',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',industryOther:'',annualIncome:'',
-  highRiskAnswer:'',highRiskAnswer:'',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
+  highRiskAnswer:'',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
   sanctionsAnswer:'no',sanctionsDetail:'',criminalConviction:'no',criminalDetail:'',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
@@ -764,27 +765,6 @@ function R5(){
       <div class="field-error" id="countryOfResidence-err"></div>
     </div>
 
-    <div class="compliance-block">
-      <div class="compliance-block-label">
-        Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function such as head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This includes their immediate family members and close associates.</span></span>
-      </div>
-      ${radioCardsHTML('rcPEP',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.isPEP||'no',2)}
-      <div id="pepYesExplain" style="display:${S.isPEP==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-        A <b>politically exposed person (PEP)</b> holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes their immediate family members and close associates.
-      </div>
-      <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
-        <div class="field-row">
-          ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
-          ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
-        </div>
-        <div class="field-row">
-          ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
-          ${fieldHTML('pepDates','Dates held','text',S.pepDates,'e.g. 2018–2023')}
-        </div>
-      </div>
-      <div class="field-error" id="pep-err"></div>
-    </div>
 
   </div>`;
 }
@@ -980,7 +960,7 @@ function R9(){
         {v:'homemaker',label:'Homemaker'},{v:'other',label:'Other'}
       ],S.employmentStatus?[S.employmentStatus]:[])}
       <div class="collapsible${S.employmentStatus==='other'?' open':''}" id="empOtherWrap">
-        ${fieldHTML('employmentStatusOther','Please describe','text',S.employmentStatusOther,'e.g. freelancer, part-time')}
+        ${fieldHTML('employmentStatusOther','Please describe','text',S.employmentStatusOther,'e.g. freelancer, part-time','true')}
       </div>
       <div class="field-error" id="employmentStatus-err"></div>
     </div>
@@ -1007,8 +987,8 @@ function R9(){
           <div class="industry-tile-label">${o.v}</div>
         </div>`).join('')}
       </div>
-      <div class="collapsible${S.industry==='Other'?' open':''}" id="industryOtherWrap">
-        ${fieldHTML('industryOther','Please specify your industry','text',S.industryOther||'')}
+      <div class="collapsible${S.industry==='Other'?' open':''}" id="industryOtherWrap" style="margin-top:12px">
+        ${fieldHTML('industryOther','Please specify your industry','text',S.industryOther||'','','true')}
       </div>
       <div class="field-error" id="industry-err"></div>
     </div>
@@ -1026,7 +1006,8 @@ function R9(){
 
     <div class="field-group" style="margin-top:0">
       <div class="compliance-block-label">
-        Do you receive income from, sell to, or provide services connected to any of the following sectors?
+        Do you, or does your business, have any income from or connection to the following <b>higher-risk sectors</b>?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Certain sectors carry higher regulatory risk and may require additional checks. These include industries where cash is dominant, assets are hard to value, or there is elevated risk of misuse for financial crime.</span></span>
       </div>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes — select all that apply'}],S.highRiskAnswer||'',2)}
       <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'};margin-top:12px">
@@ -1052,15 +1033,37 @@ function R10(){
     <h1 class="step-heading">A few quick declarations.</h1>
     <p class="step-sub">Required by EU anti-money-laundering regulations.</p>
 
+    <!-- PEP -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function — such as head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This includes their immediate family members and close associates.</span></span>
+      </div>
+      ${radioCardsHTML('rcPEP',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.isPEP||'no',2)}
+      <div id="pepYesExplain" style="display:${S.isPEP==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        A <b>politically exposed person (PEP)</b> holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes immediate family members and close associates.
+      </div>
+      <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
+        <div class="field-row">
+          ${fieldHTML('pepPosition','Position or role held','text',S.pepPosition,'','true')}
+          ${fieldHTML('pepInstitution','Institution or organisation','text',S.pepInstitution,'','true')}
+        </div>
+        <div class="field-row">
+          ${selectHTML('pepCountry','Country',countryOptsHTML(S.pepCountry),true)}
+          ${fieldHTML('pepDates','Dates held','text',S.pepDates,'e.g. 2018–2023')}
+        </div>
+      </div>
+      <div class="field-error" id="pep-err"></div>
+    </div>
+
     <!-- Sanctions -->
     <div class="compliance-block">
       <div class="compliance-block-label">Are you subject to any international sanctions?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">International sanctions are restrictions imposed by the EU, UN, US (OFAC), or UK. Examples include asset freezes or travel bans linked to terrorism, proliferation, or serious human rights violations.</span></span>
       </div>
       ${radioCardsHTML('rcSanctions',[
-        {v:'no',label:'No, I am not subject to sanctions'},
+        {v:'no',label:'No'},
         {v:'yes',label:'Yes'}
-      ],S.sanctionsAnswer||'no',1)}
+      ],S.sanctionsAnswer||'no',2)}
       <div id="sanctionsYesExplain" style="display:${S.sanctionsAnswer==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
         International sanctions are legal restrictions imposed by the EU, UN, United States (OFAC), or United Kingdom. If you are subject to sanctions, you may be restricted from using certain financial services. Please provide details below.
       </div>
@@ -1085,16 +1088,15 @@ function R10(){
       <div class="field-error" id="criminal-err"></div>
     </div>
 
-    <!-- Citizenship (only shown if compliance risk flags triggered) -->
-    ${shouldShowCitizenship()?`
-    <div class="compliance-block" style="margin-top:14px;margin-bottom:0">
-      <div class="compliance-block-label">Please list all citizenships you hold</div>
-      <div id="citizenshipFields">
-        ${renderCitRows()}
+    <!-- Citizenship: shown when any compliance flag is set -->
+    <div id="citizenshipSection" style="display:${shouldShowCitizenship()?'block':'none'}">
+      <div class="compliance-block" style="margin-top:14px;margin-bottom:0">
+        <div class="compliance-block-label">Please list all citizenships you hold</div>
+        <div id="citizenshipFields">${renderCitRows()}</div>
+        <a class="toggle-link" onclick="addCitizenshipRow()" style="margin-bottom:0;cursor:pointer">+ Add another citizenship</a>
+        <div class="field-error" id="citizenships-err"></div>
       </div>
-      <a class="toggle-link" onclick="addCitizenshipRow()" style="margin-bottom:0;cursor:pointer">+ Add another citizenship</a>
-      <div class="field-error" id="citizenships-err"></div>
-    </div>`:''}
+    </div>
 
   </div>`;
 }
@@ -1113,6 +1115,19 @@ function renderCitRows(){
       (i>=2?'<button type="button" onclick="removeCitizenshipRow('+i+')" style="background:none;border:none;color:var(--ink3);cursor:pointer;font-size:18px;padding:0 6px;flex-shrink:0">×</button>':'')+
     '</div>';
   }).join('');
+}
+
+function updateCitizenshipVisibility(){
+  var sec=document.getElementById('citizenshipSection');
+  if(sec)sec.style.display=shouldShowCitizenship()?'block':'none';
+  if(shouldShowCitizenship()){
+    var cf=document.getElementById('citizenshipFields');
+    if(cf&&!cf.children.length)cf.innerHTML=renderCitRows();
+    // Re-attach citizenship searches
+    if(typeof attachCitizenshipRowSearch==='function'){
+      Array.from({length:S.citizenships.length||2}).forEach((_,i)=>attachCitizenshipRowSearch(i));
+    }
+  }
 }
 
 function shouldShowCitizenship(){
@@ -1337,11 +1352,6 @@ function validateStep(){
       if(filled.length<2) fail('hasMultipleCitizenships','Please enter at least 2 citizenships');
       else S.citizenships=filled;
     }
-    if(!S.isPEP) fail('pep','Please answer this question');
-    if(S.isPEP==='yes'){
-      if(!document.getElementById('pepPosition')?.value?.trim()) fail('pepPosition','Position is required');
-      if(!document.getElementById('pepInstitution')?.value?.trim()) fail('pepInstitution','Institution is required');
-    }
     // actingOnBehalf removed from flow
   } else if(id===7){
     if(!S.primaryNationality) fail('nationality','Please select your nationality');
@@ -1361,7 +1371,11 @@ function validateStep(){
     if(!S.highRiskAnswer) fail('highRiskSectors','Please answer this question');
     if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please select at least one sector that applies');
   } else if(id===10){
-    // PEP now validated in step 5
+    if(!S.isPEP) fail('pep','Please answer this question');
+    if(S.isPEP==='yes'){
+      if(!document.getElementById('pepPosition')?.value?.trim()) fail('pepPosition','Position is required');
+      if(!document.getElementById('pepInstitution')?.value?.trim()) fail('pepInstitution','Institution is required');
+    }
     if(S.sanctionsAnswer==='yes'&&!document.getElementById('sanctionsDetail')?.value?.trim()){
       fail('sanctionsDetail','Please provide details about the sanctions');
     }
@@ -1558,7 +1572,7 @@ function onRadioSelect(grp,val){
     S.sanctionsAnswer=val;S.sanctionsConfirm=(val==='no');
     const w=document.getElementById('sanctionsDetailWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
     const e=document.getElementById('sanctionsYesExplain');if(e)e.style.display=val==='yes'?'block':'none';
-    saveState();
+    computeHighRisk();updateCitizenshipVisibility();saveState();
   }
   else if(grp==='rcCriminal'){
     S.criminalConviction=val;
@@ -1571,6 +1585,7 @@ function onRadioSelect(grp,val){
     S.isPEP=val;
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
     const e=document.getElementById('pepYesExplain');if(e)e.style.display=val==='yes'?'block':'none';
+    computeHighRisk();updateCitizenshipVisibility();
   }
   else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
   else if(grp==='rcMajorFunds'){
@@ -2032,7 +2047,7 @@ function onHighRiskToggle(val){
   const w=document.getElementById('highRiskDetailWrap');
   if(w)w.style.display=val==='yes'?'block':'none';
   if(val==='no'){S.highRiskSectors=[];S.highRiskSectorsOther='';}
-  saveState();
+  computeHighRisk();updateCitizenshipVisibility();saveState();
 }
 
 function renderOtherCChips(){
