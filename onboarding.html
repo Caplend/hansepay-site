@@ -116,6 +116,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 
 /* CHIPS */
 .chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip-group-grid{display:grid!important;margin-bottom:12px}
 .chip{padding:7px 16px;border-radius:var(--r-pill);border:1.5px solid #DDE6EF;font-size:13px;font-weight:500;cursor:pointer;transition:.18s;background:#fff;color:var(--ink2);display:inline-flex;align-items:center;gap:6px}
 .chip:hover{border-color:var(--n300);color:var(--n500)}
 .chip.selected{border-color:var(--n500);background:var(--n050);color:var(--n500)}
@@ -138,9 +139,11 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 /* SECTION HEADER */
 .section-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #E8EFF5}
 
+/* Prevent label text-transform from applying to explanatory text */
+.compliance-block div,.collapsible div{text-transform:none;letter-spacing:normal}
 /* COMPLIANCE BLOCKS */
-.compliance-block{background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:14px}
-.compliance-block-label{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:14px;line-height:1.5}
+.compliance-block{background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px}
+.compliance-block-label{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:16px;line-height:1.5;text-transform:none!important;letter-spacing:0!important}
 
 /* INDUSTRY TILES */
 .industry-tile{border:1.5px solid #E2EBF3;border-radius:var(--r-md);padding:12px 10px;cursor:pointer;transition:.18s;text-align:center;background:#fff}
@@ -458,7 +461,7 @@ const S = {
   hasMultipleCitizenships:'no',citizenships:[],
   accountPurpose:'',paymentTypes:[],monthlyVolume:'',paymentRegions:[],otherCountries:[],
   incomeSource:'',incomeSourceOther:'',employmentStatus:'',industry:'',industryOther:'',annualIncome:'',
-  highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
+  highRiskAnswer:'',highRiskAnswer:'',highRiskSectors:[],highRiskSectorsOther:'',paymentTypesOther:'',employmentStatusOther:'',volumeIncomeExplain:'',
   isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',
   sanctionsAnswer:'no',sanctionsDetail:'',criminalConviction:'no',criminalDetail:'',sanctionsConfirm:false,
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
@@ -759,12 +762,14 @@ function R5(){
       <div class="field-error" id="countryOfResidence-err"></div>
     </div>
 
-    <div class="section-header">Political exposure</div>
-    <div class="field-group">
-      <label>Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one?</label>
+    <div class="compliance-block">
+      <div class="compliance-block-label">
+        Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">A politically exposed person (PEP) holds or has held a senior public function such as head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This includes their immediate family members and close associates.</span></span>
+      </div>
       ${radioCardsHTML('rcPEP',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.isPEP||'no',2)}
       <div id="pepYesExplain" style="display:${S.isPEP==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-        A PEP holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also covers immediate family members and close associates.
+        A <b>politically exposed person (PEP)</b> holds or has held a senior public function — such as a head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. This also includes their immediate family members and close associates.
       </div>
       <div id="pepDetailsWrap" style="display:${S.isPEP==='yes'?'block':'none'}">
         <div class="field-row">
@@ -910,7 +915,7 @@ function R8(){
 
     <div class="field-group">
       <label>What types of payments do you expect to make?</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px" id="cgPayTypes">
+      <div class="chip-group chip-group-grid" id="cgPayTypes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
         ${[
           {v:'everyday',label:'Everyday purchases'},
           {v:'family',label:'Transfers to family or friends'},
@@ -1015,20 +1020,21 @@ function R9(){
       <div class="field-error" id="annualIncome-err"></div>
     </div>
 
-    <div class="field-group">
-      <label>Do you receive income from, sell to, or provide services connected to any of the following sectors?</label>
-      ${chipGroupHTML('cgHRS',[
-        {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
-        {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals'},
-        {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
-        {v:'cash',label:'Cash intensive (e.g. restaurants, car washes)'},{v:'other-hr',label:'Other'}
-      ],S.highRiskSectors)}
-      <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
-        ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
+    <div class="compliance-block" style="margin-top:0;border-radius:0;border:none;border-bottom:none;padding:0">
+      <div class="compliance-block-label">
+        Do you receive income from, sell to, or provide services connected to any of the following sectors?
       </div>
-      <div style="margin-top:12px;border-top:1px solid #EEF3F8;padding-top:12px">
-        <div style="font-size:13px;color:var(--ink3);margin-bottom:10px">If none of the above apply to you, please confirm:</div>
-        <div class="chip${S.highRiskSectors.includes('none')?' selected':''}" data-group="cgHRS" data-val="none" style="display:inline-flex">None of these apply to me</div>
+      ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes — select all that apply'}],S.highRiskAnswer||'',2)}
+      <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'};margin-top:12px">
+        ${chipGroupHTML('cgHRS',[
+          {v:'crypto',label:'Crypto-assets'},{v:'gambling',label:'Gambling'},
+          {v:'defence',label:'Defence / dual-use'},{v:'metals',label:'Precious metals'},
+          {v:'art',label:'Art or luxury goods'},{v:'ngo',label:'NGOs or charities'},
+          {v:'cash',label:'Cash intensive (e.g. restaurants, car washes)'},{v:'other-hr',label:'Other'}
+        ],S.highRiskSectors)}
+        <div class="collapsible${S.highRiskSectors.includes('other-hr')?' open':''}" id="hrsOtherWrap">
+          ${fieldHTML('highRiskSectorsOther','Please specify the sector','text',S.highRiskSectorsOther,'','true')}
+        </div>
       </div>
       <div class="field-error" id="highRiskSectors-err"></div>
     </div>
@@ -1043,14 +1049,16 @@ function R10(){
 
     <!-- Sanctions -->
     <div class="compliance-block">
-      <div class="compliance-block-label">
-        Are you subject to any international sanctions?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">International sanctions are restrictions imposed by the EU, UN, US (OFAC), or UK against individuals, entities, or countries. Examples include asset freezes or travel bans linked to terrorism, proliferation, or serious human rights violations.</span></span>
+      <div class="compliance-block-label">Are you subject to any international sanctions?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">International sanctions are restrictions imposed by the EU, UN, US (OFAC), or UK. Examples include asset freezes or travel bans linked to terrorism, proliferation, or serious human rights violations.</span></span>
       </div>
       ${radioCardsHTML('rcSanctions',[
         {v:'no',label:'No, I am not subject to sanctions'},
         {v:'yes',label:'Yes'}
       ],S.sanctionsAnswer||'no',1)}
+      <div id="sanctionsYesExplain" style="display:${S.sanctionsAnswer==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        International sanctions are legal restrictions imposed by the EU, UN, United States (OFAC), or United Kingdom. If you are subject to sanctions, you may be restricted from using certain financial services. Please provide details below.
+      </div>
       <div id="sanctionsDetailWrap" class="collapsible${S.sanctionsAnswer==='yes'?' open':''}" >
         ${fieldHTML('sanctionsDetail','Please provide details','textarea',S.sanctionsDetail||'','e.g. which sanctions list, country, date','true')}
       </div>
@@ -1059,12 +1067,14 @@ function R10(){
 
     <!-- Criminal conviction -->
     <div class="compliance-block" style="margin-bottom:0">
-      <div class="compliance-block-label">
-        Have you ever been convicted of a serious financial crime?
+      <div class="compliance-block-label">Have you ever been convicted of a serious financial crime?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes fraud, money laundering, tax evasion, insider trading, or similar offences. We are required to ask this to meet our legal obligations.</span></span>
       </div>
       ${radioCardsHTML('rcCriminal',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.criminalConviction||'no',2)}
-      <div id="criminalDetailWrap" class="collapsible${S.criminalConviction==='yes'?' open':''}">
+      <div id="criminalYesExplain" style="display:${S.criminalConviction==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        A serious financial crime includes offences such as fraud, money laundering, tax evasion, or insider trading. We are legally required to ask this question under EU Anti-Money Laundering regulations. Please provide details below.
+      </div>
+      <div id="criminalDetailWrap" class="collapsible${S.criminalConviction==='yes'?' open':''}" >
         ${fieldHTML('criminalDetail','Please provide details','textarea',S.criminalDetail||'','e.g. nature of offence, jurisdiction, date','true')}
       </div>
       <div class="field-error" id="criminal-err"></div>
@@ -1087,9 +1097,10 @@ function R10(){
 function renderCitRows(){
   const list=S.citizenships.length>=1?S.citizenships:['',''];
   return list.map(function(c,i){
+    var fl=c?flagEmoji(getISO(c)):'';
     return '<div class="citizenship-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center" id="cit-row-'+i+'">'+
       '<div class="country-search-wrap" style="flex:1">'+
-        '<input type="text" id="citInp'+i+'" placeholder="Search country…" autocomplete="off" value="'+esc(c)+'" '+
+        '<input type="text" id="citInp'+i+'" placeholder="Search country…" autocomplete="off" value="'+(fl?fl+' ':'')+esc(c)+'" '+
           'oninput="filterCitSearch('+i+',this.value)" onfocus="openCitDrop('+i+')" style="border-radius:var(--r-md)">'+
         '<div class="country-drop" id="citDrop'+i+'" style="display:none"></div>'+
       '</div>'+
@@ -1340,7 +1351,8 @@ function validateStep(){
     if(S.industry==='Other'&&!document.getElementById('industryOther')?.value?.trim()) fail('industryOther','Please specify your industry');
     if(!S.annualIncome) fail('annualIncome','Please select your annual income');
     // highRiskSectors: only required if they said Yes to high-risk
-    if(!S.highRiskSectors.length) fail('highRiskSectors','Please select the sectors that apply, or confirm none apply.');
+    if(!S.highRiskAnswer) fail('highRiskSectors','Please answer this question');
+    if(S.highRiskAnswer==='yes'&&!S.highRiskSectors.length) fail('highRiskSectors','Please select at least one sector that applies');
   } else if(id===10){
     // PEP now validated in step 5
     if(S.sanctionsAnswer==='yes'&&!document.getElementById('sanctionsDetail')?.value?.trim()){
@@ -1538,6 +1550,7 @@ function onRadioSelect(grp,val){
   else if(grp==='rcSanctions'){
     S.sanctionsAnswer=val;S.sanctionsConfirm=(val==='no');
     const w=document.getElementById('sanctionsDetailWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('sanctionsYesExplain');if(e)e.style.display=val==='yes'?'block':'none';
     saveState();
   }
   else if(grp==='rcCriminal'){
@@ -1730,10 +1743,10 @@ const ALL_INDUSTRIES=['Finance & Banking','Technology & Software','Healthcare & 
 
 window.selectIndustry=function(val){
   S.industry=val;
-  const inp=document.getElementById('industrySearch');
-  if(inp)inp.value=val;
-  const grid=document.getElementById('industryGrid');
-  if(grid)grid.style.display='none';
+  // Update tile selection visuals
+  document.querySelectorAll('.industry-tile').forEach(t=>{
+    t.classList.toggle('selected',t.querySelector('.industry-tile-label')&&t.querySelector('.industry-tile-label').textContent===val);
+  });
   // Show free text if "Other" is selected
   const ow=document.getElementById('industryOtherWrap');
   if(ow)ow.className='collapsible'+(val==='Other'?' open':'');
@@ -2004,7 +2017,13 @@ function updateIndustryVisibility(){
   if(w)w.style.display=shouldShowIndustry()?'block':'none';
 }
 
-// onHighRiskToggle merged into cgHRS chip handler
+function onHighRiskToggle(val){
+  S.highRiskAnswer=val;
+  const w=document.getElementById('highRiskDetailWrap');
+  if(w)w.style.display=val==='yes'?'block':'none';
+  if(val==='no'){S.highRiskSectors=[];S.highRiskSectorsOther='';}
+  saveState();
+}
 
 function renderOtherCChips(){
   const w=document.getElementById('otherCChips');if(!w)return;
