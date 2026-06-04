@@ -1007,7 +1007,7 @@ function R9(){
     <div class="field-group" style="margin-top:0">
       <div class="compliance-block-label">
         Do you, or does your business, have any income from or connection to the following <b>higher-risk sectors</b>?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Certain sectors carry higher regulatory risk and may require additional checks. These include industries where cash is dominant, assets are hard to value, or there is elevated risk of misuse for financial crime.</span></span>
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Certain sectors carry higher regulatory risk. These include industries where cash is dominant, assets are hard to value, or there is elevated risk of misuse for financial crime.</span></span>
       </div>
       ${radioCardsHTML('rcHighRisk',[{v:'no',label:'No'},{v:'yes',label:'Yes — select all that apply'}],S.highRiskAnswer||'',2)}
       <div id="highRiskDetailWrap" style="display:${S.highRiskAnswer==='yes'?'block':'none'};margin-top:12px">
