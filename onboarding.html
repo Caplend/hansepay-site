@@ -503,8 +503,9 @@ function getActiveSteps(){
 }
 
 function computeHighRisk(){
+  // Only actual risk flags — NOT payment destinations (those don't indicate personal risk)
   const hrs=S.highRiskSectors.filter(v=>v!=='none');
-  S.isHighRisk=(S.isPEP==='yes')||hrs.length>0||S.otherCountries.length>0;
+  S.isHighRisk=(S.isPEP==='yes')||hrs.length>0;
 }
 
 function saveState(){
@@ -1138,7 +1139,9 @@ function updateCitizenshipVisibility(){
 }
 
 function shouldShowCitizenship(){
-  return S.isPEP==='yes' || (S.isHighRisk&&!S.highRiskSectors.includes('none')) || S.criminalConviction==='yes' || S.sanctionsAnswer==='yes';
+  // Show only when a genuine compliance flag is set — never just from payment destinations
+  const hasHighRiskSector=S.highRiskSectors.filter(v=>v!=='none').length>0;
+  return S.isPEP==='yes' || hasHighRiskSector || S.criminalConviction==='yes' || S.sanctionsAnswer==='yes';
 }
 
 function R11(){
