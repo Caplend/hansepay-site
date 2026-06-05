@@ -228,7 +228,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 .review-edit:hover{text-decoration:underline}
 .review-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 0;font-size:13.5px;gap:12px}
 .review-key{color:var(--ink3);flex-shrink:0;width:150px}
-.review-val{color:var(--ink);font-weight:500;text-align:right}
+.review-val{color:var(--ink);font-weight:500;text-align:right;word-break:break-word;overflow-wrap:anywhere;max-width:280px}
 
 /* NAV FOOTER */
 .nav-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(11,25,41,.07);padding:14px 40px;display:flex;align-items:center;gap:16px;z-index:50}
@@ -1559,13 +1559,10 @@ function RB2(){
       ${fieldHTML('coRegNum','Registration number','text',S.coRegNum,'e.g. HRB 239847 B','true')}
     </div>
 
-    <div class="field-row">
-      <div class="field-group">
-        <label for="coRegDate">Registration date</label>
-        <input type="date" id="coRegDate" value="${esc(S.coRegDate||'')}">
-        <div class="field-error" id="coRegDate-err"></div>
-      </div>
-      ${fieldHTML('coVAT','VAT number','text',S.coVAT,'e.g. DE321456789')}
+    <div class="field-group">
+      <label for="coRegDate">Registration date</label>
+      <input type="date" id="coRegDate" value="${esc(S.coRegDate||'')}">
+      <div class="field-error" id="coRegDate-err"></div>
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>&ensp;Industry &amp; activity</div>
@@ -1676,7 +1673,6 @@ function RB3(){
       ${rv('Legal form',S.coLegalForm)}
       ${rv('Registration no.',S.coRegNum)}
       ${rv('Registration date',S.coRegDate)}
-      ${S.coVAT?rv('VAT number',S.coVAT):''}
     </div>
 
     <div class="review-section">
@@ -1716,9 +1712,9 @@ function RB3(){
 // ── B4 — Company documents ─────────────────────────────────────────────────
 function RB4(){
   const docs=[
-    {id:'docAoA',label:'Articles of Association / Certificate of Incorporation',desc:'Official document confirming the company\'s legal formation and governance structure.'},
-    {id:'docShareholder',label:'Shareholder Register / Share Certificate',desc:'Document showing the company\'s shareholders and their ownership stakes.'},
-    {id:'docBankStmt',label:'Company Bank Statement',desc:'Recent bank statement (within last 3 months) verifying the company bank account and account holder name.'},
+    {id:'docAoA',label:'Incorporation',desc:'Please upload your articles of incorporation or certificate of incorporation. This document confirms your company\'s legal formation and typically includes the company name, business purpose, registered address, share structure, and governance framework. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 3 MB.'},
+    {id:'docShareholder',label:'Ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 3 MB.'},
+    {id:'docBankStmt',label:'Proof of address',desc:'Please upload a proof of the company\'s registered or operating address — such as a utility bill, lease agreement, bank statement, or official government correspondence issued within the last 3 months. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 3 MB.'},
   ];
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div></div>
