@@ -1580,20 +1580,20 @@ function RB2(){
       <div class="field-error" id="coNACE-err"></div>
     </div>
 
-    ${fieldHTML('coDescription','Business description','textarea',S.coDescription,'Briefly describe what your company does and who your customers are (min. 35 characters)','true')}
+    ${fieldHTML('coDescription','Business description','textarea',S.coDescription,'Briefly describe what your company does, what you sell, and who your customers are (min. 50 characters)','true')}
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
 
     ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
     <div class="field-group">
-      <label>Phone number <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+      <label>Phone number</label>
       <div class="phone-row">
         <select id="coPhoneCC" style="width:130px;min-width:130px">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
         <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 1234 567 890">
       </div>
       <div class="field-error" id="coPhone-err"></div>
     </div>
-    ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com')}
+    ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com','true')}
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>&ensp;Account &amp; funds</div>
 
@@ -1806,19 +1806,17 @@ function renderMgmtPerson(p,i){
       <input type="email" id="mp${i}Email" value="${esc(p.email||'')}" placeholder="person@company.com">
       <div class="field-error" id="mp${i}Email-err"></div>
     </div>
-    <div class="field-row">
-      <div class="field-group">
-        <label>Phone number <span style="font-weight:400;opacity:.6">(optional)</span></label>
-        <div class="phone-row">
-          <select id="mp${i}PhoneCC" style="width:110px;min-width:110px">${phoneSel}</select>
-          <input type="tel" id="mp${i}Phone" value="${esc(p.phone||'')}" placeholder="e.g. 1234 567 890">
-        </div>
+    <div class="field-group">
+      <label>Phone number <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <div class="phone-row">
+        <select id="mp${i}PhoneCC" style="width:130px;min-width:130px">${phoneSel}</select>
+        <input type="tel" id="mp${i}Phone" value="${esc(p.phone||'')}" placeholder="e.g. 1234 567 890">
       </div>
-      <div class="field-group">
-        <label for="mp${i}DOB">Date of birth</label>
-        <input type="date" id="mp${i}DOB" value="${esc(p.dob||'')}" max="${todayMinus18()}">
-        <div class="field-error" id="mp${i}DOB-err"></div>
-      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}DOB">Date of birth</label>
+      <input type="date" id="mp${i}DOB" value="${esc(p.dob||'')}" max="${todayMinus18()}">
+      <div class="field-error" id="mp${i}DOB-err"></div>
     </div>
 
     <div class="field-group" style="position:relative">
@@ -2176,8 +2174,10 @@ function validateStep(){
     if(!g('coRegDate')) fail('coRegDate','Registration date is required');
     if(!S.coNACE.length){const e=document.getElementById('coNACE-err');if(e){e.textContent='Please select at least one NACE code';e.classList.add('visible');}ok=false;}
     const desc=(g('coDescription')||'').trim();
-    if(!desc||desc.length<10) fail('coDescription','Please provide a description (at least 10 characters)');
+    if(!desc||desc.length<50) fail('coDescription','Please provide a description (at least 50 characters)');
     if(!isEmail(g('coEmail')||'')) fail('coEmail','Please enter a valid email address');
+    if(!(g('coPhone')||'').trim()) fail('coPhone','Phone number is required');
+    if(!(g('coWebsite')||'').trim()) fail('coWebsite','Website is required');
     if(!g('coAccountPurpose')) fail('coAccountPurpose','Please select an account purpose');
     if(!g('coSourceOfFunds')) fail('coSourceOfFunds','Please select the source of funds');
     if(!(g('coAddr1')||'').trim()) fail('coAddr1','Address line 1 is required');
