@@ -477,7 +477,16 @@ const S = {
   coSourceOfFunds:'',coSourceOfFundsOther:'',
   coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
   coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
-  coManagement:[]
+  coManagement:[],
+  // B6 – Business activity & payments
+  coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
+  coIsRegulated:'',coRegulatedDetail:'',coCompanySize:'',
+  coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
+  // B7 – Risk declarations
+  coSanctionsExposure:'',coSanctionsDetail:'',
+  coHighRiskCountries:'',coHighRiskDetail:'',
+  coPreviousAccountClosure:'',coPreviousClosureDetail:'',
+  coFraudDisputes:'',coFraudDetail:''
 };
 
 let CI = 0; // currentIndex
@@ -496,6 +505,7 @@ const BUSINESS_PHASES = [
   {id:'company',    label:'Company',    steps:['B1','B2']},
   {id:'documents',  label:'Documents',  steps:['B3','B4']},
   {id:'management', label:'Management', steps:['B5']},
+  {id:'activity',   label:'Activity',   steps:['B6','B7']},
 ];
 function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
 const PHASE_HELP = {
@@ -511,7 +521,7 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5'];
+    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B6','B7'];
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -631,7 +641,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B6':return RB6();case'B7':return RB7();
   }
   return '';
 }
@@ -2013,6 +2023,204 @@ function collectMgmtData(){
   });
 }
 
+// ── Generic business country multi-picker ─────────────────────────────────
+function bizCountryPicker(pickerId,stateArr){
+  const inp=document.getElementById('bcp-'+pickerId+'-inp');
+  const drop=document.getElementById('bcp-'+pickerId+'-drop');
+  if(!inp||!drop)return;
+  function renderDrop(q){
+    const results=fuzzyCountrySearch(q||'');
+    drop.innerHTML=results.map(c=>{
+      const added=stateArr.includes(c.name);
+      return`<div class="country-opt${added?' calready-opt':''}" onclick="bcpSelect('${pickerId}','${esc(c.name)}')">
+        <span style="font-size:18px">${flagEmoji(c.iso)}</span>
+        <span class="cname">${esc(c.name)}</span>
+        ${added?'<span class="calready">Added ✓</span>':''}
+      </div>`;
+    }).join('');
+    drop.style.display='block';
+  }
+  inp.addEventListener('input',()=>renderDrop(inp.value));
+  inp.addEventListener('focus',()=>renderDrop(inp.value||''));
+  document.addEventListener('click',function cl(e){
+    if(!inp.contains(e.target)&&!drop.contains(e.target))drop.style.display='none';
+  });
+}
+window.bcpSelect=function(pickerId,name){
+  const map={coCustomerCountries:S.coCustomerCountries,coOperatingCountries:S.coOperatingCountries,coSendingCountries:S.coSendingCountries};
+  const arr=map[pickerId];
+  if(arr&&!arr.includes(name)){arr.push(name);bcpRenderChips(pickerId,arr);}
+  const inp=document.getElementById('bcp-'+pickerId+'-inp');if(inp)inp.value='';
+  const drop=document.getElementById('bcp-'+pickerId+'-drop');if(drop)drop.style.display='none';
+  saveState();
+};
+function bcpRenderChips(pickerId,arr){
+  const w=document.getElementById('bcp-'+pickerId+'-chips');
+  if(!w)return;
+  w.innerHTML=arr.map(c=>`<div class="chip selected" style="font-size:13px">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="bcpRemove('${pickerId}','${esc(c)}')">×</span></div>`).join('');
+}
+window.bcpRemove=function(pickerId,name){
+  const map={coCustomerCountries:S.coCustomerCountries,coOperatingCountries:S.coOperatingCountries,coSendingCountries:S.coSendingCountries};
+  const arr=map[pickerId];
+  if(arr){const i=arr.indexOf(name);if(i>-1)arr.splice(i,1);bcpRenderChips(pickerId,arr);}
+  saveState();
+};
+function bcpPickerHTML(pickerId,label,arr,req){
+  const optStr=req?'':' <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span>';
+  return`<div class="field-group">
+    <label>${esc(label)}${optStr}</label>
+    <div style="position:relative">
+      <input type="text" id="bcp-${pickerId}-inp" placeholder="Search and add countries…" autocomplete="off" style="border-radius:var(--r-md)">
+      <div class="country-drop" id="bcp-${pickerId}-drop" style="display:none"></div>
+    </div>
+    <div class="chip-group" id="bcp-${pickerId}-chips" style="margin-top:8px">${arr.map(c=>`<div class="chip selected" style="font-size:13px">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="bcpRemove('${pickerId}','${esc(c)}')">×</span></div>`).join('')}</div>
+    <div class="field-error" id="bcp-${pickerId}-err"></div>
+  </div>`;
+}
+
+// ── B6 — Business activity & payments ─────────────────────────────────────
+function RB6(){
+  const custTypeCards=radioCardsHTML('rcCustType',[
+    {v:'b2c',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,label:'Consumers',desc:'B2C — individuals'},
+    {v:'b2b',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`,label:'Businesses',desc:'B2B — companies'},
+    {v:'both',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>`,label:'Both',desc:'Consumers & businesses'}
+  ],S.coCustomerType,3);
+
+  const sizeCards=radioCardsHTML('rcCoSize',[
+    {v:'only-me',label:'Only me'},
+    {v:'2-10',label:'2–10 employees'},
+    {v:'11-50',label:'11–50 employees'},
+    {v:'51-200',label:'51–200 employees'},
+    {v:'200+',label:'200+ employees'}
+  ],S.coCompanySize,2);
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div></div>
+    <h1 class="step-heading">Business activity.</h1>
+    <p class="step-sub">Tell us about your business and how you plan to use HansePay.</p>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Business activity</div>
+
+    ${fieldHTML('coSellsWhat','What does your company sell or provide?','textarea',S.coSellsWhat,'e.g. We provide cloud-based logistics software to freight companies across Europe.','true')}
+
+    <div class="field-group">
+      <label>Who are your customers?</label>
+      ${custTypeCards}
+      <div class="field-error" id="coCustomerType-err"></div>
+    </div>
+
+    ${bcpPickerHTML('coCustomerCountries','Main customer countries',S.coCustomerCountries,true)}
+    ${bcpPickerHTML('coOperatingCountries','Main operating countries',S.coOperatingCountries,true)}
+
+    <div class="compliance-block">
+      <div class="compliance-block-label">Is your business regulated or licensed by a financial, government, or industry authority?</div>
+      ${radioCardsHTML('rcCoRegulated',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coIsRegulated,2)}
+      <div id="coRegDetailWrap" class="collapsible${S.coIsRegulated==='yes'?' open':''}">
+        ${fieldHTML('coRegulatedDetail','Please name the regulator and licence type','text',S.coRegulatedDetail,'e.g. BaFin, FCA, MAS — Payment Institution Licence','true')}
+      </div>
+      <div class="field-error" id="coIsRegulated-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>What is the size of your company?</label>
+      ${sizeCards}
+      <div class="field-error" id="coCompanySize-err"></div>
+    </div>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>&ensp;Payment volumes</div>
+
+    <div class="field-group">
+      <label>How much money will you send each month?</label>
+      ${radioCardsHTML('rcCoVolume',[
+        {v:'under5k',label:'Under €5,000'},
+        {v:'5k-25k',label:'€5,000–€25,000'},
+        {v:'25k-100k',label:'€25,000–€100,000'},
+        {v:'100k-500k',label:'€100,000–€500,000'},
+        {v:'over500k',label:'Over €500,000'}
+      ],S.coMonthlyVolume,2)}
+      <div class="field-error" id="coMonthlyVolume-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>How many payments will you send each month?</label>
+      ${radioCardsHTML('rcCoTxns',[
+        {v:'1-10',label:'1–10 payments'},
+        {v:'11-50',label:'11–50 payments'},
+        {v:'51-200',label:'51–200 payments'},
+        {v:'200+',label:'200+ payments'}
+      ],S.coMonthlyTransactions,2)}
+      <div class="field-error" id="coMonthlyTransactions-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>What is your highest single transfer amount?</label>
+      ${radioCardsHTML('rcCoMaxTx',[
+        {v:'under1k',label:'Under €1,000'},
+        {v:'1k-10k',label:'€1,000–€10,000'},
+        {v:'10k-50k',label:'€10,000–€50,000'},
+        {v:'over50k',label:'Over €50,000'}
+      ],S.coMaxTransfer,2)}
+      <div class="field-error" id="coMaxTransfer-err"></div>
+    </div>
+
+    ${bcpPickerHTML('coSendingCountries','Which countries will you mainly send payments to?',S.coSendingCountries,true)}
+
+  </div>`;
+}
+
+// ── B7 — Risk declarations ─────────────────────────────────────────────────
+function RB7(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+    <h1 class="step-heading">Risk declarations.</h1>
+    <p class="step-sub">Required by EU anti-money-laundering regulations. Your answers are confidential.</p>
+
+    <!-- Sanctions exposure -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Does your company, any group company, director, UBO, key supplier, major customer, or payment counterparty have any direct or indirect connection to sanctioned persons, entities, vessels, banks, goods, services, or territories?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes connections to any party on the EU, UN, US (OFAC), or UK sanctions lists, or any transaction involving sanctioned countries such as Russia, Iran, North Korea, Belarus, or Syria.</span></span>
+      </div>
+      ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
+      <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
+        ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include which party, which sanctions list, and the nature of the connection.','true')}
+      </div>
+      <div class="field-error" id="coSanctionsExposure-err"></div>
+    </div>
+
+    <!-- High-risk countries -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Are any countries connected to your business activity — including incorporation, operations, customers, suppliers, directors, bank accounts, or payment flows — subject to international sanctions, embargoes, or enhanced monitoring?</div>
+      ${radioCardsHTML('rcCoHRC',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coHighRiskCountries||'no',2)}
+      <div id="coHRCWrap" class="collapsible${S.coHighRiskCountries==='yes'?' open':''}">
+        <div style="background:var(--n050);border-radius:var(--r-md);padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:12px">Please confirm whether any countries involved in your business are subject to sanctions, embargoes, enhanced monitoring, or internal restrictions.</div>
+        ${fieldHTML('coHighRiskDetail','Please list the countries and describe the connection','textarea',S.coHighRiskDetail,'e.g. We have a supplier in Turkey. Our customers include companies in the UAE and India.','true')}
+      </div>
+      <div class="field-error" id="coHighRiskCountries-err"></div>
+    </div>
+
+    <!-- Previous account closure -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Has your company, any group company, director, UBO, or related account ever had payment services restricted, terminated, frozen, or placed on reserve by a bank, acquirer, PSP, EMI, or payment provider?</div>
+      ${radioCardsHTML('rcCoPrevClosure',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coPreviousAccountClosure||'no',2)}
+      <div id="coPrevClosureWrap" class="collapsible${S.coPreviousAccountClosure==='yes'?' open':''}">
+        ${fieldHTML('coPreviousClosureDetail','Please provide details','textarea',S.coPreviousClosureDetail,'Include the provider, reason, date, and current status.','true')}
+      </div>
+      <div class="field-error" id="coPreviousAccountClosure-err"></div>
+    </div>
+
+    <!-- Fraud / disputes -->
+    <div class="compliance-block" style="margin-bottom:0">
+      <div class="compliance-block-label">In the last 24 months, has your company experienced material chargebacks, fraud complaints, refund spikes, customer disputes, or regulatory complaints or bans?</div>
+      ${radioCardsHTML('rcCoFraud',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coFraudDisputes||'no',2)}
+      <div id="coFraudWrap" class="collapsible${S.coFraudDisputes==='yes'?' open':''}">
+        ${fieldHTML('coFraudDetail','Please explain','textarea',S.coFraudDetail,'Include the root cause, period affected, volumes, remediation taken, and current status.','true')}
+      </div>
+      <div class="field-error" id="coFraudDisputes-err"></div>
+    </div>
+
+  </div>`;
+}
+
 window.handleDocUpload=function(docId){
   const inp=document.getElementById(docId+'File');
   if(!inp||!inp.files.length)return;
@@ -2150,6 +2358,26 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B7'){
+    if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
+    if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
+    if(!S.coHighRiskCountries) fail('coHighRiskCountries','Please answer this question');
+    if(S.coHighRiskCountries==='yes'&&!(g('coHighRiskDetail')||'').trim()) fail('coHighRiskDetail','Please provide details');
+    if(!S.coPreviousAccountClosure) fail('coPreviousAccountClosure','Please answer this question');
+    if(S.coPreviousAccountClosure==='yes'&&!(g('coPreviousClosureDetail')||'').trim()) fail('coPreviousClosureDetail','Please provide details');
+    if(!S.coFraudDisputes) fail('coFraudDisputes','Please answer this question');
+    if(S.coFraudDisputes==='yes'&&!(g('coFraudDetail')||'').trim()) fail('coFraudDetail','Please provide details');
+  } else if(id==='B6'){
+    if(!(g('coSellsWhat')||'').trim()) fail('coSellsWhat','Please describe what your company sells or provides');
+    if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
+    if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
+    if(!S.coOperatingCountries.length){const e=document.getElementById('bcp-coOperatingCountries-err');if(e){e.textContent='Please add at least one operating country';e.classList.add('visible');}ok=false;}
+    if(!S.coIsRegulated) fail('coIsRegulated','Please answer this question');
+    if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
+    if(!S.coMonthlyVolume) fail('coMonthlyVolume','Please select a volume range');
+    if(!S.coMonthlyTransactions) fail('coMonthlyTransactions','Please select a transaction range');
+    if(!S.coMaxTransfer) fail('coMaxTransfer','Please select a transfer amount');
+    if(!S.coSendingCountries.length){const e=document.getElementById('bcp-coSendingCountries-err');if(e){e.textContent='Please add at least one destination country';e.classList.add('visible');}ok=false;}
   } else if(id==='B5'){
     collectMgmtData();
     S.coManagement.forEach((p,i)=>{
@@ -2243,6 +2471,15 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  } else if(id==='B7'){
+    S.coSanctionsDetail=g('coSanctionsDetail')||'';
+    S.coHighRiskDetail=g('coHighRiskDetail')||'';
+    S.coPreviousClosureDetail=g('coPreviousClosureDetail')||'';
+    S.coFraudDetail=g('coFraudDetail')||'';
+  } else if(id==='B6'){
+    S.coSellsWhat=g('coSellsWhat')||S.coSellsWhat;
+    S.coRegulatedDetail=g('coRegulatedDetail')||'';
+    S.coIsRegulated=S.coIsRegulated;
   } else if(id==='B5'){
     collectMgmtData();
   } else if(id==='B1'){
@@ -2356,6 +2593,11 @@ function attachAll(id){
   attachCountrySearch();
 
   // ── Business step handlers ──────────────────────────────────────────────
+  if(id==='B6'){
+    bizCountryPicker('coCustomerCountries',S.coCustomerCountries);
+    bizCountryPicker('coOperatingCountries',S.coOperatingCountries);
+    bizCountryPicker('coSendingCountries',S.coSendingCountries);
+  }
   if(id==='B5'){
     S.coManagement.forEach((_,i)=>{
       attachMgmtRoleListener(i);
@@ -2452,6 +2694,31 @@ function onRadioSelect(grp,val){
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
     const e=document.getElementById('pepYesExplain');if(e)e.style.display=val==='yes'?'block':'none';
     computeHighRisk();updateCitizenshipVisibility();
+  }
+  else if(grp==='rcCustType'){S.coCustomerType=val;}
+  else if(grp==='rcCoRegulated'){
+    S.coIsRegulated=val;
+    const w=document.getElementById('coRegDetailWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+  }
+  else if(grp==='rcCoSize'){S.coCompanySize=val;}
+  else if(grp==='rcCoVolume'){S.coMonthlyVolume=val;}
+  else if(grp==='rcCoTxns'){S.coMonthlyTransactions=val;}
+  else if(grp==='rcCoMaxTx'){S.coMaxTransfer=val;}
+  else if(grp==='rcCoSanctions'){
+    S.coSanctionsExposure=val;
+    const w=document.getElementById('coSanctionsWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+  }
+  else if(grp==='rcCoHRC'){
+    S.coHighRiskCountries=val;
+    const w=document.getElementById('coHRCWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+  }
+  else if(grp==='rcCoPrevClosure'){
+    S.coPreviousAccountClosure=val;
+    const w=document.getElementById('coPrevClosureWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+  }
+  else if(grp==='rcCoFraud'){
+    S.coFraudDisputes=val;
+    const w=document.getElementById('coFraudWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
   }
   else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
   else if(grp==='rcMajorFunds'){
@@ -3195,7 +3462,12 @@ function startFresh(){
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
     coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
-    coManagement:[]
+    coManagement:[],
+    coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
+    coIsRegulated:'',coRegulatedDetail:'',coCompanySize:'',
+    coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
+    coSanctionsExposure:'',coSanctionsDetail:'',coHighRiskCountries:'',coHighRiskDetail:'',
+    coPreviousAccountClosure:'',coPreviousClosureDetail:'',coFraudDisputes:'',coFraudDetail:''
   });
   CI=0;
   try{localStorage.removeItem('hp_onb');}catch(e){}
