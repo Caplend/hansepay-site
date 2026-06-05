@@ -468,7 +468,15 @@ const S = {
   wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
   highRiskWealth:[],canProvideDocs:'',
   tcAccepted:false,blindpayAccepted:false,
-  isHighRisk:false,applicationRef:'',_residenceMismatch:false,docCountry:''
+  isHighRisk:false,applicationRef:'',_residenceMismatch:false,docCountry:'',
+  // ── Business / KYB fields ──────────────────────────────────────────────────
+  coLookupName:'',coLookupCountry:'Germany',coSearchDone:false,
+  coName:'',coTradeName:'',coLegalForm:'',coRegNum:'',coRegDate:'',coVAT:'',
+  coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:'+49',
+  coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
+  coSourceOfFunds:'',coSourceOfFundsOther:'',
+  coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
+  coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
 };
 
 let CI = 0; // currentIndex
@@ -482,6 +490,12 @@ const PHASES = [
   {id:'identity', label:'Verify',     steps:[6]},
   {id:'review',   label:'Review',     steps:[12,13,14]}
 ];
+const BUSINESS_PHASES = [
+  {id:'account',   label:'Account',   steps:[1,2,'3a','3b',4]},
+  {id:'company',   label:'Company',   steps:['B1','B2']},
+  {id:'documents', label:'Documents', steps:['B3','B4']},
+];
+function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
 const PHASE_HELP = {
   account:"Creating your account only takes a few minutes. We'll ask for your name, email, and phone to get started.",
   about:"We need to confirm your identity and address. This is required by EU financial regulations and helps keep your account secure.",
@@ -494,6 +508,9 @@ const PHASE_HELP = {
 const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belarus','Belgium','Bolivia','Bosnia and Herzegovina','Brazil','Bulgaria','Cambodia','Canada','Chile','China','Colombia','Costa Rica','Croatia','Cyprus','Czech Republic','Denmark','Ecuador','Egypt','Estonia','Ethiopia','Finland','France','Georgia','Ghana','Greece','Guatemala','Honduras','Hungary','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kosovo','Kuwait','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Malta','Mexico','Moldova','Mongolia','Montenegro','Morocco','Netherlands','New Zealand','Nigeria','North Macedonia','Norway','Pakistan','Palestine','Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','South Africa','South Korea','Spain','Sweden','Switzerland','Taiwan','Thailand','Tunisia','Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Venezuela','Vietnam','Yemen','Zimbabwe'];
 
 function getActiveSteps(){
+  if(S.accountType==='company'){
+    return [1,2,'3a','3b',4,'B1','B2','B3','B4'];
+  }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
   // Financial, compliance, then identity verify right before T&C
@@ -612,6 +629,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();
   }
   return '';
 }
@@ -718,7 +736,7 @@ function R4(){
     <p class="step-sub" style="margin-bottom:20px">Choose the account type that fits your needs.</p>
     ${radioCardsHTML('rcAccountType',[
       {v:'individual',icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,label:'Individual',desc:'For personal use and transfers'},
-      {v:'company',icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,label:'Company',desc:'For businesses and organisations',badge:'Coming soon',dis:true}
+      {v:'company',icon:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,label:'Company',desc:'For businesses and organisations'}
     ],S.accountType,2)}
     <div class="field-error" id="accountType-err"></div>
   </div>`;
@@ -1253,6 +1271,503 @@ function R14(){
 }
 
 // =============================================================
+// NACE CODES
+// =============================================================
+const NACE_CODES=[
+  {code:'01.1',label:'Growing of non-perennial crops'},
+  {code:'01.11',label:'Growing of cereals, leguminous crops and oil seeds'},
+  {code:'01.13',label:'Growing of vegetables and melons, roots and tubers'},
+  {code:'01.5',label:'Mixed farming'},
+  {code:'02.1',label:'Silviculture and other forestry activities'},
+  {code:'03.1',label:'Fishing'},
+  {code:'05.1',label:'Mining of hard coal'},
+  {code:'06.1',label:'Extraction of crude petroleum'},
+  {code:'06.2',label:'Extraction of natural gas'},
+  {code:'08.1',label:'Quarrying of stone, sand and clay'},
+  {code:'10.1',label:'Processing and preserving of meat and production of meat products'},
+  {code:'10.5',label:'Manufacture of dairy products'},
+  {code:'10.7',label:'Manufacture of bakery and farinaceous products'},
+  {code:'11.0',label:'Manufacture of beverages'},
+  {code:'13.1',label:'Preparation and spinning of textile fibres'},
+  {code:'14.1',label:'Manufacture of wearing apparel'},
+  {code:'20.1',label:'Manufacture of basic chemicals, fertilisers and nitrogen compounds'},
+  {code:'21.1',label:'Manufacture of basic pharmaceutical products'},
+  {code:'22.1',label:'Manufacture of rubber products'},
+  {code:'25.1',label:'Manufacture of structural metal products'},
+  {code:'26.1',label:'Manufacture of electronic components and boards'},
+  {code:'26.2',label:'Manufacture of computers and peripheral equipment'},
+  {code:'26.5',label:'Manufacture of instruments and appliances for measuring'},
+  {code:'27.1',label:'Manufacture of electric motors, generators and transformers'},
+  {code:'28.1',label:'Manufacture of general-purpose machinery'},
+  {code:'29.1',label:'Manufacture of motor vehicles'},
+  {code:'31.0',label:'Manufacture of furniture'},
+  {code:'35.1',label:'Electric power generation, transmission and distribution'},
+  {code:'35.2',label:'Manufacture of gas; distribution of gaseous fuels through mains'},
+  {code:'36.0',label:'Water collection, treatment and supply'},
+  {code:'38.1',label:'Collection of non-hazardous waste'},
+  {code:'38.3',label:'Materials recovery'},
+  {code:'41.1',label:'Development of building projects'},
+  {code:'41.2',label:'Construction of residential and non-residential buildings'},
+  {code:'42.1',label:'Construction of roads and railways'},
+  {code:'43.1',label:'Demolition and site preparation'},
+  {code:'43.2',label:'Electrical, plumbing and other construction installation activities'},
+  {code:'43.3',label:'Building completion and finishing'},
+  {code:'45.1',label:'Sale of motor vehicles'},
+  {code:'46.1',label:'Agents involved in the sale of various goods'},
+  {code:'46.2',label:'Wholesale of agricultural raw materials and live animals'},
+  {code:'46.5',label:'Wholesale of information and communication equipment'},
+  {code:'47.1',label:'Retail sale in non-specialised stores'},
+  {code:'47.4',label:'Retail sale of information and communication equipment'},
+  {code:'47.9',label:'Retail sale not in stores, stalls or markets (e-commerce)'},
+  {code:'49.1',label:'Passenger rail transport, interurban'},
+  {code:'49.3',label:'Other passenger land transport'},
+  {code:'49.4',label:'Freight transport by road'},
+  {code:'50.1',label:'Sea and coastal passenger water transport'},
+  {code:'51.1',label:'Passenger air transport'},
+  {code:'52.1',label:'Warehousing and storage'},
+  {code:'52.2',label:'Support activities for transportation'},
+  {code:'55.1',label:'Hotels and similar accommodation'},
+  {code:'56.1',label:'Restaurants and mobile food service activities'},
+  {code:'56.3',label:'Beverage serving activities (bars, cafes)'},
+  {code:'58.1',label:'Publishing of books, periodicals and other publishing activities'},
+  {code:'59.1',label:'Motion picture, video and television programme production'},
+  {code:'60.1',label:'Radio broadcasting'},
+  {code:'61.1',label:'Wired telecommunications activities'},
+  {code:'61.2',label:'Wireless telecommunications activities'},
+  {code:'62.01',label:'Computer programming activities'},
+  {code:'62.02',label:'Computer consultancy activities'},
+  {code:'62.03',label:'Computer facilities management activities'},
+  {code:'62.09',label:'Other information technology and computer service activities'},
+  {code:'63.1',label:'Data processing, hosting and related activities (cloud)'},
+  {code:'63.9',label:'Other information service activities'},
+  {code:'64.1',label:'Monetary intermediation'},
+  {code:'64.2',label:'Activities of holding companies'},
+  {code:'64.3',label:'Trusts, funds and similar financial entities'},
+  {code:'64.9',label:'Other financial service activities, except insurance and pension funding'},
+  {code:'65.1',label:'Life insurance'},
+  {code:'65.2',label:'Non-life insurance'},
+  {code:'65.3',label:'Pension funding'},
+  {code:'66.1',label:'Activities auxiliary to financial services, except insurance and pension funding'},
+  {code:'66.2',label:'Activities auxiliary to insurance and pension funding'},
+  {code:'68.1',label:'Buying and selling of own real estate'},
+  {code:'68.2',label:'Renting and operating of own or leased real estate'},
+  {code:'68.3',label:'Real estate activities on a fee or contract basis'},
+  {code:'69.1',label:'Legal activities'},
+  {code:'69.2',label:'Accounting, bookkeeping, auditing activities; tax consultancy'},
+  {code:'70.1',label:'Activities of head offices'},
+  {code:'70.2',label:'Management consultancy activities'},
+  {code:'71.1',label:'Architectural and engineering activities'},
+  {code:'72.1',label:'Research and experimental development on natural sciences and engineering'},
+  {code:'73.1',label:'Advertising'},
+  {code:'73.2',label:'Market research and public opinion polling'},
+  {code:'74.1',label:'Specialised design activities'},
+  {code:'74.2',label:'Photographic activities'},
+  {code:'75.0',label:'Veterinary activities'},
+  {code:'77.1',label:'Renting and leasing of motor vehicles'},
+  {code:'78.1',label:'Activities of employment placement agencies'},
+  {code:'79.1',label:'Travel agency and tour operator activities'},
+  {code:'80.1',label:'Private security activities'},
+  {code:'82.1',label:'Office administrative and support activities'},
+  {code:'82.3',label:'Organisation of conventions and trade shows'},
+  {code:'85.1',label:'Pre-primary education'},
+  {code:'85.2',label:'Primary education'},
+  {code:'85.5',label:'Other education'},
+  {code:'86.1',label:'Hospital activities'},
+  {code:'86.2',label:'Medical and dental practice activities'},
+  {code:'86.9',label:'Other human health activities'},
+  {code:'87.1',label:'Residential nursing care activities'},
+  {code:'88.1',label:'Social work activities without accommodation for the elderly and disabled'},
+  {code:'90.0',label:'Creative, arts and entertainment activities'},
+  {code:'92.0',label:'Gambling and betting activities'},
+  {code:'93.1',label:'Sports activities'},
+  {code:'94.1',label:'Activities of business, employers and professional membership organisations'},
+  {code:'95.1',label:'Repair of computers and communication equipment'},
+  {code:'96.0',label:'Other personal service activities'},
+];
+
+// =============================================================
+// BUSINESS STEP RENDERERS  (B1 – B4)
+// =============================================================
+
+// ── Fake company data ──────────────────────────────────────────────────────
+const FAKE_CO={
+  name:'Meridian Digital GmbH',legalForm:'GmbH',regNum:'HRB 239847 B',
+  regDate:'2020-09-14',vat:'DE321456789',
+  nace:[{code:'62.01',label:'Computer programming activities'}],
+  description:'We develop and maintain B2B SaaS platforms for logistics and supply chain management companies across Europe.',
+  email:'info@meridiandigital.de',phone:'30 4567 8900',phoneCC:'+49',
+  website:'https://meridiandigital.de',
+  addr1:'Unter den Linden 22',city:'Berlin',state:'Berlin',postcode:'10117',country:'Germany'
+};
+
+window.doCompanySearch=function(){
+  const btn=document.getElementById('coSearchBtn');
+  const spinner=document.getElementById('coSearchSpinner');
+  const result=document.getElementById('coSearchResult');
+  if(btn)btn.style.display='none';
+  if(spinner)spinner.style.display='block';
+  setTimeout(()=>{
+    if(spinner)spinner.style.display='none';
+    if(result)result.style.display='block';
+    S.coSearchDone=true;
+    saveState();
+  },1500);
+};
+
+window.useFakeCompany=function(){
+  Object.assign(S,{
+    coName:FAKE_CO.name,coLegalForm:FAKE_CO.legalForm,coRegNum:FAKE_CO.regNum,
+    coRegDate:FAKE_CO.regDate,coVAT:FAKE_CO.vat,coNACE:[...FAKE_CO.nace],
+    coDescription:FAKE_CO.description,coEmail:FAKE_CO.email,
+    coPhone:FAKE_CO.phone,coPhoneCC:FAKE_CO.phoneCC,coWebsite:FAKE_CO.website,
+    coAddr1:FAKE_CO.addr1,coCity:FAKE_CO.city,coState:FAKE_CO.state,
+    coPostcode:FAKE_CO.postcode,coAddrCountry:FAKE_CO.country,coSearchDone:true
+  });
+  saveState();
+  const steps=getActiveSteps();
+  CI=steps.indexOf('B2');
+  showStep('forward');
+};
+
+// ── NACE tag-picker ────────────────────────────────────────────────────────
+function renderNACEChips(){
+  const w=document.getElementById('naceChips');
+  if(!w)return;
+  w.innerHTML=S.coNACE.map(n=>`<div class="chip selected" style="font-size:12.5px" data-code="${esc(n.code)}">
+    <span style="font-weight:700;color:var(--n600)">${esc(n.code)}</span>&ensp;${esc(n.label)}
+    <span class="chip-x" onclick="removeNACE('${esc(n.code)}')">×</span>
+  </div>`).join('');
+}
+window.removeNACE=function(code){S.coNACE=S.coNACE.filter(n=>n.code!==code);renderNACEChips();saveState();};
+
+function initNACEPicker(){
+  const inp=document.getElementById('naceSearch');
+  const drop=document.getElementById('naceDrop');
+  if(!inp||!drop)return;
+  renderNACEChips();
+
+  function render(q){
+    const lq=(q||'').toLowerCase();
+    const results=lq
+      ? NACE_CODES.filter(n=>(n.code+' '+n.label).toLowerCase().includes(lq)).slice(0,12)
+      : NACE_CODES.slice(0,12);
+    drop.innerHTML=results.length
+      ? results.map(n=>{
+          const already=S.coNACE.some(x=>x.code===n.code);
+          return`<div class="searchable-option${already?' selected':''}" data-code="${esc(n.code)}" data-label="${esc(n.label)}" onclick="selectNACE('${esc(n.code)}','${esc(n.label)}')">
+            <span style="font-weight:700;color:var(--n600);margin-right:6px">${esc(n.code)}</span>${esc(n.label)}${already?'<span style="float:right;font-size:11px;color:var(--n400)">Added ✓</span>':''}
+          </div>`;
+        }).join('')
+      : '<div style="padding:12px 14px;font-size:13px;color:var(--ink3)">No codes found</div>';
+    drop.classList.add('open');
+  }
+
+  inp.addEventListener('focus',()=>render(inp.value));
+  inp.addEventListener('input',()=>render(inp.value));
+  inp.addEventListener('blur',()=>setTimeout(()=>drop.classList.remove('open'),180));
+}
+
+window.selectNACE=function(code,label){
+  if(!S.coNACE.some(n=>n.code===code)){S.coNACE.push({code,label});renderNACEChips();}
+  const inp=document.getElementById('naceSearch');if(inp)inp.value='';
+  saveState();
+};
+
+// ── B1 — Company Lookup ────────────────────────────────────────────────────
+function RB1(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div></div>
+    <h1 class="step-heading">Company account setup.</h1>
+    <p class="step-sub">We'll pre-fill your details from the commercial registry.</p>
+
+    <div style="background:#F8FAFB;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:24px 26px;margin-bottom:20px">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">Company lookup</div>
+      <div style="font-size:13px;color:var(--ink3);margin-bottom:18px">Search using your legal name or registration number</div>
+
+      ${fieldHTML('coLookupName','Company name','text',S.coLookupName||'','e.g. HansePay GmbH','true')}
+
+      <div class="field-group">
+        <label for="coLookupCountry">Country of registration</label>
+        <select id="coLookupCountry">${COUNTRIES.map(c=>`<option value="${esc(c)}"${(S.coLookupCountry||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('')}</select>
+      </div>
+
+      <button class="btn btn-primary" id="coSearchBtn" onclick="doCompanySearch()" style="margin-top:4px;display:flex;align-items:center;gap:8px;justify-content:center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </button>
+
+      <div id="coSearchSpinner" style="display:none;text-align:center;padding:22px 0">
+        <div style="width:24px;height:24px;border:2.5px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 10px"></div>
+        <div style="font-size:13px;color:var(--ink3)">Searching registry…</div>
+      </div>
+
+      <div id="coSearchResult" style="display:${S.coSearchDone?'block':'none'};margin-top:18px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:10px">Company found</div>
+        <div style="border:2px solid var(--n500);border-radius:var(--r-lg);padding:16px 18px;background:#fff;display:flex;align-items:flex-start;gap:14px">
+          <div style="width:38px;height:38px;background:var(--n050);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:4px">${esc(FAKE_CO.name)}</div>
+            <div style="font-size:13px;color:var(--ink3);line-height:1.6">Registration: ${esc(FAKE_CO.regNum)} · Germany</div>
+            <div style="font-size:13px;color:var(--ink3)">${esc(FAKE_CO.addr1)}, ${esc(FAKE_CO.postcode)} ${esc(FAKE_CO.city)}</div>
+          </div>
+          <div style="width:22px;height:22px;background:var(--n500);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="useFakeCompany()" style="margin-top:14px">
+          Use this company →
+        </button>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink3);text-align:center">Can't find your company? <a href="#" onclick="useFakeCompany();return false" style="color:var(--n400)">Enter details manually →</a></p>
+  </div>`;
+}
+
+// ── B2 — Company Information ───────────────────────────────────────────────
+function RB2(){
+  const bizPurposeOpts=['Paying suppliers','Paying employees or contractors','Paying taxes, rent, utilities, or other operating costs','International business payments','Group company transfers','Other — please explain'].map(o=>`<option value="${esc(o)}"${S.coAccountPurpose===o?' selected':''}>${esc(o)}</option>`).join('');
+  const sofOpts=['Revenue from sale of goods / services','Owner / shareholder capital contribution','Business loan or financing','Investment / funding round','Marketplace or platform payouts','Intercompany / group transfers','Sale of business assets','Grants or public funding','Other — please explain'].map(o=>`<option value="${esc(o)}"${S.coSourceOfFunds===o?' selected':''}>${esc(o)}</option>`).join('');
+  const legalForms=['GmbH (Limited Liability Company)','AG (Stock Corporation)','UG (Mini-GmbH)','OHG (General Partnership)','KG (Limited Partnership)','GbR (Civil Law Partnership)','Sole trader / Einzelunternehmer','SE (European Company)','Ltd (UK)','SIA (Latvia)','UAB (Lithuania)','OÜ (Estonia)','SRL / SARL','SAS / SASU','BV (Netherlands)','Sp. z o.o. (Poland)','Other'].map(o=>`<option value="${esc(o)}"${S.coLegalForm===o?' selected':''}>${esc(o)}</option>`).join('');
+  const phoneCodes=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+358','🇫🇮 +358'],['+1','🇺🇸 +1'],['+61','🇦🇺 +61']];
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="8" y1="11" x2="8" y2="17"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="16" y1="11" x2="16" y2="17"/></svg></div></div>
+    <h1 class="step-heading">Company information.</h1>
+    <p class="step-sub">Review and complete your company's details.</p>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Company details</div>
+
+    ${fieldHTML('coName','Registered name','text',S.coName,'','true')}
+    ${fieldHTML('coTradeName','Trade name','text',S.coTradeName,'If different from registered name')}
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="coLegalForm">Legal form</label>
+        <select id="coLegalForm"><option value="">Select…</option>${legalForms}</select>
+        <div class="field-error" id="coLegalForm-err"></div>
+      </div>
+      ${fieldHTML('coRegNum','Registration number','text',S.coRegNum,'e.g. HRB 239847 B','true')}
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="coRegDate">Registration date</label>
+        <input type="date" id="coRegDate" value="${esc(S.coRegDate||'')}">
+        <div class="field-error" id="coRegDate-err"></div>
+      </div>
+      ${fieldHTML('coVAT','VAT number','text',S.coVAT,'e.g. DE321456789')}
+    </div>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>&ensp;Industry &amp; activity</div>
+
+    <div class="field-group">
+      <label>Industry NACE codes</label>
+      <div style="position:relative">
+        <input type="text" id="naceSearch" class="searchable-select-input" placeholder="Search NACE codes…" autocomplete="off">
+        <div class="searchable-dropdown" id="naceDrop"></div>
+      </div>
+      <div class="chip-group" id="naceChips" style="margin-top:10px;flex-wrap:wrap"></div>
+      <div class="field-error" id="coNACE-err"></div>
+    </div>
+
+    ${fieldHTML('coDescription','Business description','textarea',S.coDescription,'Briefly describe what your company does and who your customers are (min. 35 characters)','true')}
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
+
+    <div class="field-row">
+      ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
+      <div class="field-group">
+        <label>Phone number</label>
+        <div class="phone-row">
+          <select id="coPhoneCC">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
+          <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 30 1234 5678">
+        </div>
+        <div class="field-error" id="coPhone-err"></div>
+      </div>
+    </div>
+    ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com')}
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>&ensp;Account &amp; funds</div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="coAccountPurpose">Account purpose</label>
+        <select id="coAccountPurpose"><option value="">Select…</option>${bizPurposeOpts}</select>
+        <div class="field-error" id="coAccountPurpose-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="coSourceOfFunds">Main source of funds</label>
+        <select id="coSourceOfFunds"><option value="">Select…</option>${sofOpts}</select>
+        <div class="field-error" id="coSourceOfFunds-err"></div>
+      </div>
+    </div>
+    <div id="coPurposeOtherWrap" style="display:${(S.coAccountPurpose||'').includes('Other')?' block':'none'}">
+      ${fieldHTML('coAccountPurposeOther','Please explain','text',S.coAccountPurposeOther,'','true')}
+    </div>
+    <div id="coSOFOtherWrap" style="display:${(S.coSourceOfFunds||'').includes('Other')?' block':'none'}">
+      ${fieldHTML('coSourceOfFundsOther','Please explain','text',S.coSourceOfFundsOther,'','true')}
+    </div>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>&ensp;Registered address</div>
+
+    ${fieldHTML('coAddr1','Address line 1','text',S.coAddr1,'','true')}
+    ${fieldHTML('coAddr2','Address line 2','text',S.coAddr2,'Floor, suite, etc.')}
+    <div class="field-row">
+      ${fieldHTML('coCity','City','text',S.coCity,'','true')}
+      ${fieldHTML('coState','State / region','text',S.coState,'')}
+    </div>
+    <div class="field-row">
+      ${fieldHTML('coPostcode','Post code','text',S.coPostcode,'','true')}
+      <div class="field-group">
+        <label for="coAddrCountry">Country</label>
+        <select id="coAddrCountry">${COUNTRIES.map(c=>`<option value="${esc(c)}"${(S.coAddrCountry||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('')}</select>
+      </div>
+    </div>
+
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-top:4px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="coHasDiffOp" style="width:16px;height:16px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" ${S.coHasDiffOp?'checked':''}>
+      <label for="coHasDiffOp" style="font-size:13.5px;color:var(--ink2);font-weight:400;cursor:pointer;margin-bottom:0;letter-spacing:0;text-transform:none">The operating address differs from the registered address</label>
+    </div>
+
+    <div id="coOpAddrWrap" style="display:${S.coHasDiffOp?'block':'none'}">
+      <div class="section-header" style="margin-top:0">Operating address</div>
+      ${fieldHTML('coOpAddr1','Address line 1','text',S.coOpAddr1,'','true')}
+      ${fieldHTML('coOpAddr2','Address line 2','text',S.coOpAddr2,'')}
+      <div class="field-row">
+        ${fieldHTML('coOpCity','City','text',S.coOpCity,'','true')}
+        ${fieldHTML('coOpState','State / region','text',S.coOpState,'')}
+      </div>
+      <div class="field-row">
+        ${fieldHTML('coOpPostcode','Post code','text',S.coOpPostcode,'','true')}
+        <div class="field-group">
+          <label for="coOpCountry">Country</label>
+          <select id="coOpCountry">${COUNTRIES.map(c=>`<option value="${esc(c)}"${(S.coOpCountry||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('')}</select>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ── B3 — Review company details ────────────────────────────────────────────
+function RB3(){
+  function rv(k,v){return`<div class="review-row"><span class="review-key">${k}</span><span class="review-val">${esc(v||'—')}</span></div>`}
+  const opAddr=S.coHasDiffOp&&S.coOpAddr1?[S.coOpAddr1,S.coOpAddr2,S.coOpCity,S.coOpState,S.coOpPostcode,S.coOpCountry].filter(Boolean).join(', '):'Same as registered';
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
+    <h1 class="step-heading">Review company details.</h1>
+    <p class="step-sub">Please confirm before we continue.</p>
+
+    <div class="review-section">
+      <div class="review-section-header">
+        <span class="review-section-title">Company</span>
+        <a class="review-edit" onclick="jumpTo('B2')">Edit</a>
+      </div>
+      ${rv('Registered name',S.coName)}
+      ${S.coTradeName?rv('Trade name',S.coTradeName):''}
+      ${rv('Legal form',S.coLegalForm)}
+      ${rv('Registration no.',S.coRegNum)}
+      ${rv('Registration date',S.coRegDate)}
+      ${S.coVAT?rv('VAT number',S.coVAT):''}
+    </div>
+
+    <div class="review-section">
+      <div class="review-section-header">
+        <span class="review-section-title">Industry</span>
+        <a class="review-edit" onclick="jumpTo('B2')">Edit</a>
+      </div>
+      ${rv('NACE codes',S.coNACE.map(n=>n.code+' – '+n.label).join(', '))}
+      ${rv('Description',S.coDescription)}
+    </div>
+
+    <div class="review-section">
+      <div class="review-section-header">
+        <span class="review-section-title">Contact &amp; account</span>
+        <a class="review-edit" onclick="jumpTo('B2')">Edit</a>
+      </div>
+      ${rv('Email',S.coEmail)}
+      ${rv('Phone',S.coPhoneCC+' '+S.coPhone)}
+      ${S.coWebsite?rv('Website',S.coWebsite):''}
+      ${rv('Account purpose',S.coAccountPurpose)}
+      ${rv('Source of funds',S.coSourceOfFunds)}
+    </div>
+
+    <div class="review-section" style="margin-bottom:0">
+      <div class="review-section-header">
+        <span class="review-section-title">Address</span>
+        <a class="review-edit" onclick="jumpTo('B2')">Edit</a>
+      </div>
+      ${rv('Registered',[S.coAddr1,S.coAddr2,S.coCity,S.coState,S.coPostcode,S.coAddrCountry].filter(Boolean).join(', '))}
+      ${rv('Operating',opAddr)}
+    </div>
+
+    <button class="btn btn-primary" style="margin-top:28px" onclick="nextStep()">Confirm &amp; continue →</button>
+  </div>`;
+}
+
+// ── B4 — Company documents ─────────────────────────────────────────────────
+function RB4(){
+  const docs=[
+    {id:'docAoA',label:'Articles of Association / Certificate of Incorporation',desc:'Official document confirming the company\'s legal formation and governance structure.'},
+    {id:'docShareholder',label:'Shareholder Register / Share Certificate',desc:'Document showing the company\'s shareholders and their ownership stakes.'},
+    {id:'docBankStmt',label:'Company Bank Statement',desc:'Recent bank statement (within last 3 months) verifying the company bank account and account holder name.'},
+  ];
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div></div>
+    <h1 class="step-heading">Company documents.</h1>
+    <p class="step-sub">Upload the required documents below. PDF or image (JPG, PNG), max 10 MB each.</p>
+
+    ${docs.map(d=>`
+    <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">${esc(d.label)}</div>
+      <div style="font-size:12.5px;color:var(--ink3);margin-bottom:14px;line-height:1.5">${esc(d.desc)}</div>
+      <div class="upload-zone" onclick="document.getElementById('${d.id}File').click()">
+        <input type="file" id="${d.id}File" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleDocUpload('${d.id}')">
+        <div id="${d.id}Empty">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-text"><b>Click to upload</b> or drag and drop</div>
+          <div class="upload-hint">PDF, JPG or PNG · Max 10 MB</div>
+        </div>
+        <div id="${d.id}Done" style="display:none;padding:4px 0">
+          <div style="display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;font-size:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="${d.id}Name">File uploaded</span>
+          </div>
+        </div>
+      </div>
+    </div>`).join('')}
+
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-top:8px;margin-bottom:4px;font-size:13px;color:var(--ink3);line-height:1.6">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      All documents are processed securely and stored encrypted in compliance with GDPR.
+    </div>
+
+    <button class="btn btn-primary" style="margin-top:20px" onclick="nextStep()">Continue →</button>
+  </div>`;
+}
+
+window.handleDocUpload=function(docId){
+  const inp=document.getElementById(docId+'File');
+  if(!inp||!inp.files.length)return;
+  const f=inp.files[0];
+  const empty=document.getElementById(docId+'Empty');
+  const done=document.getElementById(docId+'Done');
+  const name=document.getElementById(docId+'Name');
+  if(empty)empty.style.display='none';
+  if(done)done.style.display='block';
+  if(name)name.textContent=f.name;
+  // Store upload flag in state
+  if(!S._uploadedDocs)S._uploadedDocs={};
+  S._uploadedDocs[docId]=f.name;
+  saveState();
+};
+
+// =============================================================
 // NAVIGATION
 // =============================================================
 function showStep(dir){
@@ -1373,6 +1888,26 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B1'){
+    if(!S.coSearchDone){showToast('Please search and select your company first');ok=false;}
+  } else if(id==='B2'){
+    if(!(g('coName')||'').trim()) fail('coName','Registered name is required');
+    if(!g('coLegalForm')) fail('coLegalForm','Legal form is required');
+    if(!(g('coRegNum')||'').trim()) fail('coRegNum','Registration number is required');
+    if(!g('coRegDate')) fail('coRegDate','Registration date is required');
+    if(!S.coNACE.length){const e=document.getElementById('coNACE-err');if(e){e.textContent='Please select at least one NACE code';e.classList.add('visible');}ok=false;}
+    const desc=(g('coDescription')||'').trim();
+    if(!desc||desc.length<10) fail('coDescription','Please provide a description (at least 10 characters)');
+    if(!isEmail(g('coEmail')||'')) fail('coEmail','Please enter a valid email address');
+    if(!g('coAccountPurpose')) fail('coAccountPurpose','Please select an account purpose');
+    if(!g('coSourceOfFunds')) fail('coSourceOfFunds','Please select the source of funds');
+    if(!(g('coAddr1')||'').trim()) fail('coAddr1','Address line 1 is required');
+    if(!(g('coCity')||'').trim()) fail('coCity','City is required');
+    if(!(g('coPostcode')||'').trim()) fail('coPostcode','Post code is required');
+    if(S.coHasDiffOp){
+      if(!(g('coOpAddr1')||'').trim()) fail('coOpAddr1','Operating address is required');
+      if(!(g('coOpCity')||'').trim()) fail('coOpCity','City is required');
+    }
   }
 
   if(!ok){
@@ -1433,6 +1968,37 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  } else if(id==='B1'){
+    S.coLookupName=g('coLookupName')||S.coLookupName;
+    S.coLookupCountry=g('coLookupCountry')||S.coLookupCountry;
+  } else if(id==='B2'){
+    S.coName=g('coName')||S.coName;
+    S.coTradeName=g('coTradeName')||'';
+    S.coLegalForm=g('coLegalForm')||S.coLegalForm;
+    S.coRegNum=g('coRegNum')||S.coRegNum;
+    S.coRegDate=g('coRegDate')||S.coRegDate;
+    S.coVAT=g('coVAT')||'';
+    S.coDescription=g('coDescription')||'';
+    S.coEmail=g('coEmail')||S.coEmail;
+    S.coPhone=g('coPhone')||S.coPhone;
+    S.coPhoneCC=g('coPhoneCC')||S.coPhoneCC;
+    S.coWebsite=g('coWebsite')||'';
+    S.coAccountPurpose=g('coAccountPurpose')||S.coAccountPurpose;
+    S.coAccountPurposeOther=g('coAccountPurposeOther')||'';
+    S.coSourceOfFunds=g('coSourceOfFunds')||S.coSourceOfFunds;
+    S.coSourceOfFundsOther=g('coSourceOfFundsOther')||'';
+    S.coAddr1=g('coAddr1')||S.coAddr1;
+    S.coAddr2=g('coAddr2')||'';
+    S.coCity=g('coCity')||S.coCity;
+    S.coState=g('coState')||'';
+    S.coPostcode=g('coPostcode')||S.coPostcode;
+    S.coAddrCountry=g('coAddrCountry')||S.coAddrCountry;
+    S.coHasDiffOp=gc('coHasDiffOp');
+    if(S.coHasDiffOp){
+      S.coOpAddr1=g('coOpAddr1')||'';S.coOpAddr2=g('coOpAddr2')||'';
+      S.coOpCity=g('coOpCity')||'';S.coOpState=g('coOpState')||'';
+      S.coOpPostcode=g('coOpPostcode')||'';S.coOpCountry=g('coOpCountry')||'';
+    }
   }
 }
 
@@ -1511,6 +2077,36 @@ function attachAll(id){
   });
   // New fuzzy country search for payment destinations
   attachCountrySearch();
+
+  // ── Business step handlers ──────────────────────────────────────────────
+  if(id==='B2'){
+    // Operating address checkbox
+    const chk=document.getElementById('coHasDiffOp');
+    if(chk) chk.addEventListener('change',()=>{
+      S.coHasDiffOp=chk.checked;
+      const w=document.getElementById('coOpAddrWrap');
+      if(w)w.style.display=chk.checked?'block':'none';
+      saveState();
+    });
+    // Account purpose → show "other" input
+    const ap=document.getElementById('coAccountPurpose');
+    if(ap) ap.addEventListener('change',()=>{
+      S.coAccountPurpose=ap.value;
+      const w=document.getElementById('coPurposeOtherWrap');
+      if(w)w.style.display=ap.value.includes('Other')?'block':'none';
+      saveState();
+    });
+    // Source of funds → show "other" input
+    const sf=document.getElementById('coSourceOfFunds');
+    if(sf) sf.addEventListener('change',()=>{
+      S.coSourceOfFunds=sf.value;
+      const w=document.getElementById('coSOFOtherWrap');
+      if(w)w.style.display=sf.value.includes('Other')?'block':'none';
+      saveState();
+    });
+    // NACE picker
+    initNACEPicker();
+  }
 
   // Upload drag/drop
   document.querySelectorAll('.upload-zone').forEach(z=>{
@@ -2186,12 +2782,12 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target
 // =============================================================
 function getCurrentPhase(){
   const id=getActiveSteps()[CI];
-  for(const ph of PHASES){if(ph.steps.includes(id))return ph.id;}
+  for(const ph of getPhases()){if(ph.steps.includes(id))return ph.id;}
   return 'account';
 }
 function getPhaseStatus(phId){
   const curr=getCurrentPhase();
-  const pids=PHASES.map(p=>p.id);
+  const pids=getPhases().map(p=>p.id);
   const ci=pids.indexOf(curr),ti=pids.indexOf(phId);
   if(ti<ci)return'done';if(ti===ci)return'current';return'pending';
 }
@@ -2212,7 +2808,7 @@ function updateLeftPanel(){
   const stepper=document.getElementById('obStepper');
   if(!stepper)return;
   const items=[];
-  PHASES.forEach((ph,i)=>{
+  getPhases().forEach((ph,i)=>{
     const st=getPhaseStatus(ph.id);
     // Connector (before every item except first)
     items.push(`<div class="ob-phase-item ${st}">
@@ -2238,10 +2834,10 @@ function updateNavFooter(){
     document.body.appendChild(nf);
   }
   nf.style.display='flex';
-  const ph=PHASES.find(p=>p.id===getCurrentPhase());
+  const ph=getPhases().find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
   // Steps with their own primary action button (don't show generic Continue in footer)
-  const hasOwnAction=[1,'3a','3b',6].includes(id);
+  const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4'].includes(id);
   nf.innerHTML=`
     <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
     <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
@@ -2308,7 +2904,14 @@ function startFresh(){
     isPEP:'',pepPosition:'',pepInstitution:'',pepCountry:'',pepDates:'',sanctionsConfirm:false,
     wealthSource:'',netWorth:'',ownsBusiness:'',majorFundsEvent:'',majorFundsDesc:'',
     highRiskWealth:[],canProvideDocs:'',
-    tcAccepted:false,blindpayAccepted:false,isHighRisk:false,applicationRef:''
+    tcAccepted:false,blindpayAccepted:false,isHighRisk:false,applicationRef:'',
+    coLookupName:'',coLookupCountry:'Germany',coSearchDone:false,
+    coName:'',coTradeName:'',coLegalForm:'',coRegNum:'',coRegDate:'',coVAT:'',
+    coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:'+49',
+    coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
+    coSourceOfFunds:'',coSourceOfFundsOther:'',
+    coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
+    coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
   });
   CI=0;
   try{localStorage.removeItem('hp_onb');}catch(e){}
