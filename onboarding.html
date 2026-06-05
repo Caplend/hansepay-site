@@ -483,6 +483,8 @@ const S = {
   coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
   coCompanySize:'',
   coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
+  // B9 – Terms
+  coTcAccepted:false,coBlindpayAccepted:false,
   // B7 – Risk declarations (default 'no' so pre-selected state matches validation)
   coSanctionsExposure:'no',coSanctionsDetail:'',
   coHighRiskCountries:'no',coHighRiskDetail:'',
@@ -507,6 +509,8 @@ const BUSINESS_PHASES = [
   {id:'documents',  label:'Documents',  steps:['B3','B4']},
   {id:'management', label:'Management', steps:['B5','B8']},
   {id:'activity',   label:'Activity',   steps:['B6','B7']},
+  {id:'bterms',     label:'Terms',      steps:['B9']},
+  {id:'bverify',    label:'Verify',     steps:['B10','B11']},
 ];
 function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
 const PHASE_HELP = {
@@ -522,7 +526,7 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8','B6','B7'];
+    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8','B6','B7','B9','B10','B11'];
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -642,7 +646,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B6':return RB6();case'B7':return RB7();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B6':return RB6();case'B7':return RB7();case'B9':return RB9();case'B10':return RB10();case'B11':return RB11();
   }
   return '';
 }
@@ -2005,6 +2009,163 @@ function collectMgmtData(){
   });
 }
 
+// ── B9 — Terms & Conditions ───────────────────────────────────────────────
+function RB9(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Terms &amp; Conditions.</h1>
+    <p class="step-sub" style="text-align:center">Please review and accept our terms before continuing.</p>
+
+    <div class="tc-box">
+      <b>HansePay Business Payment Services Agreement</b><br><br>
+      By accepting, you confirm that your company agrees to HansePay's payment services agreement, fee schedule, acceptable use policy, and GDPR data processing terms. You also confirm that the information provided in this application is accurate and complete to the best of your knowledge.<br><br>
+      <b>Payment Services Agreement:</b> HansePay provides regulated payment services under EU Payment Services Directive 2 (PSD2). All transactions are processed securely and subject to our fee schedule. Business accounts are subject to ongoing transaction monitoring and periodic reviews.<br><br>
+      <b>Acceptable Use Policy:</b> You agree not to use HansePay for any illegal activities, money laundering, terrorist financing, tax evasion, or transactions involving sanctioned persons, entities, or jurisdictions. HansePay reserves the right to suspend or terminate accounts that violate this policy.<br><br>
+      <b>Data Processing:</b> Company and personal data of directors, UBOs, and authorised persons is processed in accordance with EU Regulation 2016/679 (GDPR). You have the right to access, rectify, and erase data subject to applicable legal obligations.<br><br>
+      <em>This is a placeholder — full terms to be inserted before go-live.</em>
+    </div>
+
+    <div class="blindpay-card">
+      <div class="blindpay-card-header">
+        <span class="blindpay-card-title">BlindPay Payment Services</span>
+        <span class="bp-status${S.coBlindpayAccepted?' accepted':' not-accepted'}" id="coBpStatus">${S.coBlindpayAccepted?'Accepted ✓':'Not accepted'}</span>
+      </div>
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:12px">To use payment services you must also accept BlindPay's terms and conditions.</p>
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="openCoBlindPayModal()">Read &amp; accept BlindPay terms →</button>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="coTcCheck" ${S.coTcAccepted?'checked':''} onchange="onCoTCChange()">
+      <label for="coTcCheck">I have read and agree to the Terms and Conditions and Privacy Policy on behalf of the company.</label>
+    </div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Your data is protected under GDPR.</p>
+    <div class="field-error" id="coTc-err"></div>
+    <button class="btn btn-primary" id="coAcceptBtn" onclick="nextStep()" ${(!S.coTcAccepted||!S.coBlindpayAccepted)?'disabled':''}>Accept &amp; continue</button>
+  </div>`;
+}
+
+function openCoBlindPayModal(){
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent='BlindPay Payment Services Terms';
+  document.getElementById('modalBody').innerHTML=`<p>By accepting BlindPay's terms, your company agrees to their payment processing agreement, including:</p>
+    <ul style="padding-left:20px;line-height:2.2;margin-top:12px">
+      <li>BlindPay processes payments as a regulated payment institution</li>
+      <li>Company funds are held in segregated client accounts</li>
+      <li>BlindPay may conduct its own compliance and AML checks on the company and its principals</li>
+      <li>Transactions are subject to BlindPay's fee schedule</li>
+      <li>BlindPay's GDPR data processing applies to all payment data</li>
+    </ul>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic;margin-top:16px">Placeholder — full terms to be inserted before go-live.</p>`;
+  document.getElementById('modalActions').innerHTML=`
+    <button class="btn btn-primary" onclick="acceptCoBlindPay()">Accept BlindPay terms</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="width:auto;min-width:100px">Cancel</button>`;
+  overlay.classList.add('open');
+}
+function acceptCoBlindPay(){
+  S.coBlindpayAccepted=true;closeModal();
+  const st=document.getElementById('coBpStatus');
+  if(st){st.textContent='Accepted ✓';st.className='bp-status accepted';}
+  updateCoAcceptBtn();saveState();
+}
+function updateCoAcceptBtn(){
+  const btn=document.getElementById('coAcceptBtn');
+  if(btn)btn.disabled=!(S.coTcAccepted&&S.coBlindpayAccepted);
+}
+function onCoTCChange(){
+  S.coTcAccepted=gc('coTcCheck');updateCoAcceptBtn();saveState();
+}
+
+// ── B10 — Identity verification (KYC) ─────────────────────────────────────
+function RB10(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+    </div>
+    <h1 class="step-heading" style="text-align:center">Verify your identity.</h1>
+    <p class="step-sub" style="text-align:center">Each director and beneficial owner must complete identity verification. Have your ID ready.</p>
+
+    <div style="background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:0;margin-bottom:24px;overflow:hidden">
+      ${[
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,title:'Document photo',desc:'Passport or national ID card'},
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>`,title:'Liveness check',desc:'A brief selfie — confirms it is you'},
+        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,title:'Instant review',desc:'Automated — usually done in seconds'},
+      ].map((r,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:16px 20px${i<2?';border-bottom:1px solid #EEF3F8':''}">
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.icon}</div>
+        <div><div style="font-weight:600;font-size:14px;color:var(--ink)">${r.title}</div><div style="font-size:13px;color:var(--ink3);margin-top:2px">${r.desc}</div></div>
+      </div>`).join('')}
+    </div>
+
+    ${(S.coManagement.length>0||S.coOwnerMgmt.length>0||S.coOwnerExtra.length>0)?`
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-bottom:20px;font-size:13.5px;color:var(--ink2);line-height:1.6">
+      <b>Persons to verify:</b> ${[
+        ...S.coManagement.map(p=>[p.firstName,p.lastName].filter(Boolean).join(' ')),
+        ...S.coOwnerExtra.map(o=>[o.firstName,o.lastName].filter(Boolean).join(' '))
+      ].filter(Boolean).join(', ') || 'Company management & owners'}
+    </div>`:''}
+
+    <div id="bVerifyStatus" style="display:none;background:#dcfce7;border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;color:#166534">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <b>Identity verified. Continuing…</b>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:14px">Secured by Signicat · bank-grade identity verification</p>
+    <button class="btn btn-primary" id="bVerifyBtn" onclick="startBVerify()">Start verification →</button>
+  </div>`;
+}
+
+window.startBVerify=function(){
+  var m=document.getElementById('verifyModal');
+  if(m)m.style.display='flex';
+  var sel=document.getElementById('vModalCountry');
+  if(sel&&sel.options.length<2){
+    Object.entries(ISO2).forEach(function(entry){
+      var o=document.createElement('option');
+      o.value=entry[0];o.textContent=flagEmoji(entry[0])+' '+entry[1];
+      sel.appendChild(o);
+    });
+  }
+  // Override submitVerify to go to B11
+  window._bVerifyMode=true;
+};
+
+// Patch submitVerify to handle business mode
+const _origSubmitVerify=window.submitVerify;
+window.submitVerify=function(){
+  if(window._bVerifyMode){
+    var sel=document.getElementById('vModalCountry');
+    if(!sel||!sel.value){sel.style.borderColor='#dc2626';return;}
+    sel.style.borderColor='';
+    S.docCountry=ISO2[sel.value]||sel.value;
+    S.docVerified=true;
+    saveState();
+    var m=document.getElementById('verifyModal');if(m)m.style.display='none';
+    var vs=document.getElementById('bVerifyStatus');if(vs)vs.style.display='block';
+    var vb=document.getElementById('bVerifyBtn');if(vb)vb.style.display='none';
+    window._bVerifyMode=false;
+    setTimeout(function(){nextStep();},800);
+  } else {
+    _origSubmitVerify && _origSubmitVerify();
+  }
+};
+
+// ── B11 — Success ──────────────────────────────────────────────────────────
+function RB11(){
+  setTimeout(()=>{
+    document.getElementById('mainLayout').style.display='none';
+    document.getElementById('successPage').style.display='block';
+    document.getElementById('successHeading').textContent='Application submitted'+(S.coName?', '+S.coName:S.firstName?' — '+S.firstName:'')+'.' ;
+    const emailLine=document.getElementById('successEmailLine');
+    if(emailLine&&S.coEmail)emailLine.textContent='We\'ll email you at '+S.coEmail+' once approved';
+    else if(emailLine&&S.email)emailLine.textContent='We\'ll email you at '+S.email+' once approved';
+    S.applicationRef=S.applicationRef||'HP-'+rand8();
+    document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
+    const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
+  },50);
+  return`<div class="step-card" id="sCard"><p style="text-align:center;padding:20px;color:var(--ink3)">Finalising…</p></div>`;
+}
+
 // ── Generic business country multi-picker ─────────────────────────────────
 function bizCountryPicker(pickerId,stateArr){
   const inp=document.getElementById('bcp-'+pickerId+'-inp');
@@ -2545,6 +2706,12 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B9'){
+    if(!S.coTcAccepted||!S.coBlindpayAccepted){
+      const e=document.getElementById('coTc-err');
+      if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
+      ok=false;
+    }
   } else if(id==='B8'){
     collectOwnerExtraData();
     const totalOwners=S.coOwnerMgmt.length+S.coOwnerExtra.length;
@@ -2797,6 +2964,10 @@ function attachAll(id){
   attachCountrySearch();
 
   // ── Business step handlers ──────────────────────────────────────────────
+  if(id==='B9'){
+    const tc=document.getElementById('coTcCheck');
+    if(tc)tc.addEventListener('change',()=>{S.coTcAccepted=tc.checked;updateCoAcceptBtn();saveState();});
+  }
   if(id==='B6'){
     bizCountryPicker('coCustomerCountries',S.coCustomerCountries);
     bizCountryPicker('coSendingCountries',S.coSendingCountries);
@@ -3584,7 +3755,7 @@ function updateLeftPanel(){
 // =============================================================
 function updateNavFooter(){
   const id=getActiveSteps()[CI];
-  if(id===14){const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';return;}
+  if(id===14||id==='B11'){const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';return;}
   let nf=document.getElementById('navFooter');
   if(!nf){
     nf=document.createElement('div');nf.id='navFooter';nf.className='nav-footer';
@@ -3594,10 +3765,10 @@ function updateNavFooter(){
   const ph=getPhases().find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
   // Steps with their own primary action button (don't show generic Continue in footer)
-  const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4'].includes(id);
+  const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4','B9','B10'].includes(id);
   nf.innerHTML=`
     <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
-    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.includes(14)?steps.length-1:steps.length}</span></div>
+    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${(steps.includes(14)||steps.includes('B11'))?steps.length-1:steps.length}</span></div>
     <div style="flex:1;min-width:90px;display:flex;justify-content:flex-end">${hasOwnAction?'':
       `<button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="nextStep()">Continue →</button>`}</div>`;
 }
@@ -3669,7 +3840,7 @@ function startFresh(){
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
     coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
-    coManagement:[],coOwnerMgmt:[],coOwnerExtra:[],
+    coManagement:[],coOwnerMgmt:[],coOwnerExtra:[],coTcAccepted:false,coBlindpayAccepted:false,
     coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
     coCompanySize:'',
     coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
