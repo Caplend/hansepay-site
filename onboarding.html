@@ -476,7 +476,8 @@ const S = {
   coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
   coSourceOfFunds:'',coSourceOfFundsOther:'',
   coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
-  coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
+  coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
+  coManagement:[]
 };
 
 let CI = 0; // currentIndex
@@ -491,9 +492,10 @@ const PHASES = [
   {id:'review',   label:'Review',     steps:[12,13,14]}
 ];
 const BUSINESS_PHASES = [
-  {id:'account',   label:'Account',   steps:[1,2,'3a','3b',4]},
-  {id:'company',   label:'Company',   steps:['B1','B2']},
-  {id:'documents', label:'Documents', steps:['B3','B4']},
+  {id:'account',    label:'Account',    steps:[1,2,'3a','3b',4]},
+  {id:'company',    label:'Company',    steps:['B1','B2']},
+  {id:'documents',  label:'Documents',  steps:['B3','B4']},
+  {id:'management', label:'Management', steps:['B5']},
 ];
 function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
 const PHASE_HELP = {
@@ -509,7 +511,7 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4'];
+    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5'];
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -629,7 +631,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();
   }
   return '';
 }
@@ -1391,12 +1393,9 @@ const NACE_CODES=[
 
 // ── Fake company data ──────────────────────────────────────────────────────
 const FAKE_CO={
-  name:'Meridian Digital GmbH',legalForm:'GmbH',regNum:'HRB 239847 B',
+  name:'Meridian Digital GmbH',legalForm:'GmbH (Limited Liability Company)',regNum:'HRB 239847 B',
   regDate:'2020-09-14',vat:'DE321456789',
   nace:[{code:'62.01',label:'Computer programming activities'}],
-  description:'We develop and maintain B2B SaaS platforms for logistics and supply chain management companies across Europe.',
-  email:'info@meridiandigital.de',phone:'30 4567 8900',phoneCC:'+49',
-  website:'https://meridiandigital.de',
   addr1:'Unter den Linden 22',city:'Berlin',state:'Berlin',postcode:'10117',country:'Germany'
 };
 
@@ -1418,11 +1417,19 @@ window.useFakeCompany=function(){
   Object.assign(S,{
     coName:FAKE_CO.name,coLegalForm:FAKE_CO.legalForm,coRegNum:FAKE_CO.regNum,
     coRegDate:FAKE_CO.regDate,coVAT:FAKE_CO.vat,coNACE:[...FAKE_CO.nace],
-    coDescription:FAKE_CO.description,coEmail:FAKE_CO.email,
-    coPhone:FAKE_CO.phone,coPhoneCC:FAKE_CO.phoneCC,coWebsite:FAKE_CO.website,
     coAddr1:FAKE_CO.addr1,coCity:FAKE_CO.city,coState:FAKE_CO.state,
     coPostcode:FAKE_CO.postcode,coAddrCountry:FAKE_CO.country,coSearchDone:true
   });
+  // Seed management with account holder as first person
+  if(!S.coManagement.length){
+    S.coManagement=[{
+      firstName:S.firstName,middleName:'',lastName:S.lastName,
+      email:S.email,phoneCC:S.phoneCountry||'+49',phone:'',
+      dob:'',companyStartDate:'',
+      addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',
+      role:'',isDirector:true
+    }];
+  }
   saveState();
   const steps=getActiveSteps();
   CI=steps.indexOf('B2');
@@ -1577,16 +1584,14 @@ function RB2(){
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
 
-    <div class="field-row">
-      ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
-      <div class="field-group">
-        <label>Phone number</label>
-        <div class="phone-row">
-          <select id="coPhoneCC">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
-          <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 30 1234 5678">
-        </div>
-        <div class="field-error" id="coPhone-err"></div>
+    ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
+    <div class="field-group">
+      <label>Phone number <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+      <div class="phone-row">
+        <select id="coPhoneCC" style="width:130px;min-width:130px">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
+        <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 1234 567 890">
       </div>
+      <div class="field-error" id="coPhone-err"></div>
     </div>
     ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com')}
 
@@ -1751,6 +1756,269 @@ function RB4(){
   </div>`;
 }
 
+// ── B5 — Company Management ────────────────────────────────────────────────
+const MGMT_ROLES=['CEO','CFO','COO','Managing Director','President','General Partner','Board Member','Authorised Signatory','Other — please specify'];
+const MGMT_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
+
+function blankMgmtPerson(){
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:'+49',phone:'',
+    dob:'',companyStartDate:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',
+    role:'',isDirector:false};
+}
+
+function renderMgmtPerson(p,i){
+  const name=(p.firstName||p.lastName)?[p.firstName,p.lastName].filter(Boolean).join(' '):'—';
+  const roleOpts=MGMT_ROLES.map(r=>`<option value="${esc(r)}"${p.role===r?' selected':''}>${esc(r)}</option>`).join('');
+  const phoneSel=MGMT_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(p.phoneCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(p.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
+  return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="mgmt-person-${i}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--n050);border:2px solid var(--n100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--ink)">Company management ${i+1}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${esc(name)}</div>
+      </div>
+      ${i>0?`<button type="button" onclick="removeMgmtPerson(${i})" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:4px;border-radius:6px;display:flex;align-items:center" title="Remove">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>`:''}
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="mp${i}First">First name</label>
+        <input type="text" id="mp${i}First" value="${esc(p.firstName||'')}" placeholder="First name" oninput="updateMgmtHeader(${i})">
+        <div class="field-error" id="mp${i}First-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="mp${i}Middle">Middle name <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <input type="text" id="mp${i}Middle" value="${esc(p.middleName||'')}" placeholder="Middle name">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Last">Last name</label>
+      <input type="text" id="mp${i}Last" value="${esc(p.lastName||'')}" placeholder="Last name" oninput="updateMgmtHeader(${i})">
+      <div class="field-error" id="mp${i}Last-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Email">Email</label>
+      <input type="email" id="mp${i}Email" value="${esc(p.email||'')}" placeholder="person@company.com">
+      <div class="field-error" id="mp${i}Email-err"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label>Phone number <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <div class="phone-row">
+          <select id="mp${i}PhoneCC" style="width:110px;min-width:110px">${phoneSel}</select>
+          <input type="tel" id="mp${i}Phone" value="${esc(p.phone||'')}" placeholder="e.g. 1234 567 890">
+        </div>
+      </div>
+      <div class="field-group">
+        <label for="mp${i}DOB">Date of birth</label>
+        <input type="date" id="mp${i}DOB" value="${esc(p.dob||'')}" max="${todayMinus18()}">
+        <div class="field-error" id="mp${i}DOB-err"></div>
+      </div>
+    </div>
+
+    <div class="field-group" style="position:relative">
+      <label>Search address <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <input type="text" id="mp${i}AddrSearch" placeholder="Start typing address…" autocomplete="off"
+        oninput="mgmtAddrLookup(${i},this.value)" style="border-radius:var(--r-md)">
+      <div id="mp${i}AddrDrop" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:220px;overflow-y:auto"></div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Or fill in manually below.</div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Addr1">Address line 1</label>
+      <input type="text" id="mp${i}Addr1" value="${esc(p.addr1||'')}" placeholder="Street and number">
+      <div class="field-error" id="mp${i}Addr1-err"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="mp${i}City">City</label>
+        <input type="text" id="mp${i}City" value="${esc(p.city||'')}" placeholder="City">
+        <div class="field-error" id="mp${i}City-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="mp${i}Postcode">Post code</label>
+        <input type="text" id="mp${i}Postcode" value="${esc(p.postcode||'')}" placeholder="Post code">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Country">Country of residence</label>
+      <select id="mp${i}Country">${countryOpts}</select>
+    </div>
+
+    <div style="border-top:1px solid #EEF3F8;margin:16px 0 16px;padding-top:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Controlling</div>
+      <div class="field-group">
+        <label for="mp${i}Role">Role</label>
+        <select id="mp${i}Role">
+          <option value="">Select role…</option>
+          ${roleOpts}
+        </select>
+        <div class="field-error" id="mp${i}Role-err"></div>
+      </div>
+      <div id="mp${i}RoleOtherWrap" style="display:${p.role==='Other — please specify'?'block':'none'}">
+        <div class="field-group">
+          <label for="mp${i}RoleOther">Please specify your role</label>
+          <input type="text" id="mp${i}RoleOther" value="${esc(p.roleOther||'')}" placeholder="e.g. Chief Strategy Officer">
+          <div class="field-error" id="mp${i}RoleOther-err"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <input type="checkbox" id="mp${i}IsDirector" ${p.isDirector?'checked':''} style="width:16px;height:16px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" onchange="S.coManagement[${i}].isDirector=this.checked;saveState()">
+        <label for="mp${i}IsDirector" style="font-size:13.5px;color:var(--ink2);font-weight:400;cursor:pointer;margin-bottom:0;letter-spacing:0;text-transform:none">Is a company director?</label>
+      </div>
+    </div>
+  </div>`;
+}
+
+function RB5(){
+  if(!S.coManagement.length){
+    S.coManagement=[blankMgmtPerson()];
+  }
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    <h1 class="step-heading">Company management.</h1>
+    <p class="step-sub">Add all directors and authorised signatories. Each person will be subject to identity verification.</p>
+
+    <div id="mgmtPersonsWrap">
+      ${S.coManagement.map((p,i)=>renderMgmtPerson(p,i)).join('')}
+    </div>
+
+    <button type="button" onclick="addMgmtPerson()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:4px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add another person
+    </button>
+  </div>`;
+}
+
+window.addMgmtPerson=function(){
+  collectData();
+  S.coManagement.push(blankMgmtPerson());
+  saveState();
+  const wrap=document.getElementById('mgmtPersonsWrap');
+  if(wrap){
+    const i=S.coManagement.length-1;
+    wrap.insertAdjacentHTML('beforeend',renderMgmtPerson(S.coManagement[i],i));
+    attachMgmtRoleListener(i);
+    attachMgmtAddrSearch(i);
+    // Scroll to new card
+    const newCard=document.getElementById('mgmt-person-'+i);
+    if(newCard)newCard.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+};
+
+window.removeMgmtPerson=function(i){
+  collectData();
+  S.coManagement.splice(i,1);
+  saveState();
+  // Full re-render
+  const steps=getActiveSteps();
+  showStep('forward');
+};
+
+window.updateMgmtHeader=function(i){
+  const fn=document.getElementById('mp'+i+'First')?.value||'';
+  const ln=document.getElementById('mp'+i+'Last')?.value||'';
+  const nameEl=document.querySelector('#mgmt-person-'+i+' .mgmt-name');
+  if(nameEl)nameEl.textContent=[fn,ln].filter(Boolean).join(' ')||'—';
+};
+
+function attachMgmtRoleListener(i){
+  const sel=document.getElementById('mp'+i+'Role');
+  if(!sel)return;
+  sel.addEventListener('change',()=>{
+    const w=document.getElementById('mp'+i+'RoleOtherWrap');
+    if(w)w.style.display=sel.value==='Other — please specify'?'block':'none';
+    saveState();
+  });
+}
+
+let _mgmtAddrTimers={};
+window._mgmtAddrResults={};
+window.mgmtAddrLookup=function(i,q){
+  clearTimeout(_mgmtAddrTimers[i]);
+  const drop=document.getElementById('mp'+i+'AddrDrop');
+  if(!drop)return;
+  if(!q||q.length<4){drop.style.display='none';return;}
+  _mgmtAddrTimers[i]=setTimeout(function(){
+    drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Searching…</div>';
+    drop.style.display='block';
+    fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&addressdetails=1&limit=6',{headers:{'Accept-Language':'en-GB,en'}})
+    .then(r=>r.json()).then(data=>{
+      if(!data||!data.length){drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">No results found</div>';return;}
+      window._mgmtAddrResults[i]=data.slice(0,5).map(r=>{
+        const a=r.address||{};
+        const road=a.road||a.pedestrian||a.street||'';
+        const no=a.house_number||'';
+        const street=road+(no?' '+no:'');
+        return{street:street||r.display_name.split(',')[0]||'',
+          city:a.city||a.town||a.village||a.suburb||'',
+          postcode:a.postcode||'',state:a.state||a.county||'',
+          country:ISO2[(a.country_code||'').toUpperCase()]||''};
+      });
+      drop.innerHTML=window._mgmtAddrResults[i].map((r,j)=>
+        `<div style="padding:11px 16px;cursor:pointer;border-bottom:1px solid #EEF3F8" `+
+        `onmouseover="this.style.background='var(--n050)'" onmouseout="this.style.background=''" `+
+        `onclick="mgmtPickAddr(${i},${j})">`+
+        `<div style="font-size:14px;font-weight:500;color:var(--ink)">${esc(r.street)}</div>`+
+        (r.postcode||r.city?`<div style="font-size:12px;color:var(--ink3)">${[r.postcode,r.city,r.country].filter(Boolean).join(' ')}</div>`:'')
+        +'</div>'
+      ).join('');
+      document.addEventListener('click',function cl(e){
+        if(!e.target.closest('#mp'+i+'AddrDrop')&&e.target.id!=='mp'+i+'AddrSearch'){
+          drop.style.display='none';document.removeEventListener('click',cl);
+        }
+      });
+    }).catch(()=>{drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Could not search</div>';});
+  },400);
+};
+
+window.mgmtPickAddr=function(i,j){
+  const r=(window._mgmtAddrResults[i]||[])[j];if(!r)return;
+  const map={Addr1:'street',City:'city',Postcode:'postcode',State:'state'};
+  Object.entries(map).forEach(([fid,key])=>{
+    const el=document.getElementById('mp'+i+fid);if(el&&r[key])el.value=r[key];
+  });
+  if(r.country){const el=document.getElementById('mp'+i+'Country');if(el)el.value=r.country;}
+  const drop=document.getElementById('mp'+i+'AddrDrop');if(drop)drop.style.display='none';
+};
+
+function attachMgmtAddrSearch(i){
+  // Delegate to mgmtAddrLookup — already wired via inline oninput on the input element
+  // Just close drop on outside click
+  document.addEventListener('click',function cl(e){
+    const inp=document.getElementById('mp'+i+'AddrSearch');
+    const drop=document.getElementById('mp'+i+'AddrDrop');
+    if(inp&&drop&&!inp.contains(e.target)&&!drop.contains(e.target)){
+      drop.style.display='none';
+    }
+  });
+}
+
+function collectMgmtData(){
+  S.coManagement.forEach((p,i)=>{
+    p.firstName=document.getElementById('mp'+i+'First')?.value||p.firstName;
+    p.middleName=document.getElementById('mp'+i+'Middle')?.value||'';
+    p.lastName=document.getElementById('mp'+i+'Last')?.value||p.lastName;
+    p.email=document.getElementById('mp'+i+'Email')?.value||p.email;
+    p.phoneCC=document.getElementById('mp'+i+'PhoneCC')?.value||p.phoneCC;
+    p.phone=document.getElementById('mp'+i+'Phone')?.value||'';
+    p.dob=document.getElementById('mp'+i+'DOB')?.value||'';
+    p.addr1=document.getElementById('mp'+i+'Addr1')?.value||'';
+    p.city=document.getElementById('mp'+i+'City')?.value||'';
+    p.postcode=document.getElementById('mp'+i+'Postcode')?.value||'';
+    p.country=document.getElementById('mp'+i+'Country')?.value||p.country;
+    const roleSel=document.getElementById('mp'+i+'Role');
+    if(roleSel)p.role=roleSel.value;
+    p.roleOther=document.getElementById('mp'+i+'RoleOther')?.value||'';
+    const dirChk=document.getElementById('mp'+i+'IsDirector');
+    if(dirChk)p.isDirector=dirChk.checked;
+  });
+}
+
 window.handleDocUpload=function(docId){
   const inp=document.getElementById(docId+'File');
   if(!inp||!inp.files.length)return;
@@ -1888,6 +2156,17 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B5'){
+    collectMgmtData();
+    S.coManagement.forEach((p,i)=>{
+      if(!(p.firstName||'').trim()) fail('mp'+i+'First','First name is required');
+      if(!(p.lastName||'').trim()) fail('mp'+i+'Last','Last name is required');
+      if(!p.dob) fail('mp'+i+'DOB','Date of birth is required');
+      if(!(p.addr1||'').trim()) fail('mp'+i+'Addr1','Address is required');
+      if(!(p.city||'').trim()) fail('mp'+i+'City','City is required');
+      if(!p.role) fail('mp'+i+'Role','Role is required');
+      if(p.role==='Other — please specify'&&!(p.roleOther||'').trim()) fail('mp'+i+'RoleOther','Please specify the role');
+    });
   } else if(id==='B1'){
     if(!S.coSearchDone){showToast('Please search and select your company first');ok=false;}
   } else if(id==='B2'){
@@ -1968,6 +2247,8 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  } else if(id==='B5'){
+    collectMgmtData();
   } else if(id==='B1'){
     S.coLookupName=g('coLookupName')||S.coLookupName;
     S.coLookupCountry=g('coLookupCountry')||S.coLookupCountry;
@@ -2079,6 +2360,12 @@ function attachAll(id){
   attachCountrySearch();
 
   // ── Business step handlers ──────────────────────────────────────────────
+  if(id==='B5'){
+    S.coManagement.forEach((_,i)=>{
+      attachMgmtRoleListener(i);
+      attachMgmtAddrSearch(i);
+    });
+  }
   if(id==='B2'){
     // Operating address checkbox
     const chk=document.getElementById('coHasDiffOp');
@@ -2911,7 +3198,8 @@ function startFresh(){
     coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
-    coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
+    coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
+    coManagement:[]
   });
   CI=0;
   try{localStorage.removeItem('hp_onb');}catch(e){}
