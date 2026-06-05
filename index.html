@@ -145,8 +145,8 @@ a{color:inherit;text-decoration:none}
 
 .how-section{background:#fff}
 .how-intro{text-align:center;max-width:600px;margin:0 auto 64px}
-.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;position:relative}
-.how-grid::before{content:'';position:absolute;top:68px;left:calc(12.5% + 28px);right:calc(12.5% + 28px);height:1px;background:linear-gradient(90deg,var(--n200),var(--n300),var(--n200));z-index:0}
+.how-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:24px;position:relative}
+.how-grid::before{content:'';position:absolute;top:68px;left:calc(10% + 24px);right:calc(10% + 24px);height:1px;background:linear-gradient(90deg,var(--n200),var(--n300),var(--n200));z-index:0}
 @media(max-width:900px){.how-grid{grid-template-columns:1fr 1fr}.how-grid::before{display:none}}
 @media(max-width:560px){.how-grid{grid-template-columns:1fr}}
 .how-step{position:relative;z-index:1;text-align:center;padding:40px 20px}
@@ -409,7 +409,7 @@ a{color:inherit;text-decoration:none}
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <div><div class="trust-txt-main" data-i18n="index.trust.2.title">Mid-Market Rate</div><div class="trust-txt-sub" data-i18n="index.trust.2.sub">No hidden markups</div></div>
+        <div><div class="trust-txt-main" data-i18n="index.trust.2.title">Transparent Pricing</div><div class="trust-txt-sub" data-i18n="index.trust.2.sub">Disclosed before every trade</div></div>
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -433,7 +433,7 @@ a{color:inherit;text-decoration:none}
         <p class="lede reveal d2" style="margin-top:20px">On every cross-border transfer, your bank adds a 2–4% markup on top of the exchange rate, money that disappears without a line item. Calculate exactly what you're losing.</p>
         <div class="calc-bullets">
           <div class="calc-bullet reveal d3"><div class="calc-bullet-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="calc-bullet-title">No hidden markups</div><div class="calc-bullet-desc">We charge only a transparent transaction fee.</div></div></div>
-          <div class="calc-bullet reveal d4"><div class="calc-bullet-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="calc-bullet-title">Mid-market rate guaranteed</div><div class="calc-bullet-desc">The real market price, no bank spread.</div></div></div>
+          <div class="calc-bullet reveal d4"><div class="calc-bullet-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="calc-bullet-title">Transparent margin</div><div class="calc-bullet-desc">Disclosed before every trade, no hidden bank spread.</div></div></div>
           <div class="calc-bullet reveal d5"><div class="calc-bullet-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="calc-bullet-title">Conservative estimate</div><div class="calc-bullet-desc">Realistic benchmarks from the German business banking sector.</div></div></div>
         </div>
       </div>
@@ -557,14 +557,15 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div class="how-intro">
       <span class="eyebrow reveal" data-i18n="index.how.eyebrow">How it works</span>
-      <h2 class="section-head reveal d1" style="margin-top:12px" data-i18n-html="index.how.h2">From quote to <em>cleared funds</em> in four steps.</h2>
-      <p class="lede reveal d2" style="margin-top:16px" data-i18n="index.how.sub">No paperwork delays, no opaque pricing. Just fast, precise FX execution the way it should be.</p>
+      <h2 class="section-head reveal d1" style="margin-top:12px" data-i18n-html="index.how.h2">From application to your <em>first payment.</em></h2>
+      <p class="lede reveal d2" style="margin-top:16px" data-i18n="index.how.sub">KYC is straightforward and built for businesses. Once verified, your account is live and ready to fund, with regulated rails in place before you send your first euro.</p>
     </div>
     <div class="how-grid">
-      <div class="how-step reveal"><div class="how-num">1</div><div class="how-title">Open an account</div><div class="how-desc">Online application in under 10 minutes. No paperwork, no bank appointments, digital ID verification included.</div></div>
-      <div class="how-step reveal d1"><div class="how-num">2</div><div class="how-title">Request a rate</div><div class="how-desc">Live rate in the dashboard or directly from your expert. Transparent, real-time, no surprises.</div></div>
-      <div class="how-step reveal d2"><div class="how-num">3</div><div class="how-title">Trigger a payment</div><div class="how-desc">Confirm with one click or automate via API. Recipient validation and IBAN check included.</div></div>
-      <div class="how-step reveal d3"><div class="how-num">4</div><div class="how-title">Real-time tracking</div><div class="how-desc">Every transaction fully traceable. Automatic confirmation and booking receipt by email.</div></div>
+      <div class="how-step reveal"><div class="how-num">1</div><div class="how-title" data-i18n="index.how.s1.title">Apply</div><div class="how-desc" data-i18n="index.how.s1.desc">Start your application online. No paperwork at this stage, just basic company information.</div></div>
+      <div class="how-step reveal d1"><div class="how-num">2</div><div class="how-title" data-i18n="index.how.s2.title">Verify your identity</div><div class="how-desc" data-i18n="index.how.s2.desc">KYC and KYB for the business. Submit company documents and director identification.</div></div>
+      <div class="how-step reveal d2"><div class="how-num">3</div><div class="how-title" data-i18n="index.how.s3.title">Compliance review</div><div class="how-desc" data-i18n="index.how.s3.desc">Internal compliance check. Most reviews complete within one business day.</div></div>
+      <div class="how-step reveal d3"><div class="how-num">4</div><div class="how-title" data-i18n="index.how.s4.title">Activate your account</div><div class="how-desc" data-i18n="index.how.s4.desc">Account goes live. Fund it by SEPA transfer from your existing bank, same day for most German banks.</div></div>
+      <div class="how-step reveal d4"><div class="how-num">5</div><div class="how-title" data-i18n="index.how.s5.title">Start sending</div><div class="how-desc" data-i18n="index.how.s5.desc">Add recipients, lock your first FX quote, and settle your first cross-border payment.</div></div>
     </div>
   </div>
 </section>
@@ -839,7 +840,7 @@ a{color:inherit;text-decoration:none}
             <span class="faq-q-text" data-i18n="index.faq.q2">What fees does HansePay charge?</span>
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
-          <div class="faq-a">A single transparent transaction fee of 0.3–0.5%, depending on volume and currency pair. Zero markup on the exchange rate, you always receive the real mid-market rate. No monthly fees, no hidden charges, no minimum commitment.</div>
+          <div class="faq-a" data-i18n="index.faq.a2">A transparent FX margin, from 0.15% on major currency pairs (0.15% to 0.75%) and disclosed before every trade, plus a flat €10 per payment. No spread hidden in the rate, no monthly fees, no minimum commitment.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">
