@@ -64,6 +64,11 @@
   <div class="topbar">
     <div class="page-title">Enrichment</div>
     <div class="topbar-actions">
+      <button class="btn btn-ghost" id="prioritize" title="Sort by HansePay fit score, highest first">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="3" y1="6" x2="13" y2="6"/><line x1="3" y1="12" x2="11" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/><polyline points="17 8 17 18"/><polyline points="14 15 17 18 20 15"/></svg>
+        Prioritize
+      </button>
+      <button class="btn btn-ghost" id="set-stage" title="Promote high-fit leads (score ≥70) to Qualified in the pipeline">Set stage from fit</button>
       <button class="btn btn-ghost" id="export-csv">Export CSV</button>
       <button class="btn btn-primary" id="run-analysis">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
@@ -129,6 +134,7 @@
           <option value="boolean">Yes / No</option>
           <option value="number">Number</option>
           <option value="score">Score 1–5</option>
+          <option value="score100">Score 0–100</option>
           <option value="category">Category (pick from a list)</option>
         </select>
       </div>
@@ -154,6 +160,8 @@ var sortKey = null, sortDir = 1;
 var debounce;
 
 var PRESETS = [
+  { label:'HansePay fit (0–100)',   key:'fit_score',    type:'score100', prompt:'Score this company 0–100 as a HansePay cross-border-FX prospect, weighing cross-border/multi-currency need, likely FX volume, and reachability of a finance decision-maker. 100 = ideal.' },
+  { label:'Fit reasoning',          key:'fit_reason',   type:'text',     prompt:'In one sentence, why does this company score the way it does as a HansePay FX prospect?' },
   { label:'Country',                key:'country_chk',  type:'text',     prompt:'In which country is this company headquartered?' },
   { label:'HQ city',                key:'hq_city',      type:'text',     prompt:'In which city is this company headquartered?' },
   { label:'Employee size band',     key:'emp_band',     type:'category', options:['1–10','11–50','51–200','201–1000','1000+'], prompt:'Estimate the number of employees and map it to one of the allowed bands.' },
@@ -238,7 +246,7 @@ function load(){
     var v=document.getElementById('f-'+f).value; if(v)qs.push(f+'='+v);
   });
   A('/api/customers'+(qs.length?'?'+qs.join('&'):'')).then(function(r){return r.json();}).then(function(list){
-    all = Array.isArray(list)?list:[]; render(); updateRunStatus();
+    all = Array.isArray(list)?list:[]; render(); updateRunStatus(); maybeAutorun();
   }).catch(function(){ document.getElementById('rows').innerHTML='<tr><td class="empty">Failed to load customers.</td></tr>'; });
 }
 
@@ -278,17 +286,35 @@ function srcBadge(c){
   return ' <span title="'+esc(title)+'" style="display:inline-flex;align-items:center;gap:3px;font-size:.625rem;font-weight:600;color:var(--n400);vertical-align:middle;cursor:help">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'+s.length+'</span>';
 }
+// small confidence dot from c.analysisConf[key]
+function confDot(c,key){
+  var lv = c.analysisConf ? c.analysisConf[key] : null;
+  if(!lv) return '';
+  var color = lv==='high' ? 'var(--ok)' : (lv==='medium' ? 'var(--warn)' : 'var(--ink3)');
+  return '<span title="Confidence: '+lv+'" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+color+';margin-right:6px;vertical-align:middle;flex-shrink:0"></span>';
+}
+function score100Color(n){
+  if(n>=70) return ['var(--okbg)','var(--ok)'];
+  if(n>=40) return ['var(--warnbg)','var(--warn)'];
+  return ['var(--badbg)','var(--bad)'];
+}
 function cellVal(c,col){
   if(running[c.id]) return '<span class="enrich-dots">•••</span>';
   var v = c.analysis ? c.analysis[col.key] : undefined;
   if(v===undefined||v===null||v==='') return '<span class="muted">—</span>';
   var s = esc(String(v));
+  var dot = confDot(c,col.key);
   if(col.type==='boolean'){
     var yes = /^y|^t|true/i.test(String(v));
-    return '<span class="badge" style="background:'+(yes?'var(--okbg)':'var(--badbg)')+';color:'+(yes?'var(--ok)':'var(--bad)')+'">'+s+'</span>';
+    return dot+'<span class="badge" style="background:'+(yes?'var(--okbg)':'var(--badbg)')+';color:'+(yes?'var(--ok)':'var(--bad)')+'">'+s+'</span>';
   }
-  if(col.type==='score') return '<span class="badge" style="background:var(--n050);color:var(--n500);font-variant-numeric:tabular-nums">'+s+'</span>';
-  return s;
+  if(col.type==='score100'){
+    var n=parseInt(v,10); if(isNaN(n)) return dot+s;
+    var col2=score100Color(n);
+    return dot+'<span class="badge" style="background:'+col2[0]+';color:'+col2[1]+';font-weight:700;font-variant-numeric:tabular-nums">'+n+'</span>';
+  }
+  if(col.type==='score') return dot+'<span class="badge" style="background:var(--n050);color:var(--n500);font-variant-numeric:tabular-nums">'+s+'</span>';
+  return dot+s;
 }
 
 function sortArrow(key){ return sortKey===key ? '<span class="arrow">'+(sortDir>0?'▲':'▼')+'</span>' : ''; }
@@ -333,13 +359,13 @@ function updateRunStatus(extra){
 }
 
 // ── Run analysis ──
-function runAnalysis(){
+function runAnalysis(skipConfirm){
   if(!columns.length){ H.toast('Add at least one criterion first.','error'); openCritModal(); return; }
   var view = viewList();
   var ids = selectedIds().filter(function(id){ return view.some(function(c){return c.id===id;}); });
   var targets = ids.length ? view.filter(function(c){ return selected[c.id]; }) : view;
   if(!targets.length){ H.toast('No rows to analyse.','error'); return; }
-  if(!confirm('Run analysis on '+targets.length+' '+(targets.length===1?'company':'companies')+' across '+columns.length+' '+(columns.length===1?'criterion':'criteria')+'?\n\nThis uses Claude API credits'+(webEnabled?' and live web search':'')+'.')) return;
+  if(skipConfirm!==true && !confirm('Run analysis on '+targets.length+' '+(targets.length===1?'company':'companies')+' across '+columns.length+' '+(columns.length===1?'criterion':'criteria')+'?\n\nThis uses Claude API credits'+(webEnabled?' and live web search':'')+'.')) return;
 
   var btn = document.getElementById('run-analysis');
   btn.disabled = true;
@@ -356,7 +382,7 @@ function runAnalysis(){
     A('/api/customers/'+c.id+'/analyze',{ method:'POST', body: JSON.stringify({ columns: columns, web: webEnabled }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if(d && d.values){ c.analysis = Object.assign({}, c.analysis, d.values); if(d.sources && d.sources.length) c.analysisSources = d.sources; }
+        if(d && d.values){ c.analysis = Object.assign({}, c.analysis, d.values); if(d.confidence) c.analysisConf = Object.assign({}, c.analysisConf, d.confidence); if(d.sources && d.sources.length) c.analysisSources = d.sources; }
         else { failed++; if(d && d.error && failed===1) H.toast(d.error,'error'); }
       })
       .catch(function(){ failed++; })
@@ -396,9 +422,62 @@ A('/api/health').then(function(r){return r.json();}).then(function(h){
   else { ws.textContent = 'Web search not configured — uses Claude knowledge only'; tg.checked = false; tg.disabled = true; webEnabled = false; }
 }).catch(function(){});
 
+// ── Prioritize: sort by fit score, highest first ──
+function prioritize(){
+  if(!columns.some(function(c){return c.key==='fit_score';})){
+    H.toast('Add the “HansePay fit (0–100)” column first, then run analysis.','error'); return;
+  }
+  sortKey='fit_score'; sortDir=-1; render();
+  H.toast('Sorted by HansePay fit ↓');
+}
+
+// ── Write-back: promote high-fit leads to Qualified ──
+function setStageFromFit(){
+  if(!columns.some(function(c){return c.key==='fit_score';})){
+    H.toast('Add and run the fit-score column first.','error'); return;
+  }
+  var targets = all.filter(function(c){
+    var f = c.analysis ? parseInt(c.analysis.fit_score,10) : NaN;
+    return !isNaN(f) && f>=70 && c.stage==='lead';
+  });
+  if(!targets.length){ H.toast('No leads with fit ≥70 to promote.'); return; }
+  if(!confirm('Promote '+targets.length+' lead'+(targets.length===1?'':'s')+' with HansePay fit ≥70 to “Qualified” in the pipeline?\n\nThis updates the customer records and never downgrades.')) return;
+  var done=0;
+  Promise.all(targets.map(function(c){
+    return A('/api/customers/'+c.id,{method:'PUT',body:JSON.stringify({stage:'qualified'})})
+      .then(function(r){ if(r.ok){ c.stage='qualified'; done++; } }).catch(function(){});
+  })).then(function(){ render(); H.toast('Promoted '+done+' to Qualified ✓'); });
+}
+
+// ── Auto-enrich handoff from CSV import ──
+var DEFAULT_RECIPE_KEYS = ['fit_score','country_chk','emp_band','xborder_need','dm_title'];
+function maybeAutorun(){
+  var raw; try { raw = JSON.parse(localStorage.getItem('hp_enrich_autorun')||'null'); } catch(e){ raw=null; }
+  if(!raw || !raw.ids || !raw.ids.length) return;
+  localStorage.removeItem('hp_enrich_autorun');           // run once
+  if(Date.now() - (raw.ts||0) > 600000) return;           // stale (>10 min)
+  // Ensure default recipe columns exist (merge, don't duplicate)
+  DEFAULT_RECIPE_KEYS.forEach(function(k){
+    if(hasColumn(k)) return;
+    var p = PRESETS.find(function(x){ return x.key===k; });
+    if(p) columns.push(Object.assign({}, p));
+  });
+  saveColumns(); renderCrit();
+  // Select the imported rows that are present in the loaded list
+  selected = {};
+  var present = 0;
+  raw.ids.forEach(function(id){ if(all.some(function(c){return c.id===id;})){ selected[id]=true; present++; } });
+  render(); updateRunStatus();
+  if(!present){ H.toast('Imported leads not found to enrich.','error'); return; }
+  H.toast('Auto-enriching '+present+' imported lead'+(present===1?'':'s')+'…');
+  setTimeout(function(){ runAnalysis(true); }, 400);
+}
+
 // ── Wire up ──
 document.getElementById('web-toggle').addEventListener('change', function(){ webEnabled = this.checked; });
-document.getElementById('run-analysis').addEventListener('click', runAnalysis);
+document.getElementById('run-analysis').addEventListener('click', function(){ runAnalysis(); });
+document.getElementById('prioritize').addEventListener('click', prioritize);
+document.getElementById('set-stage').addEventListener('click', setStageFromFit);
 document.getElementById('export-csv').addEventListener('click', exportCsv);
 document.getElementById('search').addEventListener('input', function(){ clearTimeout(debounce); debounce=setTimeout(function(){ render(); updateRunStatus(); },180); });
 ['f-stage','f-status','f-source'].forEach(function(id){ document.getElementById(id).addEventListener('change', function(){ selected={}; load(); }); });

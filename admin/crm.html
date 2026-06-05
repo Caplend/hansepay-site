@@ -392,7 +392,7 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
     };
     function col(key){var a=map[key]||[key];for(var i=0;i<a.length;i++){var idx=headers.indexOf(a[i]);if(idx!==-1)return idx;}return -1;}
 
-    var created=0,failed=0;
+    var created=0,failed=0,createdIds=[];
     var promises=lines.slice(1).map(function(line){
       if(!line.trim())return Promise.resolve();
       var cols=parseCSVLine(line);
@@ -414,12 +414,22 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
       }
       if(!obj.company&&!obj.email&&!obj.firstName){failed++;return Promise.resolve();}
       return A('/api/customers',{method:'POST',body:JSON.stringify(obj)})
-        .then(function(r){if(r.ok)created++;else failed++;}).catch(function(){failed++;});
+        .then(function(r){
+          if(r.ok){created++;return r.json().then(function(c){if(c&&c.id)createdIds.push(c.id);}).catch(function(){});}
+          else failed++;
+        }).catch(function(){failed++;});
     });
 
     Promise.all(promises).then(function(){
       H.toast('Imported: '+created+' leads'+(failed?' ('+failed+' skipped)':''));
-      load(); e.target.value='';
+      e.target.value='';
+      // Offer to auto-enrich the freshly imported leads in the Enrichment tool.
+      if(createdIds.length && confirm('Auto-enrich '+createdIds.length+' imported lead'+(createdIds.length===1?'':'s')+' now?\n\nRuns AI enrichment (HansePay fit score, country, size, cross-border need, decision-maker) in the Enrichment tool. May use Claude API credits.')){
+        localStorage.setItem('hp_enrich_autorun', JSON.stringify({ids:createdIds, ts:Date.now()}));
+        window.location.href='/hansepay/admin/enrich.html';
+      } else {
+        load();
+      }
     });
   };
   reader.readAsText(file,'utf-8');

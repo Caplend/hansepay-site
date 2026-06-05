@@ -994,6 +994,8 @@ async function webSearch(query, opts = {}) {
         max_results:   opts.maxResults || 4,
         include_answer: false,
         include_raw_content: false,
+        ...(Array.isArray(opts.includeDomains) && opts.includeDomains.length
+          ? { include_domains: opts.includeDomains } : {}),
       }),
     });
     if (!resp.ok) { console.error('[search] Tavily', resp.status); return []; }
@@ -1221,7 +1223,18 @@ Return ONLY valid JSON (no markdown, no explanation):
 // Claude call. Each column has { key, label, prompt, type, options? }.
 // Results are merged into customer.analysis (keyed by column key) so they
 // persist and render as table columns. Reuses webSearch + callClaude.
-const ANALYZE_TYPES = ['text', 'number', 'boolean', 'score', 'category'];
+const ANALYZE_TYPES = ['text', 'number', 'boolean', 'score', 'score100', 'category'];
+
+// Bare registrable domain from a website value (strip protocol / www / path).
+function domainOf(website) {
+  if (!website) return '';
+  return String(website).trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .split(/[/?#]/)[0]
+    .trim()
+    .toLowerCase();
+}
 
 // Extra search keywords for the built-in preset criteria, so a web search
 // actually looks for the thing each column is asking about.
@@ -1304,12 +1317,20 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   let sources = [];
 
   if (webEnabled) {
-    // Build searches FROM the criteria so we research exactly what's asked.
-    // Capped at 6 queries to bound cost; first (overview) goes deep.
-    const queries = buildAnalyzeQueries(companyName, website, columns, 6);
-    const settled = await Promise.all(
-      queries.map((q, i) => webSearch(q, { deep: i === 0, maxResults: i === 0 ? 3 : 2 }))
-    );
+    // Assemble up to ~6 targeted search tasks: anchor research in the company's
+    // OWN site + LinkedIn (highest-signal for B2B), then criteria-driven open web.
+    const domain = domainOf(website);
+    const tasks = [];
+    if (domain) {
+      tasks.push(webSearch('about products services markets customers clients international', { includeDomains: [domain], deep: true, maxResults: 3 }));
+      tasks.push(webSearch(`"${companyName}"`, { includeDomains: ['linkedin.com'], maxResults: 2 }));
+    }
+    // Fill the remaining budget with criteria-driven open-web queries.
+    const remaining = Math.max(0, 6 - tasks.length);
+    const queries = buildAnalyzeQueries(companyName, website, columns, remaining);
+    queries.forEach((q, i) => tasks.push(webSearch(q, { deep: !domain && i === 0, maxResults: 2 })));
+
+    const settled = await Promise.all(tasks);
     // Pool + dedupe by URL, keep the most relevant slice for the prompt.
     const seenUrls = new Set();
     searchResults = settled.flat().filter(r => {
@@ -1329,6 +1350,7 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
       case 'number':   return 'a number only (no units, no text), or null if unknown';
       case 'boolean':  return 'exactly "Yes" or "No"';
       case 'score':    return 'an integer from 1 to 5 (5 = strongest fit)';
+      case 'score100': return 'an integer from 0 to 100 — overall HansePay cross-border-FX fit (0 = no fit, 100 = ideal prospect: clear multi-currency/cross-border need, meaningful FX volume, reachable finance decision-maker)';
       case 'category': return 'exactly one of: ' + (col.options && col.options.length ? col.options.join(', ') : '(no options provided — use a short label)');
       default:         return 'a short phrase (max ~10 words)';
     }
@@ -1336,7 +1358,9 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   const columnSpec = columns.map((col, i) =>
     `${i + 1}. key "${col.key}" — ${col.label}\n   Question: ${col.prompt}\n   Answer format: ${typeHint(col)}`
   ).join('\n');
-  const jsonShape = '{\n' + columns.map(col => `  "${col.key}": <${col.type}>`).join(',\n') + '\n}';
+  const jsonShape = '{\n' + columns.map(col =>
+    `  "${col.key}": { "value": <${col.type} — ${typeHint(col).split('(')[0].trim()}>, "confidence": "high" | "medium" | "low" }`
+  ).join(',\n') + '\n}';
 
   const priorAnalysis = c.analysis && Object.keys(c.analysis).length
     ? `\nPrevious analysis values (for context only, you may revise): ${JSON.stringify(c.analysis)}`
@@ -1361,20 +1385,38 @@ ${webCtx}
 CRITERIA — answer each one:
 ${columnSpec}
 
-Return ONLY a valid JSON object (no markdown, no commentary) with exactly these keys, each value honouring the stated answer format:
+For EACH criterion return both the answer and your confidence in it:
+- "value" — honours the stated answer format above
+- "confidence" — "high" (directly supported by the data/sources), "medium" (reasonable inference), or "low" (guess / little to go on). Be honest; prefer "low" over a confident guess.
+
+Return ONLY a valid JSON object (no markdown, no commentary) with exactly these keys:
 ${jsonShape}`;
 
   try {
-    const values = await callClaude(apiKey, prompt, 900);
+    const maxTokens = Math.min(2000, 500 + columns.length * 140);
+    const values = await callClaude(apiKey, prompt, maxTokens);
     if (!values || typeof values !== 'object' || Array.isArray(values)) {
       throw new Error('Expected a JSON object from Claude');
     }
 
-    // Keep only the keys we asked for
+    // Split into value + confidence. Tolerant of either {value,confidence}
+    // or a bare scalar (back-compat / model drift).
+    const CONF = { high: 'high', medium: 'medium', low: 'low' };
     const clean = {};
-    columns.forEach(col => { if (values[col.key] !== undefined) clean[col.key] = values[col.key]; });
+    const conf = {};
+    columns.forEach(col => {
+      const raw = values[col.key];
+      if (raw === undefined) return;
+      if (raw && typeof raw === 'object' && !Array.isArray(raw) && 'value' in raw) {
+        clean[col.key] = raw.value;
+        if (raw.confidence && CONF[String(raw.confidence).toLowerCase()]) conf[col.key] = CONF[String(raw.confidence).toLowerCase()];
+      } else {
+        clean[col.key] = raw;
+      }
+    });
 
     customers[idx].analysis        = Object.assign({}, customers[idx].analysis, clean);
+    customers[idx].analysisConf    = Object.assign({}, customers[idx].analysisConf, conf);
     if (webEnabled) customers[idx].analysisSources = sources.slice(0, 8);
     customers[idx].analyzedAt  = new Date().toISOString();
     customers[idx].updatedAt   = new Date().toISOString();
@@ -1388,7 +1430,7 @@ ${jsonShape}`;
       by: req.user.name || 'system',
     });
 
-    res.json({ success: true, values: clean, web: webEnabled, sources: sources.slice(0, 8) });
+    res.json({ success: true, values: clean, confidence: conf, web: webEnabled, sources: sources.slice(0, 8) });
   } catch (err) {
     console.error('[analyze] error:', err.message);
     res.status(500).json({ error: 'Analysis failed: ' + err.message });
