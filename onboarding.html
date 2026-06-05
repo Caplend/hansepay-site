@@ -1499,8 +1499,8 @@ window.selectNACE=function(code,label){
 function RB1(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div></div>
-    <h1 class="step-heading">Company account setup.</h1>
-    <p class="step-sub">We'll pre-fill your details from the commercial registry.</p>
+    <h1 class="step-heading" style="text-align:center">Company account setup.</h1>
+    <p class="step-sub" style="text-align:center">We'll pre-fill your details from the commercial registry.</p>
 
     <div style="background:#F8FAFB;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:24px 26px;margin-bottom:20px">
       <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">Company lookup</div>
@@ -1557,8 +1557,8 @@ function RB2(){
 
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="8" y1="11" x2="8" y2="17"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="16" y1="11" x2="16" y2="17"/></svg></div></div>
-    <h1 class="step-heading">Company information.</h1>
-    <p class="step-sub">Review and complete your company's details.</p>
+    <h1 class="step-heading" style="text-align:center">Company information.</h1>
+    <p class="step-sub" style="text-align:center">Review and complete your company's details.</p>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Company details</div>
 
@@ -1676,8 +1676,8 @@ function RB3(){
   const opAddr=S.coHasDiffOp&&S.coOpAddr1?[S.coOpAddr1,S.coOpAddr2,S.coOpCity,S.coOpState,S.coOpPostcode,S.coOpCountry].filter(Boolean).join(', '):'Same as registered';
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
-    <h1 class="step-heading">Review company details.</h1>
-    <p class="step-sub">Please confirm before we continue.</p>
+    <h1 class="step-heading" style="text-align:center">Review company details.</h1>
+    <p class="step-sub" style="text-align:center">Please confirm before we continue.</p>
 
     <div class="review-section">
       <div class="review-section-header">
@@ -1734,8 +1734,8 @@ function RB4(){
   ];
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div></div>
-    <h1 class="step-heading">Company documents.</h1>
-    <p class="step-sub">Upload the required documents below. PDF or image (JPG, PNG), max 10 MB each.</p>
+    <h1 class="step-heading" style="text-align:center">Company documents.</h1>
+    <p class="step-sub" style="text-align:center">Upload the required documents below. PDF or image (JPG, PNG), max 10 MB each.</p>
 
     ${docs.map(d=>`
     <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
@@ -1880,14 +1880,14 @@ function RB5(){
   }
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
-    <h1 class="step-heading">Company management.</h1>
-    <p class="step-sub">Add all directors and authorised signatories. Each person will be subject to identity verification.</p>
+    <h1 class="step-heading" style="text-align:center">Company management.</h1>
+    <p class="step-sub" style="text-align:center">Add all directors and authorised signatories. Each person will be subject to identity verification.</p>
 
     <div id="mgmtPersonsWrap">
       ${S.coManagement.map((p,i)=>renderMgmtPerson(p,i)).join('')}
     </div>
 
-    <button type="button" onclick="addMgmtPerson()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:4px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
+    <button type="button" onclick="addMgmtPerson()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:14px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add another person
     </button>
@@ -2080,7 +2080,7 @@ if(!window._kycSent)window._kycSent={};
 
 function kycPersonRow(key,name,role,email,isPrimary){
   const sent=window._kycSent[key];
-  return`<div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid #EEF3F8" id="kyc-row-${key}">
+  return`<div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid #EEF3F8;last-child:border-none" id="kyc-row-${key}">
     <div style="width:34px;height:34px;border-radius:50%;background:var(--n050);border:1.5px solid var(--n100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     </div>
@@ -2119,8 +2119,8 @@ function RB10(){
 
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
-    <h1 class="step-heading" style="text-align:center">Verify company management &amp; owners.</h1>
-    <p class="step-sub" style="text-align:center">Each person listed below must complete identity verification. We'll email them a secure link to our partner Signicat.</p>
+    <h1 class="step-heading" style="text-align:center">Verify company management.</h1>
+    <p class="step-sub" style="text-align:center">Each member of company management must complete identity verification. We'll email them a secure link to our partner Signicat.</p>
 
     <div class="section-header" style="margin-top:4px">What to expect</div>
     <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:22px">
@@ -2140,23 +2140,6 @@ function RB10(){
         </div>
       </div>
       ${mgmt.map((p,i)=>kycPersonRow('mgmt-'+i,[p.firstName,p.lastName].filter(Boolean).join(' '),p.role||'',p.email||'',i===0)).join('')}
-    </div>`:''}
-
-    ${(extraOwners.length>0||mgmtOwnerIdxs.length>0)?`
-    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px">
-      <div style="padding:14px 16px;background:var(--n050);border-bottom:1px solid #EEF3F8;display:flex;align-items:center;gap:10px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        <div>
-          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company Owners</div>
-          <div style="font-size:12px;color:var(--ink3)">Each company owner must complete identity verification.</div>
-        </div>
-      </div>
-      ${mgmtOwnerIdxs.map(idx=>{
-        const p=mgmt[idx]||{};
-        const pct=(S.coOwnerMgmt.find(o=>o.mgmtIdx===idx)||{}).pct||'';
-        return kycPersonRow('owner-mgmt-'+idx,[p.firstName,p.lastName].filter(Boolean).join(' '),pct?pct+'% ownership':'',p.email||'',false);
-      }).join('')}
-      ${extraOwners.map((o,i)=>kycPersonRow('owner-extra-'+i,[o.firstName,o.lastName].filter(Boolean).join(' '),o.pct?o.pct+'% ownership':'',o.email||'',false)).join('')}
     </div>`:''}
 
     <div id="bVerifyStatus" style="display:none;background:#dcfce7;border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px">
@@ -2418,9 +2401,8 @@ function RB8(){
 
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
-    <h1 class="step-heading">Company owners.</h1>
-    <p class="step-sub" style="margin-bottom:6px">Review and confirm the beneficial owners of your company.</p>
-    <p style="font-size:13px;color:var(--ink3);margin-bottom:28px;line-height:1.55">A Company Owner (UBO) is a person who owns <strong>25% or more</strong> of the company. If no individual holds 25%, please select the most senior company manager as an owner.</p>
+    <h1 class="step-heading" style="text-align:center">Company owners.</h1>
+    <p class="step-sub" style="text-align:center;margin-bottom:10px">A Company Owner (UBO) is a person who owns <strong>25% or more</strong> of the company. If no individual reaches this threshold, select the most senior company manager as an owner.</p>
 
     <div class="section-header" style="margin-top:0">Company management list</div>
     <p style="font-size:13px;color:var(--ink3);margin-bottom:14px">Select any company management persons who are also owners.</p>
@@ -2585,8 +2567,8 @@ function RB6(){
 function RB7(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
-    <h1 class="step-heading">Risk declarations.</h1>
-    <p class="step-sub">Required by EU anti-money-laundering regulations. Your answers are confidential.</p>
+    <h1 class="step-heading" style="text-align:center">Risk declarations.</h1>
+    <p class="step-sub" style="text-align:center">Required by EU anti-money-laundering regulations. Your answers are confidential.</p>
 
     <!-- Sanctions exposure -->
     <div class="compliance-block">
