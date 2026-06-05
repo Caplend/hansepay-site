@@ -1721,7 +1721,6 @@ function RB3(){
       ${rv('Operating',opAddr)}
     </div>
 
-    <button class="btn btn-primary" style="margin-top:28px" onclick="nextStep()">Confirm &amp; continue →</button>
   </div>`;
 }
 
@@ -1764,7 +1763,6 @@ function RB4(){
       All documents are processed securely and stored encrypted in compliance with GDPR.
     </div>
 
-    <button class="btn btn-primary" style="margin-top:20px" onclick="nextStep()">Continue →</button>
   </div>`;
 }
 
@@ -3829,7 +3827,7 @@ function updateNavFooter(){
   const ph=getPhases().find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
   // Steps with their own primary action button (don't show generic Continue in footer)
-  const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4','B9','B10'].includes(id);
+  const hasOwnAction=[1,'3a','3b',6,'B1','B9','B10'].includes(id);
   nf.innerHTML=`
     <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
     <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${(steps.includes(14)||steps.includes('B11'))?steps.length-1:steps.length}</span></div>
