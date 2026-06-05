@@ -2088,15 +2088,15 @@ function kycPersonRow(key,name,role,email,isPrimary){
       <div style="font-weight:600;font-size:14px;color:var(--ink)">${esc(name||'—')}</div>
       <div style="font-size:12px;color:var(--ink3)">${role?esc(role)+(email?'  ·  ':''):''} ${esc(email||'')}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0" id="kyc-actions-${key}">
       ${sent
-        ? `<span style="font-size:12.5px;color:var(--success);font-weight:600">Email sent ✓</span>
-           <button type="button" onclick="kycResend('${key}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline">Resend</button>`
+        ? `<span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
+           <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`
         : isPrimary
-          ? `<span style="font-size:12px;color:var(--ink3);margin-right:4px">You</span>
-             <button type="button" id="bVerifyBtn" onclick="startBVerify()" class="btn btn-primary" style="width:auto;padding:8px 16px;font-size:13px">Start →</button>`
-          : `<span style="font-size:12px;color:var(--ink3)">Not started</span>
-             <button type="button" onclick="kycSendEmail('${key}','${esc(name||'')}','${esc(email||'')}','kyc-row-${key}')" class="btn btn-ghost btn-sm" style="width:auto;gap:6px">
+          ? `<span style="font-size:12px;color:var(--ink3);white-space:nowrap">You</span>
+             <button type="button" id="bVerifyBtn" onclick="startBVerify()" class="btn btn-primary" style="width:auto;padding:8px 18px;font-size:13px;white-space:nowrap">Start →</button>`
+          : `<span style="font-size:12px;color:var(--ink3);white-space:nowrap">Not started</span>
+             <button type="button" onclick="kycSendEmail('${key}','${esc(name||'')}','${esc(email||'')}')" class="btn btn-ghost btn-sm" style="width:auto;gap:6px;white-space:nowrap">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
                Send email
              </button>`
@@ -2173,29 +2173,28 @@ function RB10(){
   </div>`;
 }
 
-window.kycSendEmail=function(key,name,email,rowId){
-  const row=document.getElementById(rowId);
-  if(!row)return;
-  // Show spinner
-  const btn=row.querySelector('button[onclick*="kycSendEmail"]');
-  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px;margin:0 auto"></div>';}
+window.kycSendEmail=function(key,name,email){
+  const actions=document.getElementById('kyc-actions-'+key);
+  if(!actions)return;
+  actions.innerHTML=`<div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--n200);border-top-color:var(--n500);flex-shrink:0"></div>`;
   setTimeout(()=>{
     window._kycSent[key]=true;
-    const btns=row.querySelectorAll('button');
-    btns.forEach(b=>b.remove());
-    const statusEl=row.querySelector('span:last-of-type');
-    if(statusEl)statusEl.remove();
-    const actionsDiv=row.querySelector('div:last-child');
-    if(actionsDiv){
-      actionsDiv.innerHTML=`<span style="font-size:12.5px;color:var(--success);font-weight:600">Email sent ✓</span>
-        <button type="button" onclick="kycResend('${key}','${esc(name)}','${esc(email)}','${rowId}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;margin-left:8px">Resend</button>`;
-    }
+    actions.innerHTML=`
+      <span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
+      <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
   },1200);
 };
 
-window.kycResend=function(key,name,email,rowId){
-  window._kycSent[key]=false;
-  kycSendEmail(key,name||'',email||'',rowId||('kyc-row-'+key));
+window.kycResend=function(key,name,email){
+  const actions=document.getElementById('kyc-actions-'+key);
+  if(!actions)return;
+  actions.innerHTML=`<div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--n200);border-top-color:var(--n500);flex-shrink:0"></div>`;
+  setTimeout(()=>{
+    window._kycSent[key]=true;
+    actions.innerHTML=`
+      <span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
+      <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
+  },1200);
 };
 
 window.startBVerify=function(){
