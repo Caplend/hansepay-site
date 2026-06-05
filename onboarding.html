@@ -478,9 +478,10 @@ const S = {
   coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
   coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
   coManagement:[],
+  coOwnerMgmt:[],coOwnerExtra:[],
   // B6 – Business activity & payments
   coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
-  coIsRegulated:'',coRegulatedDetail:'',coCompanySize:'',
+  coCompanySize:'',
   coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
   // B7 – Risk declarations
   coSanctionsExposure:'',coSanctionsDetail:'',
@@ -504,7 +505,7 @@ const BUSINESS_PHASES = [
   {id:'account',    label:'Account',    steps:[1,2,'3a','3b',4]},
   {id:'company',    label:'Company',    steps:['B1','B2']},
   {id:'documents',  label:'Documents',  steps:['B3','B4']},
-  {id:'management', label:'Management', steps:['B5']},
+  {id:'management', label:'Management', steps:['B5','B8']},
   {id:'activity',   label:'Activity',   steps:['B6','B7']},
 ];
 function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
@@ -521,7 +522,7 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B6','B7'];
+    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8','B6','B7'];
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -641,7 +642,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B6':return RB6();case'B7':return RB7();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B6':return RB6();case'B7':return RB7();
   }
   return '';
 }
@@ -1558,7 +1559,10 @@ function RB2(){
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Company details</div>
 
     ${fieldHTML('coName','Registered name','text',S.coName,'','true')}
-    ${fieldHTML('coTradeName','Trade name','text',S.coTradeName,'If different from registered name')}
+    <div class="field-group">
+      <label for="coTradeName">Trade name</label>
+      <input type="text" id="coTradeName" value="${esc(S.coTradeName||'')}" placeholder="If different from registered name">
+    </div>
 
     <div class="field-row">
       <div class="field-group">
@@ -1604,23 +1608,21 @@ function RB2(){
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>&ensp;Account &amp; funds</div>
 
-    <div class="field-row">
-      <div class="field-group">
-        <label for="coAccountPurpose">Account purpose</label>
-        <select id="coAccountPurpose"><option value="">Select…</option>${bizPurposeOpts}</select>
-        <div class="field-error" id="coAccountPurpose-err"></div>
-      </div>
-      <div class="field-group">
-        <label for="coSourceOfFunds">Main source of funds</label>
-        <select id="coSourceOfFunds"><option value="">Select…</option>${sofOpts}</select>
-        <div class="field-error" id="coSourceOfFunds-err"></div>
-      </div>
+    <div class="field-group">
+      <label for="coAccountPurpose">Account purpose</label>
+      <select id="coAccountPurpose"><option value="">Select…</option>${bizPurposeOpts}</select>
+      <div class="field-error" id="coAccountPurpose-err"></div>
     </div>
-    <div id="coPurposeOtherWrap" style="display:${(S.coAccountPurpose||'').includes('Other')?' block':'none'}">
-      ${fieldHTML('coAccountPurposeOther','Please explain','text',S.coAccountPurposeOther,'','true')}
+    <div id="coPurposeOtherWrap" style="display:${(S.coAccountPurpose||'').includes('Other')?'block':'none'};margin-top:-8px;margin-bottom:16px">
+      ${fieldHTML('coAccountPurposeOther','Please explain the account purpose','text',S.coAccountPurposeOther,'','true')}
     </div>
-    <div id="coSOFOtherWrap" style="display:${(S.coSourceOfFunds||'').includes('Other')?' block':'none'}">
-      ${fieldHTML('coSourceOfFundsOther','Please explain','text',S.coSourceOfFundsOther,'','true')}
+    <div class="field-group">
+      <label for="coSourceOfFunds">Main source of funds</label>
+      <select id="coSourceOfFunds"><option value="">Select…</option>${sofOpts}</select>
+      <div class="field-error" id="coSourceOfFunds-err"></div>
+    </div>
+    <div id="coSOFOtherWrap" style="display:${(S.coSourceOfFunds||'').includes('Other')?'block':'none'};margin-top:-8px;margin-bottom:16px">
+      ${fieldHTML('coSourceOfFundsOther','Please explain the source of funds','text',S.coSourceOfFundsOther,'','true')}
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>&ensp;Registered address</div>
@@ -1722,8 +1724,8 @@ function RB3(){
 // ── B4 — Company documents ─────────────────────────────────────────────────
 function RB4(){
   const docs=[
-    {id:'docAoA',label:'Incorporation',desc:'Please upload your articles of incorporation or certificate of incorporation. This document confirms your company\'s legal formation and typically includes the company name, business purpose, registered address, share structure, and governance framework. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
-    {id:'docShareholder',label:'Ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
+    {id:'docAoA',label:'Incorporation',desc:'Please upload your articles of incorporation or certificate of incorporation. This document confirms your company\'s legal formation and typically includes the company name, business purpose, registered address, share structure, governance framework, and a list of all current directors. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
+    {id:'docShareholder',label:'Proof of Ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
     {id:'docBankStmt',label:'Proof of address',desc:'Please upload a proof of the company\'s registered or operating address — such as a utility bill, lease agreement, bank statement, or official government correspondence issued within the last 3 months. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
   ];
   return`<div class="step-card" id="sCard">
@@ -1856,19 +1858,9 @@ function renderMgmtPerson(p,i){
     <div style="border-top:1px solid #EEF3F8;margin:16px 0 16px;padding-top:16px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Controlling</div>
       <div class="field-group">
-        <label for="mp${i}Role">Role</label>
-        <select id="mp${i}Role">
-          <option value="">Select role…</option>
-          ${roleOpts}
-        </select>
+        <label for="mp${i}Role">Role <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+        <input type="text" id="mp${i}Role" value="${esc(p.role||'')}" placeholder="e.g. CEO, Managing Director, CFO">
         <div class="field-error" id="mp${i}Role-err"></div>
-      </div>
-      <div id="mp${i}RoleOtherWrap" style="display:${p.role==='Other — please specify'?'block':'none'}">
-        <div class="field-group">
-          <label for="mp${i}RoleOther">Please specify your role</label>
-          <input type="text" id="mp${i}RoleOther" value="${esc(p.roleOther||'')}" placeholder="e.g. Chief Strategy Officer">
-          <div class="field-error" id="mp${i}RoleOther-err"></div>
-        </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
         <input type="checkbox" id="mp${i}IsDirector" ${p.isDirector?'checked':''} style="width:16px;height:16px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" onchange="S.coManagement[${i}].isDirector=this.checked;saveState()">
@@ -1930,15 +1922,7 @@ window.updateMgmtHeader=function(i){
   if(nameEl)nameEl.textContent=[fn,ln].filter(Boolean).join(' ')||'—';
 };
 
-function attachMgmtRoleListener(i){
-  const sel=document.getElementById('mp'+i+'Role');
-  if(!sel)return;
-  sel.addEventListener('change',()=>{
-    const w=document.getElementById('mp'+i+'RoleOtherWrap');
-    if(w)w.style.display=sel.value==='Other — please specify'?'block':'none';
-    saveState();
-  });
-}
+function attachMgmtRoleListener(i){ /* role is now a free text field — no listener needed */ }
 
 let _mgmtAddrTimers={};
 window._mgmtAddrResults={};
@@ -2015,9 +1999,7 @@ function collectMgmtData(){
     p.city=document.getElementById('mp'+i+'City')?.value||'';
     p.postcode=document.getElementById('mp'+i+'Postcode')?.value||'';
     p.country=document.getElementById('mp'+i+'Country')?.value||p.country;
-    const roleSel=document.getElementById('mp'+i+'Role');
-    if(roleSel)p.role=roleSel.value;
-    p.roleOther=document.getElementById('mp'+i+'RoleOther')?.value||'';
+    p.role=document.getElementById('mp'+i+'Role')?.value||'';
     const dirChk=document.getElementById('mp'+i+'IsDirector');
     if(dirChk)p.isDirector=dirChk.checked;
   });
@@ -2078,6 +2060,204 @@ function bcpPickerHTML(pickerId,label,arr,req){
   </div>`;
 }
 
+// ── B8 — Company Owners (UBOs) ────────────────────────────────────────────
+const OWNER_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
+
+function blankOwnerExtra(){
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:'+49',phone:'',
+    dob:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',pct:''};
+}
+
+function renderOwnerExtra(o,i){
+  const name=(o.firstName||o.lastName)?[o.firstName,o.lastName].filter(Boolean).join(' '):'—';
+  const phoneSel=OWNER_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(o.phoneCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(o.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
+  return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="owner-extra-${i}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--ink)">Owner ${i+1}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${esc(name)}</div>
+      </div>
+      <button type="button" onclick="removeOwnerExtra(${i})" style="background:none;border:none;cursor:pointer;color:var(--error);padding:4px;border-radius:6px;display:flex;align-items:center" title="Remove">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="oe${i}First">First name</label>
+        <input type="text" id="oe${i}First" value="${esc(o.firstName||'')}" placeholder="First name">
+        <div class="field-error" id="oe${i}First-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="oe${i}Middle">Middle name <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <input type="text" id="oe${i}Middle" value="${esc(o.middleName||'')}" placeholder="Middle name">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Last">Last name</label>
+      <input type="text" id="oe${i}Last" value="${esc(o.lastName||'')}" placeholder="Last name">
+      <div class="field-error" id="oe${i}Last-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Email">Email</label>
+      <input type="email" id="oe${i}Email" value="${esc(o.email||'')}" placeholder="owner@company.com">
+      <div class="field-error" id="oe${i}Email-err"></div>
+    </div>
+    <div class="field-group">
+      <label>Phone number</label>
+      <div class="phone-row">
+        <select id="oe${i}PhoneCC" style="width:130px;min-width:130px">${phoneSel}</select>
+        <input type="tel" id="oe${i}Phone" value="${esc(o.phone||'')}" placeholder="e.g. 1234 567 890">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}DOB">Date of birth</label>
+      <input type="date" id="oe${i}DOB" value="${esc(o.dob||'')}" max="${todayMinus18()}">
+      <div class="field-error" id="oe${i}DOB-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Addr1">Address line 1</label>
+      <input type="text" id="oe${i}Addr1" value="${esc(o.addr1||'')}" placeholder="Street and number">
+      <div class="field-error" id="oe${i}Addr1-err"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="oe${i}City">City</label>
+        <input type="text" id="oe${i}City" value="${esc(o.city||'')}" placeholder="City">
+        <div class="field-error" id="oe${i}City-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="oe${i}Postcode">Post code</label>
+        <input type="text" id="oe${i}Postcode" value="${esc(o.postcode||'')}" placeholder="Post code">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Country">Country of residence</label>
+      <select id="oe${i}Country">${countryOpts}</select>
+    </div>
+    <div style="border-top:1px solid #EEF3F8;margin:16px 0 14px;padding-top:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
+      <div class="field-group">
+        <label for="oe${i}Pct">Ownership %</label>
+        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" min="25" max="100" placeholder="Enter 25–100">
+        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Only list owners with over 25% stake.</div>
+        <div class="field-error" id="oe${i}Pct-err"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function RB8(){
+  const mgmtList=S.coManagement||[];
+  const mgmtCheckboxes=mgmtList.map((p,i)=>{
+    const sel=S.coOwnerMgmt.find(o=>o.mgmtIdx===i);
+    const checked=!!sel;
+    const pct=sel?sel.pct:'';
+    return`<div style="border:1.5px solid ${checked?'var(--n500)':'#E2EBF3'};border-radius:var(--r-md);padding:14px 16px;margin-bottom:8px;transition:.18s" id="om-row-${i}">
+      <div style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="toggleOwnerMgmt(${i})">
+        <input type="checkbox" id="om-chk-${i}" ${checked?'checked':''} style="width:17px;height:17px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();toggleOwnerMgmt(${i})">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">${esc([p.firstName,p.lastName].filter(Boolean).join(' ')||'—')}</div>
+          <div style="font-size:12.5px;color:var(--ink3)">${esc(p.email||'')}${p.role?'  ·  '+esc(p.role):''}</div>
+        </div>
+      </div>
+      <div id="om-pct-${i}" style="display:${checked?'block':'none'};margin-top:12px;padding-top:12px;border-top:1px solid #EEF3F8">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Ownership % <span style="color:var(--error)">*</span></label>
+        <input type="number" id="om-pct-inp-${i}" min="25" max="100" placeholder="Enter 25–100" value="${esc(String(pct))}" style="margin-top:6px;width:180px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
+        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 25–100.</div>
+        <div class="field-error" id="om-pct-err-${i}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    <h1 class="step-heading">Company owners.</h1>
+    <p class="step-sub" style="margin-bottom:6px">Review and confirm the beneficial owners of your company.</p>
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:28px;line-height:1.55">A Company Owner (UBO) is a person who owns <strong>25% or more</strong> of the company. If no individual holds 25%, please select the most senior company manager as an owner.</p>
+
+    <div class="section-header" style="margin-top:0">Company management list</div>
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px">Select any company management persons who are also owners.</p>
+
+    <div id="ownerMgmtList">
+      ${mgmtCheckboxes||'<p style="font-size:13.5px;color:var(--ink3);padding:12px 0">No management persons added yet. Go back to add them.</p>'}
+    </div>
+
+    ${S.coOwnerExtra.length>0?`<div class="section-header">Additional owners</div><div id="ownerExtraList">${S.coOwnerExtra.map((o,i)=>renderOwnerExtra(o,i)).join('')}</div>`:`<div id="ownerExtraList"></div>`}
+
+    <button type="button" onclick="addOwnerExtra()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:8px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add another owner
+    </button>
+  </div>`;
+}
+
+window.toggleOwnerMgmt=function(mgmtIdx){
+  const chk=document.getElementById('om-chk-'+mgmtIdx);
+  const pctWrap=document.getElementById('om-pct-'+mgmtIdx);
+  const row=document.getElementById('om-row-'+mgmtIdx);
+  const existing=S.coOwnerMgmt.findIndex(o=>o.mgmtIdx===mgmtIdx);
+  if(existing===-1){
+    S.coOwnerMgmt.push({mgmtIdx,pct:''});
+    if(chk)chk.checked=true;
+    if(pctWrap)pctWrap.style.display='block';
+    if(row)row.style.borderColor='var(--n500)';
+  } else {
+    S.coOwnerMgmt.splice(existing,1);
+    if(chk)chk.checked=false;
+    if(pctWrap)pctWrap.style.display='none';
+    if(row)row.style.borderColor='#E2EBF3';
+  }
+  saveState();
+};
+
+window.updateOwnerMgmtPct=function(mgmtIdx,val){
+  const o=S.coOwnerMgmt.find(o=>o.mgmtIdx===mgmtIdx);
+  if(o)o.pct=val;
+  saveState();
+};
+
+window.addOwnerExtra=function(){
+  collectData();
+  S.coOwnerExtra.push(blankOwnerExtra());
+  saveState();
+  const list=document.getElementById('ownerExtraList');
+  if(list){
+    const i=S.coOwnerExtra.length-1;
+    list.insertAdjacentHTML('beforeend',renderOwnerExtra(S.coOwnerExtra[i],i));
+    const newCard=document.getElementById('owner-extra-'+i);
+    if(newCard)newCard.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+};
+
+window.removeOwnerExtra=function(i){
+  collectData();
+  S.coOwnerExtra.splice(i,1);
+  saveState();
+  showStep('forward');
+};
+
+function collectOwnerExtraData(){
+  S.coOwnerExtra.forEach((o,i)=>{
+    o.firstName=document.getElementById('oe'+i+'First')?.value||o.firstName;
+    o.middleName=document.getElementById('oe'+i+'Middle')?.value||'';
+    o.lastName=document.getElementById('oe'+i+'Last')?.value||o.lastName;
+    o.email=document.getElementById('oe'+i+'Email')?.value||o.email;
+    o.phoneCC=document.getElementById('oe'+i+'PhoneCC')?.value||o.phoneCC;
+    o.phone=document.getElementById('oe'+i+'Phone')?.value||'';
+    o.dob=document.getElementById('oe'+i+'DOB')?.value||'';
+    o.addr1=document.getElementById('oe'+i+'Addr1')?.value||'';
+    o.city=document.getElementById('oe'+i+'City')?.value||'';
+    o.postcode=document.getElementById('oe'+i+'Postcode')?.value||'';
+    o.country=document.getElementById('oe'+i+'Country')?.value||o.country;
+    const pct=document.getElementById('oe'+i+'Pct')?.value||'';
+    o.pct=pct;
+  });
+}
+
 // ── B6 — Business activity & payments ─────────────────────────────────────
 function RB6(){
   const custTypeCards=radioCardsHTML('rcCustType',[
@@ -2111,15 +2291,6 @@ function RB6(){
 
     ${bcpPickerHTML('coCustomerCountries','Main customer countries',S.coCustomerCountries,true)}
     ${bcpPickerHTML('coOperatingCountries','Main operating countries',S.coOperatingCountries,true)}
-
-    <div class="compliance-block">
-      <div class="compliance-block-label">Is your business regulated or licensed by a financial, government, or industry authority?</div>
-      ${radioCardsHTML('rcCoRegulated',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coIsRegulated,2)}
-      <div id="coRegDetailWrap" class="collapsible${S.coIsRegulated==='yes'?' open':''}">
-        ${fieldHTML('coRegulatedDetail','Please name the regulator and licence type','text',S.coRegulatedDetail,'e.g. BaFin, FCA, MAS — Payment Institution Licence','true')}
-      </div>
-      <div class="field-error" id="coIsRegulated-err"></div>
-    </div>
 
     <div class="field-group">
       <label>What is the size of your company?</label>
@@ -2177,8 +2348,8 @@ function RB7(){
 
     <!-- Sanctions exposure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Does your company, any group company, director, UBO, key supplier, major customer, or payment counterparty have any direct or indirect connection to sanctioned persons, entities, vessels, banks, goods, services, or territories?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes connections to any party on the EU, UN, US (OFAC), or UK sanctions lists, or any transaction involving sanctioned countries such as Russia, Iran, North Korea, Belarus, or Syria.</span></span>
+      <div class="compliance-block-label">Does your company have any connection to sanctioned parties or territories?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
       </div>
       ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
       <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
@@ -2189,10 +2360,11 @@ function RB7(){
 
     <!-- High-risk countries -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Are any countries connected to your business activity — including incorporation, operations, customers, suppliers, directors, bank accounts, or payment flows — subject to international sanctions, embargoes, or enhanced monitoring?</div>
+      <div class="compliance-block-label">Are any countries connected to your business subject to sanctions, embargoes, or enhanced monitoring?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Consider all countries connected to your business: incorporation, operations, customers, suppliers, director and UBO residences, bank accounts, sending and receiving countries, and countries where goods or services are delivered.</span></span>
+      </div>
       ${radioCardsHTML('rcCoHRC',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coHighRiskCountries||'no',2)}
       <div id="coHRCWrap" class="collapsible${S.coHighRiskCountries==='yes'?' open':''}">
-        <div style="background:var(--n050);border-radius:var(--r-md);padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:12px">Please confirm whether any countries involved in your business are subject to sanctions, embargoes, enhanced monitoring, or internal restrictions.</div>
         ${fieldHTML('coHighRiskDetail','Please list the countries and describe the connection','textarea',S.coHighRiskDetail,'e.g. We have a supplier in Turkey. Our customers include companies in the UAE and India.','true')}
       </div>
       <div class="field-error" id="coHighRiskCountries-err"></div>
@@ -2200,7 +2372,9 @@ function RB7(){
 
     <!-- Previous account closure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Has your company, any group company, director, UBO, or related account ever had payment services restricted, terminated, frozen, or placed on reserve by a bank, acquirer, PSP, EMI, or payment provider?</div>
+      <div class="compliance-block-label">Has your company ever had payment services restricted or terminated by a provider?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes any situation where your company, a group company, director, UBO, or related account had services restricted, frozen, terminated, placed on reserve, or subjected to enhanced monitoring by a bank, acquirer, PSP, EMI, or payment or MICA partner.</span></span>
+      </div>
       ${radioCardsHTML('rcCoPrevClosure',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coPreviousAccountClosure||'no',2)}
       <div id="coPrevClosureWrap" class="collapsible${S.coPreviousAccountClosure==='yes'?' open':''}">
         ${fieldHTML('coPreviousClosureDetail','Please provide details','textarea',S.coPreviousClosureDetail,'Include the provider, reason, date, and current status.','true')}
@@ -2210,10 +2384,12 @@ function RB7(){
 
     <!-- Fraud / disputes -->
     <div class="compliance-block" style="margin-bottom:0">
-      <div class="compliance-block-label">In the last 24 months, has your company experienced material chargebacks, fraud complaints, refund spikes, customer disputes, or regulatory complaints or bans?</div>
+      <div class="compliance-block-label">Has your company experienced material chargebacks, fraud complaints, or regulatory issues in the last 24 months?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes chargebacks, fraud complaints, refund spikes, customer disputes, regulatory complaints, or platform bans in the last 24 months. If yes, please explain the root cause, period affected, volumes, remediation, and current status.</span></span>
+      </div>
       ${radioCardsHTML('rcCoFraud',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coFraudDisputes||'no',2)}
       <div id="coFraudWrap" class="collapsible${S.coFraudDisputes==='yes'?' open':''}">
-        ${fieldHTML('coFraudDetail','Please explain','textarea',S.coFraudDetail,'Include the root cause, period affected, volumes, remediation taken, and current status.','true')}
+        ${fieldHTML('coFraudDetail','Please explain','textarea',S.coFraudDetail,'Root cause, period affected, volumes, remediation taken, and current status.','true')}
       </div>
       <div class="field-error" id="coFraudDisputes-err"></div>
     </div>
@@ -2358,6 +2534,24 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B8'){
+    collectOwnerExtraData();
+    const totalOwners=S.coOwnerMgmt.length+S.coOwnerExtra.length;
+    if(!totalOwners){const e=document.getElementById('ownerMgmtList');showToast('Please select or add at least one owner');ok=false;}
+    S.coOwnerMgmt.forEach(o=>{
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100){
+        const e=document.getElementById('om-pct-err-'+o.mgmtIdx);
+        if(e){e.textContent='Please enter a valid ownership % (25–100)';e.classList.add('visible');}ok=false;
+      }
+    });
+    S.coOwnerExtra.forEach((o,i)=>{
+      if(!(o.firstName||'').trim()) fail('oe'+i+'First','First name is required');
+      if(!(o.lastName||'').trim()) fail('oe'+i+'Last','Last name is required');
+      if(!o.dob) fail('oe'+i+'DOB','Date of birth is required');
+      if(!(o.addr1||'').trim()) fail('oe'+i+'Addr1','Address is required');
+      if(!(o.city||'').trim()) fail('oe'+i+'City','City is required');
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25) fail('oe'+i+'Pct','Enter a valid ownership % (25–100)');
+    });
   } else if(id==='B7'){
     if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
     if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
@@ -2372,7 +2566,6 @@ function validateStep(){
     if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
     if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
     if(!S.coOperatingCountries.length){const e=document.getElementById('bcp-coOperatingCountries-err');if(e){e.textContent='Please add at least one operating country';e.classList.add('visible');}ok=false;}
-    if(!S.coIsRegulated) fail('coIsRegulated','Please answer this question');
     if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
     if(!S.coMonthlyVolume) fail('coMonthlyVolume','Please select a volume range');
     if(!S.coMonthlyTransactions) fail('coMonthlyTransactions','Please select a transaction range');
@@ -2386,8 +2579,6 @@ function validateStep(){
       if(!p.dob) fail('mp'+i+'DOB','Date of birth is required');
       if(!(p.addr1||'').trim()) fail('mp'+i+'Addr1','Address is required');
       if(!(p.city||'').trim()) fail('mp'+i+'City','City is required');
-      if(!p.role) fail('mp'+i+'Role','Role is required');
-      if(p.role==='Other — please specify'&&!(p.roleOther||'').trim()) fail('mp'+i+'RoleOther','Please specify the role');
     });
   } else if(id==='B1'){
     if(!S.coSearchDone){showToast('Please search and select your company first');ok=false;}
@@ -2471,6 +2662,9 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  } else if(id==='B8'){
+    collectOwnerExtraData();
+    // coOwnerMgmt pcts are updated inline via updateOwnerMgmtPct
   } else if(id==='B7'){
     S.coSanctionsDetail=g('coSanctionsDetail')||'';
     S.coHighRiskDetail=g('coHighRiskDetail')||'';
@@ -3462,9 +3656,9 @@ function startFresh(){
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
     coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
-    coManagement:[],
+    coManagement:[],coOwnerMgmt:[],coOwnerExtra:[],
     coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
-    coIsRegulated:'',coRegulatedDetail:'',coCompanySize:'',
+    coCompanySize:'',
     coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
     coSanctionsExposure:'',coSanctionsDetail:'',coHighRiskCountries:'',coHighRiskDetail:'',
     coPreviousAccountClosure:'',coPreviousClosureDetail:'',coFraudDisputes:'',coFraudDetail:''
