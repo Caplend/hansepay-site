@@ -2076,44 +2076,127 @@ function onCoTCChange(){
 }
 
 // ── B10 — Identity verification (KYC) ─────────────────────────────────────
-function RB10(){
-  return`<div class="step-card" id="sCard">
-    <div class="step-icon">
-      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-    </div>
-    <h1 class="step-heading" style="text-align:center">Verify your identity.</h1>
-    <p class="step-sub" style="text-align:center">Each director and beneficial owner must complete identity verification. Have your ID ready.</p>
+if(!window._kycSent)window._kycSent={};
 
-    <div style="background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:0;margin-bottom:24px;overflow:hidden">
-      ${[
-        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,title:'Document photo',desc:'Passport or national ID card'},
-        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/></svg>`,title:'Liveness check',desc:'A brief selfie — confirms it is you'},
-        {icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,title:'Instant review',desc:'Automated — usually done in seconds'},
-      ].map((r,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:16px 20px${i<2?';border-bottom:1px solid #EEF3F8':''}">
-        <div style="width:38px;height:38px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.icon}</div>
-        <div><div style="font-weight:600;font-size:14px;color:var(--ink)">${r.title}</div><div style="font-size:13px;color:var(--ink3);margin-top:2px">${r.desc}</div></div>
+function kycPersonRow(key,name,role,email,isPrimary){
+  const sent=window._kycSent[key];
+  return`<div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid #EEF3F8" id="kyc-row-${key}">
+    <div style="width:34px;height:34px;border-radius:50%;background:var(--n050);border:1.5px solid var(--n100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;font-size:14px;color:var(--ink)">${esc(name||'—')}</div>
+      <div style="font-size:12px;color:var(--ink3)">${role?esc(role)+(email?'  ·  ':''):''} ${esc(email||'')}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      ${sent
+        ? `<span style="font-size:12.5px;color:var(--success);font-weight:600">Email sent ✓</span>
+           <button type="button" onclick="kycResend('${key}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline">Resend</button>`
+        : isPrimary
+          ? `<span style="font-size:12px;color:var(--ink3);margin-right:4px">You</span>
+             <button type="button" id="bVerifyBtn" onclick="startBVerify()" class="btn btn-primary" style="width:auto;padding:8px 16px;font-size:13px">Start →</button>`
+          : `<span style="font-size:12px;color:var(--ink3)">Not started</span>
+             <button type="button" onclick="kycSendEmail('${key}','${esc(name||'')}','${esc(email||'')}','kyc-row-${key}')" class="btn btn-ghost btn-sm" style="width:auto;gap:6px">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+               Send email
+             </button>`
+      }
+    </div>
+  </div>`;
+}
+
+function RB10(){
+  const mgmt=S.coManagement||[];
+  const extraOwners=S.coOwnerExtra||[];
+  // Owners from management list
+  const mgmtOwnerIdxs=(S.coOwnerMgmt||[]).map(o=>o.mgmtIdx);
+
+  const whatToExpect=[
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,title:'No person to speak to',desc:'The process is entirely automated — no calls or video interviews required.'},
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,title:'Have your ID ready',desc:'Each person needs a valid government-issued ID — passport or national ID.'},
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,title:'Keep a phone nearby',desc:'A smartphone is required to complete the verification steps.'},
+  ];
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+    <h1 class="step-heading" style="text-align:center">Verify company management &amp; owners.</h1>
+    <p class="step-sub" style="text-align:center">Each person listed below must complete identity verification. We'll email them a secure link to our partner Signicat.</p>
+
+    <div class="section-header" style="margin-top:4px">What to expect</div>
+    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:22px">
+      ${whatToExpect.map((r,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:14px 18px${i<2?';border-bottom:1px solid #EEF3F8':''}">
+        <div style="width:34px;height:34px;border-radius:9px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.icon}</div>
+        <div><div style="font-weight:600;font-size:14px;color:var(--ink)">${r.title}</div><div style="font-size:12.5px;color:var(--ink3);margin-top:1px">${r.desc}</div></div>
       </div>`).join('')}
     </div>
 
-    ${(S.coManagement.length>0||S.coOwnerMgmt.length>0||S.coOwnerExtra.length>0)?`
-    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-bottom:20px;font-size:13.5px;color:var(--ink2);line-height:1.6">
-      <b>Persons to verify:</b> ${[
-        ...S.coManagement.map(p=>[p.firstName,p.lastName].filter(Boolean).join(' ')),
-        ...S.coOwnerExtra.map(o=>[o.firstName,o.lastName].filter(Boolean).join(' '))
-      ].filter(Boolean).join(', ') || 'Company management & owners'}
+    ${mgmt.length>0?`
+    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px">
+      <div style="padding:14px 16px;background:var(--n050);border-bottom:1px solid #EEF3F8;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company Management</div>
+          <div style="font-size:12px;color:var(--ink3)">Each member of company management must complete identity verification.</div>
+        </div>
+      </div>
+      ${mgmt.map((p,i)=>kycPersonRow('mgmt-'+i,[p.firstName,p.lastName].filter(Boolean).join(' '),p.role||'',p.email||'',i===0)).join('')}
+    </div>`:''}
+
+    ${(extraOwners.length>0||mgmtOwnerIdxs.length>0)?`
+    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px">
+      <div style="padding:14px 16px;background:var(--n050);border-bottom:1px solid #EEF3F8;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company Owners</div>
+          <div style="font-size:12px;color:var(--ink3)">Each company owner must complete identity verification.</div>
+        </div>
+      </div>
+      ${mgmtOwnerIdxs.map(idx=>{
+        const p=mgmt[idx]||{};
+        const pct=(S.coOwnerMgmt.find(o=>o.mgmtIdx===idx)||{}).pct||'';
+        return kycPersonRow('owner-mgmt-'+idx,[p.firstName,p.lastName].filter(Boolean).join(' '),pct?pct+'% ownership':'',p.email||'',false);
+      }).join('')}
+      ${extraOwners.map((o,i)=>kycPersonRow('owner-extra-'+i,[o.firstName,o.lastName].filter(Boolean).join(' '),o.pct?o.pct+'% ownership':'',o.email||'',false)).join('')}
     </div>`:''}
 
     <div id="bVerifyStatus" style="display:none;background:#dcfce7;border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;color:#166534">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <b>Identity verified. Continuing…</b>
+        <b>Your identity verified.</b> We'll notify others by email.
       </div>
     </div>
 
-    <p style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:14px">Secured by Signicat · bank-grade identity verification</p>
-    <button class="btn btn-primary" id="bVerifyBtn" onclick="startBVerify()">Start verification →</button>
+    <p style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:16px">Secured by Signicat · bank-grade identity verification</p>
+
+    ${mgmt.length===0?`<button class="btn btn-primary" id="bVerifyBtn" onclick="startBVerify()">Start verification →</button>`:''}
+    <button class="btn btn-ghost" onclick="nextStep()" style="margin-top:8px">Continue without verifying →</button>
   </div>`;
 }
+
+window.kycSendEmail=function(key,name,email,rowId){
+  const row=document.getElementById(rowId);
+  if(!row)return;
+  // Show spinner
+  const btn=row.querySelector('button[onclick*="kycSendEmail"]');
+  if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:14px;height:14px;border-width:2px;margin:0 auto"></div>';}
+  setTimeout(()=>{
+    window._kycSent[key]=true;
+    const btns=row.querySelectorAll('button');
+    btns.forEach(b=>b.remove());
+    const statusEl=row.querySelector('span:last-of-type');
+    if(statusEl)statusEl.remove();
+    const actionsDiv=row.querySelector('div:last-child');
+    if(actionsDiv){
+      actionsDiv.innerHTML=`<span style="font-size:12.5px;color:var(--success);font-weight:600">Email sent ✓</span>
+        <button type="button" onclick="kycResend('${key}','${esc(name)}','${esc(email)}','${rowId}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;margin-left:8px">Resend</button>`;
+    }
+  },1200);
+};
+
+window.kycResend=function(key,name,email,rowId){
+  window._kycSent[key]=false;
+  kycSendEmail(key,name||'',email||'',rowId||('kyc-row-'+key));
+};
 
 window.startBVerify=function(){
   var m=document.getElementById('verifyModal');
