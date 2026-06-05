@@ -331,13 +331,26 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 </div>
 
 
+<!-- LEAVE CONFIRMATION MODAL -->
+<div id="leaveModal" style="display:none;position:fixed;inset:0;background:rgba(6,13,26,.55);z-index:10000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="background:#fff;border-radius:20px;padding:36px 40px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(6,13,26,.28)">
+    <div style="width:52px;height:52px;border-radius:50%;background:#FEF9EC;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8761A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <h2 style="font-family:'Libre Baskerville',serif;font-size:20px;color:var(--n800);margin-bottom:8px">Leave application?</h2>
+    <p style="font-size:14px;color:var(--ink3);line-height:1.6;margin-bottom:24px">Your progress has been saved. You can continue your application at any time — just return to this page.</p>
+    <button onclick="closeLeavModal()" style="width:100%;padding:13px;border-radius:100px;border:none;background:var(--n800);color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">Continue application</button>
+    <button id="leaveConfirmBtn" onclick="confirmLeave()" style="width:100%;padding:13px;border-radius:100px;border:1.5px solid rgba(11,25,41,.15);background:transparent;color:var(--ink2);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer">Leave page</button>
+  </div>
+</div>
+
 <!-- TOP HEADER -->
 <header class="ob-topbar">
-  <a class="ob-topbar-logo" href="/">
+  <a class="ob-topbar-logo" href="/" id="topbarLogo">
     <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay">
     <span class="ob-topbar-logo-text">HansePay</span>
   </a>
-  <a class="ob-topbar-exit" href="/">Save &amp; exit</a>
+  <a class="ob-topbar-exit" href="/" id="topbarExit">Save &amp; exit</a>
 </header>
 
 <!-- HORIZONTAL STEPPER -->
@@ -393,12 +406,12 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
           <div class="success-step-label">Account created</div>
           <span class="success-step-status done">Complete</span>
         </div>
-        <div class="success-step-row">
-          <div class="success-step-icon done">
+        <div class="success-step-row" id="successStep2Row">
+          <div class="success-step-icon done" id="successStep2Icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
           </div>
-          <div class="success-step-label">Identity verified</div>
-          <span class="success-step-status done">Complete</span>
+          <div class="success-step-label" id="successStep2Label">Identity verified</div>
+          <span class="success-step-status done" id="successStep2Status">Complete</span>
         </div>
         <div class="success-step-row">
           <div class="success-step-icon pending">
@@ -1275,16 +1288,11 @@ function R13(){
 }
 
 function R14(){
-  setTimeout(()=>{
-    document.getElementById('mainLayout').style.display='none';
-    document.getElementById('mobileTop').style.display='none';
-    document.getElementById('successPage').style.display='block';
-    document.getElementById('successHeading').textContent='Application submitted'+(S.firstName?', '+S.firstName:'')+'.';
-    if(S.email)document.getElementById('successEmailLine').textContent='We\'ll email you at '+S.email+' once approved';
-    document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
-    const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
-  },50);
-  return`<div class="step-card" id="sCard"><p style="text-align:center;padding:20px;color:var(--ink3)">Finalising…</p></div>`;
+  setTimeout(()=>showSuccessPage('individual'),50);
+  return`<div class="step-card" id="sCard" style="text-align:center;padding:40px 20px">
+    <div style="width:48px;height:48px;border:3px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 16px"></div>
+    <p style="color:var(--ink3);font-size:14px">Submitting your application…</p>
+  </div>`;
 }
 
 // =============================================================
@@ -2215,18 +2223,11 @@ window.submitVerify=function(){
 
 // ── B11 — Success ──────────────────────────────────────────────────────────
 function RB11(){
-  setTimeout(()=>{
-    document.getElementById('mainLayout').style.display='none';
-    document.getElementById('successPage').style.display='block';
-    document.getElementById('successHeading').textContent='Application submitted'+(S.coName?', '+S.coName:S.firstName?' — '+S.firstName:'')+'.' ;
-    const emailLine=document.getElementById('successEmailLine');
-    if(emailLine&&S.coEmail)emailLine.textContent='We\'ll email you at '+S.coEmail+' once approved';
-    else if(emailLine&&S.email)emailLine.textContent='We\'ll email you at '+S.email+' once approved';
-    S.applicationRef=S.applicationRef||'HP-'+rand8();
-    document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
-    const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
-  },50);
-  return`<div class="step-card" id="sCard"><p style="text-align:center;padding:20px;color:var(--ink3)">Finalising…</p></div>`;
+  setTimeout(()=>showSuccessPage('business'),50);
+  return`<div class="step-card" id="sCard" style="text-align:center;padding:40px 20px">
+    <div style="width:48px;height:48px;border:3px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 16px"></div>
+    <p style="color:var(--ink3);font-size:14px">Submitting your application…</p>
+  </div>`;
 }
 
 // ── Generic business country multi-picker ─────────────────────────────────
@@ -3914,7 +3915,111 @@ function startFresh(){
   showStep('forward');
 }
 
+// =============================================================
+// LEAVE GUARD
+// =============================================================
+let _leaveTarget='/';
+
+function isOnboardingActive(){
+  const steps=getActiveSteps();
+  const id=steps[CI];
+  // Active if we're past step 1 and not on a terminal success step
+  return CI>0 && id!==14 && id!=='B11';
+}
+
+function openLeaveModal(href){
+  _leaveTarget=href||'/';
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='flex';
+}
+window.closeLeavModal=function(){
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='none';
+};
+window.confirmLeave=function(){
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='none';
+  window.location.href=_leaveTarget;
+};
+
+function initLeaveGuard(){
+  // Native beforeunload (browser handles the message — we can't customise it)
+  window.addEventListener('beforeunload',function(e){
+    if(isOnboardingActive()){
+      e.preventDefault();
+      e.returnValue='';
+    }
+  });
+
+  // HansePay logo
+  const logo=document.getElementById('topbarLogo');
+  if(logo){
+    logo.addEventListener('click',function(e){
+      if(isOnboardingActive()){e.preventDefault();openLeaveModal('/');}
+    });
+  }
+
+  // Save & exit
+  const exit=document.getElementById('topbarExit');
+  if(exit){
+    exit.addEventListener('click',function(e){
+      if(isOnboardingActive()){e.preventDefault();openLeaveModal('/');}
+    });
+  }
+
+  // Close leave modal on backdrop click
+  const m=document.getElementById('leaveModal');
+  if(m) m.addEventListener('click',function(e){if(e.target===m)closeLeavModal();});
+}
+
+// =============================================================
+// SHARED SUCCESS PAGE
+// =============================================================
+function showSuccessPage(type){
+  // Hide onboarding layout
+  const layout=document.getElementById('mainLayout');
+  if(layout)layout.style.display='none';
+  const mobileTop=document.getElementById('mobileTop');
+  if(mobileTop)mobileTop.style.display='none';
+  const nf=document.getElementById('navFooter');
+  if(nf)nf.style.display='none';
+  const stepper=document.querySelector('.ob-stepper-wrap');
+  if(stepper)stepper.style.display='none';
+
+  // Show success page
+  const page=document.getElementById('successPage');
+  if(page)page.style.display='block';
+
+  // Ref number
+  S.applicationRef=S.applicationRef||'HP-'+rand8();
+  const ref=document.getElementById('successRef');
+  if(ref)ref.textContent='Reference: '+S.applicationRef;
+
+  if(type==='business'){
+    // Heading
+    const h=document.getElementById('successHeading');
+    if(h)h.textContent='Application submitted'+(S.coName?' — '+S.coName:'')+'.';
+    // Email line
+    const el=document.getElementById('successEmailLine');
+    if(el)el.textContent='We\'ll email you at '+(S.coEmail||S.email||'you')+' once approved';
+    // Step 2: swap "Identity verified" for KYC sent
+    const lbl=document.getElementById('successStep2Label');
+    if(lbl)lbl.innerHTML='KYC verification sent<div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:400;margin-top:1px">Invitations emailed to management</div>';
+    const st=document.getElementById('successStep2Status');
+    if(st)st.textContent='Sent';
+    const ic=document.getElementById('successStep2Icon');
+    if(ic)ic.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>';
+  } else {
+    // Individual
+    const h=document.getElementById('successHeading');
+    if(h)h.textContent='Application submitted'+(S.firstName?', '+S.firstName:'')+'.';
+    const el=document.getElementById('successEmailLine');
+    if(el&&S.email)el.textContent='We\'ll email you at '+S.email+' once approved';
+  }
+}
+
 init();
+initLeaveGuard();
 </script>
 </body>
 </html>
