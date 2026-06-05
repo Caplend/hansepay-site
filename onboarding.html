@@ -483,11 +483,11 @@ const S = {
   coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
   coCompanySize:'',
   coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
-  // B7 – Risk declarations
-  coSanctionsExposure:'',coSanctionsDetail:'',
-  coHighRiskCountries:'',coHighRiskDetail:'',
-  coPreviousAccountClosure:'',coPreviousClosureDetail:'',
-  coFraudDisputes:'',coFraudDetail:''
+  // B7 – Risk declarations (default 'no' so pre-selected state matches validation)
+  coSanctionsExposure:'no',coSanctionsDetail:'',
+  coHighRiskCountries:'no',coHighRiskDetail:'',
+  coPreviousAccountClosure:'no',coPreviousClosureDetail:'',
+  coFraudDisputes:'no',coFraudDetail:''
 };
 
 let CI = 0; // currentIndex
@@ -3597,7 +3597,7 @@ function updateNavFooter(){
   const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4'].includes(id);
   nf.innerHTML=`
     <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
-    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
+    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.includes(14)?steps.length-1:steps.length}</span></div>
     <div style="flex:1;min-width:90px;display:flex;justify-content:flex-end">${hasOwnAction?'':
       `<button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="nextStep()">Continue →</button>`}</div>`;
 }
@@ -3673,8 +3673,8 @@ function startFresh(){
     coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
     coCompanySize:'',
     coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
-    coSanctionsExposure:'',coSanctionsDetail:'',coHighRiskCountries:'',coHighRiskDetail:'',
-    coPreviousAccountClosure:'',coPreviousClosureDetail:'',coFraudDisputes:'',coFraudDetail:''
+    coSanctionsExposure:'no',coSanctionsDetail:'',coHighRiskCountries:'no',coHighRiskDetail:'',
+    coPreviousAccountClosure:'no',coPreviousClosureDetail:'',coFraudDisputes:'no',coFraudDetail:''
   });
   CI=0;
   try{localStorage.removeItem('hp_onb');}catch(e){}
