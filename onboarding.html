@@ -2351,6 +2351,9 @@ function RB7(){
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
       </div>
       ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
+      <div id="coSanctionsExplain" style="display:${S.coSanctionsExposure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please describe which party or territory is involved, which sanctions list applies, and the nature of the connection. We may need to follow up with additional questions before your account can be opened.
+      </div>
       <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
         ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include which party, which sanctions list, and the nature of the connection.','true')}
       </div>
@@ -2363,6 +2366,9 @@ function RB7(){
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Consider all countries connected to your business: incorporation, operations, customers, suppliers, director and UBO residences, bank accounts, sending and receiving countries, and countries where goods or services are delivered.</span></span>
       </div>
       ${radioCardsHTML('rcCoHRC',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coHighRiskCountries||'no',2)}
+      <div id="coHRCExplain" style="display:${S.coHighRiskCountries==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please list all countries involved and confirm whether any are subject to sanctions, embargoes, enhanced monitoring, or internal restrictions. Include the country's role (e.g. customer country, supplier country, director residence).
+      </div>
       <div id="coHRCWrap" class="collapsible${S.coHighRiskCountries==='yes'?' open':''}">
         ${fieldHTML('coHighRiskDetail','Please list the countries and describe the connection','textarea',S.coHighRiskDetail,'e.g. We have a supplier in Turkey. Our customers include companies in the UAE and India.','true')}
       </div>
@@ -2375,6 +2381,9 @@ function RB7(){
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes any situation where your company, a group company, director, UBO, or related account had services restricted, frozen, terminated, placed on reserve, or subjected to enhanced monitoring by a bank, acquirer, PSP, EMI, or payment or MICA partner.</span></span>
       </div>
       ${radioCardsHTML('rcCoPrevClosure',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coPreviousAccountClosure||'no',2)}
+      <div id="coPrevClosureExplain" style="display:${S.coPreviousAccountClosure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please describe what happened, including the name of the provider, the reason given, the date, and the current status of the account or relationship.
+      </div>
       <div id="coPrevClosureWrap" class="collapsible${S.coPreviousAccountClosure==='yes'?' open':''}">
         ${fieldHTML('coPreviousClosureDetail','Please provide details','textarea',S.coPreviousClosureDetail,'Include the provider, reason, date, and current status.','true')}
       </div>
@@ -2387,6 +2396,9 @@ function RB7(){
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes chargebacks, fraud complaints, refund spikes, customer disputes, regulatory complaints, or platform bans in the last 24 months. If yes, please explain the root cause, period affected, volumes, remediation, and current status.</span></span>
       </div>
       ${radioCardsHTML('rcCoFraud',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coFraudDisputes||'no',2)}
+      <div id="coFraudExplain" style="display:${S.coFraudDisputes==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please explain what occurred, including the root cause, the period affected, volumes involved, any remediation taken, and the current status.
+      </div>
       <div id="coFraudWrap" class="collapsible${S.coFraudDisputes==='yes'?' open':''}">
         ${fieldHTML('coFraudDetail','Please explain','textarea',S.coFraudDetail,'Root cause, period affected, volumes, remediation taken, and current status.','true')}
       </div>
@@ -2898,18 +2910,22 @@ function onRadioSelect(grp,val){
   else if(grp==='rcCoSanctions'){
     S.coSanctionsExposure=val;
     const w=document.getElementById('coSanctionsWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coSanctionsExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcCoHRC'){
     S.coHighRiskCountries=val;
     const w=document.getElementById('coHRCWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coHRCExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcCoPrevClosure'){
     S.coPreviousAccountClosure=val;
     const w=document.getElementById('coPrevClosureWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coPrevClosureExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcCoFraud'){
     S.coFraudDisputes=val;
     const w=document.getElementById('coFraudWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coFraudExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
   else if(grp==='rcMajorFunds'){
