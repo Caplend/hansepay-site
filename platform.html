@@ -237,7 +237,7 @@ a{color:inherit;text-decoration:none}
       <div>
         <div class="hero-chip"><span class="hero-chip-dot"></span>Platform Overview</div>
         <h1 class="hero-h1">One platform<br><em>for global payments.</em></h1>
-        <p class="hero-sub">Cross-border payments, wholesale FX, and full treasury visibility, built for businesses moving money across borders. BaFin-licensed, mid-market rates, zero hidden fees.</p>
+        <p class="hero-sub">Cross-border payments, wholesale FX, and full treasury visibility, built for businesses moving money across borders. BaFin-licensed, transparent pricing, no hidden fees.</p>
         <div class="hero-actions">
           <a href="index.html#contact" class="btn btn-white-fill" data-i18n="cta.open-account">Open an account</a>
           <a href="index.html#contact" class="btn btn-ghost-white" data-i18n="platform.hero.cta2">Talk to a dealer</a>
@@ -355,8 +355,8 @@ a{color:inherit;text-decoration:none}
         <div class="ftile-icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
-        <h3 style="font-size:15px;font-weight:600;color:var(--n800);margin-bottom:8px">Zero-markup FX</h3>
-        <p style="font-size:13px;color:var(--ink2);line-height:1.65">We pass through the interbank mid-market rate, no spread, no hidden margin. The same rate you see on Reuters or Bloomberg.</p>
+        <h3 style="font-size:15px;font-weight:600;color:var(--n800);margin-bottom:8px" data-i18n="platform.pillars.p1.title">Transparent FX pricing</h3>
+        <p style="font-size:13px;color:var(--ink2);line-height:1.65" data-i18n="platform.pillars.p1.desc">We source the interbank mid-market rate and add a transparent margin, from 0.15% on major pairs, disclosed before every trade. No spread hidden in the rate, no surprises.</p>
       </div>
 
       <div class="ftile">
@@ -380,15 +380,15 @@ a{color:inherit;text-decoration:none}
     <!-- Key numbers -->
     <div style="display:flex;justify-content:center;gap:clamp(32px,5vw,72px);margin-top:52px;padding-top:44px;border-top:1px solid rgba(11,25,41,.09);flex-wrap:wrap">
       <div style="text-align:center">
-        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">35+</div>
-        <div style="font-size:11px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase" data-i18n="platform.stat.1.label">Currencies</div>
+        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">45+</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase" data-i18n="platform.stat.1.label">Markets</div>
       </div>
       <div style="text-align:center">
-        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">0 %</div>
-        <div style="font-size:11px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase" data-i18n="platform.stat.2.label">FX markup</div>
+        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">0.15%</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase" data-i18n="platform.stat.2.label">FX margin from</div>
       </div>
       <div style="text-align:center">
-        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">&lt; 2 hrs</div>
+        <div style="font-family:var(--font-display);font-size:30px;font-weight:400;color:var(--n800);letter-spacing:-.02em;line-height:1">&lt; 10 min</div>
         <div style="font-size:11px;color:var(--ink3);margin-top:5px;letter-spacing:.06em;text-transform:uppercase" data-i18n="platform.stat.3.label">Onboarding</div>
       </div>
       <div style="text-align:center">
@@ -890,8 +890,8 @@ a{color:inherit;text-decoration:none}
       </details>
 
       <details class="faq-item">
-        <summary data-i18n="platform.faq.q2">How does zero-markup FX actually work?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
-        <p class="faq-body" data-i18n="platform.faq.a2">We source exchange rates directly from interbank liquidity providers and pass them through to you without adding a spread. Instead, we charge a fixed transaction fee shown clearly before you confirm. You always know exactly what the payment costs before you send.</p>
+        <summary data-i18n="platform.faq.q2">How does your FX pricing work?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+        <p class="faq-body" data-i18n="platform.faq.a2">We source the interbank mid-market rate and add a transparent margin, from 0.15% on major currency pairs (0.15% to 0.75%), disclosed before every trade. There is no spread hidden in the rate, so you always know exactly what the payment costs before you confirm.</p>
       </details>
 
       <details class="faq-item">
@@ -906,7 +906,7 @@ a{color:inherit;text-decoration:none}
 
       <details class="faq-item">
         <summary>Is there a minimum transfer amount?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
-        <p class="faq-body">The minimum transfer is €50. From small payments to multi-million-euro trades, you receive the same mid-market rate and service. No volume tiers, no lock-in contracts. You pay per transaction and stop whenever you want.</p>
+        <p class="faq-body">The minimum transfer is €50. From small payments to multi-million-euro trades, you receive the same transparent pricing and service. No volume tiers, no lock-in contracts. You pay per transaction and stop whenever you want.</p>
       </details>
 
     </div>
