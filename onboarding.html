@@ -2303,7 +2303,7 @@ function renderOwnerExtra(o,i){
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
       <div class="field-group">
         <label for="oe${i}Pct">Ownership %</label>
-        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" min="25" max="100" placeholder="Enter 25–100">
+        <input type="text" inputmode="numeric" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="e.g. 51" maxlength="3" style="max-width:120px">
         <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Only list owners with over 25% stake.</div>
         <div class="field-error" id="oe${i}Pct-err"></div>
       </div>
@@ -2327,7 +2327,7 @@ function RB8(){
       </div>
       <div id="om-pct-${i}" style="display:${checked?'block':'none'};margin-top:12px;padding-top:12px;border-top:1px solid #EEF3F8">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Ownership % <span style="color:var(--error)">*</span></label>
-        <input type="number" id="om-pct-inp-${i}" min="25" max="100" placeholder="Enter 25–100" value="${esc(String(pct))}" style="margin-top:6px;width:180px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
+        <input type="text" inputmode="numeric" id="om-pct-inp-${i}" maxlength="3" placeholder="e.g. 51" value="${esc(String(pct))}" style="margin-top:6px;width:120px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
         <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 25–100.</div>
         <div class="field-error" id="om-pct-err-${i}"></div>
       </div>
