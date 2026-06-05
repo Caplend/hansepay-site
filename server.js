@@ -1223,6 +1223,53 @@ Return ONLY valid JSON (no markdown, no explanation):
 // persist and render as table columns. Reuses webSearch + callClaude.
 const ANALYZE_TYPES = ['text', 'number', 'boolean', 'score', 'category'];
 
+// Extra search keywords for the built-in preset criteria, so a web search
+// actually looks for the thing each column is asking about.
+const CRITERION_SEARCH_HINTS = {
+  country_chk:   'headquarters location country',
+  hq_city:       'headquarters city office location',
+  emp_band:      'number of employees headcount company size',
+  industry_cat:  'industry sector what they do',
+  revenue_est:   'annual revenue turnover sales',
+  fx_relevance:  'international export import cross-border markets foreign',
+  xborder_need:  'export import international suppliers overseas operations subsidiaries',
+  fx_pairs:      'export markets countries currencies foreign trade',
+  dm_title:      'CFO finance director head of treasury leadership team management',
+  growth_signal: 'funding round investment expansion hiring acquisition news 2024 2025',
+};
+
+// Words to drop when deriving a search query from a free-text custom prompt.
+const ANALYZE_STOPWORDS = new Set(('the a an of to for and or in on at by with from this that these those does do is are was were be been being '
+  + 'company companies business their your our what which who whom how many much more most based located answer respond reply give provide '
+  + 'please null unknown none yes no estimate identify find determine list briefly short sentence phrase value one each they it its them').split(/\s+/));
+
+// Pull the most useful keywords out of a custom criterion's prompt.
+function keywordsFromPrompt(prompt, max) {
+  const seen = new Set();
+  const words = String(prompt).toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/);
+  const out = [];
+  for (const w of words) {
+    if (w.length > 2 && !ANALYZE_STOPWORDS.has(w) && !seen.has(w)) { seen.add(w); out.push(w); }
+    if (out.length >= (max || 6)) break;
+  }
+  return out.join(' ');
+}
+
+// Build a small, deduplicated set of search queries targeted at the criteria
+// being asked — one company anchor query plus per-criterion queries.
+function buildAnalyzeQueries(company, website, columns, maxQueries) {
+  const anchor = `"${company}"` + (website ? ` ${website}` : '');
+  const queries = [`${anchor} company overview business`];
+  const seenTerms = new Set();
+  for (const col of columns) {
+    const terms = (CRITERION_SEARCH_HINTS[col.key] || keywordsFromPrompt(col.prompt)).trim();
+    if (!terms || seenTerms.has(terms)) continue;
+    seenTerms.add(terms);
+    queries.push(`${anchor} ${terms}`);
+  }
+  return queries.slice(0, maxQueries || 6);
+}
+
 app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   const users  = readData('users.json');
   const user   = users.find(u => u.id === req.user.id);
@@ -1257,12 +1304,20 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   let sources = [];
 
   if (webEnabled) {
-    // Keep bulk cost down: 2 targeted searches per row (vs 3 in deep research).
-    const [overview, news] = await Promise.all([
-      webSearch(`${companyName} ${website} company overview business`, { deep: true, maxResults: 3 }),
-      webSearch(`${companyName} news 2024 2025 expansion funding hiring`, { maxResults: 2 }),
-    ]);
-    searchResults = [...overview, ...news];
+    // Build searches FROM the criteria so we research exactly what's asked.
+    // Capped at 6 queries to bound cost; first (overview) goes deep.
+    const queries = buildAnalyzeQueries(companyName, website, columns, 6);
+    const settled = await Promise.all(
+      queries.map((q, i) => webSearch(q, { deep: i === 0, maxResults: i === 0 ? 3 : 2 }))
+    );
+    // Pool + dedupe by URL, keep the most relevant slice for the prompt.
+    const seenUrls = new Set();
+    searchResults = settled.flat().filter(r => {
+      const u = r.url || '';
+      if (u && seenUrls.has(u)) return false;
+      if (u) seenUrls.add(u);
+      return true;
+    }).slice(0, 10);
     sources = [...new Set(searchResults.map(r => r.url).filter(Boolean))];
   }
 
@@ -1290,7 +1345,7 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   const prompt = `You are a B2B sales-intelligence analyst for HansePay, a European FX / cross-border payments company.
 
 Analyse ONE company against a set of criteria. Answer every criterion as accurately as you can.
-${webEnabled ? 'Live web search results are provided below — prefer them over training knowledge where they conflict.' : 'No live web search is available — use the company data and your training knowledge; answer null/Unknown when genuinely unsure.'}
+${webEnabled ? 'Live web search results are provided below — they were gathered specifically to answer these criteria. Ground each answer in them and prefer them over training knowledge where they conflict; cite from them when relevant.' : 'No live web search is available — use the company data and your training knowledge; answer null/Unknown when genuinely unsure.'}
 
 COMPANY
 - Name: ${companyName}
@@ -1319,7 +1374,8 @@ ${jsonShape}`;
     const clean = {};
     columns.forEach(col => { if (values[col.key] !== undefined) clean[col.key] = values[col.key]; });
 
-    customers[idx].analysis    = Object.assign({}, customers[idx].analysis, clean);
+    customers[idx].analysis        = Object.assign({}, customers[idx].analysis, clean);
+    if (webEnabled) customers[idx].analysisSources = sources.slice(0, 8);
     customers[idx].analyzedAt  = new Date().toISOString();
     customers[idx].updatedAt   = new Date().toISOString();
     writeData('customers.json', customers);
@@ -1332,7 +1388,7 @@ ${jsonShape}`;
       by: req.user.name || 'system',
     });
 
-    res.json({ success: true, values: clean, web: webEnabled, sources: sources.slice(0, 5) });
+    res.json({ success: true, values: clean, web: webEnabled, sources: sources.slice(0, 8) });
   } catch (err) {
     console.error('[analyze] error:', err.message);
     res.status(500).json({ error: 'Analysis failed: ' + err.message });

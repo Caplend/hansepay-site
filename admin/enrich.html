@@ -271,6 +271,13 @@ function sortVal(c,key){
   var n=parseFloat(v); return isNaN(n)?String(v).toLowerCase():(/^[\s\d.,%+–-]+$/.test(String(v))?n:String(v).toLowerCase());
 }
 
+function srcBadge(c){
+  var s = c.analysisSources;
+  if(!s || !s.length) return '';
+  var title = 'Researched from:\n' + s.join('\n');
+  return ' <span title="'+esc(title)+'" style="display:inline-flex;align-items:center;gap:3px;font-size:.625rem;font-weight:600;color:var(--n400);vertical-align:middle;cursor:help">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'+s.length+'</span>';
+}
 function cellVal(c,col){
   if(running[c.id]) return '<span class="enrich-dots">•••</span>';
   var v = c.analysis ? c.analysis[col.key] : undefined;
@@ -307,7 +314,7 @@ function render(){
   if(!list.length){ tb.innerHTML='<tr><td colspan="'+colCount+'" class="empty">No customers match.</td></tr>'; return; }
   tb.innerHTML = list.map(function(c){
     var cells = '<td class="sel-col"><input type="checkbox" class="row-check" '+(selected[c.id]?'checked':'')+' onclick="toggleRow(\''+c.id+'\',this.checked)"></td>'+
-      '<td class="t-strong">'+esc(c.company||'—')+'<div class="muted" style="font-weight:400;font-size:.6875rem">'+esc(c.industry||'')+(c.country?' · '+esc(c.country):'')+'</div></td>'+
+      '<td class="t-strong">'+esc(c.company||'—')+srcBadge(c)+'<div class="muted" style="font-weight:400;font-size:.6875rem">'+esc(c.industry||'')+(c.country?' · '+esc(c.country):'')+'</div></td>'+
       '<td>'+esc(contactName(c)||'—')+'<div class="muted" style="font-size:.6875rem">'+esc(c.email||'')+'</div></td>';
     cells += columns.map(function(col){ return '<td>'+cellVal(c,col)+'</td>'; }).join('');
     return '<tr>'+cells+'</tr>';
@@ -349,7 +356,7 @@ function runAnalysis(){
     A('/api/customers/'+c.id+'/analyze',{ method:'POST', body: JSON.stringify({ columns: columns, web: webEnabled }) })
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if(d && d.values){ c.analysis = Object.assign({}, c.analysis, d.values); }
+        if(d && d.values){ c.analysis = Object.assign({}, c.analysis, d.values); if(d.sources && d.sources.length) c.analysisSources = d.sources; }
         else { failed++; if(d && d.error && failed===1) H.toast(d.error,'error'); }
       })
       .catch(function(){ failed++; })
