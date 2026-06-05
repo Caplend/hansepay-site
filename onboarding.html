@@ -2289,8 +2289,7 @@ function RB6(){
       <div class="field-error" id="coCustomerType-err"></div>
     </div>
 
-    ${bcpPickerHTML('coCustomerCountries','Main customer countries',S.coCustomerCountries,true)}
-    ${bcpPickerHTML('coOperatingCountries','Main operating countries',S.coOperatingCountries,true)}
+    ${bcpPickerHTML('coCustomerCountries','In which countries does your business operate and serve customers?',S.coCustomerCountries,true)}
 
     <div class="field-group">
       <label>What is the size of your company?</label>
@@ -2565,7 +2564,6 @@ function validateStep(){
     if(!(g('coSellsWhat')||'').trim()) fail('coSellsWhat','Please describe what your company sells or provides');
     if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
     if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
-    if(!S.coOperatingCountries.length){const e=document.getElementById('bcp-coOperatingCountries-err');if(e){e.textContent='Please add at least one operating country';e.classList.add('visible');}ok=false;}
     if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
     if(!S.coMonthlyVolume) fail('coMonthlyVolume','Please select a volume range');
     if(!S.coMonthlyTransactions) fail('coMonthlyTransactions','Please select a transaction range');
@@ -2789,7 +2787,6 @@ function attachAll(id){
   // ── Business step handlers ──────────────────────────────────────────────
   if(id==='B6'){
     bizCountryPicker('coCustomerCountries',S.coCustomerCountries);
-    bizCountryPicker('coOperatingCountries',S.coOperatingCountries);
     bizCountryPicker('coSendingCountries',S.coSendingCountries);
   }
   if(id==='B5'){
