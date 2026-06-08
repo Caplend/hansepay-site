@@ -508,6 +508,66 @@ const S = {
 let CI = 0; // currentIndex
 let resendTimer = null;
 
+// ── IP Geolocation → Phone Dialling Code ──────────────────────────────────
+// Detects the user's country from their IP and pre-selects the matching
+// country dial code on all phone fields. Falls back to +49 on any error.
+// Result is cached in localStorage so the API is only hit once.
+const _GEO_DIAL_SET = new Set([
+  '+1','+7','+20','+27','+30','+31','+32','+33','+34','+36','+39',
+  '+40','+41','+43','+44','+45','+46','+47','+48','+49',
+  '+51','+52','+54','+55','+56','+57','+58',
+  '+60','+61','+62','+63','+64','+65','+66',
+  '+81','+82','+84','+86','+90','+91','+92','+94','+95',
+  '+212','+213','+216','+218','+220','+221','+233','+234','+254','+255','+256',
+  '+351','+352','+353','+354','+355','+356','+357','+358','+359',
+  '+370','+371','+372','+373','+374','+375','+376','+377','+380','+381','+385','+386','+387','+389',
+  '+420','+421','+423','+994','+995','+998'
+]);
+let _geoCC = null; // resolved once and reused
+
+async function _detectGeoCC(){
+  // Use cached value if already resolved this session
+  if(_geoCC) return _geoCC;
+  // Use localStorage cache (avoids hitting API on every page load)
+  const stored = localStorage.getItem('hp_geo_cc');
+  if(stored){ _geoCC=stored; return _geoCC; }
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 3000);
+    const r = await fetch('https://ipapi.co/json/', {signal:ctrl.signal});
+    clearTimeout(t);
+    const d = await r.json();
+    const cc = d.country_calling_code; // e.g. "+49", "+44"
+    if(cc && typeof cc==='string' && cc.startsWith('+') && _GEO_DIAL_SET.has(cc)){
+      localStorage.setItem('hp_geo_cc', cc);
+      _geoCC = cc;
+      return _geoCC;
+    }
+  } catch(e){ /* silent — network error or timeout */ }
+  return '+49'; // fallback
+}
+
+async function applyGeoCC(){
+  const cc = await _detectGeoCC();
+  if(cc==='+49') return; // already the default — nothing to do
+  // Update state fields that are still at the initial default
+  if(S.phoneCountry==='+49'){ S.phoneCountry=cc; }
+  if(S.coPhoneCC==='+49'){ S.coPhoneCC=cc; }
+  // Update any already-rendered phone selects on the page
+  for(const id of ['phoneCountry','coPhoneCC']){
+    const el = document.getElementById(id);
+    if(el && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  }
+  // Update management person selects (mp0PhoneCC, mp1PhoneCC, …)
+  document.querySelectorAll('[id^="mp"][id$="PhoneCC"]').forEach(el=>{
+    if(el.value==='+49' && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  });
+  // Update extra owner selects (oe0PhoneCC, oe1PhoneCC, …)
+  document.querySelectorAll('[id^="oe"][id$="PhoneCC"]').forEach(el=>{
+    if(el.value==='+49' && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  });
+}
+
 const PHASES = [
   {id:'account',  label:'Account',    steps:[1,2,'3a','3b']},
   {id:'about',    label:'About you',  steps:[4,5,'5b']},
@@ -1779,7 +1839,7 @@ const MGMT_ROLES=['CEO','CFO','COO','Managing Director','President','General Par
 const MGMT_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
 
 function blankMgmtPerson(){
-  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:'+49',phone:'',
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:_geoCC||'+49',phone:'',
     dob:'',companyStartDate:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',
     role:'',isDirector:false};
 }
@@ -1787,7 +1847,7 @@ function blankMgmtPerson(){
 function renderMgmtPerson(p,i){
   const name=(p.firstName||p.lastName)?[p.firstName,p.lastName].filter(Boolean).join(' '):'—';
   const roleOpts=MGMT_ROLES.map(r=>`<option value="${esc(r)}"${p.role===r?' selected':''}>${esc(r)}</option>`).join('');
-  const phoneSel=MGMT_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(p.phoneCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const phoneSel=MGMT_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(p.phoneCC||_geoCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
   const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(p.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
   return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="mgmt-person-${i}">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
@@ -2289,13 +2349,13 @@ function bcpPickerHTML(pickerId,label,arr,req){
 const OWNER_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
 
 function blankOwnerExtra(){
-  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:'+49',phone:'',
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:_geoCC||'+49',phone:'',
     dob:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',pct:''};
 }
 
 function renderOwnerExtra(o,i){
   const name=(o.firstName||o.lastName)?[o.firstName,o.lastName].filter(Boolean).join(' '):'—';
-  const phoneSel=OWNER_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(o.phoneCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const phoneSel=OWNER_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(o.phoneCC||_geoCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
   const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(o.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
   return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="owner-extra-${i}">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
@@ -3849,6 +3909,7 @@ function clearAllErr(){
 }
 
 function init(){
+  applyGeoCC(); // fire-and-forget: pre-select dial code from IP
   const savedIdx=loadSaved();
   if(savedIdx!==null&&savedIdx>0){
     // Show "continue" banner first
@@ -3877,7 +3938,7 @@ function continueSaved(idx){
 function startFresh(){
   Object.assign(S,{
     firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
-    phoneCountry:'+49',phone:'',accountType:'',
+    phoneCountry:_geoCC||'+49',phone:'',accountType:'',
     middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
     countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
     thirdPartyName:'',thirdPartyRelation:'',
@@ -3892,7 +3953,7 @@ function startFresh(){
     tcAccepted:false,blindpayAccepted:false,isHighRisk:false,applicationRef:'',
     coLookupName:'',coLookupCountry:'Germany',coSearchDone:false,
     coName:'',coTradeName:'',coLegalForm:'',coRegNum:'',coRegDate:'',coVAT:'',
-    coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:'+49',
+    coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:_geoCC||'+49',
     coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
