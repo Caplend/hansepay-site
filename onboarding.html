@@ -1027,10 +1027,10 @@ function R8(){
     <div class="field-group">
       <label>Expected monthly payment volume</label>
       ${radioCardsHTML('rcVolume',[
-        {v:'under1k',label:'Under €1,000'},
-        {v:'1k-10k',label:'€1,000–€10,000'},
-        {v:'10k-50k',label:'€10,000–€50,000'},
-        {v:'over50k',label:'Over €50,000'}
+        {v:'under1k',label:'Under 1.000 €'},
+        {v:'1k-10k',label:'1.000 € – 10.000 €'},
+        {v:'10k-50k',label:'10.000 € – 50.000 €'},
+        {v:'over50k',label:'Over 50.000 €'}
       ],S.monthlyVolume,2)}
       <div class="field-error" id="monthlyVolume-err"></div>
     </div>
@@ -1107,9 +1107,9 @@ function R9(){
     <div class="field-group">
       <label>Approximate annual income before tax</label>
       ${radioCardsHTML('rcAnnualIncome',[
-        {v:'under15k',label:'Under €15,000'},{v:'15k-30k',label:'€15,000–€30,000'},
-        {v:'30k-60k',label:'€30,001–€60,000'},{v:'60k-100k',label:'€60,001–€100,000'},
-        {v:'over100k',label:'Over €100,000'},{v:'prefer-not',label:'Prefer not to say'}
+        {v:'under15k',label:'Under 15.000 €'},{v:'15k-30k',label:'15.000 € – 30.000 €'},
+        {v:'30k-60k',label:'30.001 € – 60.000 €'},{v:'60k-100k',label:'60.001 € – 100.000 €'},
+        {v:'over100k',label:'Over 100.000 €'},{v:'prefer-not',label:'Prefer not to say'}
       ],S.annualIncome,2)}
       <div class="field-error" id="annualIncome-err"></div>
     </div>
@@ -1240,7 +1240,7 @@ function R11(){
     true)}
 
     ${selectHTML('netWorth','Approximate total net worth',
-      ['Under €15,000','€15,000–€30,000','€30,001–€60,000','€60,001–€100,000','€100,001–€250,000','€250,001–€1,000,000','Over €1,000,000','Prefer not to say'].map(s=>`<option value="${s}"${S.netWorth===s?' selected':''}>${s}</option>`).join(''),
+      ['Under 15.000 €','15.000 € – 30.000 €','30.001 € – 60.000 €','60.001 € – 100.000 €','100.001 € – 250.000 €','250.001 € – 1.000.000 €','Over 1.000.000 €','Prefer not to say'].map(s=>`<option value="${s}"${S.netWorth===s?' selected':''}>${s}</option>`).join(''),
     true)}
 
     <div class="field-group">
@@ -1957,6 +1957,7 @@ function RB5(){
     <div id="mgmtPersonsWrap">
       ${S.coManagement.map((p,i)=>renderMgmtPerson(p,i)).join('')}
     </div>
+    <div class="field-error" id="directorRequired-err"></div>
 
     <button type="button" onclick="addMgmtPerson()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:14px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2588,11 +2589,11 @@ function RB6(){
     <div class="field-group">
       <label>How much money will you send each month?</label>
       ${radioCardsHTML('rcCoVolume',[
-        {v:'under5k',label:'Under €5,000'},
-        {v:'5k-25k',label:'€5,000–€25,000'},
-        {v:'25k-100k',label:'€25,000–€100,000'},
-        {v:'100k-500k',label:'€100,000–€500,000'},
-        {v:'over500k',label:'Over €500,000'}
+        {v:'under5k',label:'Under 5.000 €'},
+        {v:'5k-25k',label:'5.000 € – 25.000 €'},
+        {v:'25k-100k',label:'25.000 € – 100.000 €'},
+        {v:'100k-500k',label:'100.000 € – 500.000 €'},
+        {v:'over500k',label:'Over 500.000 €'}
       ],S.coMonthlyVolume,2)}
       <div class="field-error" id="coMonthlyVolume-err"></div>
     </div>
@@ -2611,10 +2612,10 @@ function RB6(){
     <div class="field-group">
       <label>What is your highest single transfer amount?</label>
       ${radioCardsHTML('rcCoMaxTx',[
-        {v:'under1k',label:'Under €1,000'},
-        {v:'1k-10k',label:'€1,000–€10,000'},
-        {v:'10k-50k',label:'€10,000–€50,000'},
-        {v:'over50k',label:'Over €50,000'}
+        {v:'under1k',label:'Under 1.000 €'},
+        {v:'1k-10k',label:'1.000 € – 10.000 €'},
+        {v:'10k-50k',label:'10.000 € – 50.000 €'},
+        {v:'over50k',label:'Over 50.000 €'}
       ],S.coMaxTransfer,2)}
       <div class="field-error" id="coMaxTransfer-err"></div>
     </div>
@@ -2633,34 +2634,22 @@ function RB7(){
 
     <!-- Sanctions exposure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Does your company, its directors, authorised representatives, UBOs, shareholders, controllers, operations, customers, suppliers, bank accounts, source of funds, or planned transactions have any connection to sanctioned, embargoed, restricted, or high-risk countries, persons, or entities?
+      <div class="compliance-block-label">Does your company — including its directors, UBOs, shareholders, business partners, accounts, source of funds, or planned transactions — have any connection to sanctioned, embargoed, or high-risk countries, persons, or entities?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
       </div>
       ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
+      <div id="coSanctionsExplain" style="display:${S.coSanctionsExposure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please describe the connection, including the country, person/entity involved, nature of the relationship, and whether funds, goods, services, or transactions are involved.
+      </div>
       <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
         ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include the country, person/entity involved, nature of the relationship, and whether funds, goods, services, or transactions are involved.','true')}
       </div>
       <div class="field-error" id="coSanctionsExposure-err"></div>
     </div>
 
-    <!-- High-risk countries -->
-    <div class="compliance-block">
-      <div class="compliance-block-label">Are any countries connected to your business subject to sanctions, embargoes, or enhanced monitoring?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">Consider all countries connected to your business: incorporation, operations, customers, suppliers, director and UBO residences, bank accounts, sending and receiving countries, and countries where goods or services are delivered.</span></span>
-      </div>
-      ${radioCardsHTML('rcCoHRC',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coHighRiskCountries||'no',2)}
-      <div id="coHRCExplain" style="display:${S.coHighRiskCountries==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-        Please list all countries involved and confirm whether any are subject to sanctions, embargoes, enhanced monitoring, or internal restrictions. Include the country's role (e.g. customer country, supplier country, director residence).
-      </div>
-      <div id="coHRCWrap" class="collapsible${S.coHighRiskCountries==='yes'?' open':''}">
-        ${fieldHTML('coHighRiskDetail','Please list the countries and describe the connection','textarea',S.coHighRiskDetail,'e.g. We have a supplier in Turkey. Our customers include companies in the UAE and India.','true')}
-      </div>
-      <div class="field-error" id="coHighRiskCountries-err"></div>
-    </div>
-
     <!-- Previous account closure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Has your company ever had payment services restricted or terminated by a provider?
+      <div class="compliance-block-label">Has your company ever had its account restricted or terminated by a bank or financial service provider?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes any situation where your company, a group company, director, UBO, or related account had services restricted, frozen, terminated, placed on reserve, or subjected to enhanced monitoring by a bank, acquirer, PSP, EMI, or payment or MICA partner.</span></span>
       </div>
       ${radioCardsHTML('rcCoPrevClosure',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coPreviousAccountClosure||'no',2)}
@@ -2853,8 +2842,6 @@ function validateStep(){
   } else if(id==='B7'){
     if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
     if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
-    if(!S.coHighRiskCountries) fail('coHighRiskCountries','Please answer this question');
-    if(S.coHighRiskCountries==='yes'&&!(g('coHighRiskDetail')||'').trim()) fail('coHighRiskDetail','Please provide details');
     if(!S.coPreviousAccountClosure) fail('coPreviousAccountClosure','Please answer this question');
     if(S.coPreviousAccountClosure==='yes'&&!(g('coPreviousClosureDetail')||'').trim()) fail('coPreviousClosureDetail','Please provide details');
     if(!S.coFraudDisputes) fail('coFraudDisputes','Please answer this question');
@@ -2876,6 +2863,11 @@ function validateStep(){
       if(!(p.addr1||'').trim()) fail('mp'+i+'Addr1','Address is required');
       if(!(p.city||'').trim()) fail('mp'+i+'City','City is required');
     });
+    if(!S.coManagement.some(p=>p.isDirector)){
+      const e=document.getElementById('directorRequired-err');
+      if(e){e.textContent='At least one person must be designated as a company director';e.classList.add('visible');}
+      ok=false;
+    }
   } else if(id==='B1'){
     if(!S.coSearchDone){showToast('Please search and select your company first');ok=false;}
   } else if(id==='B2'){
