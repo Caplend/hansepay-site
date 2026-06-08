@@ -1796,7 +1796,7 @@ function RB3(){
 function RB4(){
   const docs=[
     {id:'docAoA',label:'Incorporation',desc:'Please upload your articles of incorporation or certificate of incorporation. This document confirms your company\'s legal formation and typically includes the company name, business purpose, registered address, share structure, governance framework, and a list of all current directors. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
-    {id:'docShareholder',label:'Proof of Ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
+    {id:'docShareholder',label:'Proof of ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
     {id:'docBankStmt',label:'Proof of address',desc:'Please upload a proof of the company\'s registered or operating address — such as a utility bill, lease agreement, bank statement, or official government correspondence issued within the last 3 months. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
   ];
   return`<div class="step-card" id="sCard">
@@ -1928,7 +1928,7 @@ function renderMgmtPerson(p,i){
     <div style="border-top:1px solid #EEF3F8;margin:16px 0 16px;padding-top:16px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Managing</div>
       <div class="field-group">
-        <label for="mp${i}Role">Role <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
+        <label for="mp${i}Role">Role</label>
         <input type="text" id="mp${i}Role" value="${esc(p.role||'')}" placeholder="e.g. CEO, Managing Director, CFO">
         <div class="field-error" id="mp${i}Role-err"></div>
       </div>
@@ -2201,7 +2201,7 @@ function RB10(){
       <div style="padding:14px 16px;background:var(--n050);border-bottom:1px solid #EEF3F8;display:flex;align-items:center;gap:10px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <div>
-          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company Management</div>
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company management</div>
           <div style="font-size:12px;color:var(--ink3)">Each member of company management must complete identity verification.</div>
         </div>
       </div>
