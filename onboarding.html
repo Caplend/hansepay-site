@@ -520,7 +520,7 @@ const BUSINESS_PHASES = [
   {id:'account',    label:'Account',    steps:[1,2,'3a','3b',4]},
   {id:'company',    label:'Company',    steps:['B1','B2']},
   {id:'documents',  label:'Documents',  steps:['B3','B4']},
-  {id:'management', label:'Management', steps:['B5','B8']},
+  {id:'management', label:'Management & Owners', steps:['B5','B8']},
   {id:'activity',   label:'Activity',   steps:['B6','B7']},
   {id:'bterms',     label:'Terms',      steps:['B9']},
   {id:'bverify',    label:'Verify',     steps:['B10','B11']},
@@ -1838,7 +1838,7 @@ function renderMgmtPerson(p,i){
     </div>
 
     <div class="field-group" style="position:relative">
-      <label>Search address <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <label>Search address</label>
       <input type="text" id="mp${i}AddrSearch" placeholder="Start typing address…" autocomplete="off"
         oninput="mgmtAddrLookup(${i},this.value)" style="border-radius:var(--r-md)">
       <div id="mp${i}AddrDrop" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:220px;overflow-y:auto"></div>
@@ -1866,7 +1866,7 @@ function renderMgmtPerson(p,i){
     </div>
 
     <div style="border-top:1px solid #EEF3F8;margin:16px 0 16px;padding-top:16px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Controlling</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Managing</div>
       <div class="field-group">
         <label for="mp${i}Role">Role <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span></label>
         <input type="text" id="mp${i}Role" value="${esc(p.role||'')}" placeholder="e.g. CEO, Managing Director, CFO">
@@ -2367,8 +2367,7 @@ function renderOwnerExtra(o,i){
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
       <div class="field-group">
         <label for="oe${i}Pct">Ownership %</label>
-        <input type="text" inputmode="numeric" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="e.g. 51" maxlength="3" style="max-width:120px">
-        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Only list owners with over 25% stake.</div>
+        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="e.g. 51" min="1" max="100" step="1" style="max-width:120px">
         <div class="field-error" id="oe${i}Pct-err"></div>
       </div>
     </div>
@@ -2391,8 +2390,8 @@ function RB8(){
       </div>
       <div id="om-pct-${i}" style="display:${checked?'block':'none'};margin-top:12px;padding-top:12px;border-top:1px solid #EEF3F8">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Ownership % <span style="color:var(--error)">*</span></label>
-        <input type="text" inputmode="numeric" id="om-pct-inp-${i}" maxlength="3" placeholder="e.g. 51" value="${esc(String(pct))}" style="margin-top:6px;width:120px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
-        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 25–100.</div>
+        <input type="number" id="om-pct-inp-${i}" min="1" max="100" step="1" placeholder="e.g. 51" value="${esc(String(pct))}" style="margin-top:6px;width:120px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
+        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 1–100.</div>
         <div class="field-error" id="om-pct-err-${i}"></div>
       </div>
     </div>`;
@@ -2401,7 +2400,7 @@ function RB8(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
     <h1 class="step-heading" style="text-align:center">Company owners.</h1>
-    <p class="step-sub" style="text-align:center;margin-bottom:10px">A Company Owner (UBO) is a person who owns <strong>25% or more</strong> of the company. If no individual reaches this threshold, select the most senior company manager as an owner.</p>
+    <p class="step-sub" style="text-align:center;margin-bottom:10px">Add all individuals who ultimately own or control the company. This includes directors and anyone with significant ownership or control.</p>
 
     <div class="section-header" style="margin-top:0">Company management list</div>
     <p style="font-size:13px;color:var(--ink3);margin-bottom:14px">Select any company management persons who are also owners.</p>
@@ -2505,8 +2504,6 @@ function RB6(){
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Business activity</div>
 
-    ${fieldHTML('coSellsWhat','What does your company sell or provide?','textarea',S.coSellsWhat,'e.g. We provide cloud-based logistics software to freight companies across Europe.','true')}
-
     <div class="field-group">
       <label>Who are your customers?</label>
       ${custTypeCards}
@@ -2571,15 +2568,12 @@ function RB7(){
 
     <!-- Sanctions exposure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Does your company have any connection to sanctioned parties or territories?
+      <div class="compliance-block-label">Does your company, its directors, authorised representatives, UBOs, shareholders, controllers, operations, customers, suppliers, bank accounts, source of funds, or planned transactions have any connection to sanctioned, embargoed, restricted, or high-risk countries, persons, or entities?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
       </div>
       ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
-      <div id="coSanctionsExplain" style="display:${S.coSanctionsExposure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-        Please describe which party or territory is involved, which sanctions list applies, and the nature of the connection. We may need to follow up with additional questions before your account can be opened.
-      </div>
       <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
-        ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include which party, which sanctions list, and the nature of the connection.','true')}
+        ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include the country, person/entity involved, nature of the relationship, and whether funds, goods, services, or transactions are involved.','true')}
       </div>
       <div class="field-error" id="coSanctionsExposure-err"></div>
     </div>
@@ -2780,9 +2774,9 @@ function validateStep(){
     const totalOwners=S.coOwnerMgmt.length+S.coOwnerExtra.length;
     if(!totalOwners){const e=document.getElementById('ownerMgmtList');showToast('Please select or add at least one owner');ok=false;}
     S.coOwnerMgmt.forEach(o=>{
-      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100){
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<1||Number(o.pct)>100){
         const e=document.getElementById('om-pct-err-'+o.mgmtIdx);
-        if(e){e.textContent='Please enter a valid ownership % (25–100)';e.classList.add('visible');}ok=false;
+        if(e){e.textContent='Please enter a valid ownership % (1–100)';e.classList.add('visible');}ok=false;
       }
     });
     S.coOwnerExtra.forEach((o,i)=>{
@@ -2791,7 +2785,7 @@ function validateStep(){
       if(!o.dob) fail('oe'+i+'DOB','Date of birth is required');
       if(!(o.addr1||'').trim()) fail('oe'+i+'Addr1','Address is required');
       if(!(o.city||'').trim()) fail('oe'+i+'City','City is required');
-      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25) fail('oe'+i+'Pct','Enter a valid ownership % (25–100)');
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<1||Number(o.pct)>100) fail('oe'+i+'Pct','Enter a valid ownership % (1–100)');
     });
   } else if(id==='B7'){
     if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
