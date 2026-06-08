@@ -2836,8 +2836,6 @@ function validateStep(){
     }
   } else if(id==='B8'){
     collectOwnerExtraData();
-    const totalOwners=S.coOwnerMgmt.length+S.coOwnerExtra.length;
-    if(!totalOwners){const e=document.getElementById('ownerMgmtList');showToast('Please select or add at least one owner');ok=false;}
     S.coOwnerMgmt.forEach(o=>{
       if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100){
         const e=document.getElementById('om-pct-err-'+o.mgmtIdx);
