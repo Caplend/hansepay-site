@@ -2433,7 +2433,7 @@ function renderOwnerExtra(o,i){
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
       <div class="field-group">
         <label for="oe${i}Pct">Ownership %</label>
-        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="51" min="25" max="100" step="1" style="max-width:160px">
+        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="51" min="25" max="100" step="1" style="max-width:160px" oninput="recalcOwnerTotal()">
         <div class="field-error" id="oe${i}Pct-err"></div>
       </div>
     </div>
@@ -2477,6 +2477,12 @@ function RB8(){
 
     ${S.coOwnerExtra.length>0?`<div class="section-header">Additional owners</div><div id="ownerExtraList">${S.coOwnerExtra.map((o,i)=>renderOwnerExtra(o,i)).join('')}</div>`:`<div id="ownerExtraList"></div>`}
 
+    <div id="ownerPctTotal" style="display:none;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r-md);border:1.5px solid #86EFAC;background:#F0FDF4;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--success);transition:.2s">
+      <span>Total ownership declared</span>
+      <span><span id="ownerPctSum">0</span>% of 100%</span>
+    </div>
+    <div class="field-error" id="ownerPctTotal-err"></div>
+
     <button type="button" onclick="addOwnerExtra()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:8px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Add another owner
@@ -2501,13 +2507,44 @@ window.toggleOwnerMgmt=function(mgmtIdx){
     if(row)row.style.borderColor='#E2EBF3';
   }
   saveState();
+  recalcOwnerTotal();
 };
 
 window.updateOwnerMgmtPct=function(mgmtIdx,val){
   const o=S.coOwnerMgmt.find(o=>o.mgmtIdx===mgmtIdx);
   if(o)o.pct=val;
   saveState();
+  recalcOwnerTotal();
 };
+
+function recalcOwnerTotal(){
+  let total=0;
+  (S.coOwnerMgmt||[]).forEach(o=>{
+    const inp=document.getElementById('om-pct-inp-'+o.mgmtIdx);
+    total+=inp?Number(inp.value)||0:Number(o.pct)||0;
+  });
+  (S.coOwnerExtra||[]).forEach((o,i)=>{
+    const inp=document.getElementById('oe'+i+'Pct');
+    total+=inp?Number(inp.value)||0:Number(o.pct)||0;
+  });
+  const totalOwners=(S.coOwnerMgmt||[]).length+(S.coOwnerExtra||[]).length;
+  const el=document.getElementById('ownerPctTotal');
+  const errEl=document.getElementById('ownerPctTotal-err');
+  if(!el)return;
+  if(totalOwners===0){el.style.display='none';return;}
+  el.style.display='flex';
+  const sumEl=document.getElementById('ownerPctSum');
+  if(sumEl)sumEl.textContent=total;
+  const over=total>100;
+  el.style.background=over?'#FEF2F2':'#F0FDF4';
+  el.style.borderColor=over?'#FCA5A5':'#86EFAC';
+  el.style.color=over?'var(--error)':'var(--success)';
+  if(errEl){
+    if(over){errEl.textContent='Total ownership exceeds 100% — please adjust the percentages.';errEl.classList.add('visible');}
+    else{errEl.textContent='';errEl.classList.remove('visible');}
+  }
+}
+window.recalcOwnerTotal=recalcOwnerTotal;
 
 window.addOwnerExtra=function(){
   collectData();
@@ -2839,6 +2876,15 @@ function validateStep(){
       if(!(o.city||'').trim()) fail('oe'+i+'City','City is required');
       if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100) fail('oe'+i+'Pct','Enter a valid ownership % (25–100)');
     });
+    // Total ownership must not exceed 100%
+    const _totalPct=
+      (S.coOwnerMgmt||[]).reduce((s,o)=>s+Number(o.pct||0),0)+
+      (S.coOwnerExtra||[]).reduce((s,o)=>s+Number(o.pct||0),0);
+    if(_totalPct>100){
+      const e=document.getElementById('ownerPctTotal-err');
+      if(e){e.textContent='Total ownership exceeds 100% — please adjust the percentages.';e.classList.add('visible');}
+      ok=false;
+    }
   } else if(id==='B7'){
     if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
     if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
