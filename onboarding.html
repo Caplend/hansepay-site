@@ -2862,7 +2862,6 @@ function validateStep(){
     if(!S.coFraudDisputes) fail('coFraudDisputes','Please answer this question');
     if(S.coFraudDisputes==='yes'&&!(g('coFraudDetail')||'').trim()) fail('coFraudDetail','Please provide details');
   } else if(id==='B6'){
-    if(!(g('coSellsWhat')||'').trim()) fail('coSellsWhat','Please describe what your company sells or provides');
     if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
     if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
     if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
