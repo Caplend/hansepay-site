@@ -2929,7 +2929,7 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
-  if(id==='B8_POA'){
+  } else if(id==='B8_POA'){
     if(!S.coOwnerPOAType){fail('poaType','Please select a document type');ok=false;}
     if(!S.coOwnerPOAFileName){
       const e=document.getElementById('poaFile-err');
@@ -3072,7 +3072,7 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
-  if(id==='B8_POA'){
+  } else if(id==='B8_POA'){
     S.coOwnerPOAType=g('poaType')||S.coOwnerPOAType;
   } else if(id==='B8'){
     collectOwnerExtraData();
