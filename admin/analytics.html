@@ -719,6 +719,7 @@ var token = localStorage.getItem('hp_token');
 if (!token) { window.location.href = '/admin/login.html'; }
 
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 
 function setUserUI(u) {
   if (!u || !u.name) return;

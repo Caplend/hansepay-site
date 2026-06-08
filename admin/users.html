@@ -280,6 +280,7 @@ fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { he
   .then(function(r) { if (!r.ok) { localStorage.removeItem('hp_token'); window.location.href = '/hansepay/admin/login.html'; } });
 
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 if (user && user.name) {
   var initials = user.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
   document.getElementById('sidebar-avatar').textContent = initials;

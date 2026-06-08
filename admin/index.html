@@ -503,6 +503,7 @@ var token = localStorage.getItem('hp_token');
 if (!token) { window.location.href = '/hansepay/admin/login.html'; }
 
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 
 // Validate token on load
 fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })

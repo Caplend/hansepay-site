@@ -290,6 +290,7 @@ a{color:inherit;text-decoration:none}
 var token = localStorage.getItem('hp_token');
 if (!token) window.location.href = '/hansepay/admin/login.html';
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 var API = 'https://hansepay-deploy-production-328c.up.railway.app';
 
 // Init user display

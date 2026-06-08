@@ -717,6 +717,7 @@ function signOut() {
 
 // ---- Populate user info from localStorage immediately ----
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 function setUserUI(name, email) {
   var initials = (name || 'A').split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
   document.getElementById('sidebar-avatar').textContent = initials;
