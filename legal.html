@@ -20,16 +20,10 @@ html,body{font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);backgro
 a{color:var(--n400);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* ── TOPBAR ── */
-.topbar{background:var(--n800);background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.topbar-logo img{width:26px;height:26px;object-fit:contain}
-.topbar-logo-text{font-family:'Libre Baskerville',serif;font-size:17px;font-weight:400;color:#fff;letter-spacing:.01em}
-.topbar-back{font-size:13px;color:rgba(255,255,255,.5);text-decoration:none;transition:.15s}
-.topbar-back:hover{color:rgba(255,255,255,.85)}
+/* ── NAV, see assets/nav.js ── */
 
 /* ── PAGE HERO ── */
-.page-hero{background:var(--n050);border-bottom:1px solid rgba(11,25,41,.07);padding:48px 40px 40px}
+.page-hero{background:var(--n050);border-bottom:1px solid rgba(11,25,41,.07);padding:116px 40px 40px}
 .page-hero-inner{max-width:1100px;margin:0 auto}
 .page-hero-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--n400);margin-bottom:10px}
 .page-hero-title{font-family:'Libre Baskerville',serif;font-size:32px;font-weight:400;color:var(--n800);margin-bottom:10px}
@@ -85,16 +79,12 @@ a:hover{text-decoration:underline}
 
 .divider{height:1px;background:#EEF3F8;margin:32px 0}
 
-/* ── FOOTER ── */
-.page-footer{background:var(--n800);padding:28px 40px;border-top:1px solid rgba(255,255,255,.07);text-align:center}
-.page-footer p{font-size:12.5px;color:rgba(255,255,255,.35)}
-.page-footer a{color:rgba(255,255,255,.5);text-decoration:none}.page-footer a:hover{color:rgba(255,255,255,.85)}
+/* ── FOOTER, see assets/footer.js ── */
 
 /* ── MOBILE ── */
 .mobile-doc-select{display:none}
 @media(max-width:860px){
-  .topbar{padding:0 20px}
-  .page-hero{padding:36px 20px 28px}
+  .page-hero{padding:88px 20px 28px}
   .layout{grid-template-columns:1fr;gap:0;padding:0}
   .sidebar{display:none;position:static}
   .mobile-doc-select{display:block;background:var(--n050);border-bottom:1px solid #DDE6EF;padding:16px 20px}
@@ -107,14 +97,7 @@ a:hover{text-decoration:underline}
 </head>
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <a class="topbar-logo" href="/">
-    <img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay">
-    <span class="topbar-logo-text">HansePay</span>
-  </a>
-  <a class="topbar-back" href="/">← Back to site</a>
-</header>
+<script src="assets/nav.js"></script>
 
 <!-- HERO -->
 <div class="page-hero">
@@ -813,15 +796,7 @@ a:hover{text-decoration:underline}
   </main>
 </div>
 
-<!-- FOOTER -->
-<div class="page-footer">
-  <p>© 2025 Atrya Technologies SIA, trading as HansePay &nbsp;·&nbsp;
-     Registered in the Republic of Latvia &nbsp;·&nbsp;
-     Authorised by Latvijas Banka &nbsp;·&nbsp;
-     <a href="/">hansepay.com</a> &nbsp;·&nbsp;
-     <a href="mailto:legal@hansepay.com">legal@hansepay.com</a>
-  </p>
-</div>
+<script src="assets/footer.js"></script>
 
 <script>
 // Load live content from API and update pane
