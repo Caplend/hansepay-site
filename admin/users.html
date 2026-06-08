@@ -62,6 +62,7 @@ a { color: inherit; text-decoration: none; }
 .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:var(--r-pill); font-size:0.6875rem; font-weight:600; }
 .badge-admin { background:var(--n500); color:#fff; }
 .badge-editor { background:var(--n050); color:var(--ink2); }
+.badge-compliance { background:#FEF3C7; color:#92400E; }
 .actions { display:flex; align-items:center; gap:4px; }
 .btn-act { padding:5px 10px; border-radius:var(--r-sm); font-size:0.75rem; font-weight:600; background:transparent; border:none; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s; }
 .btn-act-edit { color:var(--n400); } .btn-act-edit:hover { background:var(--n050); color:var(--n600); }
@@ -233,6 +234,7 @@ a { color: inherit; text-decoration: none; }
       <label for="m-role">Role</label>
       <select id="m-role">
         <option value="editor">Editor</option>
+        <option value="compliance">Compliance</option>
         <option value="admin">Admin</option>
       </select>
     </div>
@@ -326,7 +328,7 @@ function renderUsers(users) {
     return '<tr id="row-' + id + '">' +
       '<td><div class="user-cell"><div class="user-initials">' + getInitials(u.name) + '</div><span class="user-name-text">' + safeName + '</span></div></td>' +
       '<td>' + safeEmail + '</td>' +
-      '<td><span class="badge ' + (role === 'admin' ? 'badge-admin' : 'badge-editor') + '">' + role.charAt(0).toUpperCase() + role.slice(1) + '</span></td>' +
+      '<td><span class="badge badge-' + role + '">' + role.charAt(0).toUpperCase() + role.slice(1) + '</span></td>' +
       '<td>' + formatDate(u.lastLogin) + '</td>' +
       '<td><div class="actions">' +
         '<button class="btn-act btn-act-edit" onclick="startEdit(\'' + id + '\')">Edit</button>' +
@@ -347,6 +349,7 @@ function startEdit(id) {
     '<td><input class="inline-input" id="ei-email-' + id + '" type="email" value="' + (u.email || '').replace(/"/g, '&quot;') + '" style="max-width:200px" /></td>' +
     '<td><select class="inline-select" id="ei-role-' + id + '">' +
       '<option value="editor"' + (u.role === 'editor' ? ' selected' : '') + '>Editor</option>' +
+      '<option value="compliance"' + (u.role === 'compliance' ? ' selected' : '') + '>Compliance</option>' +
       '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Admin</option>' +
     '</select></td>' +
     '<td>' + safeLastLogin + '</td>' +

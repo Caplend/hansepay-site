@@ -797,7 +797,29 @@ a:hover{text-decoration:underline}
 </div>
 
 <script>
+// Load live content from API and update pane
+function fetchDocContent(slug) {
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/legal/' + slug)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(doc){
+      if (!doc) return;
+      var pane = document.getElementById('doc-' + slug);
+      if (!pane) return;
+      var titleEl = pane.querySelector('.doc-title');
+      var badgeEl = pane.querySelector('.doc-badge');
+      var dateEl  = pane.querySelector('.doc-date');
+      var bodyEl  = pane.querySelector('.doc-body');
+      if (titleEl && doc.title) titleEl.textContent = doc.title;
+      if (badgeEl && doc.badge) badgeEl.textContent = doc.badge;
+      if (dateEl  && doc.effectiveLine) dateEl.innerHTML = doc.effectiveLine;
+      if (bodyEl  && doc.body) bodyEl.innerHTML = doc.body;
+    })
+    .catch(function(){});
+}
+
 function showDoc(id){
+  fetchDocContent(id);
+
   // Hide all panes
   document.querySelectorAll('.doc-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
@@ -825,6 +847,8 @@ window.addEventListener('DOMContentLoaded',()=>{
   const hash=location.hash.replace('#','');
   if(['imprint','terms','privacy','cookies','aml','complaints'].includes(hash)){
     showDoc(hash);
+  } else {
+    fetchDocContent('imprint');
   }
 });
 </script>

@@ -46,7 +46,7 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities'].forEach(name => {
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -282,6 +282,13 @@ function authenticateToken(req, res, next) {
 function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
+function requireLegal(req, res, next) {
+  if (!req.user || !['admin','compliance'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Legal access required' });
   }
   next();
 }
@@ -1972,6 +1979,39 @@ app.patch('/api/bookings/:id/assign', authenticateToken, (req, res) => {
   list[idx].assignedTo = req.body.rep || null; // { id, name, color } or null
   list[idx].updatedAt  = new Date().toISOString();
   writeData('bookings.json', list);
+  res.json(list[idx]);
+});
+
+// ─── Legal document routes ────────────────────────────────────────────────────
+
+// GET /api/legal — public, returns all docs (slug, title, badge, effectiveLine, updatedAt only — no body)
+app.get('/api/legal', (req, res) => {
+  const docs = readData('legal.json');
+  res.json(Array.isArray(docs) ? docs.map(({ body, ...rest }) => rest) : []);
+});
+
+// GET /api/legal/:slug — public, returns single doc including body
+app.get('/api/legal/:slug', (req, res) => {
+  const docs = readData('legal.json');
+  const doc = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  res.json(doc);
+});
+
+// PUT /api/legal/:slug — requires admin or compliance role
+app.put('/api/legal/:slug', authenticateToken, requireLegal, (req, res) => {
+  const docs = readData('legal.json');
+  const list = Array.isArray(docs) ? docs : [];
+  const idx = list.findIndex(d => d.slug === req.params.slug);
+  if (idx === -1) return res.status(404).json({ error: 'Document not found' });
+  const { title, badge, effectiveLine, body } = req.body;
+  if (title !== undefined) list[idx].title = title;
+  if (badge !== undefined) list[idx].badge = badge;
+  if (effectiveLine !== undefined) list[idx].effectiveLine = effectiveLine;
+  if (body !== undefined) list[idx].body = body;
+  list[idx].updatedAt = new Date().toISOString();
+  list[idx].updatedBy = req.user.name || req.user.email;
+  writeData('legal.json', list);
   res.json(list[idx]);
 });
 
