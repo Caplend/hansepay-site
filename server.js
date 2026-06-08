@@ -5,7 +5,8 @@ const crypto = require('crypto');
 const cal = (() => { try { return require('./lib/calendar'); } catch(e) { return null; } })();
 const mailer = (() => { try { return require('./lib/email'); } catch(e) { console.error('[email] module load failed:', e.message); return null; } })();
 const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return null; } })();
-const crm = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
+const crm     = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
+const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { console.error('[legal-pdf] load failed:', e.message); return null; } })();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -2013,6 +2014,20 @@ app.put('/api/legal/:slug', authenticateToken, requireLegal, (req, res) => {
   list[idx].updatedBy = req.user.name || req.user.email;
   writeData('legal.json', list);
   res.json(list[idx]);
+});
+
+// GET /api/legal/:slug/pdf — public, streams a branded PDF of the document
+app.get('/api/legal/:slug/pdf', (req, res) => {
+  if (!legalPdf) return res.status(503).json({ error: 'PDF service unavailable' });
+  const docs = readData('legal.json');
+  const doc  = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  try {
+    legalPdf.generateLegalPdf(doc, res);
+  } catch (err) {
+    console.error('[legal-pdf] generation error:', err);
+    if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
+  }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

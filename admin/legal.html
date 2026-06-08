@@ -62,6 +62,8 @@ a{color:inherit;text-decoration:none}
 .btn-save{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:var(--r-pill);background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:none;cursor:pointer;transition:background .15s}
 .btn-save:hover{background:var(--n600)}
 .btn-save:disabled{background:#B8C9D9;cursor:not-allowed}
+.btn-pdf{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);background:transparent;color:var(--n600);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:1.5px solid var(--n200);cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+.btn-pdf:hover{background:var(--n050);border-color:var(--n400)}
 .save-status{font-size:.75rem;color:var(--ink3)}
 
 .meta-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
@@ -135,6 +137,10 @@ a{color:inherit;text-decoration:none}
           </div>
           <div class="editor-actions">
             <span class="save-status" id="saveStatus"></span>
+            <a class="btn-pdf" id="btnPdf" href="#" target="_blank" style="display:none">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Preview PDF
+            </a>
             <button class="btn-save" id="btnSave" onclick="saveDoc()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Save changes
@@ -246,6 +252,12 @@ function loadDoc(slug) {
     document.getElementById('saveStatus').textContent = '';
     document.getElementById('editorLoading').style.display = 'none';
     document.getElementById('editorContent').style.display = 'block';
+    // Show PDF preview button
+    var pdfBtn = document.getElementById('btnPdf');
+    if (pdfBtn) {
+      pdfBtn.href = '/api/legal/' + slug + '/pdf';
+      pdfBtn.style.display = 'inline-flex';
+    }
   }).catch(function(){
     document.getElementById('editorLoading').textContent = 'Failed to load document.';
   });
