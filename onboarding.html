@@ -2477,10 +2477,6 @@ function RB8(){
 
     ${S.coOwnerExtra.length>0?`<div class="section-header">Additional owners</div><div id="ownerExtraList">${S.coOwnerExtra.map((o,i)=>renderOwnerExtra(o,i)).join('')}</div>`:`<div id="ownerExtraList"></div>`}
 
-    <div id="ownerPctTotal" style="display:none;align-items:center;justify-content:space-between;padding:10px 16px;border-radius:var(--r-md);border:1.5px solid #86EFAC;background:#F0FDF4;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--success);transition:.2s">
-      <span>Total ownership declared</span>
-      <span><span id="ownerPctSum">0</span>% of 100%</span>
-    </div>
     <div class="field-error" id="ownerPctTotal-err"></div>
 
     <button type="button" onclick="addOwnerExtra()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:8px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
@@ -2518,6 +2514,7 @@ window.updateOwnerMgmtPct=function(mgmtIdx,val){
 };
 
 function recalcOwnerTotal(){
+  // Clears the >100% error live as the user corrects values
   let total=0;
   (S.coOwnerMgmt||[]).forEach(o=>{
     const inp=document.getElementById('om-pct-inp-'+o.mgmtIdx);
@@ -2527,21 +2524,9 @@ function recalcOwnerTotal(){
     const inp=document.getElementById('oe'+i+'Pct');
     total+=inp?Number(inp.value)||0:Number(o.pct)||0;
   });
-  const totalOwners=(S.coOwnerMgmt||[]).length+(S.coOwnerExtra||[]).length;
-  const el=document.getElementById('ownerPctTotal');
-  const errEl=document.getElementById('ownerPctTotal-err');
-  if(!el)return;
-  if(totalOwners===0){el.style.display='none';return;}
-  el.style.display='flex';
-  const sumEl=document.getElementById('ownerPctSum');
-  if(sumEl)sumEl.textContent=total;
-  const over=total>100;
-  el.style.background=over?'#FEF2F2':'#F0FDF4';
-  el.style.borderColor=over?'#FCA5A5':'#86EFAC';
-  el.style.color=over?'var(--error)':'var(--success)';
-  if(errEl){
-    if(over){errEl.textContent='Total ownership exceeds 100% — please adjust the percentages.';errEl.classList.add('visible');}
-    else{errEl.textContent='';errEl.classList.remove('visible');}
+  if(total<=100){
+    const errEl=document.getElementById('ownerPctTotal-err');
+    if(errEl){errEl.textContent='';errEl.classList.remove('visible');}
   }
 }
 window.recalcOwnerTotal=recalcOwnerTotal;
