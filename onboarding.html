@@ -2432,7 +2432,7 @@ function renderOwnerExtra(o,i){
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
       <div class="field-group">
         <label for="oe${i}Pct">Ownership %</label>
-        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="51" min="1" max="100" step="1" style="max-width:160px">
+        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="51" min="25" max="100" step="1" style="max-width:160px">
         <div class="field-error" id="oe${i}Pct-err"></div>
       </div>
     </div>
@@ -2455,8 +2455,8 @@ function RB8(){
       </div>
       <div id="om-pct-${i}" style="display:${checked?'block':'none'};margin-top:12px;padding-top:12px;border-top:1px solid #EEF3F8">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Ownership % <span style="color:var(--error)">*</span></label>
-        <input type="number" id="om-pct-inp-${i}" min="1" max="100" step="1" placeholder="51" value="${esc(String(pct))}" style="margin-top:6px;width:160px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
-        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 1–100.</div>
+        <input type="number" id="om-pct-inp-${i}" min="25" max="100" step="1" placeholder="51" value="${esc(String(pct))}" style="margin-top:6px;width:160px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
+        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 25–100.</div>
         <div class="field-error" id="om-pct-err-${i}"></div>
       </div>
     </div>`;
@@ -2839,9 +2839,9 @@ function validateStep(){
     const totalOwners=S.coOwnerMgmt.length+S.coOwnerExtra.length;
     if(!totalOwners){const e=document.getElementById('ownerMgmtList');showToast('Please select or add at least one owner');ok=false;}
     S.coOwnerMgmt.forEach(o=>{
-      if(!o.pct||isNaN(o.pct)||Number(o.pct)<1||Number(o.pct)>100){
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100){
         const e=document.getElementById('om-pct-err-'+o.mgmtIdx);
-        if(e){e.textContent='Please enter a valid ownership % (1–100)';e.classList.add('visible');}ok=false;
+        if(e){e.textContent='Please enter a valid ownership % (25–100)';e.classList.add('visible');}ok=false;
       }
     });
     S.coOwnerExtra.forEach((o,i)=>{
@@ -2850,7 +2850,7 @@ function validateStep(){
       if(!o.dob) fail('oe'+i+'DOB','Date of birth is required');
       if(!(o.addr1||'').trim()) fail('oe'+i+'Addr1','Address is required');
       if(!(o.city||'').trim()) fail('oe'+i+'City','City is required');
-      if(!o.pct||isNaN(o.pct)||Number(o.pct)<1||Number(o.pct)>100) fail('oe'+i+'Pct','Enter a valid ownership % (1–100)');
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100) fail('oe'+i+'Pct','Enter a valid ownership % (25–100)');
     });
   } else if(id==='B7'){
     if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
