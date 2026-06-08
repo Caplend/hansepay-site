@@ -502,7 +502,9 @@ const S = {
   coSanctionsExposure:'no',coSanctionsDetail:'',
   coHighRiskCountries:'no',coHighRiskDetail:'',
   coPreviousAccountClosure:'no',coPreviousClosureDetail:'',
-  coFraudDisputes:'no',coFraudDetail:''
+  coFraudDisputes:'no',coFraudDetail:'',
+  // B8_POA – Proof of address for largest owner
+  coOwnerPOAType:'',coOwnerPOAFileName:''
 };
 
 let CI = 0; // currentIndex
@@ -580,7 +582,7 @@ const BUSINESS_PHASES = [
   {id:'account',    label:'Account',    steps:[1,2,'3a','3b',4]},
   {id:'company',    label:'Company',    steps:['B1','B2']},
   {id:'documents',  label:'Documents',  steps:['B3','B4']},
-  {id:'management', label:'Management & Owners', steps:['B5','B8']},
+  {id:'management', label:'Management & Owners', steps:['B5','B8','B8_POA']},
   {id:'activity',   label:'Activity',   steps:['B6','B7']},
   {id:'bterms',     label:'Terms',      steps:['B9']},
   {id:'bverify',    label:'Verify',     steps:['B10','B11']},
@@ -599,7 +601,11 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8','B6','B7','B9','B10','B11'];
+    const _base=[1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8'];
+    const _hasOwners=(S.coOwnerMgmt&&S.coOwnerMgmt.length>0)||(S.coOwnerExtra&&S.coOwnerExtra.length>0);
+    if(_hasOwners) _base.push('B8_POA');
+    _base.push('B6','B7','B9','B10','B11');
+    return _base;
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -719,7 +725,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B6':return RB6();case'B7':return RB7();case'B9':return RB9();case'B10':return RB10();case'B11':return RB11();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B8_POA':return RB8_POA();case'B6':return RB6();case'B7':return RB7();case'B9':return RB9();case'B10':return RB10();case'B11':return RB11();
   }
   return '';
 }
@@ -1808,8 +1814,7 @@ function RB4(){
 
     ${docs.map(d=>`
     <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
-      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">${esc(d.label)}</div>
-      <div style="font-size:12.5px;color:var(--ink3);margin-bottom:14px;line-height:1.5">${esc(d.desc)}</div>
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:0">${esc(d.label)}<span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0" style="margin-left:7px">i</span><span class="tooltip-box" style="width:300px;left:0;transform:none">${esc(d.desc)}</span></span></div>
       <div class="upload-zone" onclick="document.getElementById('${d.id}File').click()">
         <input type="file" id="${d.id}File" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleDocUpload('${d.id}')">
         <div id="${d.id}Empty">
@@ -2486,6 +2491,85 @@ function RB8(){
   </div>`;
 }
 
+// ── Helper: find the owner with the largest stake ──────────────────────────
+function getLargestOwner(){
+  let best=null,bestPct=0;
+  (S.coOwnerMgmt||[]).forEach(o=>{
+    const pct=Number(o.pct||0);
+    if(pct>bestPct){
+      const m=(S.coManagement||[])[o.mgmtIdx];
+      if(m){bestPct=pct;best={name:[m.firstName,m.lastName].filter(Boolean).join(' ')||'—',pct};}
+    }
+  });
+  (S.coOwnerExtra||[]).forEach(o=>{
+    const pct=Number(o.pct||0);
+    if(pct>bestPct){bestPct=pct;best={name:[o.firstName,o.lastName].filter(Boolean).join(' ')||'—',pct};}
+  });
+  return best;
+}
+
+// ── B8_POA — Proof of address for largest owner ────────────────────────────
+function RB8_POA(){
+  const owner=getLargestOwner();
+  const ownerName=owner?owner.name:'Owner';
+  const poaTypes=['Utility bill','Bank statement','Rental agreement','Tax document','Government correspondence'];
+  const hasFile=!!S.coOwnerPOAFileName;
+  const selType=S.coOwnerPOAType||'';
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:16px;background:#e0f0ff;display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7cde" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Proof of address (owners only)</h1>
+    <p class="step-sub" style="text-align:center">A Company Owner (UBO) is a person who owns 25% or more of the company. If no such person reaches this threshold, please select the most senior Company Manager as an owner.</p>
+
+    <div style="border:1.5px solid #d4edda;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:16px;background:#fff">
+      <div style="font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:16px">${esc(ownerName)}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Proof of address type <span style="color:var(--error)">*</span></label>
+          <select id="poaType" style="width:100%;padding:11px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center" onchange="S.coOwnerPOAType=this.value;saveState()">
+            <option value="">Select type</option>
+            ${poaTypes.map(t=>`<option value="${t}"${selType===t?' selected':''}>${t}</option>`).join('')}
+          </select>
+          <div class="field-error" id="poaType-err"></div>
+        </div>
+
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Upload proof of address <span style="color:var(--error)">*</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label for="poaFile" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r-md);background:${hasFile?'#e8f5e9':'#3B7BC4'};color:${hasFile?'#2e7d32':'#fff'};font-size:13px;font-weight:600;cursor:pointer;border:none;white-space:nowrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              ${hasFile?'Replace file':'Upload file'}
+            </label>
+            <input type="file" id="poaFile" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handlePOAUpload()">
+            ${hasFile?`<span style="font-size:13px;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="poaFileName">${esc(S.coOwnerPOAFileName)}</span><a href="#" onclick="event.preventDefault();window.alert('Preview: '+S.coOwnerPOAFileName)" style="font-size:13px;color:var(--n400);text-decoration:none;flex-shrink:0">View</a>`:`<span id="poaFileName" style="font-size:13px;color:var(--ink3)"></span>`}
+          </div>
+          <div class="field-error" id="poaFile-err"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:16px 20px;font-size:13.5px;color:var(--ink2)">
+      <div style="font-weight:600;color:var(--ink);margin-bottom:10px">Accepted documents</div>
+      <ul style="padding-left:18px;display:flex;flex-direction:column;gap:5px">
+        ${poaTypes.map(t=>`<li style="color:var(--ink3)">${t}</li>`).join('')}
+      </ul>
+    </div>
+  </div>`;
+}
+
+window.handlePOAUpload=function(){
+  const inp=document.getElementById('poaFile');
+  if(!inp||!inp.files.length)return;
+  const f=inp.files[0];
+  S.coOwnerPOAFileName=f.name;
+  saveState();
+  // Refresh the step card to show the file name and "Replace file" button
+  const card=document.getElementById('sCard');
+  if(card) card.outerHTML=RB8_POA();
+  attachAll('B8_POA');
+};
+
 window.toggleOwnerMgmt=function(mgmtIdx){
   const chk=document.getElementById('om-chk-'+mgmtIdx);
   const pctWrap=document.getElementById('om-pct-'+mgmtIdx);
@@ -2656,7 +2740,7 @@ function RB7(){
 
     <!-- Sanctions exposure -->
     <div class="compliance-block">
-      <div class="compliance-block-label">Does your company — including its directors, UBOs, shareholders, business partners, accounts, source of funds, or planned transactions — have any connection to sanctioned, embargoed, or high-risk countries, persons, or entities?
+      <div class="compliance-block-label">Does your company, including its directors, UBOs, shareholders, business partners, accounts, source of funds, or planned transactions, have any connection to sanctioned, embargoed, or high-risk countries, persons, or entities?
         <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
       </div>
       ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
@@ -2845,6 +2929,13 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  if(id==='B8_POA'){
+    if(!S.coOwnerPOAType){fail('poaType','Please select a document type');ok=false;}
+    if(!S.coOwnerPOAFileName){
+      const e=document.getElementById('poaFile-err');
+      if(e){e.textContent='Please upload a proof of address document';e.classList.add('visible');}
+      ok=false;
+    }
   } else if(id==='B8'){
     collectOwnerExtraData();
     S.coOwnerMgmt.forEach(o=>{
@@ -2981,6 +3072,8 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  if(id==='B8_POA'){
+    S.coOwnerPOAType=g('poaType')||S.coOwnerPOAType;
   } else if(id==='B8'){
     collectOwnerExtraData();
     // coOwnerMgmt pcts are updated inline via updateOwnerMgmtPct
