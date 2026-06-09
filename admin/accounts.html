@@ -291,163 +291,93 @@ function initials(n) { return n.split(/\s+/).map(function(w){return w[0]||'';}).
 function eur(n) { return '€'+Number(n).toLocaleString('en-GB'); }
 function eurK(n) { return n>=1e6?'€'+(n/1e6).toFixed(1)+'M':n>=1e3?'€'+Math.round(n/1000)+'k':'€'+n; }
 
-// ── Inject live-registered user from onboarding localStorage ─────────────
-var LIVE_ACCOUNTS = [];
+// ── Load all registered users from localStorage ───────────────────────────
+// hp_onb  = current browser's onboarding session
+// hp_accs = array of completed registrations saved by the dashboard
+//           (written when user first logs in successfully)
+function loadAccounts(){
+  var list = [];
+
+  // 1. Any account that has signed into the dashboard (persisted list)
+  try {
+    var saved = JSON.parse(localStorage.getItem('hp_accs') || '[]');
+    saved.forEach(function(a){ list.push(a); });
+  } catch(e){}
+
+  // 2. Active onboarding session (may not be in hp_accs yet)
+  try {
+    var onb = JSON.parse(localStorage.getItem('hp_onb') || '{}');
+    var s = onb.s || {};
+    if (s.email) {
+      // Don't duplicate if already in hp_accs
+      var alreadySaved = list.some(function(a){ return a.email === (s.coEmail || s.email); });
+      if (!alreadySaved) {
+        var fn = s.firstName || ''; var ln = s.lastName || '';
+        var name = s.coName || ((fn+' '+ln).trim()) || s.email;
+        var stepIdx = onb.ci || 0;
+        // status tiers: step >= 14 = submitted for review; else in-process
+        var status = stepIdx >= 14 ? 'review' : 'process';
+        // Pull real transaction history from hp_txlog if it exists
+        var txLog = [];
+        try { txLog = JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){}
+        var userEmail = s.coEmail || s.email;
+        var userTx = txLog.filter(function(t){ return t.userEmail === userEmail; });
+        var vol30 = userTx.reduce(function(sum,t){ return sum + (t.amount||0); }, 0);
+        var avgT  = userTx.length ? Math.round(vol30 / userTx.length) : 0;
+        // doc status
+        var docStatus = function(uploaded){ return uploaded ? 'ok' : 'pending'; };
+        list.push({
+          id: 'live-' + (s.email||'').replace(/[^a-z0-9]/gi,'').slice(0,8),
+          company:    name,
+          contact:    (fn+(ln?' '+ln:'')).trim() || s.email,
+          email:      s.coEmail || s.email || '',
+          type:       s.accountType === 'personal' ? 'Individual' : 'Business',
+          status:     status,
+          joined:     s._registeredAt || new Date().toISOString().split('T')[0],
+          lastActive: s._lastLogin    || new Date().toISOString().split('T')[0],
+          vol30:      vol30,
+          avgTransfer:avgT,
+          txCount30:  userTx.length,
+          balance:    0,
+          iban:       '—',
+          country:    (s.coAddrCountry || 'DE').slice(0,2).toUpperCase(),
+          city:       s.coCity || '',
+          regNum:     s.coRegNum || '—',
+          vat:        s.coVAT   || '—',
+          plan:       '—',
+          txHistory:  userTx.slice(0,5).map(function(t){
+            return {name:t.recipient||'Transfer',date:t.date||'',amt:t.amount||0,dir:t.dir||'out'};
+          }),
+          docs: [
+            {name:'Articles of Incorporation', st: docStatus(s.coIncFileName)},
+            {name:'Proof of ownership',        st: docStatus(s.coOwnerFileName)},
+            {name:'Proof of address (UBO)',    st: docStatus(s.coOwnerPOAFileName)},
+            {name:'ID — '+((fn+' '+ln).trim()||'Applicant'), st: docStatus(s.idFileName)},
+          ],
+          _isLive: true,
+        });
+      }
+    }
+  } catch(e){}
+
+  return list;
+}
+
+// Also persist a registration timestamp and last-login on first load
+// so "Joined" and "Last active" reflect real dates going forward.
 (function(){
   try {
     var onb = JSON.parse(localStorage.getItem('hp_onb') || '{}');
     var s = onb.s || {};
-    if (!s.email) return;
-    var fn = s.firstName || ''; var ln = s.lastName || '';
-    var name = s.coName || ((fn + ' ' + ln).trim()) || s.email;
-    var mgmt = s.management || []; var mgmt0 = mgmt[0] || {};
-    // Determine status: completed onboarding = 'review', partial = 'process'
-    var stepIdx = onb.ci || 0;
-    var status = stepIdx >= 14 ? 'review' : 'process';
-    LIVE_ACCOUNTS.push({
-      id: 'live-1',
-      company:     name,
-      contact:     (fn + (ln ? ' ' + ln : '')).trim() || s.email,
-      email:       s.coEmail || s.email || '',
-      type:        s.accountType === 'personal' ? 'Individual' : 'Business',
-      status:      status,
-      joined:      new Date().toISOString().split('T')[0],
-      lastActive:  new Date().toISOString().split('T')[0],
-      vol30: 0, avgTransfer: 0, txCount30: 0, balance: 0,
-      iban: '—',
-      country:     (s.coAddrCountry || 'DE').slice(0,2).toUpperCase(),
-      city:        s.coCity || '',
-      regNum:      s.coRegNum || '—',
-      vat:         s.coVAT || '—',
-      plan:        '—',
-      txHistory:   [],
-      docs: [
-        {name:'Articles of Incorporation', st: s.coIncFile   ? 'ok' : s.coIncFileName   ? 'ok' : 'pending'},
-        {name:'Proof of ownership',        st: s.coOwnerFile ? 'ok' : s.coOwnerFileName ? 'ok' : 'pending'},
-        {name:'Proof of address (UBO)',    st: s.coOwnerPOAFileName ? 'ok' : 'pending'},
-        {name:'ID — ' + ((fn + ' ' + ln).trim() || 'Applicant'),
-                                           st: s.idFileName  ? 'ok' : 'pending'},
-      ],
-      _isLive: true,
-    });
-  } catch(e) {}
+    if (s.email && !s._registeredAt) {
+      s._registeredAt = new Date().toISOString().split('T')[0];
+      onb.s = s;
+      localStorage.setItem('hp_onb', JSON.stringify(onb));
+    }
+  } catch(e){}
 })();
 
-// ── Mock data ─────────────────────────────────────────────────────────────
-var ACCOUNTS = [
-  {id:1, company:'Müller GmbH', contact:'Marcus Müller', email:'marcus.mueller@mueller-partners.de', type:'Business', status:'active',
-   joined:'2022-09-14', lastActive:'2026-06-08', vol30:482400, avgTransfer:18560, txCount30:26,
-   balance:214800, iban:'DE89 5001 0517 0000 4892 71', country:'DE', city:'Hamburg',
-   regNum:'HRB 124850', vat:'DE 287 449 102', plan:'Business Scale',
-   txHistory:[
-     {name:'DHL Logistics GmbH',date:'Jun 8',amt:24500,dir:'out'},
-     {name:'Inbound Wire — Santander',date:'Jun 7',amt:150000,dir:'in'},
-     {name:'Rolls-Royce PLC',date:'Jun 5',amt:38200,dir:'out'},
-     {name:'Nordic Parts AS',date:'Jun 3',amt:12700,dir:'out'},
-   ],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'ok'},{name:'ID — Marcus Müller',st:'ok'}]},
-
-  {id:2, company:'Schreiber Logistics KG', contact:'Anna Schreiber', email:'a.schreiber@schreiber-log.de', type:'Business', status:'active',
-   joined:'2023-02-07', lastActive:'2026-06-07', vol30:1240000, avgTransfer:44280, txCount30:28,
-   balance:390000, iban:'DE44 2004 1155 0621 9200 00', country:'DE', city:'Munich',
-   regNum:'HRA 98312', vat:'DE 314 882 013', plan:'Business Enterprise',
-   txHistory:[
-     {name:'Maersk A/S',date:'Jun 7',amt:220000,dir:'out'},
-     {name:'Client payment — BMW AG',date:'Jun 6',amt:485000,dir:'in'},
-     {name:'Port dues Hamburg',date:'Jun 4',amt:8400,dir:'out'},
-     {name:'Inbound — DZ Bank',date:'Jun 2',amt:320000,dir:'in'},
-   ],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'ok'},{name:'ID — Anna Schreiber',st:'ok'}]},
-
-  {id:3, company:'Hoffmann & Breuer AG', contact:'Klaus Breuer', email:'k.breuer@hb-ag.com', type:'Business', status:'active',
-   joined:'2023-08-19', lastActive:'2026-06-05', vol30:318700, avgTransfer:22760, txCount30:14,
-   balance:128400, iban:'DE12 5001 0517 0648 4898 90', country:'DE', city:'Frankfurt',
-   regNum:'HRB 204871', vat:'DE 209 441 012', plan:'Business Scale',
-   txHistory:[
-     {name:'Zurich Insurance',date:'Jun 5',amt:42000,dir:'out'},
-     {name:'Inbound — ING Bank',date:'Jun 3',amt:180000,dir:'in'},
-     {name:'Tech vendor payment',date:'Jun 1',amt:18900,dir:'out'},
-   ],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'pending'},{name:'ID — Klaus Breuer',st:'ok'}]},
-
-  {id:4, company:'Novak Trade s.r.o.', contact:'Petra Novak', email:'p.novak@novaktrade.cz', type:'Business', status:'active',
-   joined:'2024-01-11', lastActive:'2026-06-08', vol30:94200, avgTransfer:9420, txCount30:10,
-   balance:47300, iban:'CZ65 0800 0000 1920 0014 5399', country:'CZ', city:'Prague',
-   regNum:'CZ 28491033', vat:'CZ 28491033', plan:'Business Growth',
-   txHistory:[
-     {name:'Siemens AG',date:'Jun 8',amt:14800,dir:'out'},
-     {name:'Inbound — Erste Bank',date:'Jun 6',amt:58000,dir:'in'},
-   ],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'ok'},{name:'ID — Petra Novak',st:'ok'}]},
-
-  {id:5, company:'Lena Bergström', contact:'Lena Bergström', email:'lena.bergstrom@se.mail', type:'Individual', status:'active',
-   joined:'2024-03-28', lastActive:'2026-06-06', vol30:28400, avgTransfer:4733, txCount30:6,
-   balance:12100, iban:'SE45 5000 0000 0583 9825 74', country:'SE', city:'Stockholm',
-   regNum:'—', vat:'—', plan:'Individual Standard',
-   txHistory:[
-     {name:'Spotify AB',date:'Jun 6',amt:2400,dir:'in'},
-     {name:'Rent transfer',date:'Jun 1',amt:9800,dir:'out'},
-   ],
-   docs:[{name:'Proof of ID',st:'ok'},{name:'Proof of address',st:'ok'}]},
-
-  {id:6, company:'Vandenberg Import BV', contact:'Dirk Vandenberg', email:'d.vandenberg@vdimport.nl', type:'Business', status:'review',
-   joined:'2026-04-12', lastActive:'2026-06-01', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'—', country:'NL', city:'Rotterdam',
-   regNum:'KVK 88123904', vat:'NL 004 123 456 B01', plan:'Business Scale',
-   txHistory:[],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'pending'},{name:'Proof of address (UBO)',st:'missing'},{name:'ID — Dirk Vandenberg',st:'ok'}]},
-
-  {id:7, company:'Tanaka Manufacturing GmbH', contact:'Yuki Tanaka', email:'yuki.tanaka@tanaka-mfg.de', type:'Business', status:'review',
-   joined:'2026-05-03', lastActive:'2026-05-28', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'—', country:'DE', city:'Stuttgart',
-   regNum:'HRB 408812', vat:'DE 318 944 211', plan:'Business Enterprise',
-   txHistory:[],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'pending'},{name:'ID — Yuki Tanaka',st:'pending'}]},
-
-  {id:8, company:'Fontaine & Fils SARL', contact:'Pierre Fontaine', email:'p.fontaine@fontainefils.fr', type:'Business', status:'process',
-   joined:'2026-05-18', lastActive:'2026-05-22', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'—', country:'FR', city:'Lyon',
-   regNum:'—', vat:'—', plan:'—',
-   txHistory:[],
-   docs:[{name:'Articles of Incorporation',st:'missing'},{name:'Proof of ownership',st:'missing'},{name:'Proof of address (UBO)',st:'missing'},{name:'ID — Pierre Fontaine',st:'missing'}]},
-
-  {id:9, company:'Kowalski SP Z.O.O.', contact:'Marek Kowalski', email:'m.kowalski@kowalskisp.pl', type:'Business', status:'process',
-   joined:'2026-05-29', lastActive:'2026-05-30', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'—', country:'PL', city:'Warsaw',
-   regNum:'—', vat:'—', plan:'—',
-   txHistory:[],
-   docs:[{name:'Articles of Incorporation',st:'pending'},{name:'Proof of ownership',st:'missing'},{name:'Proof of address (UBO)',st:'missing'}]},
-
-  {id:10, company:'Georgiou Shipping Ltd', contact:'Nikos Georgiou', email:'n.georgiou@georgiou-sh.gr', type:'Business', status:'docs',
-   joined:'2026-03-14', lastActive:'2026-04-22', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'—', country:'GR', city:'Piraeus',
-   regNum:'GR 044981201', vat:'EL 094981201', plan:'Business Scale',
-   txHistory:[],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'missing'},{name:'ID — Nikos Georgiou',st:'missing'}]},
-
-  {id:11, company:'EnerTech GmbH', contact:'Sebastian Ritter', email:'s.ritter@enertech.de', type:'Business', status:'active',
-   joined:'2023-11-04', lastActive:'2026-06-08', vol30:762000, avgTransfer:54428, txCount30:14,
-   balance:445000, iban:'DE23 5001 0517 1234 5670 00', country:'DE', city:'Düsseldorf',
-   regNum:'HRB 312094', vat:'DE 212 884 093', plan:'Business Enterprise',
-   txHistory:[
-     {name:'Vattenfall GmbH',date:'Jun 8',amt:180000,dir:'out'},
-     {name:'Client — Rheinenergie',date:'Jun 7',amt:340000,dir:'in'},
-     {name:'Consulting fee',date:'Jun 4',amt:24000,dir:'out'},
-   ],
-   docs:[{name:'Articles of Incorporation',st:'ok'},{name:'Proof of ownership',st:'ok'},{name:'Proof of address (UBO)',st:'ok'},{name:'ID — Sebastian Ritter',st:'ok'}]},
-
-  {id:12, company:'Isabelle Moreau', contact:'Isabelle Moreau', email:'i.moreau@chez.fr', type:'Individual', status:'suspended',
-   joined:'2024-07-22', lastActive:'2025-12-01', vol30:0, avgTransfer:0, txCount30:0,
-   balance:0, iban:'FR76 3000 4028 3798 7654 3210 943', country:'FR', city:'Paris',
-   regNum:'—', vat:'—', plan:'Individual Standard',
-   txHistory:[],
-   docs:[{name:'Proof of ID',st:'ok'},{name:'Proof of address',st:'ok'}]},
-];
-
-// ── Merged list: live user(s) first, then mock ────────────────────────────
-function allAccounts(){
-  return LIVE_ACCOUNTS.concat(ACCOUNTS);
-}
+function allAccounts(){ return loadAccounts(); }
 
 // ── Stats ─────────────────────────────────────────────────────────────────
 function renderStats(){
@@ -535,8 +465,12 @@ function renderTable(){
 
   var maxVol = Math.max.apply(null, allAccounts().map(function(a){return a.vol30;}));
   var tbody = document.getElementById('accountsBody');
+  var total = allAccounts().length;
   if(!rows.length){
-    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No accounts match your filters.</p></div></td></tr>';
+    var msg = total === 0
+      ? 'No registered accounts yet. Accounts appear here as soon as someone completes the onboarding.'
+      : 'No accounts match your filters.';
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>'+msg+'</p></div></td></tr>';
     return;
   }
 
@@ -550,14 +484,10 @@ function renderTable(){
       : '<span style="color:var(--ink3);font-size:.8125rem">—</span>';
     var avgHtml = a.avgTransfer ? '<span class="mono">'+eur(a.avgTransfer)+'</span>' : '<span style="color:var(--ink3)">—</span>';
 
-    var liveTag = a._isLive
-      ? ' <span style="font-size:.625rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;'
-        +'background:var(--gold);color:#fff;padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:6px">NEW</span>'
-      : '';
-    return '<tr onclick="openDrawer(\''+a.id+'\')"' + (a._isLive ? ' style="background:#fffdf5;"' : '') + '>'
+    return '<tr onclick="openDrawer(\''+a.id+'\')">'
       +'<td><div class="acct-cell">'
       +'<div class="acct-avatar" style="background:'+col+'">'+ini+'</div>'
-      +'<div><div class="acct-name">'+a.company+liveTag+'</div><div class="acct-sub">'+a.contact+' · '+a.email+'</div></div>'
+      +'<div><div class="acct-name">'+a.company+'</div><div class="acct-sub">'+a.contact+' · '+a.email+'</div></div>'
       +'</div></td>'
       +'<td><span style="font-size:.8125rem">'+a.type+'</span></td>'
       +'<td><span class="badge '+STATUS_CLASSES[a.status]+'">'+STATUS_LABELS[a.status]+'</span></td>'

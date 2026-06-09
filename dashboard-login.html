@@ -264,6 +264,10 @@ function handleLogin(e){
       setGlobalErr('Incorrect password. Please try again.');
       pwEl.value='';pwEl.focus();return;
     }
+    // Stamp last login so admin "Last active" is always current
+    s._lastLogin = new Date().toISOString().split('T')[0];
+    onb.s = s;
+    localStorage.setItem('hp_onb', JSON.stringify(onb));
     sessionStorage.setItem('hp_dash_auth','1');
     window.location.href='dashboard.html';
   }catch(err){
