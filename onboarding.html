@@ -3861,8 +3861,14 @@ const OTP_API='https://hansepay-deploy-production-328c.up.railway.app/api/email/
 
 function sendEmailOTP(){
   S._emailCode=String(Math.floor(100000+Math.random()*900000));
+  saveState(); // persist the new code immediately
   const email=S.email||'';
   if(!email){showToast('No email address found — please go back and re-enter.');return;}
+
+  // Show "sending…" in the sub-text while the request is in flight
+  const sub=document.querySelector('#stepViewport .step-sub');
+  if(sub) sub.innerHTML='Sending code to <b>'+email+'</b>…';
+
   fetch(OTP_API,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -3876,21 +3882,23 @@ function sendEmailOTP(){
   .then(r=>r.json())
   .then(r=>{
     if(r.sent){
-      showToast('Verification code sent to '+email);
+      if(sub) sub.innerHTML='We sent a verification link and 6-digit code to <b>'+email+'</b>. Check your spam folder if you don\'t see it.';
     } else {
-      // Fallback: show in toast so dev/testing still works
-      showToast('Code: '+S._emailCode+' (email delivery: '+r.transport+')');
-      console.warn('[otp] not delivered via email:',r);
+      console.warn('[otp] email not delivered:',r);
+      if(sub) sub.innerHTML='Could not send to <b>'+email+'</b>. Use this code instead: <b>'+S._emailCode+'</b>';
     }
   })
   .catch(e=>{
     console.error('[otp] fetch error:',e);
-    showToast('Code: '+S._emailCode+' (offline fallback)');
+    if(sub) sub.innerHTML='Network error. Use this code: <b>'+S._emailCode+'</b>';
   });
 }
 
 function initEmailOTP(){
-  if(!S._emailCode) sendEmailOTP();
+  // Always generate + send a fresh code when this step is entered.
+  // (Clears any stale demo code stored in hp_onb from previous sessions.)
+  S._emailCode = null;
+  sendEmailOTP();
   const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
   inputs.forEach((inp,i)=>{
     if(!inp)return;
