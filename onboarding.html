@@ -2256,28 +2256,52 @@ function RB10(){
   </div>`;
 }
 
-window.kycSendEmail=function(key,name,email){
+const KYC_INVITE_API='https://hansepay-deploy-production-328c.up.railway.app/api/email/kyc-invite';
+
+function _kycDoSend(key,name,email,onDone){
   const actions=document.getElementById('kyc-actions-'+key);
   if(!actions)return;
+  if(!email){
+    actions.innerHTML=`<span style="font-size:12px;color:var(--error)">No email address for this person</span>`;
+    return;
+  }
   actions.innerHTML=`<div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--n200);border-top-color:var(--n500);flex-shrink:0"></div>`;
-  setTimeout(()=>{
+  fetch(KYC_INVITE_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      recipientName:name,
+      recipientEmail:email,
+      companyName:S.coName||'',
+      inviterName:(S.firstName||'')+(S.lastName?' '+S.lastName:''),
+      lang:document.documentElement.lang||'en',
+    }),
+  })
+  .then(r=>r.json())
+  .then(r=>{
     window._kycSent[key]=true;
-    actions.innerHTML=`
-      <span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
-      <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
-  },1200);
+    if(onDone)onDone(actions,key,name,email,r.sent);
+  })
+  .catch(()=>{
+    window._kycSent[key]=true;
+    if(onDone)onDone(actions,key,name,email,false);
+  });
+}
+
+function _kycSetSentUI(actions,key,name,email,sent){
+  const label=sent
+    ?`<span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>`
+    :`<span style="font-size:12.5px;color:var(--warn);font-weight:500;white-space:nowrap">Sent (delivery pending)</span>`;
+  actions.innerHTML=label+
+    `<button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
+}
+
+window.kycSendEmail=function(key,name,email){
+  _kycDoSend(key,name,email,_kycSetSentUI);
 };
 
 window.kycResend=function(key,name,email){
-  const actions=document.getElementById('kyc-actions-'+key);
-  if(!actions)return;
-  actions.innerHTML=`<div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--n200);border-top-color:var(--n500);flex-shrink:0"></div>`;
-  setTimeout(()=>{
-    window._kycSent[key]=true;
-    actions.innerHTML=`
-      <span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
-      <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
-  },1200);
+  _kycDoSend(key,name,email,_kycSetSentUI);
 };
 
 window.startBVerify=function(){
@@ -4181,28 +4205,69 @@ function init(){
 
   // ── Handle ?emailVerify=CODE magic link from OTP email ───────────────────
   const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
-  if(urlCode && S._emailCode && urlCode === S._emailCode){
-    // Load state, jump to email OTP step, auto-verify
+  if(urlCode){
     loadSaved();
-    const steps = getActiveSteps();
-    const otpIdx = steps.indexOf(2);
-    if(otpIdx !== -1){
-      CI = otpIdx;
-      showStep('forward');
-      // Small delay to let the step render before verifying
-      setTimeout(()=>{
-        // Fill inputs visually
-        const inputs = Array.from({length:6}, (_,i) => document.getElementById('emailOtp'+i));
-        urlCode.split('').forEach((c,i) => { if(inputs[i]){ inputs[i].value=c; inputs[i].classList.add('filled'); } });
-        verifyEmailCode();
-      }, 400);
+    // Compare BEFORE initEmailOTP can clear the code
+    if(S._emailCode && urlCode === S._emailCode){
+      S.emailLinkVerified = true;
+      S._emailCode = null;  // consume the code so it can't be reused
+      saveState();
+      window.history.replaceState({}, '', window.location.pathname);
+      // Skip the OTP step entirely — show a brief success banner then jump to phone step
+      const steps = getActiveSteps();
+      const phoneIdx = steps.indexOf(3);
+      if(phoneIdx !== -1){
+        CI = phoneIdx;
+        showStep('forward');
+        // Flash a "verified" toast so the user sees confirmation
+        setTimeout(()=>showToast('Email verified ✓ — continue with your phone number.'),200);
+      } else {
+        // Fallback: go to the OTP step but pre-fill as verified
+        const otpIdx = steps.indexOf(2);
+        if(otpIdx !== -1){ CI = otpIdx; showStep('forward'); }
+        setTimeout(()=>showToast('Email verified ✓'),200);
+      }
+      return;
     }
-    // Clean the URL
+    // Code mismatch or expired — continue normally, user can enter code manually
     window.history.replaceState({}, '', window.location.pathname);
-    return;
   }
 
   const savedIdx=loadSaved();
+  // ── If application was already submitted, show the status screen ────────
+  if(S.applicationRef){
+    const ref = S.applicationRef;
+    // Show the success screen immediately (with cached status)
+    showSuccessPage(S.accountType==='business'?'business':'personal');
+    // Then silently check current status from server
+    fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/status?ref='+encodeURIComponent(ref))
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.status==='approved'){
+          // Update success screen to show approved state
+          const h=document.getElementById('successHeading');
+          if(h) h.textContent='Account approved'+(S.coName?' — '+S.coName:'')+'.';
+          const sub=document.querySelector('.success-hero-sub');
+          if(sub) sub.textContent='Your account is active. Check your email for login details.';
+          // Mark compliance row as done
+          const rows=document.querySelectorAll('.success-step-row');
+          if(rows[2]){
+            rows[2].querySelector('.success-step-icon').className='success-step-icon done';
+            rows[2].querySelector('.success-step-icon').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            const st=rows[2].querySelector('.success-step-status');
+            if(st){st.textContent='Complete';st.className='success-step-status done';}
+          }
+          if(rows[3]){
+            rows[3].querySelector('.success-step-icon').className='success-step-icon done';
+            rows[3].querySelector('.success-step-icon').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            const st=rows[3].querySelector('.success-step-status');
+            if(st){st.textContent='Complete';st.className='success-step-status done';}
+          }
+        }
+      })
+      .catch(()=>{});
+    return;
+  }
   if(savedIdx!==null&&savedIdx>0){
     if(S.email&&S.password){
       // Account already created — require password to resume

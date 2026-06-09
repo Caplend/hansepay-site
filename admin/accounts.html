@@ -389,8 +389,9 @@ function buildAccountFromReg(r){
   var vol30  = userTx.reduce(function(s,t){ return s+(t.amount||0); }, 0);
   var avgT   = userTx.length ? Math.round(vol30/userTx.length) : 0;
   return {
-    id:          r.applicationRef || r.id || r.email,
-    company:     r.company || ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
+    id:             r.applicationRef || r.id || r.email,
+    applicationRef: r.applicationRef || r.id || null,
+    company:        r.company || ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
     contact:     ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
     email:       r.email,
     type:        r.accountType==='personal' ? 'Individual' : 'Business',
@@ -549,8 +550,8 @@ function renderChart(){
 }
 
 // ── Table ─────────────────────────────────────────────────────────────────
-var STATUS_LABELS = {active:'Active',review:'Under review',process:'In process',docs:'Pending docs',suspended:'Suspended'};
-var STATUS_CLASSES = {active:'badge-active',review:'badge-review',process:'badge-process',docs:'badge-docs',suspended:'badge-suspended'};
+var STATUS_LABELS = {active:'Active',approved:'Approved',review:'Under review',process:'In process',docs:'Pending docs',suspended:'Suspended'};
+var STATUS_CLASSES = {active:'badge-active',approved:'badge-active',review:'badge-review',process:'badge-process',docs:'badge-docs',suspended:'badge-suspended'};
 
 function fmtDate(iso){
   var d=new Date(iso);
@@ -612,9 +613,79 @@ function renderTable(){
 }
 
 // ── Drawer ─────────────────────────────────────────────────────────────────
+var _drawerAccount = null;  // currently open account
+
+function approveAccount(){
+  if(!_drawerAccount)return;
+  var a = _drawerAccount;
+  var btn = document.getElementById('drawerPrimaryBtn');
+  if(!a.applicationRef && a.id){
+    // If no applicationRef field, use id (which equals applicationRef for server records)
+    a.applicationRef = String(a.id).startsWith('HP-') ? a.id : null;
+  }
+  if(!a.applicationRef){
+    alert('Cannot approve: no application reference found for this account.');
+    return;
+  }
+  btn.disabled=true;
+  btn.innerHTML='<span style="opacity:.7">Approving…</span>';
+  var token = localStorage.getItem('hp_token');
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/approve',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: JSON.stringify({applicationRef: a.applicationRef}),
+  })
+  .then(function(r){return r.json();})
+  .then(function(r){
+    if(r.ok){
+      // Update local cache
+      if(_accountCache){
+        var idx = _accountCache.findIndex(function(x){return String(x.id)===String(a.id);});
+        if(idx>=0) _accountCache[idx].status = 'approved';
+      }
+      btn.disabled=false;
+      btn.textContent='Approved ✓';
+      btn.style.background='var(--n400)';
+      // Update badge in header
+      document.getElementById('drawerSub').innerHTML='<span class="badge badge-active">Approved</span> &nbsp;'+a.type+' · '+a.country;
+      // Re-render table stats
+      renderStats();
+      renderTable();
+      var msg = r.emailSent ? 'Account approved — approval email sent to '+a.email+'.' : 'Account approved. (Email delivery pending.)';
+      showNotice(msg, 'success');
+    } else {
+      btn.disabled=false;
+      btn.textContent='Approve account';
+      showNotice('Approval failed: '+(r.error||'unknown error'), 'error');
+    }
+  })
+  .catch(function(e){
+    btn.disabled=false;
+    btn.textContent='Approve account';
+    showNotice('Network error — please retry.', 'error');
+  });
+}
+
+function showNotice(msg, type){
+  var n = document.getElementById('drawerNotice');
+  if(!n){
+    n = document.createElement('div');
+    n.id = 'drawerNotice';
+    n.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;z-index:9999;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.18);';
+    document.body.appendChild(n);
+  }
+  n.textContent = msg;
+  n.style.background = type==='success' ? '#16a34a' : '#dc2626';
+  n.style.color = '#fff';
+  n.style.opacity = '1';
+  clearTimeout(n._t);
+  n._t = setTimeout(function(){n.style.opacity='0';},4000);
+}
+
 function openDrawer(id){
   var a = allAccounts().find(function(x){return String(x.id)===String(id);});
   if(!a) return;
+  _drawerAccount = a;
 
   var ini = initials(a.company);
   var col = avatarColor(a.company);
@@ -625,10 +696,21 @@ function openDrawer(id){
 
   // Primary action based on status
   var btn = document.getElementById('drawerPrimaryBtn');
-  if(a.status==='active'){btn.textContent='Send message';btn.style.background='var(--n500)';}
-  else if(a.status==='review'||a.status==='docs'){btn.textContent='Approve account';btn.style.background='var(--success)';}
-  else if(a.status==='process'){btn.textContent='Request documents';btn.style.background='var(--n400)';}
-  else if(a.status==='suspended'){btn.textContent='Reinstate account';btn.style.background='var(--warn)';}
+  btn.disabled = false;
+  btn.onclick = null;
+  if(a.status==='active'||a.status==='approved'){
+    btn.textContent='Send message';btn.style.background='var(--n500)';
+    btn.onclick=function(){alert('Messaging not yet implemented.');};
+  } else if(a.status==='review'||a.status==='docs'){
+    btn.textContent='Approve account';btn.style.background='var(--success)';
+    btn.onclick=approveAccount;
+  } else if(a.status==='process'){
+    btn.textContent='Request documents';btn.style.background='var(--n400)';
+    btn.onclick=function(){alert('Document request not yet implemented.');};
+  } else if(a.status==='suspended'){
+    btn.textContent='Reinstate account';btn.style.background='var(--warn)';
+    btn.onclick=function(){alert('Reinstatement not yet implemented.');};
+  }
 
   // Build body
   var kpisHtml = '';

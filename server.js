@@ -2127,6 +2127,79 @@ app.post('/api/registration/confirm', async (req, res) => {
   }
 });
 
+// GET /api/registration/status — public, check a registration's status by ref
+app.get('/api/registration/status', (req, res) => {
+  const { ref } = req.query;
+  if (!ref) return res.status(400).json({ error: 'ref is required' });
+  const regs = readData('registrations.json');
+  const reg = regs.find(r => r.applicationRef === ref || r.id === ref);
+  if (!reg) return res.status(404).json({ error: 'Not found' });
+  res.json({ status: reg.status, submittedAt: reg.submittedAt, approvedAt: reg.approvedAt || null, email: reg.email, company: reg.company });
+});
+
+// POST /api/registration/approve — admin only. Approves a registration and sends approval email.
+app.post('/api/registration/approve', authenticateToken, requireAdmin, async (req, res) => {
+  const { applicationRef } = req.body || {};
+  if (!applicationRef) return res.status(400).json({ error: 'applicationRef is required' });
+
+  const regs = readData('registrations.json');
+  const idx = regs.findIndex(r => r.applicationRef === applicationRef || r.id === applicationRef);
+  if (idx === -1) return res.status(404).json({ error: 'Registration not found' });
+
+  regs[idx].status     = 'approved';
+  regs[idx].approvedAt = new Date().toISOString();
+  writeData('registrations.json', regs);
+  console.log(`[registration] approved: ${regs[idx].email} (${applicationRef})`);
+
+  // Send approval email
+  let emailResult = { sent: false, transport: 'none' };
+  if (mailer && mailer.renderApprovalEmail) {
+    try {
+      const mail = mailer.renderApprovalEmail({
+        firstName:      regs[idx].firstName,
+        lastName:       regs[idx].lastName,
+        email:          regs[idx].email,
+        company:        regs[idx].company,
+        applicationRef: regs[idx].applicationRef,
+        lang:           regs[idx].lang || 'en',
+      });
+      emailResult = await mailer.sendMail(mail);
+      console.log(`[registration] approval email → ${regs[idx].email}: ${emailResult.sent ? 'sent' : 'skipped'}`);
+    } catch (err) {
+      console.error('[registration] approval email error:', err.message);
+    }
+  }
+
+  res.json({ ok: true, status: 'approved', email: regs[idx].email, emailSent: emailResult.sent });
+});
+
+// POST /api/email/kyc-invite — send KYC identity verification invite to a director/UBO
+app.post('/api/email/kyc-invite', async (req, res) => {
+  const { recipientName, recipientEmail, companyName, inviterName, lang } = req.body || {};
+
+  if (!recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+    return res.status(400).json({ error: 'Valid recipientEmail is required' });
+  }
+
+  const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+  // In production this would be a unique Signicat KYC link; for now use a placeholder
+  const kycUrl = siteBase + '/hansepay/kyc-verify.html';
+
+  if (!mailer || !mailer.renderKycInviteEmail) {
+    return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+  }
+
+  try {
+    const mail = mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[kyc-invite] → ${recipientEmail}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[kyc-invite] error:', err.message);
+    res.status(500).json({ error: 'Failed to send KYC invite' });
+  }
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
