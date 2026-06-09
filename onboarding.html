@@ -4207,30 +4207,55 @@ function init(){
   const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
   if(urlCode){
     loadSaved();
-    // Compare BEFORE initEmailOTP can clear the code
-    if(S._emailCode && urlCode === S._emailCode){
+    window.history.replaceState({}, '', window.location.pathname);
+
+    function _doEmailVerified(){
       S.emailLinkVerified = true;
-      S._emailCode = null;  // consume the code so it can't be reused
+      S._emailCode = null;
       saveState();
-      window.history.replaceState({}, '', window.location.pathname);
-      // Skip the OTP step entirely — show a brief success banner then jump to phone step
       const steps = getActiveSteps();
       const phoneIdx = steps.indexOf(3);
       if(phoneIdx !== -1){
         CI = phoneIdx;
         showStep('forward');
-        // Flash a "verified" toast so the user sees confirmation
         setTimeout(()=>showToast('Email verified ✓ — continue with your phone number.'),200);
       } else {
-        // Fallback: go to the OTP step but pre-fill as verified
         const otpIdx = steps.indexOf(2);
-        if(otpIdx !== -1){ CI = otpIdx; showStep('forward'); }
+        if(otpIdx !== -1){ CI = otpIdx; }
+        showStep('forward');
         setTimeout(()=>showToast('Email verified ✓'),200);
       }
+    }
+
+    function _goToOtpStep(){
+      // Bypass resume gate entirely — show OTP step without password prompt
+      const steps = getActiveSteps();
+      const otpIdx = steps.indexOf(2);
+      CI = otpIdx !== -1 ? otpIdx : 1;
+      showStep('forward');
+    }
+
+    // 1. Fast path: local match (same device, same session)
+    if(S._emailCode && urlCode === S._emailCode){
+      _doEmailVerified();
       return;
     }
-    // Code mismatch or expired — continue normally, user can enter code manually
-    window.history.replaceState({}, '', window.location.pathname);
+
+    // 2. Server-side validation — works cross-device and after page refresh
+    var _verifyEmail = S.email || S.coEmail || '';
+    if(_verifyEmail){
+      fetch('https://hansepay-deploy-production-328c.up.railway.app/api/email/otp/verify?email='
+        +encodeURIComponent(_verifyEmail)+'&code='+encodeURIComponent(urlCode))
+        .then(function(r){return r.json();})
+        .then(function(data){
+          if(data.valid){ _doEmailVerified(); }
+          else { _goToOtpStep(); }
+        })
+        .catch(function(){ _goToOtpStep(); });
+    } else {
+      _goToOtpStep();
+    }
+    return;  // always return — resume gate never fires when ?emailVerify is present
   }
 
   const savedIdx=loadSaved();

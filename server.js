@@ -2033,6 +2033,10 @@ app.get('/api/legal/:slug/pdf', (req, res) => {
 // ─── Email OTP ───────────────────────────────────────────────────────────────
 // Public endpoint — called from onboarding to send a 6-digit verification code.
 // The code is generated client-side and passed here; we just send the email.
+// In-memory OTP store: { [email]: { code, expiresAt } }
+// Survives page refreshes on the same server instance; good enough for OTP verification.
+const _otpStore = {};
+
 app.post('/api/email/otp', async (req, res) => {
   if (!mailer) return res.status(503).json({ error: 'Email service unavailable' });
 
@@ -2043,6 +2047,12 @@ app.post('/api/email/otp', async (req, res) => {
   if (!code || String(code).length !== 6) {
     return res.status(400).json({ error: '6-digit code is required' });
   }
+
+  // Store server-side so verify link works even after localStorage is cleared
+  _otpStore[email.toLowerCase()] = {
+    code: String(code),
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,  // 24-hour TTL
+  };
 
   try {
     const { renderOtpEmail } = mailer;
@@ -2058,6 +2068,22 @@ app.post('/api/email/otp', async (req, res) => {
     console.error('[otp] error:', err.message);
     res.status(500).json({ error: 'Failed to send OTP email' });
   }
+});
+
+// GET /api/email/otp/verify?email=X&code=Y — validate OTP against server-side store.
+// Returns { valid: true } and clears the entry on success, or { valid: false }.
+app.get('/api/email/otp/verify', (req, res) => {
+  const { email, code } = req.query;
+  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+  const entry = _otpStore[email.toLowerCase()];
+  if (!entry) return res.json({ valid: false, reason: 'no_code' });
+  if (Date.now() > entry.expiresAt) {
+    delete _otpStore[email.toLowerCase()];
+    return res.json({ valid: false, reason: 'expired' });
+  }
+  if (entry.code !== String(code)) return res.json({ valid: false, reason: 'mismatch' });
+  delete _otpStore[email.toLowerCase()];
+  res.json({ valid: true });
 });
 
 // ─── Registrations — persist + email ─────────────────────────────────────────
