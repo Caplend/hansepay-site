@@ -2030,6 +2030,34 @@ app.get('/api/legal/:slug/pdf', (req, res) => {
   }
 });
 
+// ─── Registration confirmation email ─────────────────────────────────────────
+// Public endpoint — called from onboarding.html on submit.
+// No auth required; rate-limit is implicitly low (one call per completed form).
+app.post('/api/registration/confirm', async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'Email service unavailable' });
+
+  const { firstName, lastName, email, company, accountType, applicationRef, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!applicationRef) {
+    return res.status(400).json({ error: 'applicationRef is required' });
+  }
+
+  try {
+    const { renderRegistrationEmail } = mailer;
+    if (!renderRegistrationEmail) return res.status(503).json({ error: 'Template not available' });
+
+    const mail = renderRegistrationEmail({ firstName, lastName, email, company, accountType, applicationRef, lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[registration] confirmation → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'skipped (' + result.reason + ')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[registration] email error:', err.message);
+    res.status(500).json({ error: 'Failed to send confirmation email' });
+  }
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
