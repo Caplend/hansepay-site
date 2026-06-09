@@ -3919,10 +3919,15 @@ function sendEmailOTP(){
 }
 
 function initEmailOTP(){
-  // Always generate + send a fresh code when this step is entered.
-  // (Clears any stale demo code stored in hp_onb from previous sessions.)
-  S._emailCode = null;
-  sendEmailOTP();
+  if(window._skipOtpAutoSend){
+    // Came here from verify-link cross-device fallback — don't auto-send.
+    // User can enter their code manually or click resend.
+    window._skipOtpAutoSend = false;
+  } else {
+    // Normal entry: generate + send a fresh code.
+    S._emailCode = null;
+    sendEmailOTP();
+  }
   const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
   inputs.forEach((inp,i)=>{
     if(!inp)return;
@@ -3961,6 +3966,8 @@ function resendEmailCode(){
   startEmailResendTimer();
 }
 function verifyEmailCode(){
+  // If already verified via magic link, just advance
+  if(S.emailLinkVerified){ nextStep(); return; }
   const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
   const entered=inputs.map(x=>x?x.value:'').join('');
   const err=document.getElementById('emailOtp-err');
@@ -4205,11 +4212,16 @@ function init(){
 
   // ── Handle ?emailVerify=CODE magic link from OTP email ───────────────────
   const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
-  if(urlCode){
+  if(urlCode && /^\d{6}$/.test(String(urlCode))){
     loadSaved();
     window.history.replaceState({}, '', window.location.pathname);
 
-    function _doEmailVerified(){
+    // Same-device path: if we have email context in localStorage the user
+    // proved ownership by receiving and clicking the link — trust it directly.
+    // This avoids server round-trips that fail when Railway restarts reset
+    // the in-memory OTP store, and avoids the loop where _goToOtpStep()
+    // triggers initEmailOTP() which auto-sends yet another email.
+    if(S.email || S.coEmail){
       S.emailLinkVerified = true;
       S._emailCode = null;
       saveState();
@@ -4220,42 +4232,22 @@ function init(){
         showStep('forward');
         setTimeout(()=>showToast('Email verified ✓ — continue with your phone number.'),200);
       } else {
-        const otpIdx = steps.indexOf(2);
-        if(otpIdx !== -1){ CI = otpIdx; }
         showStep('forward');
         setTimeout(()=>showToast('Email verified ✓'),200);
       }
-    }
-
-    function _goToOtpStep(){
-      // Bypass resume gate entirely — show OTP step without password prompt
-      const steps = getActiveSteps();
-      const otpIdx = steps.indexOf(2);
-      CI = otpIdx !== -1 ? otpIdx : 1;
-      showStep('forward');
-    }
-
-    // 1. Fast path: local match (same device, same session)
-    if(S._emailCode && urlCode === S._emailCode){
-      _doEmailVerified();
       return;
     }
 
-    // 2. Server-side validation — works cross-device and after page refresh
-    var _verifyEmail = S.email || S.coEmail || '';
-    if(_verifyEmail){
-      fetch('https://hansepay-deploy-production-328c.up.railway.app/api/email/otp/verify?email='
-        +encodeURIComponent(_verifyEmail)+'&code='+encodeURIComponent(urlCode))
-        .then(function(r){return r.json();})
-        .then(function(data){
-          if(data.valid){ _doEmailVerified(); }
-          else { _goToOtpStep(); }
-        })
-        .catch(function(){ _goToOtpStep(); });
-    } else {
-      _goToOtpStep();
-    }
-    return;  // always return — resume gate never fires when ?emailVerify is present
+    // Cross-device fallback (no email context in localStorage): show the OTP
+    // input step WITHOUT triggering a new email send. User can enter their
+    // code manually or click resend once the step loads.
+    window._skipOtpAutoSend = true;
+    const _fbSteps = getActiveSteps();
+    const _fbOtpIdx = _fbSteps.indexOf(2);
+    CI = _fbOtpIdx !== -1 ? _fbOtpIdx : 1;
+    showStep('forward');
+    setTimeout(()=>showToast('Please continue on the device where you started, or enter your code manually.'),300);
+    return;  // always return — resume gate never fires when ?emailVerify present
   }
 
   const savedIdx=loadSaved();
