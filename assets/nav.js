@@ -375,10 +375,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
   }
 
   function openSignIn() {
-    var overlay = document.getElementById('hp-signin-overlay');
-    if (overlay) { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-    // Apply current language to modal
-    if (window.HP && window.HP.apply) window.HP.apply();
+    window.location.href = '/hansepay/dashboard-login.html';
   }
   function closeSignIn() {
     var overlay = document.getElementById('hp-signin-overlay');
