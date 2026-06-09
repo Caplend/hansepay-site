@@ -4002,6 +4002,11 @@ function handleSubmit(){
           accountType:S.accountType||'business',
           applicationRef:S.applicationRef||'HP-?',
           lang:document.documentElement.lang||'en',
+          phone:(S.phoneCountry||'')+' '+(S.phone||''),
+          country:S.coAddrCountry||S.country||'',
+          city:S.coCity||'',
+          regNum:S.coRegNum||'',
+          vat:S.coVAT||'',
         }),
       }).then(r=>r.json()).then(r=>{
         if(r.sent) console.log('[onboarding] confirmation email sent');

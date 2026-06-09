@@ -345,43 +345,109 @@ function buildAccountFromOnb(s, ci){
   };
 }
 
-// ── Load all registered users ─────────────────────────────────────────────
-// Sources (all localStorage, same browser origin):
-//   hp_onb   – active onboarding session on this browser
-//   hp_regs  – array written by onboarding on every successful submit
-function loadAccounts(){
-  var seen  = {};
-  var list  = [];
+// ── Account cache (populated async on load) ───────────────────────────────
+var _accountCache = null;  // null = not loaded yet
 
-  function add(acct){
+function mergeLocalAccounts(list){
+  // Merge-in any accounts from localStorage that aren't in the server list
+  // (covers partial onboarding sessions that haven't submitted yet)
+  var seen = {};
+  list.forEach(function(a){ if(a.email) seen[a.email]=true; });
+
+  function maybeAdd(acct){
     if(!acct.email || seen[acct.email]) return;
     seen[acct.email] = true;
     list.push(acct);
   }
 
-  // 1. Submitted registrations (written by onboarding final step)
+  // hp_regs (same-browser submitted registrations)
   try {
     var regs = JSON.parse(localStorage.getItem('hp_regs') || '[]');
-    regs.forEach(function(r){ add(r); });
+    regs.forEach(function(r){ maybeAdd(r); });
   } catch(e){}
 
-  // 2. Active / partial onboarding session on this browser
+  // hp_onb (active/partial session)
   try {
     var onb = JSON.parse(localStorage.getItem('hp_onb') || 'null');
     if(onb && onb.s && onb.s.email){
-      // Stamp registeredAt the first time this page sees them
       if(!onb.s._registeredAt){
         onb.s._registeredAt = new Date().toISOString().split('T')[0];
         localStorage.setItem('hp_onb', JSON.stringify(onb));
       }
-      add(buildAccountFromOnb(onb.s, onb.ci));
+      maybeAdd(buildAccountFromOnb(onb.s, onb.ci));
     }
-  } catch(e){ console.error('hp_onb parse error:', e); }
-
-  return list;
+  } catch(e){}
 }
 
-function allAccounts(){ return loadAccounts(); }
+// Convert a server-side registration record to the display shape
+function buildAccountFromReg(r){
+  var txLog  = getTxLog();
+  var now30  = Date.now() - 30*24*60*60*1000;
+  var userTx = txLog.filter(function(t){
+    return t.userEmail === r.email && new Date(t.timestamp||0).getTime() > now30;
+  });
+  var vol30  = userTx.reduce(function(s,t){ return s+(t.amount||0); }, 0);
+  var avgT   = userTx.length ? Math.round(vol30/userTx.length) : 0;
+  return {
+    id:          r.applicationRef || r.id || r.email,
+    company:     r.company || ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
+    contact:     ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
+    email:       r.email,
+    type:        r.accountType==='personal' ? 'Individual' : 'Business',
+    status:      r.status || 'review',
+    joined:      (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    lastActive:  (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    vol30:       vol30,
+    avgTransfer: avgT,
+    txCount30:   userTx.length,
+    balance:     0,
+    iban:        '—',
+    country:     (r.country||'DE').slice(0,2).toUpperCase(),
+    city:        r.city||'',
+    regNum:      r.regNum||'—',
+    vat:         r.vat||'—',
+    plan:        '—',
+    txHistory:   userTx.slice(0,5).map(function(t){
+      return {name:t.recipient||'Transfer', date:t.date||'', amt:t.amount||0, dir:t.dir||'out'};
+    }),
+    docs:[
+      {name:'Articles of Incorporation', st:'pending'},
+      {name:'Proof of ownership',        st:'pending'},
+      {name:'Proof of address (UBO)',    st:'pending'},
+      {name:'ID — '+((r.firstName||'')+' '+(r.lastName||'')).trim(), st:'pending'},
+    ],
+  };
+}
+
+function allAccounts(){
+  return _accountCache || [];
+}
+
+// Async loader — fetches from API, merges localStorage, then re-renders
+function loadAccountsAsync(){
+  var token = localStorage.getItem('hp_token');
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registrations',{
+    headers:{ 'Authorization':'Bearer '+token }
+  })
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(serverRegs){
+    var list = (Array.isArray(serverRegs) ? serverRegs : []).map(buildAccountFromReg);
+    mergeLocalAccounts(list);
+    _accountCache = list;
+    renderStats();
+    renderChart();
+    renderTable();
+  })
+  .catch(function(){
+    // API unavailable — fall back to localStorage only
+    var list = [];
+    mergeLocalAccounts(list);
+    _accountCache = list;
+    renderStats();
+    renderChart();
+    renderTable();
+  });
+}
 
 // ── Stats ─────────────────────────────────────────────────────────────────
 function renderStats(){
@@ -630,9 +696,12 @@ function closeDrawer(){
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
 
 // ── Init ───────────────────────────────────────────────────────────────────
+// Show empty state immediately, then load real data from API
+_accountCache = [];
 renderStats();
 renderChart();
 renderTable();
+loadAccountsAsync();
 </script>
 </body>
 </html>

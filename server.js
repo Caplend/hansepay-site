@@ -154,7 +154,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json'];
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json'];
   const defaultVal = arrayFiles.includes(filename) ? [] : {};
   if (!fs.existsSync(fp)) return defaultVal;
   try {
@@ -2030,13 +2030,20 @@ app.get('/api/legal/:slug/pdf', (req, res) => {
   }
 });
 
-// ─── Registration confirmation email ─────────────────────────────────────────
-// Public endpoint — called from onboarding.html on submit.
-// No auth required; rate-limit is implicitly low (one call per completed form).
-app.post('/api/registration/confirm', async (req, res) => {
-  if (!mailer) return res.status(503).json({ error: 'Email service unavailable' });
+// ─── Registrations — persist + email ─────────────────────────────────────────
 
-  const { firstName, lastName, email, company, accountType, applicationRef, lang } = req.body || {};
+// GET /api/registrations — admin only, returns all persisted registrations
+app.get('/api/registrations', authenticateToken, (req, res) => {
+  const list = readData('registrations.json');
+  res.json(Array.isArray(list) ? list : []);
+});
+
+// POST /api/registration/confirm — public, called from onboarding on submit.
+// Persists to registrations.json AND sends branded confirmation email.
+app.post('/api/registration/confirm', async (req, res) => {
+  const { firstName, lastName, email, company, accountType, applicationRef, lang,
+          phone, country, city, regNum, vat } = req.body || {};
+
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email is required' });
   }
@@ -2044,9 +2051,41 @@ app.post('/api/registration/confirm', async (req, res) => {
     return res.status(400).json({ error: 'applicationRef is required' });
   }
 
+  // ── 1. Persist to registrations.json ──────────────────────────────────────
+  try {
+    const regs = readData('registrations.json');
+    const existing = regs.findIndex(r => r.email === email);
+    const record = {
+      id:             applicationRef,
+      applicationRef,
+      firstName:      firstName || '',
+      lastName:       lastName  || '',
+      email,
+      company:        company   || '',
+      accountType:    accountType || 'business',
+      phone:          phone  || '',
+      country:        country || '',
+      city:           city   || '',
+      regNum:         regNum || '',
+      vat:            vat    || '',
+      status:         'review',
+      submittedAt:    new Date().toISOString(),
+      lang:           lang || 'en',
+    };
+    if (existing >= 0) regs[existing] = record; else regs.push(record);
+    writeData('registrations.json', regs);
+    console.log(`[registration] saved: ${email} (${applicationRef})`);
+  } catch (err) {
+    console.error('[registration] persist error:', err.message);
+    // Don't block the email send if persistence fails
+  }
+
+  // ── 2. Send branded confirmation email ────────────────────────────────────
+  if (!mailer) return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+
   try {
     const { renderRegistrationEmail } = mailer;
-    if (!renderRegistrationEmail) return res.status(503).json({ error: 'Template not available' });
+    if (!renderRegistrationEmail) return res.json({ sent: false, reason: 'template not available' });
 
     const mail = renderRegistrationEmail({ firstName, lastName, email, company, accountType, applicationRef, lang });
     const result = await mailer.sendMail(mail);
