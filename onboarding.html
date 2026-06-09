@@ -3961,7 +3961,7 @@ function handleSubmit(){
     // ── Persist registration to hp_regs so admin Accounts page can read it ──
     try {
       const fn=S.firstName||''; const ln=S.lastName||'';
-      const email=S.coEmail||S.email||'';
+      const email=S.email||S.coEmail||'';
       const reg={
         id:'onb-'+email.replace(/[^a-z0-9]/gi,'').slice(0,10),
         company: S.coName||((fn+' '+ln).trim())||email,
@@ -3991,7 +3991,7 @@ function handleSubmit(){
     // ── Send confirmation email via backend ──────────────────────────
     try {
       const fn=S.firstName||''; const ln=S.lastName||'';
-      const emailAddr=S.coEmail||S.email||'';
+      const emailAddr=S.email||S.coEmail||'';
       fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/confirm',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
