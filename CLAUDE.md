@@ -432,7 +432,7 @@ The accent phrase is:
 4. **No drop shadows on text** — ever.
 5. **No border-radius on the logo mark.**
 6. **No filled icons** — Lucide outline only.
-7. **No warm off-whites** — `#F5F1EA` is not a brand surface colour. Use `#F6F9FC`, `#FAFAFA`, or `#F8F9FC`.
+7. **No warm off-whites** — `#F5F1EA` is not a brand surface colour. Use `#F6F9FC`, `#FAFAFA`, or `#F8F9FC`. This applies to email templates too — `BRAND.off` in `lib/email.js` must stay `#F6F9FC`.
 8. **No heavy type** — headlines are weight 400 (regular). Bold (`700`) is only for UI labels, eyebrow tags, and small metadata. Never set a display headline in bold.
 9. **No rounded sections with background colours** — sections are rectangular. No `border-radius` on full-width section backgrounds.
 10. **Never use Libre Baskerville** except for the wordmark "HansePay."

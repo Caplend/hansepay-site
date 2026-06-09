@@ -4178,6 +4178,30 @@ function clearAllErr(){
 
 function init(){
   applyGeoCC(); // fire-and-forget: pre-select dial code from IP
+
+  // ── Handle ?emailVerify=CODE magic link from OTP email ───────────────────
+  const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
+  if(urlCode && S._emailCode && urlCode === S._emailCode){
+    // Load state, jump to email OTP step, auto-verify
+    loadSaved();
+    const steps = getActiveSteps();
+    const otpIdx = steps.indexOf(2);
+    if(otpIdx !== -1){
+      CI = otpIdx;
+      showStep('forward');
+      // Small delay to let the step render before verifying
+      setTimeout(()=>{
+        // Fill inputs visually
+        const inputs = Array.from({length:6}, (_,i) => document.getElementById('emailOtp'+i));
+        urlCode.split('').forEach((c,i) => { if(inputs[i]){ inputs[i].value=c; inputs[i].classList.add('filled'); } });
+        verifyEmailCode();
+      }, 400);
+    }
+    // Clean the URL
+    window.history.replaceState({}, '', window.location.pathname);
+    return;
+  }
+
   const savedIdx=loadSaved();
   if(savedIdx!==null&&savedIdx>0){
     if(S.email&&S.password){

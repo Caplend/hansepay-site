@@ -2048,7 +2048,9 @@ app.post('/api/email/otp', async (req, res) => {
     const { renderOtpEmail } = mailer;
     if (!renderOtpEmail) return res.status(503).json({ error: 'OTP template not available' });
 
-    const mail = renderOtpEmail({ firstName, email, code: String(code), lang });
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    const verifyUrl = `${siteBase}/hansepay/onboarding.html?emailVerify=${encodeURIComponent(String(code))}`;
+    const mail = renderOtpEmail({ firstName, email, code: String(code), lang, verifyUrl });
     const result = await mailer.sendMail(mail);
     console.log(`[otp] sent to ${email}: ${result.sent ? 'ok (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
     res.json({ sent: result.sent, transport: result.transport });
