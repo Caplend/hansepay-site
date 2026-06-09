@@ -2030,6 +2030,34 @@ app.get('/api/legal/:slug/pdf', (req, res) => {
   }
 });
 
+// ─── Email OTP ───────────────────────────────────────────────────────────────
+// Public endpoint — called from onboarding to send a 6-digit verification code.
+// The code is generated client-side and passed here; we just send the email.
+app.post('/api/email/otp', async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'Email service unavailable' });
+
+  const { email, code, firstName, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!code || String(code).length !== 6) {
+    return res.status(400).json({ error: '6-digit code is required' });
+  }
+
+  try {
+    const { renderOtpEmail } = mailer;
+    if (!renderOtpEmail) return res.status(503).json({ error: 'OTP template not available' });
+
+    const mail = renderOtpEmail({ firstName, email, code: String(code), lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[otp] sent to ${email}: ${result.sent ? 'ok (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[otp] error:', err.message);
+    res.status(500).json({ error: 'Failed to send OTP email' });
+  }
+});
+
 // ─── Registrations — persist + email ─────────────────────────────────────────
 
 // GET /api/registrations — admin only, returns all persisted registrations
