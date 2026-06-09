@@ -18,6 +18,7 @@
   --font-display:'Libre Baskerville',Georgia,serif;
   --font-logo:'Libre Baskerville',Georgia,serif;
   --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:6px;
+  --container:1200px;--container-pad:clamp(20px,5vw,80px);
 }
 html,body{font-family:var(--font-ui);font-size:15px;color:var(--ink);background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:var(--n400);text-decoration:none}
@@ -81,6 +82,9 @@ a:hover{text-decoration:underline}
 .cookie-table tr:last-child td{border-bottom:none}
 
 .divider{height:1px;background:#EEF3F8;margin:32px 0}
+
+/* ── CONTAINER (used by footer.js) ── */
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--container-pad)}
 
 /* ── FOOTER, see assets/footer.js ── */
 

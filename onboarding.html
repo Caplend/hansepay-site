@@ -1672,7 +1672,14 @@ function RB2(){
       <div class="field-error" id="coNACE-err"></div>
     </div>
 
-    ${fieldHTML('coDescription','Business description','textarea',S.coDescription,'Briefly describe what your company does, what you sell, and who your customers are (min. 50 characters)','true')}
+    <div class="field-group">
+      <label for="coDescription">Business description</label>
+      <textarea id="coDescription" placeholder="Briefly describe what your company does, what you sell, and who your customers are." rows="4" style="resize:none" oninput="document.getElementById('coDescCount').textContent=this.value.length+' characters'">${esc(S.coDescription||'')}</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:5px">
+        <div class="field-error" id="coDescription-err" style="margin-top:0"></div>
+        <span id="coDescCount" style="font-size:12px;color:var(--ink3);white-space:nowrap;margin-left:auto;transition:color .2s">${(S.coDescription||'').length} characters</span>
+      </div>
+    </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
 
@@ -2517,43 +2524,44 @@ function RB8_POA(){
   const selType=S.coOwnerPOAType||'';
 
   return`<div class="step-card" id="sCard">
-    <div class="step-icon"><div style="width:56px;height:56px;border-radius:16px;background:#e0f0ff;display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2a7cde" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
-    <h1 class="step-heading" style="text-align:center">Proof of address (owners only)</h1>
-    <p class="step-sub" style="text-align:center">A Company Owner (UBO) is a person who owns 25% or more of the company. If no such person reaches this threshold, please select the most senior Company Manager as an owner.</p>
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Proof of address.</h1>
+    <p class="step-sub" style="text-align:center">Upload a proof of address for the owner with the largest stake. PDF or image (JPG, PNG), max 10 MB.</p>
 
-    <div style="border:1.5px solid #d4edda;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:16px;background:#fff">
-      <div style="font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:16px">${esc(ownerName)}</div>
+    <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:14px">${esc(ownerName)}</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end">
-        <div>
-          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Proof of address type <span style="color:var(--error)">*</span></label>
-          <select id="poaType" style="width:100%;padding:11px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center" onchange="S.coOwnerPOAType=this.value;saveState()">
-            <option value="">Select type</option>
-            ${poaTypes.map(t=>`<option value="${t}"${selType===t?' selected':''}>${t}</option>`).join('')}
-          </select>
-          <div class="field-error" id="poaType-err"></div>
-        </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Document type <span style="color:var(--error)">*</span></label>
+        <select id="poaType" style="width:100%;padding:11px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center" onchange="S.coOwnerPOAType=this.value;saveState()">
+          <option value="">Select type</option>
+          ${poaTypes.map(t=>`<option value="${t}"${selType===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+        <div class="field-error" id="poaType-err"></div>
+      </div>
 
-        <div>
-          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Upload proof of address <span style="color:var(--error)">*</span></label>
-          <div style="display:flex;align-items:center;gap:10px">
-            <label for="poaFile" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--r-md);background:${hasFile?'#e8f5e9':'#3B7BC4'};color:${hasFile?'#2e7d32':'#fff'};font-size:13px;font-weight:600;cursor:pointer;border:none;white-space:nowrap">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              ${hasFile?'Replace file':'Upload file'}
-            </label>
-            <input type="file" id="poaFile" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handlePOAUpload()">
-            ${hasFile?`<span style="font-size:13px;color:var(--ink2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="poaFileName">${esc(S.coOwnerPOAFileName)}</span><a href="#" onclick="event.preventDefault();window.alert('Preview: '+S.coOwnerPOAFileName)" style="font-size:13px;color:var(--n400);text-decoration:none;flex-shrink:0">View</a>`:`<span id="poaFileName" style="font-size:13px;color:var(--ink3)"></span>`}
+      <div class="upload-zone" onclick="document.getElementById('poaFile').click()">
+        <input type="file" id="poaFile" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handlePOAUpload()">
+        <div id="poaEmpty"${hasFile?' style="display:none"':''}>
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
-          <div class="field-error" id="poaFile-err"></div>
+          <div class="upload-text"><b>Click to upload</b> or drag and drop</div>
+          <div class="upload-hint">PDF, JPG or PNG · Max 10 MB</div>
+        </div>
+        <div id="poaDone" style="display:${hasFile?'block':'none'};padding:4px 0">
+          <div style="display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;font-size:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="poaFileName">${esc(S.coOwnerPOAFileName||'File uploaded')}</span>
+          </div>
         </div>
       </div>
+      <div class="field-error" id="poaFile-err"></div>
     </div>
 
-    <div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:16px 20px;font-size:13.5px;color:var(--ink2)">
-      <div style="font-weight:600;color:var(--ink);margin-bottom:10px">Accepted documents</div>
-      <ul style="padding-left:18px;display:flex;flex-direction:column;gap:5px">
-        ${poaTypes.map(t=>`<li style="color:var(--ink3)">${t}</li>`).join('')}
-      </ul>
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-top:8px;margin-bottom:4px;font-size:13px;color:var(--ink3);line-height:1.6">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      All documents are processed securely and stored encrypted in compliance with GDPR.
     </div>
   </div>`;
 }
@@ -2564,10 +2572,12 @@ window.handlePOAUpload=function(){
   const f=inp.files[0];
   S.coOwnerPOAFileName=f.name;
   saveState();
-  // Refresh the step card to show the file name and "Replace file" button
-  const card=document.getElementById('sCard');
-  if(card) card.outerHTML=RB8_POA();
-  attachAll('B8_POA');
+  const empty=document.getElementById('poaEmpty');
+  const done=document.getElementById('poaDone');
+  const name=document.getElementById('poaFileName');
+  if(empty)empty.style.display='none';
+  if(done)done.style.display='block';
+  if(name)name.textContent=f.name;
 };
 
 window.toggleOwnerMgmt=function(mgmtIdx){
@@ -2768,20 +2778,6 @@ function RB7(){
       <div class="field-error" id="coPreviousAccountClosure-err"></div>
     </div>
 
-    <!-- Fraud / disputes -->
-    <div class="compliance-block" style="margin-bottom:0">
-      <div class="compliance-block-label">Has your company experienced material chargebacks, fraud complaints, or regulatory issues in the last 24 months?
-        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes chargebacks, fraud complaints, refund spikes, customer disputes, regulatory complaints, or platform bans in the last 24 months. If yes, please explain the root cause, period affected, volumes, remediation, and current status.</span></span>
-      </div>
-      ${radioCardsHTML('rcCoFraud',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coFraudDisputes||'no',2)}
-      <div id="coFraudExplain" style="display:${S.coFraudDisputes==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
-        Please explain what occurred, including the root cause, the period affected, volumes involved, any remediation taken, and the current status.
-      </div>
-      <div id="coFraudWrap" class="collapsible${S.coFraudDisputes==='yes'?' open':''}">
-        ${fieldHTML('coFraudDetail','Please explain','textarea',S.coFraudDetail,'Root cause, period affected, volumes, remediation taken, and current status.','true')}
-      </div>
-      <div class="field-error" id="coFraudDisputes-err"></div>
-    </div>
 
   </div>`;
 }
@@ -2966,8 +2962,6 @@ function validateStep(){
     if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
     if(!S.coPreviousAccountClosure) fail('coPreviousAccountClosure','Please answer this question');
     if(S.coPreviousAccountClosure==='yes'&&!(g('coPreviousClosureDetail')||'').trim()) fail('coPreviousClosureDetail','Please provide details');
-    if(!S.coFraudDisputes) fail('coFraudDisputes','Please answer this question');
-    if(S.coFraudDisputes==='yes'&&!(g('coFraudDetail')||'').trim()) fail('coFraudDetail','Please provide details');
   } else if(id==='B6'){
     if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
     if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
@@ -3081,7 +3075,6 @@ function collectData(){
     S.coSanctionsDetail=g('coSanctionsDetail')||'';
     S.coHighRiskDetail=g('coHighRiskDetail')||'';
     S.coPreviousClosureDetail=g('coPreviousClosureDetail')||'';
-    S.coFraudDetail=g('coFraudDetail')||'';
   } else if(id==='B6'){
     S.coSellsWhat=g('coSellsWhat')||S.coSellsWhat;
     S.coRegulatedDetail=g('coRegulatedDetail')||'';
@@ -3327,11 +3320,6 @@ function onRadioSelect(grp,val){
     S.coPreviousAccountClosure=val;
     const w=document.getElementById('coPrevClosureWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
     const e=document.getElementById('coPrevClosureExplain');if(e)e.style.display=val==='yes'?'block':'none';
-  }
-  else if(grp==='rcCoFraud'){
-    S.coFraudDisputes=val;
-    const w=document.getElementById('coFraudWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
-    const e=document.getElementById('coFraudExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
   else if(grp==='rcMajorFunds'){
