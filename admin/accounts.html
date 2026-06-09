@@ -284,13 +284,56 @@ a{color:inherit;text-decoration:none}
 // components.js handles auth + compliance routing
 HPAdmin.renderSidebar('accounts');
 
-// ── Mock data ─────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────
 var PALETTE = ['#1E4E80','#163659','#2E6BAD','#0F2540','#3B7BC4','#1a3a5c','#245d94','#0d2035'];
 function avatarColor(name) { var h=0; for(var i=0;i<name.length;i++)h=name.charCodeAt(i)+((h<<5)-h); return PALETTE[Math.abs(h)%PALETTE.length]; }
 function initials(n) { return n.split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase(); }
 function eur(n) { return '€'+Number(n).toLocaleString('en-GB'); }
 function eurK(n) { return n>=1e6?'€'+(n/1e6).toFixed(1)+'M':n>=1e3?'€'+Math.round(n/1000)+'k':'€'+n; }
 
+// ── Inject live-registered user from onboarding localStorage ─────────────
+var LIVE_ACCOUNTS = [];
+(function(){
+  try {
+    var onb = JSON.parse(localStorage.getItem('hp_onb') || '{}');
+    var s = onb.s || {};
+    if (!s.email) return;
+    var fn = s.firstName || ''; var ln = s.lastName || '';
+    var name = s.coName || ((fn + ' ' + ln).trim()) || s.email;
+    var mgmt = s.management || []; var mgmt0 = mgmt[0] || {};
+    // Determine status: completed onboarding = 'review', partial = 'process'
+    var stepIdx = onb.ci || 0;
+    var status = stepIdx >= 14 ? 'review' : 'process';
+    LIVE_ACCOUNTS.push({
+      id: 'live-1',
+      company:     name,
+      contact:     (fn + (ln ? ' ' + ln : '')).trim() || s.email,
+      email:       s.coEmail || s.email || '',
+      type:        s.accountType === 'personal' ? 'Individual' : 'Business',
+      status:      status,
+      joined:      new Date().toISOString().split('T')[0],
+      lastActive:  new Date().toISOString().split('T')[0],
+      vol30: 0, avgTransfer: 0, txCount30: 0, balance: 0,
+      iban: '—',
+      country:     (s.coAddrCountry || 'DE').slice(0,2).toUpperCase(),
+      city:        s.coCity || '',
+      regNum:      s.coRegNum || '—',
+      vat:         s.coVAT || '—',
+      plan:        '—',
+      txHistory:   [],
+      docs: [
+        {name:'Articles of Incorporation', st: s.coIncFile   ? 'ok' : s.coIncFileName   ? 'ok' : 'pending'},
+        {name:'Proof of ownership',        st: s.coOwnerFile ? 'ok' : s.coOwnerFileName ? 'ok' : 'pending'},
+        {name:'Proof of address (UBO)',    st: s.coOwnerPOAFileName ? 'ok' : 'pending'},
+        {name:'ID — ' + ((fn + ' ' + ln).trim() || 'Applicant'),
+                                           st: s.idFileName  ? 'ok' : 'pending'},
+      ],
+      _isLive: true,
+    });
+  } catch(e) {}
+})();
+
+// ── Mock data ─────────────────────────────────────────────────────────────
 var ACCOUNTS = [
   {id:1, company:'Müller GmbH', contact:'Marcus Müller', email:'marcus.mueller@mueller-partners.de', type:'Business', status:'active',
    joined:'2022-09-14', lastActive:'2026-06-08', vol30:482400, avgTransfer:18560, txCount30:26,
@@ -401,12 +444,18 @@ var ACCOUNTS = [
    docs:[{name:'Proof of ID',st:'ok'},{name:'Proof of address',st:'ok'}]},
 ];
 
+// ── Merged list: live user(s) first, then mock ────────────────────────────
+function allAccounts(){
+  return LIVE_ACCOUNTS.concat(ACCOUNTS);
+}
+
 // ── Stats ─────────────────────────────────────────────────────────────────
 function renderStats(){
-  var total   = ACCOUNTS.length;
-  var active  = ACCOUNTS.filter(function(a){return a.status==='active';}).length;
-  var review  = ACCOUNTS.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
-  var vol     = ACCOUNTS.reduce(function(s,a){return s+a.vol30;},0);
+  var all     = allAccounts();
+  var total   = all.length;
+  var active  = all.filter(function(a){return a.status==='active';}).length;
+  var review  = all.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
+  var vol     = all.reduce(function(s,a){return s+a.vol30;},0);
 
   document.getElementById('statTotal').textContent  = total;
   document.getElementById('statActive').textContent = active;
@@ -477,14 +526,14 @@ function renderTable(){
   var q    = (document.getElementById('searchInput').value||'').toLowerCase();
   var fSt  = document.getElementById('filterStatus').value;
   var fTyp = document.getElementById('filterType').value;
-  var rows = ACCOUNTS.filter(function(a){
+  var rows = allAccounts().filter(function(a){
     if(q && !(a.company.toLowerCase().includes(q)||a.contact.toLowerCase().includes(q)||a.email.toLowerCase().includes(q))) return false;
     if(fSt && a.status!==fSt) return false;
     if(fTyp && a.type!==fTyp) return false;
     return true;
   });
 
-  var maxVol = Math.max.apply(null, ACCOUNTS.map(function(a){return a.vol30;}));
+  var maxVol = Math.max.apply(null, allAccounts().map(function(a){return a.vol30;}));
   var tbody = document.getElementById('accountsBody');
   if(!rows.length){
     tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>No accounts match your filters.</p></div></td></tr>';
@@ -501,10 +550,14 @@ function renderTable(){
       : '<span style="color:var(--ink3);font-size:.8125rem">—</span>';
     var avgHtml = a.avgTransfer ? '<span class="mono">'+eur(a.avgTransfer)+'</span>' : '<span style="color:var(--ink3)">—</span>';
 
-    return '<tr onclick="openDrawer('+a.id+')">'
+    var liveTag = a._isLive
+      ? ' <span style="font-size:.625rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;'
+        +'background:var(--gold);color:#fff;padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:6px">NEW</span>'
+      : '';
+    return '<tr onclick="openDrawer(\''+a.id+'\')"' + (a._isLive ? ' style="background:#fffdf5;"' : '') + '>'
       +'<td><div class="acct-cell">'
       +'<div class="acct-avatar" style="background:'+col+'">'+ini+'</div>'
-      +'<div><div class="acct-name">'+a.company+'</div><div class="acct-sub">'+a.contact+' · '+a.email+'</div></div>'
+      +'<div><div class="acct-name">'+a.company+liveTag+'</div><div class="acct-sub">'+a.contact+' · '+a.email+'</div></div>'
       +'</div></td>'
       +'<td><span style="font-size:.8125rem">'+a.type+'</span></td>'
       +'<td><span class="badge '+STATUS_CLASSES[a.status]+'">'+STATUS_LABELS[a.status]+'</span></td>'
@@ -519,7 +572,7 @@ function renderTable(){
 
 // ── Drawer ─────────────────────────────────────────────────────────────────
 function openDrawer(id){
-  var a = ACCOUNTS.find(function(x){return x.id===id;});
+  var a = allAccounts().find(function(x){return String(x.id)===String(id);});
   if(!a) return;
 
   var ini = initials(a.company);
