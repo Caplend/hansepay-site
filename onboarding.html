@@ -1674,11 +1674,12 @@ function RB2(){
 
     <div class="field-group">
       <label for="coDescription">Business description</label>
-      <textarea id="coDescription" placeholder="Briefly describe what your company does, what you sell, and who your customers are." rows="4" style="resize:none" oninput="document.getElementById('coDescCount').textContent=this.value.length+' characters'">${esc(S.coDescription||'')}</textarea>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:5px">
-        <div class="field-error" id="coDescription-err" style="margin-top:0"></div>
-        <span id="coDescCount" style="font-size:12px;color:var(--ink3);white-space:nowrap;margin-left:auto;transition:color .2s">${(S.coDescription||'').length} characters</span>
+      <textarea id="coDescription" placeholder="Briefly describe what your company does, what you sell, and who your customers are." rows="4" style="resize:none" oninput="(function(n){var el=document.getElementById('coDescCount');el.textContent=n+' characters';el.style.color=n>=50?'var(--success)':'var(--ink3)';})(this.value.length)">${esc(S.coDescription||'')}</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <span style="font-size:12px;color:var(--ink3)">Minimum 50 characters</span>
+        <span id="coDescCount" style="font-size:12px;white-space:nowrap;transition:color .2s;color:${(S.coDescription||'').length>=50?'var(--success)':'var(--ink3)'}">${(S.coDescription||'').length} characters</span>
       </div>
+      <div class="field-error" id="coDescription-err"></div>
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
