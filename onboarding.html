@@ -466,6 +466,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 // =============================================================
 const S = {
   firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
+  _emailCode:'',
   phoneCountry:'+49',phone:'',
   accountType:'',
   middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
@@ -774,9 +775,23 @@ function R2(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><rect x="8" y="16" width="48" height="36" rx="6" stroke="var(--n800)" stroke-width="2.5" fill="none"/><path d="M8 22 L32 38 L56 22" stroke="var(--n800)" stroke-width="2.5" stroke-linejoin="round" fill="none"/></svg></div>
     <h1 class="step-heading">Check your inbox.</h1>
-    <p class="step-sub">We sent a verification link to <b>${esc(S.email)}</b></p>
-    <p style="font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px">Click the link in the email to verify your address. If you don't see it, check your spam folder. The link expires in 24 hours.</p>
-    <button class="btn btn-ghost" style="margin-bottom:12px" onclick="showToast('Verification email resent!')">Resend email</button>
+    <p class="step-sub">We sent a verification link and 6-digit code to <b>${esc(S.email)}</b>.</p>
+
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.65;margin-bottom:32px;display:flex;align-items:flex-start;gap:12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span>Click the <b>link in the email</b> to verify instantly — or enter the 6-digit code below. Check your spam folder if you don't see it.</span>
+    </div>
+
+    <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);text-align:center;margin-bottom:16px">Enter 6-digit code</p>
+    <div class="otp-wrap" id="emailOtpWrap">
+      ${[0,1,2,3,4,5].map(i=>`<input type="text" maxlength="1" class="otp-input" id="emailOtp${i}" inputmode="numeric" pattern="[0-9]*">`).join('')}
+    </div>
+    <div class="resend-row">
+      <span id="emailResendText">Resend code in <b id="emailResendCount">30</b>s</span>
+      <span id="emailResendLink" class="resend-link" style="display:none" onclick="resendEmailCode()">Resend code</span>
+    </div>
+    <div class="field-error" id="emailOtp-err" style="text-align:center;margin-bottom:12px"></div>
+    <button class="btn btn-primary" onclick="verifyEmailCode()">Verify email →</button>
   </div>`;
 }
 
@@ -3169,6 +3184,7 @@ function attachAll(id){
   }
 
   // OTP
+  if(id===2) initEmailOTP();
   if(id==='3b') initOTP();
 
   // Searchable selects
@@ -3839,6 +3855,61 @@ function verifyOTP(){
   else{const e=document.getElementById('otp-err');if(e){e.textContent='Please enter all 6 digits';e.classList.add('visible');}}
 }
 
+// ── Email OTP ──
+let _emailResendTimer;
+function initEmailOTP(){
+  // Generate a code once per session (show via toast for demo)
+  if(!S._emailCode){
+    S._emailCode=String(Math.floor(100000+Math.random()*900000));
+    showToast('Demo — your code: '+S._emailCode);
+  }
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
+  inputs.forEach((inp,i)=>{
+    if(!inp)return;
+    inp.addEventListener('input',e=>{
+      const v=e.target.value.replace(/\D/g,'');
+      e.target.value=v.slice(-1);
+      inp.classList.toggle('filled',!!inp.value);
+      if(v&&i<5)inputs[i+1]?.focus();
+      if(inputs.every(x=>x&&x.value))setTimeout(verifyEmailCode,100);
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!inp.value&&i>0)inputs[i-1]?.focus();
+    });
+    inp.addEventListener('paste',e=>{
+      const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      if(txt.length>=6){inputs.forEach((x,j)=>{if(x){x.value=txt[j]||'';x.classList.toggle('filled',!!x.value);}});setTimeout(verifyEmailCode,100);}
+      e.preventDefault();
+    });
+  });
+  startEmailResendTimer();
+}
+function startEmailResendTimer(){
+  let t=30;
+  const cnt=document.getElementById('emailResendCount');
+  const txt=document.getElementById('emailResendText');
+  const lnk=document.getElementById('emailResendLink');
+  if(txt)txt.style.display='';if(lnk)lnk.style.display='none';
+  clearInterval(_emailResendTimer);
+  _emailResendTimer=setInterval(()=>{
+    t--;if(cnt)cnt.textContent=t;
+    if(t<=0){clearInterval(_emailResendTimer);if(txt)txt.style.display='none';if(lnk)lnk.style.display='';}
+  },1000);
+}
+function resendEmailCode(){
+  S._emailCode=String(Math.floor(100000+Math.random()*900000));
+  showToast('Demo — your code: '+S._emailCode);
+  startEmailResendTimer();
+}
+function verifyEmailCode(){
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
+  const entered=inputs.map(x=>x?x.value:'').join('');
+  const err=document.getElementById('emailOtp-err');
+  if(entered.length<6){if(err){err.textContent='Please enter all 6 digits';err.classList.add('visible');}return;}
+  if(entered!==S._emailCode){if(err){err.textContent='Incorrect code — please try again';err.classList.add('visible');}inputs[0]?.focus();return;}
+  nextStep();
+}
+
 function sendCode(){
   const ph=document.getElementById('phoneNum');
   if(!ph?.value.trim()){showErr('phone','Phone number is required');return;}
@@ -4019,24 +4090,76 @@ function init(){
   applyGeoCC(); // fire-and-forget: pre-select dial code from IP
   const savedIdx=loadSaved();
   if(savedIdx!==null&&savedIdx>0){
-    // Show "continue" banner first
-    const vp=document.getElementById('stepViewport');
-    const banner=document.createElement('div');
-    banner.className='saved-banner';
-    banner.innerHTML=`<span>You have a saved application. <b>Continue where you left off?</b></span>
-      <div class="saved-btns">
-        <button class="btn btn-primary btn-sm" onclick="continueSaved(${savedIdx})">Continue</button>
-        <button class="btn btn-ghost btn-sm" onclick="startFresh()">Start over</button>
-      </div>`;
-    vp.appendChild(banner);
-    // Render first step below banner
-    const card=document.createElement('div');
-    card.innerHTML=renderStep(1);
-    vp.appendChild(card.firstElementChild);
-    updateProgress();updateLeftPanel();updateNavFooter();attachAll(1);
+    if(S.email&&S.password){
+      // Account already created — require password to resume
+      showResumeGate(savedIdx);
+    } else {
+      // Haven't finished step 1 yet — show simple banner + step 1 below
+      const vp=document.getElementById('stepViewport');
+      const banner=document.createElement('div');
+      banner.className='saved-banner';
+      banner.innerHTML=`<span>You have a saved application. <b>Continue where you left off?</b></span>
+        <div class="saved-btns">
+          <button class="btn btn-primary btn-sm" onclick="continueSaved(${savedIdx})">Continue</button>
+          <button class="btn btn-ghost btn-sm" onclick="startFresh()">Start over</button>
+        </div>`;
+      vp.appendChild(banner);
+      const card=document.createElement('div');
+      card.innerHTML=renderStep(1);
+      vp.appendChild(card.firstElementChild);
+      updateProgress();updateLeftPanel();updateNavFooter();attachAll(1);
+    }
   } else {
     showStep('forward');
   }
+}
+
+function showResumeGate(idx){
+  const vp=document.getElementById('stepViewport');
+  const name=S.firstName?', '+esc(S.firstName):'';
+  vp.innerHTML=`
+    <div class="step-card enter-right" id="resumeGateCard">
+      <div class="step-icon">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+      </div>
+      <h1 class="step-heading" style="text-align:center">Welcome back${name}.</h1>
+      <p class="step-sub" style="text-align:center">Enter your password to continue your application.</p>
+
+      <div style="display:flex;align-items:center;gap:10px;background:var(--n050);border:1.5px solid var(--n100);border-radius:var(--r-md);padding:11px 16px;margin-bottom:20px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span style="font-size:13.5px;color:var(--ink2)">${esc(S.email)}</span>
+      </div>
+
+      <div class="field-group">
+        <label for="resumePw">Password</label>
+        <div style="position:relative">
+          <input type="password" id="resumePw" placeholder="Enter your password" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')submitResumeGate(${idx})">
+          <button type="button" onclick="togglePw('resumePw')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:var(--ink3)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="resumePw-err"></div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="submitResumeGate(${idx})">Continue application →</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="startFresh()">Start a new application</button>
+    </div>`;
+  updateProgress();updateLeftPanel();updateNavFooter();
+}
+
+function submitResumeGate(idx){
+  const pw=document.getElementById('resumePw');
+  const err=document.getElementById('resumePw-err');
+  if(!pw?.value.trim()){if(err){err.textContent='Please enter your password';err.classList.add('visible');}return;}
+  if(pw.value!==S.password){
+    if(err){err.textContent='Incorrect password — please try again';err.classList.add('visible');}
+    pw.value='';pw.focus();
+    return;
+  }
+  continueSaved(idx);
 }
 
 function continueSaved(idx){
@@ -4045,6 +4168,7 @@ function continueSaved(idx){
 function startFresh(){
   Object.assign(S,{
     firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
+    _emailCode:'',
     phoneCountry:_geoCC||'+49',phone:'',accountType:'',
     middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
     countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
