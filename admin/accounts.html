@@ -294,124 +294,166 @@ function initials(n) { return n.split(/\s+/).map(function(w){return w[0]||'';}).
 function eur(n) { return '€'+Number(n).toLocaleString('en-GB'); }
 function eurK(n) { return n>=1e6?'€'+(n/1e6).toFixed(1)+'M':n>=1e3?'€'+Math.round(n/1000)+'k':'€'+n; }
 
-// ── Load all registered users from localStorage ───────────────────────────
-// hp_onb  = current browser's onboarding session
-// hp_accs = array of completed registrations saved by the dashboard
-//           (written when user first logs in successfully)
+// ── Read all real transaction log entries ─────────────────────────────────
+function getTxLog(){
+  try { return JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){ return []; }
+}
+
+// ── Build account object from hp_onb state ────────────────────────────────
+function buildAccountFromOnb(s, ci){
+  var fn = s.firstName || ''; var ln = s.lastName || '';
+  var name = s.coName || ((fn+' '+ln).trim()) || s.email;
+  var userEmail = s.coEmail || s.email || '';
+  var txLog = getTxLog();
+  var now30 = Date.now() - 30*24*60*60*1000;
+  var userTx = txLog.filter(function(t){
+    return t.userEmail === userEmail && new Date(t.timestamp||0).getTime() > now30;
+  });
+  var vol30 = userTx.reduce(function(sum,t){ return sum+(t.amount||0); }, 0);
+  var avgT  = userTx.length ? Math.round(vol30/userTx.length) : 0;
+  // status: step index ≥ 14 means they submitted; <14 = still in process
+  var status = (ci||0) >= 14 ? 'review' : 'process';
+  var docOk  = function(f){ return f ? 'ok' : 'pending'; };
+  return {
+    id:          'onb-' + userEmail.replace(/[^a-z0-9]/gi,'').slice(0,10),
+    company:     name,
+    contact:     (fn+(ln?' '+ln:'')).trim() || userEmail,
+    email:       userEmail,
+    type:        s.accountType==='personal' ? 'Individual' : 'Business',
+    status:      status,
+    joined:      s._registeredAt || new Date().toISOString().split('T')[0],
+    lastActive:  s._lastLogin    || new Date().toISOString().split('T')[0],
+    vol30:       vol30,
+    avgTransfer: avgT,
+    txCount30:   userTx.length,
+    balance:     0,
+    iban:        '—',
+    country:     (s.coAddrCountry||'DE').slice(0,2).toUpperCase(),
+    city:        s.coCity||'',
+    regNum:      s.coRegNum||'—',
+    vat:         s.coVAT||'—',
+    plan:        '—',
+    txHistory:   userTx.slice(0,5).map(function(t){
+      return {name:t.recipient||'Transfer', date:t.date||'', amt:t.amount||0, dir:t.dir||'out'};
+    }),
+    docs:[
+      {name:'Articles of Incorporation', st:docOk(s.coIncFileName)},
+      {name:'Proof of ownership',        st:docOk(s.coOwnerFileName)},
+      {name:'Proof of address (UBO)',    st:docOk(s.coOwnerPOAFileName)},
+      {name:'ID — '+((fn+' '+ln).trim()||'Applicant'), st:docOk(s.idFileName)},
+    ],
+  };
+}
+
+// ── Load all registered users ─────────────────────────────────────────────
+// Sources (all localStorage, same browser origin):
+//   hp_onb   – active onboarding session on this browser
+//   hp_regs  – array written by onboarding on every successful submit
 function loadAccounts(){
-  var list = [];
+  var seen  = {};
+  var list  = [];
 
-  // 1. Any account that has signed into the dashboard (persisted list)
+  function add(acct){
+    if(!acct.email || seen[acct.email]) return;
+    seen[acct.email] = true;
+    list.push(acct);
+  }
+
+  // 1. Submitted registrations (written by onboarding final step)
   try {
-    var saved = JSON.parse(localStorage.getItem('hp_accs') || '[]');
-    saved.forEach(function(a){ list.push(a); });
+    var regs = JSON.parse(localStorage.getItem('hp_regs') || '[]');
+    regs.forEach(function(r){ add(r); });
   } catch(e){}
 
-  // 2. Active onboarding session (may not be in hp_accs yet)
+  // 2. Active / partial onboarding session on this browser
   try {
-    var onb = JSON.parse(localStorage.getItem('hp_onb') || '{}');
-    var s = onb.s || {};
-    if (s.email) {
-      // Don't duplicate if already in hp_accs
-      var alreadySaved = list.some(function(a){ return a.email === (s.coEmail || s.email); });
-      if (!alreadySaved) {
-        var fn = s.firstName || ''; var ln = s.lastName || '';
-        var name = s.coName || ((fn+' '+ln).trim()) || s.email;
-        var stepIdx = onb.ci || 0;
-        // status tiers: step >= 14 = submitted for review; else in-process
-        var status = stepIdx >= 14 ? 'review' : 'process';
-        // Pull real transaction history from hp_txlog if it exists
-        var txLog = [];
-        try { txLog = JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){}
-        var userEmail = s.coEmail || s.email;
-        var userTx = txLog.filter(function(t){ return t.userEmail === userEmail; });
-        var vol30 = userTx.reduce(function(sum,t){ return sum + (t.amount||0); }, 0);
-        var avgT  = userTx.length ? Math.round(vol30 / userTx.length) : 0;
-        // doc status
-        var docStatus = function(uploaded){ return uploaded ? 'ok' : 'pending'; };
-        list.push({
-          id: 'live-' + (s.email||'').replace(/[^a-z0-9]/gi,'').slice(0,8),
-          company:    name,
-          contact:    (fn+(ln?' '+ln:'')).trim() || s.email,
-          email:      s.coEmail || s.email || '',
-          type:       s.accountType === 'personal' ? 'Individual' : 'Business',
-          status:     status,
-          joined:     s._registeredAt || new Date().toISOString().split('T')[0],
-          lastActive: s._lastLogin    || new Date().toISOString().split('T')[0],
-          vol30:      vol30,
-          avgTransfer:avgT,
-          txCount30:  userTx.length,
-          balance:    0,
-          iban:       '—',
-          country:    (s.coAddrCountry || 'DE').slice(0,2).toUpperCase(),
-          city:       s.coCity || '',
-          regNum:     s.coRegNum || '—',
-          vat:        s.coVAT   || '—',
-          plan:       '—',
-          txHistory:  userTx.slice(0,5).map(function(t){
-            return {name:t.recipient||'Transfer',date:t.date||'',amt:t.amount||0,dir:t.dir||'out'};
-          }),
-          docs: [
-            {name:'Articles of Incorporation', st: docStatus(s.coIncFileName)},
-            {name:'Proof of ownership',        st: docStatus(s.coOwnerFileName)},
-            {name:'Proof of address (UBO)',    st: docStatus(s.coOwnerPOAFileName)},
-            {name:'ID — '+((fn+' '+ln).trim()||'Applicant'), st: docStatus(s.idFileName)},
-          ],
-          _isLive: true,
-        });
+    var onb = JSON.parse(localStorage.getItem('hp_onb') || 'null');
+    if(onb && onb.s && onb.s.email){
+      // Stamp registeredAt the first time this page sees them
+      if(!onb.s._registeredAt){
+        onb.s._registeredAt = new Date().toISOString().split('T')[0];
+        localStorage.setItem('hp_onb', JSON.stringify(onb));
       }
+      add(buildAccountFromOnb(onb.s, onb.ci));
     }
-  } catch(e){}
+  } catch(e){ console.error('hp_onb parse error:', e); }
 
   return list;
 }
-
-// Also persist a registration timestamp and last-login on first load
-// so "Joined" and "Last active" reflect real dates going forward.
-(function(){
-  try {
-    var onb = JSON.parse(localStorage.getItem('hp_onb') || '{}');
-    var s = onb.s || {};
-    if (s.email && !s._registeredAt) {
-      s._registeredAt = new Date().toISOString().split('T')[0];
-      onb.s = s;
-      localStorage.setItem('hp_onb', JSON.stringify(onb));
-    }
-  } catch(e){}
-})();
 
 function allAccounts(){ return loadAccounts(); }
 
 // ── Stats ─────────────────────────────────────────────────────────────────
 function renderStats(){
-  var all     = allAccounts();
-  var total   = all.length;
-  var active  = all.filter(function(a){return a.status==='active';}).length;
-  var review  = all.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
-  var vol     = all.reduce(function(s,a){return s+a.vol30;},0);
+  var all    = allAccounts();
+  var total  = all.length;
+  var active = all.filter(function(a){return a.status==='active';}).length;
+  var review = all.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
+  var vol    = all.reduce(function(s,a){return s+a.vol30;},0);
 
   document.getElementById('statTotal').textContent  = total;
   document.getElementById('statActive').textContent = active;
   document.getElementById('statReview').textContent = review;
   document.getElementById('statVolume').textContent = eurK(vol);
-  document.getElementById('statActiveDelta').textContent = '↑ 3 this month';
-  document.getElementById('statVolumeDelta').textContent = '↑ 18% vs. last month';
+  // Only show delta text when there's actual data
+  document.getElementById('statActiveDelta').textContent  = total ? active+' of '+total+' fully active' : 'Awaiting first registration';
+  document.getElementById('statVolumeDelta').textContent  = vol ? 'Real 30-day total' : 'No transactions yet';
 }
 
-// ── Chart ─────────────────────────────────────────────────────────────────
+// ── Chart — real data from hp_txlog ──────────────────────────────────────
 var chartInstance;
 function renderChart(){
-  var period  = document.getElementById('chartPeriod').value;
-  var months  = period==='3m'?3:period==='6m'?6:12;
-  var labels  = [];
-  var data    = [];
-  var base    = [420,510,488,620,714,680,740,810,880,924,1040,1240];
-  var now     = new Date();
+  var period = document.getElementById('chartPeriod').value;
+  var months = period==='3m'?3:period==='6m'?6:12;
+  var now    = new Date();
+  var labels = [];
+  var data   = [];
+
+  // Build month buckets
+  var buckets = {};
   for(var i=months-1;i>=0;i--){
-    var d = new Date(now.getFullYear(),now.getMonth()-i,1);
-    labels.push(d.toLocaleString('en-GB',{month:'short',year:months>6?'2-digit':undefined}));
-    data.push(base[12-months+months-1-i] * 1000);
+    var d   = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var lbl = d.toLocaleString('en-GB',{month:'short',year:months>6?'2-digit':undefined});
+    labels.push(lbl);
+    buckets[key] = 0;
   }
+
+  // Sum real transactions into buckets
+  var txLog = getTxLog();
+  txLog.forEach(function(t){
+    var ts = t.timestamp ? new Date(t.timestamp) : null;
+    if(!ts || isNaN(ts.getTime())) return;
+    var key = ts.getFullYear()+'-'+String(ts.getMonth()+1).padStart(2,'0');
+    if(buckets[key] !== undefined) buckets[key] += (t.amount||0);
+  });
+
+  var keys = Object.keys(buckets).sort();
+  keys.forEach(function(k){ data.push(buckets[k]); });
+
+  var hasData = data.some(function(v){ return v > 0; });
+
+  // Show/hide no-data overlay
+  var wrap = document.getElementById('volumeChart').parentNode;
+  var noData = document.getElementById('chartNoData');
+  if(!noData){
+    noData = document.createElement('div');
+    noData.id = 'chartNoData';
+    noData.style.cssText = 'text-align:center;padding:48px 24px;color:var(--ink3);font-size:13.5px;display:none';
+    noData.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px;display:block;opacity:.4"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>No transaction data yet.<br>Transactions will appear here once accounts are active.';
+    wrap.appendChild(noData);
+  }
+
+  if(!hasData){
+    document.getElementById('volumeChart').style.display = 'none';
+    noData.style.display = 'block';
+    if(chartInstance){ chartInstance.destroy(); chartInstance=null; }
+    return;
+  }
+
+  document.getElementById('volumeChart').style.display = '';
+  noData.style.display = 'none';
+
   if(chartInstance) chartInstance.destroy();
   var ctx = document.getElementById('volumeChart').getContext('2d');
   chartInstance = new Chart(ctx, {
@@ -434,7 +476,7 @@ function renderChart(){
       plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '  €'+c.raw.toLocaleString('en-GB');}}}},
       scales:{
         x:{grid:{display:false},ticks:{font:{family:'Inter',size:12}}},
-        y:{grid:{color:'rgba(11,25,41,.05)'},ticks:{font:{family:'Inter',size:12},callback:function(v){return v>=1e6?'€'+(v/1e6).toFixed(1)+'M':v>=1e3?'€'+(v/1000)+'k':'€'+v;}}}
+        y:{beginAtZero:true,grid:{color:'rgba(11,25,41,.05)'},ticks:{font:{family:'Inter',size:12},callback:function(v){return v>=1e6?'€'+(v/1e6).toFixed(1)+'M':v>=1e3?'€'+(v/1000)+'k':'€'+v;}}}
       }
     }
   });

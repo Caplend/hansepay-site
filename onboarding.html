@@ -3958,6 +3958,36 @@ function handleSubmit(){
   S.applicationRef='HP-'+rand8();
   setTimeout(()=>{
     collectData();
+    // ── Persist registration to hp_regs so admin Accounts page can read it ──
+    try {
+      const fn=S.firstName||''; const ln=S.lastName||'';
+      const email=S.coEmail||S.email||'';
+      const reg={
+        id:'onb-'+email.replace(/[^a-z0-9]/gi,'').slice(0,10),
+        company: S.coName||((fn+' '+ln).trim())||email,
+        contact: (fn+(ln?' '+ln:'')).trim()||email,
+        email,
+        type:    S.accountType==='personal'?'Individual':'Business',
+        status:  'review',
+        joined:  S._registeredAt||new Date().toISOString().split('T')[0],
+        lastActive: new Date().toISOString().split('T')[0],
+        vol30:0, avgTransfer:0, txCount30:0, balance:0, iban:'—',
+        country:(S.coAddrCountry||'DE').slice(0,2).toUpperCase(),
+        city:S.coCity||'', regNum:S.coRegNum||'—', vat:S.coVAT||'—', plan:'—',
+        txHistory:[],
+        docs:[
+          {name:'Articles of Incorporation',st:S.coIncFileName?'ok':'pending'},
+          {name:'Proof of ownership',       st:S.coOwnerFileName?'ok':'pending'},
+          {name:'Proof of address (UBO)',   st:S.coOwnerPOAFileName?'ok':'pending'},
+          {name:'ID — '+((fn+' '+ln).trim()||'Applicant'),st:S.idFileName?'ok':'pending'},
+        ],
+        _submittedAt: new Date().toISOString(),
+      };
+      const existing=JSON.parse(localStorage.getItem('hp_regs')||'[]');
+      const filtered=existing.filter(r=>r.email!==email);
+      filtered.push(reg);
+      localStorage.setItem('hp_regs',JSON.stringify(filtered));
+    } catch(e){}
     const steps=getActiveSteps();
     CI=steps.indexOf(14);
     showStep('forward');
