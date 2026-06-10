@@ -294,13 +294,18 @@ function requireLegal(req, res, next) {
   next();
 }
 
-// Simple API-key auth for internal tooling (Postman, webhooks, etc.)
-// Set INTERNAL_API_KEY in Railway env vars. Pass as header: x-api-key: <value>
+// Simple API-key auth for internal tooling (Postman, browser, webhooks).
+// Set INTERNAL_API_KEY in Railway env vars.
+// Pass as header (x-api-key) OR query param (?api_key=) — both work.
 function requireApiKey(req, res, next) {
   const key = process.env.INTERNAL_API_KEY;
-  if (!key) return res.status(503).json({ error: 'API key auth not configured (set INTERNAL_API_KEY in env)' });
-  const provided = req.headers['x-api-key'];
-  if (!provided || provided !== key) return res.status(401).json({ error: 'Invalid or missing x-api-key header' });
+  if (!key) return res.status(503).json({ error: 'API key auth not configured — set INTERNAL_API_KEY in Railway env vars' });
+  const provided = req.headers['x-api-key'] || req.query.api_key;
+  if (!provided || provided !== key) {
+    return res.status(401).json({
+      error: 'Unauthorized — pass your API key as header x-api-key or query param ?api_key=',
+    });
+  }
   next();
 }
 
@@ -870,27 +875,34 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
 // GET /api/crm/customers
 //
 // Returns all customers from the CRM as JSON.
-// Protected by x-api-key header (set INTERNAL_API_KEY in Railway env vars).
+// Auth: pass your key as header x-api-key OR query param ?api_key=
 //
 // Query parameters — all optional, combinable:
 //
 //   sort        latest (default) | oldest | a_z | z_a | updated | volume_high
-//   stage       lead | prospect | proposal | won | lost
-//   status      active | inactive
-//   source      booking | referral | inbound | <any>
-//   country     e.g. Germany
-//   q           free-text search across name, company, email, industry
-//   limit       integer — max number of results returned
-//   fields      comma-separated list — only return these fields per record
-//                 e.g. fields=firstName,lastName,email,company,stage
+//   stage       lead | qualified | proposal | won | lost
+//   status      active | prospect
+//   source      booking | referral | web | manual
+//   country     e.g. Germany  (case-insensitive)
+//   q           free-text search: name, company, email, industry, city
+//   limit       integer — max results
+//   fields      comma-separated — e.g. firstName,lastName,email,company,stage
 //
-// Examples:
-//   GET /api/crm/customers                              → all, newest first
-//   GET /api/crm/customers?sort=a_z                    → all, A→Z by company
-//   GET /api/crm/customers?stage=proposal&sort=latest  → proposals, newest first
-//   GET /api/crm/customers?q=hamburg&limit=10          → first 10 Hamburg matches
-//   GET /api/crm/customers?sort=volume_high&fields=firstName,lastName,email,fxVolume
-//
+
+// Parse fxVolume strings (e.g. "€5M–€10M / month", "€500k / month") to a
+// numeric upper-bound value so volume_high sort works regardless of exact wording.
+function parseFxVolume(v) {
+  if (!v) return 0;
+  const matches = String(v).match(/[\d.]+\s*[kKmM]?/g) || [];
+  const nums = matches.map(n => {
+    const val = parseFloat(n);
+    if (/[mM]/.test(n)) return val * 1000000;
+    if (/[kK]/.test(n)) return val * 1000;
+    return val;
+  });
+  return nums.length ? Math.max(...nums) : 0;
+}
+
 app.get('/api/crm/customers', requireApiKey, (req, res) => {
   const raw = readData('customers.json');
   let list = (Array.isArray(raw) ? raw : []).map(enrichCustomer);
@@ -898,10 +910,10 @@ app.get('/api/crm/customers', requireApiKey, (req, res) => {
   // ── Filters ──────────────────────────────────────────────────────────────
   const { sort, stage, status, source, country, q, limit, fields } = req.query;
 
-  if (stage)   list = list.filter(c => c.stage   === stage);
-  if (status)  list = list.filter(c => c.status  === status);
-  if (source)  list = list.filter(c => c.source  === source);
-  if (country) list = list.filter(c => (c.country || '').toLowerCase() === country.toLowerCase());
+  if (stage)   list = list.filter(c => c.stage  === stage);
+  if (status)  list = list.filter(c => c.status === status);
+  if (source)  list = list.filter(c => c.source === source);
+  if (country) list = list.filter(c => (c.country || '').toLowerCase() === String(country).toLowerCase());
 
   if (q) {
     const needle = String(q).toLowerCase();
@@ -913,29 +925,25 @@ app.get('/api/crm/customers', requireApiKey, (req, res) => {
 
   // ── Sort ─────────────────────────────────────────────────────────────────
   const sortKey = (sort || 'latest').toLowerCase();
-  const VOLUME_ORDER = [
-    '€10M+ / month', '€5M–€10M / month', '€1M–€5M / month',
-    '€250k–€1M / month', '€50k–€250k / month', '<€50k / month',
-  ];
   switch (sortKey) {
     case 'oldest':
       list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       break;
     case 'a_z':
-      list.sort((a, b) => (a.company || `${a.firstName} ${a.lastName}`).localeCompare(b.company || `${b.firstName} ${b.lastName}`));
+      list.sort((a, b) =>
+        (a.company || `${a.firstName} ${a.lastName}`).localeCompare(
+          b.company || `${b.firstName} ${b.lastName}`));
       break;
     case 'z_a':
-      list.sort((a, b) => (b.company || `${b.firstName} ${b.lastName}`).localeCompare(a.company || `${a.firstName} ${a.lastName}`));
+      list.sort((a, b) =>
+        (b.company || `${b.firstName} ${b.lastName}`).localeCompare(
+          a.company || `${a.firstName} ${a.lastName}`));
       break;
     case 'updated':
       list.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
       break;
     case 'volume_high':
-      list.sort((a, b) => {
-        const ai = VOLUME_ORDER.indexOf(a.fxVolume);
-        const bi = VOLUME_ORDER.indexOf(b.fxVolume);
-        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-      });
+      list.sort((a, b) => parseFxVolume(b.fxVolume) - parseFxVolume(a.fxVolume));
       break;
     case 'latest':
     default:
