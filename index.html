@@ -155,7 +155,7 @@ a{color:inherit;text-decoration:none}
 .how-desc{font-size:13px;color:var(--ink2);line-height:1.6}
 
 .calc-section{background:#fff;position:relative}
-.calc-layout{display:grid;grid-template-columns:1fr 1.1fr;gap:96px;align-items:start}
+.calc-layout{display:grid;grid-template-columns:1fr 1.1fr;gap:96px;align-items:center}
 @media(max-width:900px){.calc-layout{grid-template-columns:1fr;gap:48px}}
 .calc-intro{padding-top:8px}
 .calc-bullets{margin-top:48px;display:flex;flex-direction:column;gap:20px}
@@ -191,10 +191,10 @@ a{color:inherit;text-decoration:none}
 .hp-range-labels{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--ink3)}
 .calc-lbl-val{font-variant-numeric:tabular-nums;font-weight:600;color:var(--n800)}
 
-.seg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:900px){.seg-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.seg-grid{grid-template-columns:1fr}}
-.seg-card{border:1px solid rgba(11,25,41,.07);border-radius:var(--r-lg);overflow:hidden;transition:box-shadow .2s,transform .2s;display:block;color:inherit;text-decoration:none}
+.seg-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
+@media(max-width:900px){.seg-card{flex-basis:calc(50% - 10px)}}
+@media(max-width:560px){.seg-card{flex-basis:100%}}
+.seg-card{flex:0 1 calc(33.333% - 14px);max-width:400px;border:1px solid rgba(11,25,41,.07);border-radius:var(--r-lg);overflow:hidden;transition:box-shadow .2s,transform .2s;display:block;color:inherit;text-decoration:none}
 .seg-card:hover{box-shadow:0 8px 32px rgba(11,25,41,.1);transform:translateY(-3px)}
 .seg-img{height:140px;display:flex;align-items:flex-end;padding:16px;position:relative}
 .seg-icon{width:32px;height:32px;color:rgba(255,255,255,.45)}
@@ -522,7 +522,7 @@ a{color:inherit;text-decoration:none}
         <span class="eyebrow reveal" data-i18n="index.vp.eyebrow">The HansePay difference</span>
         <h2 class="section-head reveal d1" style="margin-top:12px" data-i18n-html="index.vp.h2">Transparent pricing.<br><em>Fast settlement.</em></h2>
         <p class="lede reveal d2" style="margin-top:20px" data-i18n="index.vp.lede">HansePay gives European businesses direct access to interbank FX rates with a transparent margin from 0.15% on major currency pairs, disclosed before every trade, with no hidden spread. Add same-day settlement on major corridors, and cross-border payments become predictable.</p>
-        <a href="platform-technology.html#how-it-works" class="btn btn-ghost-navy reveal d3" style="margin-top:32px">See how our pricing works &rarr;</a>
+        <a href="platform-technology.html#how-it-works" class="btn btn-ghost-navy reveal d3" style="margin:32px auto 0;display:flex;width:fit-content">See how our pricing works &rarr;</a>
       </div>
       <div class="vp-metrics reveal d1">
         <div class="vp-metric">
@@ -598,7 +598,7 @@ a{color:inherit;text-decoration:none}
             <div><div class="showcase-feat-title" data-i18n="index.platform.f4.title">API &amp; bulk payments</div><div class="showcase-feat-desc" data-i18n="index.platform.f4.desc">Integrate with your ERP or TMS. Send hundreds of payments from one CSV upload.</div></div>
           </div>
         </div>
-        <a href="platform.html" class="btn btn-ghost-white" style="margin-top:36px" data-i18n="index.platform.cta">Explore the platform &rarr;</a>
+        <a href="platform.html" class="btn btn-ghost-white" style="margin:36px auto 0;display:flex;width:fit-content" data-i18n="index.platform.cta">Explore the platform &rarr;</a>
       </div>
       <!-- Right: App UI (premium glass frame) -->
       <div>
@@ -727,7 +727,7 @@ a{color:inherit;text-decoration:none}
           <div class="ccy-chip" data-ccy="VND"><span class="ccy-flag">🇻🇳</span><span class="ccy-code">VND</span><span class="ccy-name">Vietnamese Dong</span></div>
         </div>
         <p style="font-size:11.5px;color:var(--ink3);margin-top:18px;line-height:1.5" data-i18n="index.currencies.more">+27 more markets available &mdash; speak with your FX expert for full corridor availability.</p>
-        <a href="platform.html#currencies" class="btn btn-ghost-navy reveal" style="margin-top:20px" data-i18n="index.currencies.cta">See full coverage &rarr;</a>
+        <a href="platform.html#currencies" class="btn btn-ghost-navy reveal" style="margin:20px auto 0;display:flex;width:fit-content" data-i18n="index.currencies.cta">See full coverage &rarr;</a>
       </div>
     </div>
   </div>
@@ -759,7 +759,7 @@ a{color:inherit;text-decoration:none}
         <span class="eyebrow about-eyebrow reveal">Our story</span>
         <h2 class="about-head reveal d1">Built in Hamburg.<br><em>Trusted across Europe.</em></h2>
         <p class="about-body reveal d2">For centuries, Hamburg has been Europe's gateway to global commerce. HansePay carries that tradition forward, bringing institutional-grade FX execution to the businesses that drive the modern economy. BaFin-regulated, backed by Hamburg's innovation fund, advised by senior institutional experts.</p>
-        <a href="about-vision.html" class="btn btn-ghost-navy reveal d3">Learn more about us</a>
+        <a href="about-vision.html" class="btn btn-ghost-navy reveal d3" style="display:flex;width:fit-content;margin:0 auto">Learn more about us</a>
       </div>
       <div class="cred-card reveal d1">
         <div class="cred-item"><div class="cred-icon-wrap"><svg class="cred-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="cred-title" data-i18n="index.cred.1.title">BaFin Licensed</div><div class="cred-desc" data-i18n="index.cred.1.desc">EU-regulated E-Money Institution under MiCAR. Direct German supervisory oversight by BaFin.</div></div></div>
