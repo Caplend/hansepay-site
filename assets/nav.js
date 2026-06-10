@@ -1444,7 +1444,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
       'vision.timeline.4.desc':'Eine europäische, regulierte, moderne grenzüberschreitende Zahlungsplattform, entwickelt für die Unternehmen, für die SWIFT nie ausgelegt war.',
       'vision.values.eyebrow':'Wofür wir stehen',
       'vision.values.h2':'Hanseatische Werte, täglich gelebt.',
-      'vision.values.sub':'Drei Prinzipien. Fest. Klar. Keine Ausnahmen.',
+      'vision.values.sub':'Die Prinzipien hinter jeder Entscheidung, die wir treffen, und allem, was wir bauen.',
       'vision.val.1.title':'Kunde zuerst',
       'vision.val.1.desc':'Jede Produktentscheidung, jedes kommerzielle Gespräch, jede Zeile Code beantwortet ein Kundenergebnis. Interne Cleverness, die keinen Kunden erreicht, zählt nicht.',
       'vision.val.2.title':'Integrität',

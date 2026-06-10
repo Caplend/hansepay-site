@@ -52,7 +52,7 @@ a{color:inherit;text-decoration:none}
 .logo-display img{width:180px;height:180px}
 .logo-placeholder{width:180px;height:180px;display:flex;align-items:center;justify-content:center}
 .logo-placeholder svg{width:120px;height:120px;color:var(--n500)}
-.historical-img{width:100%;border-radius:var(--r-lg);border:1px solid rgba(11,25,41,.07);filter:grayscale(100%)}
+.historical-img{width:100%;border-radius:var(--r-lg);border:1px solid rgba(11,25,41,.07)}
 
 /* Timeline, horizontal desktop */
 .timeline-h{position:relative;margin-top:56px}
@@ -81,7 +81,7 @@ a{color:inherit;text-decoration:none}
 .value-desc{font-size:14px;color:var(--ink2);line-height:1.65}
 
 /* Memberships */
-.memberships-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:48px}
+.memberships-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,260px));justify-content:center;gap:16px;margin-top:48px}
 .membership-card{background:#fff;border:1px solid rgba(11,25,41,.07);border-radius:var(--r-lg);padding:20px;display:flex;align-items:flex-start;gap:14px}
 .membership-icon{width:36px;height:36px;border-radius:8px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .membership-icon svg{width:16px;height:16px;color:var(--n500);stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
@@ -100,7 +100,7 @@ a{color:inherit;text-decoration:none}
 
 <!-- Hero -->
 <section class="hero">
-  <img class="hero-img" src="https://images.unsplash.com/photo-1580737254571-beff5c15bc79?auto=format&fit=crop&w=1920&q=80" alt="Hamburg Speicherstadt arched bridge at golden hour" />
+  <img class="hero-img" src="assets/about-vision-hero.jpg" alt="Hamburg Speicherstadt arched bridge at dusk" />
   <div class="hero-overlay"></div>
   <div class="container">
     <div class="hero-inner">
@@ -131,18 +131,7 @@ a{color:inherit;text-decoration:none}
   <div class="container">
     <div class="two-col">
       <div class="logo-display">
-        <div class="logo-placeholder">
-          <!-- Bridge logo placeholder -->
-          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 80 Q30 40 60 40 Q90 40 110 80" stroke="currentColor" stroke-width="3" fill="none"/>
-            <line x1="10" y1="80" x2="10" y2="100" stroke="currentColor" stroke-width="3"/>
-            <line x1="110" y1="80" x2="110" y2="100" stroke="currentColor" stroke-width="3"/>
-            <line x1="35" y1="57" x2="35" y2="80" stroke="currentColor" stroke-width="2"/>
-            <line x1="60" y1="40" x2="60" y2="80" stroke="currentColor" stroke-width="2"/>
-            <line x1="85" y1="57" x2="85" y2="80" stroke="currentColor" stroke-width="2"/>
-            <line x1="10" y1="80" x2="110" y2="80" stroke="currentColor" stroke-width="3"/>
-          </svg>
-        </div>
+        <img src="assets/hansepay-icon.svg" alt="HansePay logo" />
       </div>
       <div>
         <div class="eyebrow" data-i18n="vision.logo.eyebrow">Our logo</div>
@@ -169,7 +158,7 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
       <div>
-        <img class="historical-img" src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=800&q=80" alt="Historical view of Hamburg harbour and Speicherstadt" loading="lazy" />
+        <img class="historical-img" src="assets/about-name-historical.jpg" alt="Historical view of Hamburg harbour and Speicherstadt" loading="lazy" />
       </div>
     </div>
   </div>
@@ -242,7 +231,7 @@ a{color:inherit;text-decoration:none}
     <div style="max-width:820px;margin-bottom:40px">
       <div class="eyebrow" data-i18n="vision.values.eyebrow">What we stand for</div>
       <h2 class="section-heading" style="margin-bottom:16px" data-i18n-html="vision.values.h2">Hanseatic values, <em>practiced daily.</em></h2>
-      <p class="body-copy" data-i18n="vision.values.sub">Three principles. Firm. Bold. No exceptions.</p>
+      <p class="body-copy" data-i18n="vision.values.sub">The principles behind every decision we make, and everything we build.</p>
     </div>
     <div class="values-grid">
 
