@@ -865,6 +865,97 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
   res.json(Object.assign({ to }, result));
 });
 
+// ─── Public API (API-key auth) ───────────────────────────────────────────────
+//
+// GET /api/crm/customers
+//
+// Returns all customers from the CRM as JSON.
+// Protected by x-api-key header (set INTERNAL_API_KEY in Railway env vars).
+//
+// Query parameters — all optional, combinable:
+//
+//   sort        latest (default) | oldest | a_z | z_a | updated | volume_high
+//   stage       lead | prospect | proposal | won | lost
+//   status      active | inactive
+//   source      booking | referral | inbound | <any>
+//   country     e.g. Germany
+//   q           free-text search across name, company, email, industry
+//   limit       integer — max number of results returned
+//   fields      comma-separated list — only return these fields per record
+//                 e.g. fields=firstName,lastName,email,company,stage
+//
+// Examples:
+//   GET /api/crm/customers                              → all, newest first
+//   GET /api/crm/customers?sort=a_z                    → all, A→Z by company
+//   GET /api/crm/customers?stage=proposal&sort=latest  → proposals, newest first
+//   GET /api/crm/customers?q=hamburg&limit=10          → first 10 Hamburg matches
+//   GET /api/crm/customers?sort=volume_high&fields=firstName,lastName,email,fxVolume
+//
+app.get('/api/crm/customers', requireApiKey, (req, res) => {
+  const raw = readData('customers.json');
+  let list = (Array.isArray(raw) ? raw : []).map(enrichCustomer);
+
+  // ── Filters ──────────────────────────────────────────────────────────────
+  const { sort, stage, status, source, country, q, limit, fields } = req.query;
+
+  if (stage)   list = list.filter(c => c.stage   === stage);
+  if (status)  list = list.filter(c => c.status  === status);
+  if (source)  list = list.filter(c => c.source  === source);
+  if (country) list = list.filter(c => (c.country || '').toLowerCase() === country.toLowerCase());
+
+  if (q) {
+    const needle = String(q).toLowerCase();
+    list = list.filter(c =>
+      [c.company, c.firstName, c.lastName, c.email, c.industry, c.city, c.country]
+        .filter(Boolean).some(v => String(v).toLowerCase().includes(needle))
+    );
+  }
+
+  // ── Sort ─────────────────────────────────────────────────────────────────
+  const sortKey = (sort || 'latest').toLowerCase();
+  const VOLUME_ORDER = [
+    '€10M+ / month', '€5M–€10M / month', '€1M–€5M / month',
+    '€250k–€1M / month', '€50k–€250k / month', '<€50k / month',
+  ];
+  switch (sortKey) {
+    case 'oldest':
+      list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      break;
+    case 'a_z':
+      list.sort((a, b) => (a.company || `${a.firstName} ${a.lastName}`).localeCompare(b.company || `${b.firstName} ${b.lastName}`));
+      break;
+    case 'z_a':
+      list.sort((a, b) => (b.company || `${b.firstName} ${b.lastName}`).localeCompare(a.company || `${a.firstName} ${a.lastName}`));
+      break;
+    case 'updated':
+      list.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+      break;
+    case 'volume_high':
+      list.sort((a, b) => {
+        const ai = VOLUME_ORDER.indexOf(a.fxVolume);
+        const bi = VOLUME_ORDER.indexOf(b.fxVolume);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+      break;
+    case 'latest':
+    default:
+      list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      break;
+  }
+
+  // ── Limit ────────────────────────────────────────────────────────────────
+  const n = parseInt(limit, 10);
+  if (!isNaN(n) && n > 0) list = list.slice(0, n);
+
+  // ── Field projection ─────────────────────────────────────────────────────
+  if (fields) {
+    const keys = String(fields).split(',').map(f => f.trim()).filter(Boolean);
+    list = list.map(c => Object.fromEntries(keys.filter(k => k in c).map(k => [k, c[k]])));
+  }
+
+  res.json({ total: list.length, customers: list });
+});
+
 // ─── CRM: Customers ─────────────────────────────────────────────────────────
 
 // Enrich a customer with health/value using its activities
