@@ -89,12 +89,15 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 .mobile-lang-toggle{display:flex;gap:6px;padding:16px 0 8px;border-top:1px solid rgba(255,255,255,.07);margin-top:4px;}
 .mobile-lang-btn{flex:1;padding:9px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:transparent;font-family:var(--font-ui,sans-serif);font-size:13px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;}
 .mobile-lang-btn.active{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
-/* ── CINEMATIC BLUE-HOUR IMAGE TREATMENT (shared, locked — do not tune per image) ──
+/* ── CINEMATIC IMAGE TREATMENT (shared, locked — do not tune per image) ──
    Apply class "hp-cine" to any photographic / lifestyle / cityscape <img>.
-   Deep slate-blue dusk: desaturated greens/yellows, cooled midtones, rich contrast,
-   warm light kept alive. One source of truth so future images inherit it automatically. */
+   A refined, slightly muted dusk grade: richer contrast, gently lowered brightness and
+   saturation for a premium, cohesive mood. NO hue-rotate, so warm amber light stays warm
+   and images never go flat monochrome blue. Theme cohesion comes from each hero's navy
+   gradient overlay, the same way the front-page hero is composed.
+   One source of truth so future images inherit it automatically. */
 img.hp-cine,.hp-cine>img{
-  filter:saturate(0.78) contrast(1.12) brightness(0.9) sepia(0.18) hue-rotate(185deg) saturate(1.1);
+  filter:saturate(0.88) contrast(1.08) brightness(0.92);
 }
 `;
     document.head.appendChild(st);
