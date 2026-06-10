@@ -4213,7 +4213,8 @@ function init(){
   // ── Handle ?emailVerify=CODE magic link from OTP email ───────────────────
   const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
   if(urlCode && /^\d{6}$/.test(String(urlCode))){
-    loadSaved();
+    const savedCI = loadSaved();
+    CI = typeof savedCI === 'number' ? savedCI : 0;
     window.history.replaceState({}, '', window.location.pathname);
 
     // Same-device path: if we have email context in localStorage the user
@@ -4226,12 +4227,13 @@ function init(){
       S._emailCode = null;
       saveState();
       const steps = getActiveSteps();
-      const phoneIdx = steps.indexOf(3);
+      const phoneIdx = steps.indexOf('3a');  // step '3a' = phone entry (was: indexOf(3) which always returned -1)
       if(phoneIdx !== -1){
         CI = phoneIdx;
         showStep('forward');
-        setTimeout(()=>showToast('Email verified ✓ — continue with your phone number.'),200);
+        setTimeout(()=>showToast('Email verified ✓ — enter your phone number to continue.'),200);
       } else {
+        CI++;
         showStep('forward');
         setTimeout(()=>showToast('Email verified ✓'),200);
       }
