@@ -294,6 +294,16 @@ function requireLegal(req, res, next) {
   next();
 }
 
+// Simple API-key auth for internal tooling (Postman, webhooks, etc.)
+// Set INTERNAL_API_KEY in Railway env vars. Pass as header: x-api-key: <value>
+function requireApiKey(req, res, next) {
+  const key = process.env.INTERNAL_API_KEY;
+  if (!key) return res.status(503).json({ error: 'API key auth not configured (set INTERNAL_API_KEY in env)' });
+  const provided = req.headers['x-api-key'];
+  if (!provided || provided !== key) return res.status(401).json({ error: 'Invalid or missing x-api-key header' });
+  next();
+}
+
 // ─── Health / debug route (public) ───────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   let files = [];
@@ -796,6 +806,17 @@ app.get('/api/bookings', authenticateToken, (req, res) => {
   const bookings = readData('bookings.json');
   const list = Array.isArray(bookings) ? bookings : [];
   res.json(list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+});
+
+// GET /api/bookings/latest — most recent inbound booking (API-key protected, no JWT login needed)
+// Use in Postman: GET https://hansepay-deploy-production-328c.up.railway.app/api/bookings/latest
+// Header: x-api-key: <INTERNAL_API_KEY>
+app.get('/api/bookings/latest', requireApiKey, (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  if (!list.length) return res.status(404).json({ error: 'No bookings found' });
+  const latest = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  res.json(latest);
 });
 
 app.patch('/api/bookings/:id', authenticateToken, (req, res) => {
