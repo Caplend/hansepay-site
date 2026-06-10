@@ -111,7 +111,7 @@ This repository is a **static website** — plain HTML files served by Express o
 }
 ```
 
-> **Important discrepancy:** The design system PDF specifies `#F6F9FC` as off-white. Older pages may use `#F5F1EA` (warm cream) or `#FAFAFA`. New pages should use `#F6F9FC` or `#FAFAFA` (cool, not warm).
+> **Note:** All pages were migrated to `#F6F9FC` (cool off-white) in June 2026 — `#F5F1EA` warm cream no longer appears on any site surface (it survives only in `lib/email.js`, deliberately). All pages also now load Cormorant Garamond and use it as `--font-display`.
 
 ---
 
@@ -432,7 +432,7 @@ The accent phrase is:
 4. **No drop shadows on text** — ever.
 5. **No border-radius on the logo mark.**
 6. **No filled icons** — Lucide outline only.
-7. **No warm off-whites** — `#F5F1EA` is not a brand surface colour. Use `#F6F9FC`, `#FAFAFA`, or `#F8F9FC`. This applies to email templates too — `BRAND.off` in `lib/email.js` must stay `#F6F9FC`.
+7. **No warm off-whites on the website** — `#F5F1EA` is not a site surface colour. Use `#F6F9FC`, `#FAFAFA`, or `#F8F9FC`. **Exception (deliberate, June 2026):** transactional emails use warm cream — `BRAND.off` in `lib/email.js` is `#f5f1ea` to match the booking-confirmation reference design. Do not "fix" it back to cool.
 8. **No heavy type** — headlines are weight 400 (regular). Bold (`700`) is only for UI labels, eyebrow tags, and small metadata. Never set a display headline in bold.
 9. **No rounded sections with background colours** — sections are rectangular. No `border-radius` on full-width section backgrounds.
 10. **Never use Libre Baskerville** except for the wordmark "HansePay."
