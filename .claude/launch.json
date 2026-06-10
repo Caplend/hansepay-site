@@ -2,11 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "hansepay-landing",
+      "name": "hansepay",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["../server.js"],
+      "runtimeArgs": ["server.js"],
       "port": 4200,
-      "cwd": "/Users/philcarstensen/Claude"
+      "cwd": "/Users/philcarstensen/hansepay-deploy"
     }
   ]
 }
