@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sign in — HansePay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --error:#dc2626;--success:#16a34a;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+html,body{
+  height:100%;font-family:'Inter',sans-serif;font-size:15px;
+  color:var(--ink);background:var(--n050);
+  -webkit-font-smoothing:antialiased;
+}
+body{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:100vh;padding:24px;
+}
+
+/* ── Brand ── */
+.brand{
+  display:flex;align-items:center;gap:10px;text-decoration:none;
+  margin-bottom:32px;
+}
+.brand-mark{width:38px;height:38px;object-fit:contain}
+.brand-name{
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:22px;font-weight:400;color:var(--n800);
+  letter-spacing:-.02em;line-height:1;
+}
+
+/* ── Card ── */
+.card{
+  width:100%;max-width:480px;
+  background:#fff;border-radius:20px;
+  padding:44px 48px;
+  box-shadow:0 4px 32px rgba(11,25,41,.09);
+}
+
+/* ── Heading ── */
+.card-heading{
+  font-family:'Libre Baskerville',Georgia,serif;
+  font-size:24px;font-weight:400;color:var(--n800);
+  letter-spacing:-.015em;line-height:1.25;margin-bottom:8px;
+}
+.card-sub{font-size:14px;color:var(--ink3);margin-bottom:28px;line-height:1.55}
+
+/* ── Returning user chip ── */
+.saved-chip{
+  display:none;align-items:center;gap:12px;
+  background:var(--n050);border:1.5px solid var(--n100);
+  border-radius:var(--r-md);padding:12px 16px;margin-bottom:20px;
+  font-size:13.5px;color:var(--ink2);cursor:pointer;
+  transition:border-color .15s;width:100%;text-align:left;
+}
+.saved-chip:hover{border-color:var(--n300)}
+.saved-chip-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--n800);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.saved-chip-text{display:flex;flex-direction:column;gap:2px;flex:1}
+.saved-chip-name{font-weight:600;color:var(--ink);font-size:13.5px}
+.saved-chip-hint{font-size:12px;color:var(--ink3)}
+.saved-chip-arrow{color:var(--ink3);flex-shrink:0}
+
+/* ── Error banner ── */
+.err-banner{
+  background:#fef2f2;border:1.5px solid #fecaca;border-radius:var(--r-md);
+  padding:12px 16px;font-size:13.5px;color:#b91c1c;line-height:1.5;
+  margin-bottom:20px;display:none;
+}
+.err-banner.show{display:block}
+
+/* ── Fields ── */
+.field-group{margin-bottom:16px}
+label{
+  display:block;font-size:11.5px;font-weight:600;
+  color:var(--ink3);margin-bottom:6px;letter-spacing:0;
+}
+input[type=email],input[type=password]{
+  width:100%;padding:12px 14px;
+  border:1.5px solid #DDE6EF;border-radius:var(--r-md);
+  font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);
+  background:#fff;outline:none;-webkit-appearance:none;
+  transition:border-color .18s,box-shadow .18s;
+}
+input[type=email]:focus,input[type=password]:focus{
+  border-color:var(--n300);
+  box-shadow:0 0 0 3px rgba(59,123,196,.14);
+}
+input.error{border-color:var(--error)}
+.field-error{font-size:12px;color:var(--error);margin-top:5px;display:none}
+.field-error.show{display:block}
+
+/* ── Password toggle ── */
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.pw-toggle{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;padding:2px;
+  color:var(--ink3);transition:color .15s;
+}
+.pw-toggle:hover{color:var(--ink)}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;padding:13px 28px;border-radius:var(--r-pill);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;border:none;transition:.2s;
+  text-decoration:none;white-space:nowrap;width:100%;
+}
+.btn-primary{background:var(--n800);color:#fff;margin-top:8px}
+.btn-primary:hover{background:var(--n700)}
+.btn-primary:active{background:var(--n900)}
+
+/* ── Footer ── */
+.login-footer{
+  font-size:13px;color:var(--ink3);text-align:center;
+  line-height:1.8;margin-top:24px;
+}
+.login-footer a{color:var(--n400);text-decoration:none}
+.login-footer a:hover{text-decoration:underline}
+
+@media(max-width:520px){
+  .card{padding:32px 24px}
+  .brand{margin-bottom:24px}
+}
+</style>
+</head>
+<body>
+
+<!-- Brand -->
+<a class="brand" href="/">
+  <img class="brand-mark" src="assets/hansepay-mark-uploaded.png" alt="">
+  <span class="brand-name">HansePay</span>
+</a>
+
+<div class="card">
+  <h1 class="card-heading">Sign in.</h1>
+  <p class="card-sub">Access your HansePay account.</p>
+
+  <!-- Returning user chip -->
+  <button class="saved-chip" id="savedChip" onclick="fillSavedEmail()">
+    <span class="saved-chip-avatar" id="savedChipAvatar">–</span>
+    <span class="saved-chip-text">
+      <span class="saved-chip-name" id="savedChipName">–</span>
+      <span class="saved-chip-hint">Tap to fill your email</span>
+    </span>
+    <span class="saved-chip-arrow">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </span>
+  </button>
+
+  <div class="err-banner" id="errBanner"></div>
+
+  <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+    <div class="field-group">
+      <label for="emailInput">Email address</label>
+      <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email">
+      <div class="field-error" id="emailErr">Please enter a valid email address.</div>
+    </div>
+
+    <div class="field-group">
+      <label for="passwordInput">Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="passwordInput" placeholder="Your password" autocomplete="current-password">
+        <button type="button" class="pw-toggle" onclick="togglePw()" aria-label="Show password">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="field-error" id="pwErr">Please enter your password.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="submitBtn">
+      Sign in
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </form>
+</div>
+
+<div class="login-footer">
+  Don't have an account? <a href="onboarding.html">Open an account →</a><br>
+  <a href="#">Forgot password?</a>
+</div>
+
+<script>
+// ── Detect saved onboarding ──────────────────────────────────────────────
+(function(){
+  try{
+    var onb=JSON.parse(localStorage.getItem('hp_onb')||'{}');
+    var s=onb.s||{};
+    if(s.email&&s.password){
+      var fn=s.firstName||'';var ln=s.lastName||'';
+      var ini=((fn[0]||'')+(ln[0]||'')).toUpperCase()||'?';
+      var name=(fn+(ln?' '+ln:'')).trim()||s.email;
+      document.getElementById('savedChip').style.display='flex';
+      document.getElementById('savedChipAvatar').textContent=ini;
+      document.getElementById('savedChipName').textContent=name;
+    }
+  }catch(e){}
+})();
+
+function fillSavedEmail(){
+  try{
+    var s=(JSON.parse(localStorage.getItem('hp_onb')||'{}')).s||{};
+    document.getElementById('emailInput').value=s.email||'';
+    document.getElementById('passwordInput').focus();
+  }catch(e){}
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function togglePw(){
+  var inp=document.getElementById('passwordInput');
+  inp.type=inp.type==='password'?'text':'password';
+}
+function showErr(id){document.getElementById(id).classList.add('show');}
+function clearErr(id){document.getElementById(id).classList.remove('show');}
+function setGlobalErr(msg){var b=document.getElementById('errBanner');b.textContent=msg;b.classList.add('show');}
+function clearGlobalErr(){document.getElementById('errBanner').classList.remove('show');}
+
+// ── Login ─────────────────────────────────────────────────────────────────
+function handleLogin(e){
+  e.preventDefault();
+  clearGlobalErr();
+  var emailEl=document.getElementById('emailInput');
+  var pwEl=document.getElementById('passwordInput');
+  var email=emailEl.value.trim();
+  var pw=pwEl.value;
+  var ok=true;
+
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showErr('emailErr');emailEl.classList.add('error');ok=false;
+  }else{clearErr('emailErr');emailEl.classList.remove('error');}
+
+  if(!pw){
+    showErr('pwErr');pwEl.classList.add('error');ok=false;
+  }else{clearErr('pwErr');pwEl.classList.remove('error');}
+
+  if(!ok)return;
+
+  try{
+    var onb=JSON.parse(localStorage.getItem('hp_onb')||'{}');
+    var s=onb.s||{};
+    if(!s.email||!s.password){
+      setGlobalErr('No account found. Please complete the onboarding to create an account.');return;
+    }
+    if(s.email.toLowerCase()!==email.toLowerCase()){
+      setGlobalErr('No account found with that email address.');return;
+    }
+    if(s.password!==pw){
+      setGlobalErr('Incorrect password. Please try again.');
+      pwEl.value='';pwEl.focus();return;
+    }
+    // Stamp last login so admin "Last active" is always current
+    s._lastLogin = new Date().toISOString().split('T')[0];
+    onb.s = s;
+    localStorage.setItem('hp_onb', JSON.stringify(onb));
+    sessionStorage.setItem('hp_dash_auth','1');
+    window.location.href='dashboard.html';
+  }catch(err){
+    setGlobalErr('Something went wrong. Please try again.');
+  }
+}
+</script>
+</body>
+</html>

@@ -5,7 +5,8 @@ const crypto = require('crypto');
 const cal = (() => { try { return require('./lib/calendar'); } catch(e) { return null; } })();
 const mailer = (() => { try { return require('./lib/email'); } catch(e) { console.error('[email] module load failed:', e.message); return null; } })();
 const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return null; } })();
-const crm = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
+const crm     = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
+const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { console.error('[legal-pdf] load failed:', e.message); return null; } })();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -46,7 +47,7 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities'].forEach(name => {
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -153,7 +154,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json'];
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json'];
   const defaultVal = arrayFiles.includes(filename) ? [] : {};
   if (!fs.existsSync(fp)) return defaultVal;
   try {
@@ -282,6 +283,13 @@ function authenticateToken(req, res, next) {
 function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+}
+
+function requireLegal(req, res, next) {
+  if (!req.user || !['admin','compliance'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Legal access required' });
   }
   next();
 }
@@ -1973,6 +1981,249 @@ app.patch('/api/bookings/:id/assign', authenticateToken, (req, res) => {
   list[idx].updatedAt  = new Date().toISOString();
   writeData('bookings.json', list);
   res.json(list[idx]);
+});
+
+// ─── Legal document routes ────────────────────────────────────────────────────
+
+// GET /api/legal — public, returns all docs (slug, title, badge, effectiveLine, updatedAt only — no body)
+app.get('/api/legal', (req, res) => {
+  const docs = readData('legal.json');
+  res.json(Array.isArray(docs) ? docs.map(({ body, ...rest }) => rest) : []);
+});
+
+// GET /api/legal/:slug — public, returns single doc including body
+app.get('/api/legal/:slug', (req, res) => {
+  const docs = readData('legal.json');
+  const doc = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  res.json(doc);
+});
+
+// PUT /api/legal/:slug — requires admin or compliance role
+app.put('/api/legal/:slug', authenticateToken, requireLegal, (req, res) => {
+  const docs = readData('legal.json');
+  const list = Array.isArray(docs) ? docs : [];
+  const idx = list.findIndex(d => d.slug === req.params.slug);
+  if (idx === -1) return res.status(404).json({ error: 'Document not found' });
+  const { title, badge, effectiveLine, body } = req.body;
+  if (title !== undefined) list[idx].title = title;
+  if (badge !== undefined) list[idx].badge = badge;
+  if (effectiveLine !== undefined) list[idx].effectiveLine = effectiveLine;
+  if (body !== undefined) list[idx].body = body;
+  list[idx].updatedAt = new Date().toISOString();
+  list[idx].updatedBy = req.user.name || req.user.email;
+  writeData('legal.json', list);
+  res.json(list[idx]);
+});
+
+// GET /api/legal/:slug/pdf — public, streams a branded PDF of the document
+app.get('/api/legal/:slug/pdf', (req, res) => {
+  if (!legalPdf) return res.status(503).json({ error: 'PDF service unavailable' });
+  const docs = readData('legal.json');
+  const doc  = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+  if (!doc) return res.status(404).json({ error: 'Document not found' });
+  try {
+    legalPdf.generateLegalPdf(doc, res);
+  } catch (err) {
+    console.error('[legal-pdf] generation error:', err);
+    if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
+  }
+});
+
+// ─── Email OTP ───────────────────────────────────────────────────────────────
+// Public endpoint — called from onboarding to send a 6-digit verification code.
+// The code is generated client-side and passed here; we just send the email.
+// In-memory OTP store: { [email]: { code, expiresAt } }
+// Survives page refreshes on the same server instance; good enough for OTP verification.
+const _otpStore = {};
+
+app.post('/api/email/otp', async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'Email service unavailable' });
+
+  const { email, code, firstName, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!code || String(code).length !== 6) {
+    return res.status(400).json({ error: '6-digit code is required' });
+  }
+
+  // Store server-side so verify link works even after localStorage is cleared
+  _otpStore[email.toLowerCase()] = {
+    code: String(code),
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000,  // 24-hour TTL
+  };
+
+  try {
+    const { renderOtpEmail } = mailer;
+    if (!renderOtpEmail) return res.status(503).json({ error: 'OTP template not available' });
+
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    const verifyUrl = `${siteBase}/hansepay/onboarding.html?emailVerify=${encodeURIComponent(String(code))}`;
+    const mail = renderOtpEmail({ firstName, email, code: String(code), lang, verifyUrl });
+    const result = await mailer.sendMail(mail);
+    console.log(`[otp] sent to ${email}: ${result.sent ? 'ok (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[otp] error:', err.message);
+    res.status(500).json({ error: 'Failed to send OTP email' });
+  }
+});
+
+// GET /api/email/otp/verify?email=X&code=Y — validate OTP against server-side store.
+// Returns { valid: true } and clears the entry on success, or { valid: false }.
+app.get('/api/email/otp/verify', (req, res) => {
+  const { email, code } = req.query;
+  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+  const entry = _otpStore[email.toLowerCase()];
+  if (!entry) return res.json({ valid: false, reason: 'no_code' });
+  if (Date.now() > entry.expiresAt) {
+    delete _otpStore[email.toLowerCase()];
+    return res.json({ valid: false, reason: 'expired' });
+  }
+  if (entry.code !== String(code)) return res.json({ valid: false, reason: 'mismatch' });
+  delete _otpStore[email.toLowerCase()];
+  res.json({ valid: true });
+});
+
+// ─── Registrations — persist + email ─────────────────────────────────────────
+
+// GET /api/registrations — admin only, returns all persisted registrations
+app.get('/api/registrations', authenticateToken, (req, res) => {
+  const list = readData('registrations.json');
+  res.json(Array.isArray(list) ? list : []);
+});
+
+// POST /api/registration/confirm — public, called from onboarding on submit.
+// Persists to registrations.json AND sends branded confirmation email.
+app.post('/api/registration/confirm', async (req, res) => {
+  const { firstName, lastName, email, company, accountType, applicationRef, lang,
+          phone, country, city, regNum, vat } = req.body || {};
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!applicationRef) {
+    return res.status(400).json({ error: 'applicationRef is required' });
+  }
+
+  // ── 1. Persist to registrations.json ──────────────────────────────────────
+  try {
+    const regs = readData('registrations.json');
+    const existing = regs.findIndex(r => r.email === email);
+    const record = {
+      id:             applicationRef,
+      applicationRef,
+      firstName:      firstName || '',
+      lastName:       lastName  || '',
+      email,
+      company:        company   || '',
+      accountType:    accountType || 'business',
+      phone:          phone  || '',
+      country:        country || '',
+      city:           city   || '',
+      regNum:         regNum || '',
+      vat:            vat    || '',
+      status:         'review',
+      submittedAt:    new Date().toISOString(),
+      lang:           lang || 'en',
+    };
+    if (existing >= 0) regs[existing] = record; else regs.push(record);
+    writeData('registrations.json', regs);
+    console.log(`[registration] saved: ${email} (${applicationRef})`);
+  } catch (err) {
+    console.error('[registration] persist error:', err.message);
+    // Don't block the email send if persistence fails
+  }
+
+  // ── 2. Send branded confirmation email ────────────────────────────────────
+  if (!mailer) return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+
+  try {
+    const { renderRegistrationEmail } = mailer;
+    if (!renderRegistrationEmail) return res.json({ sent: false, reason: 'template not available' });
+
+    const mail = renderRegistrationEmail({ firstName, lastName, email, company, accountType, applicationRef, lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[registration] confirmation → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'skipped (' + result.reason + ')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[registration] email error:', err.message);
+    res.status(500).json({ error: 'Failed to send confirmation email' });
+  }
+});
+
+// GET /api/registration/status — public, check a registration's status by ref
+app.get('/api/registration/status', (req, res) => {
+  const { ref } = req.query;
+  if (!ref) return res.status(400).json({ error: 'ref is required' });
+  const regs = readData('registrations.json');
+  const reg = regs.find(r => r.applicationRef === ref || r.id === ref);
+  if (!reg) return res.status(404).json({ error: 'Not found' });
+  res.json({ status: reg.status, submittedAt: reg.submittedAt, approvedAt: reg.approvedAt || null, email: reg.email, company: reg.company });
+});
+
+// POST /api/registration/approve — admin only. Approves a registration and sends approval email.
+app.post('/api/registration/approve', authenticateToken, requireAdmin, async (req, res) => {
+  const { applicationRef } = req.body || {};
+  if (!applicationRef) return res.status(400).json({ error: 'applicationRef is required' });
+
+  const regs = readData('registrations.json');
+  const idx = regs.findIndex(r => r.applicationRef === applicationRef || r.id === applicationRef);
+  if (idx === -1) return res.status(404).json({ error: 'Registration not found' });
+
+  regs[idx].status     = 'approved';
+  regs[idx].approvedAt = new Date().toISOString();
+  writeData('registrations.json', regs);
+  console.log(`[registration] approved: ${regs[idx].email} (${applicationRef})`);
+
+  // Send approval email
+  let emailResult = { sent: false, transport: 'none' };
+  if (mailer && mailer.renderApprovalEmail) {
+    try {
+      const mail = mailer.renderApprovalEmail({
+        firstName:      regs[idx].firstName,
+        lastName:       regs[idx].lastName,
+        email:          regs[idx].email,
+        company:        regs[idx].company,
+        applicationRef: regs[idx].applicationRef,
+        lang:           regs[idx].lang || 'en',
+      });
+      emailResult = await mailer.sendMail(mail);
+      console.log(`[registration] approval email → ${regs[idx].email}: ${emailResult.sent ? 'sent' : 'skipped'}`);
+    } catch (err) {
+      console.error('[registration] approval email error:', err.message);
+    }
+  }
+
+  res.json({ ok: true, status: 'approved', email: regs[idx].email, emailSent: emailResult.sent });
+});
+
+// POST /api/email/kyc-invite — send KYC identity verification invite to a director/UBO
+app.post('/api/email/kyc-invite', async (req, res) => {
+  const { recipientName, recipientEmail, companyName, inviterName, lang } = req.body || {};
+
+  if (!recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
+    return res.status(400).json({ error: 'Valid recipientEmail is required' });
+  }
+
+  const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+  // In production this would be a unique Signicat KYC link; for now use a placeholder
+  const kycUrl = siteBase + '/hansepay/kyc-verify.html';
+
+  if (!mailer || !mailer.renderKycInviteEmail) {
+    return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+  }
+
+  try {
+    const mail = mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[kyc-invite] → ${recipientEmail}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[kyc-invite] error:', err.message);
+    res.status(500).json({ error: 'Failed to send KYC invite' });
+  }
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────

@@ -375,10 +375,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
   }
 
   function openSignIn() {
-    var overlay = document.getElementById('hp-signin-overlay');
-    if (overlay) { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-    // Apply current language to modal
-    if (window.HP && window.HP.apply) window.HP.apply();
+    window.location.href = '/hansepay/dashboard-login.html';
   }
   function closeSignIn() {
     var overlay = document.getElementById('hp-signin-overlay');
@@ -770,6 +767,7 @@ nav.scrolled .nav-burger span{background:var(--n700)}
       'sol-mfg.chip':'Lösungen · Produktion','sol-mfg.h1':'FX für Import &','sol-mfg.h1.em':'Produktion.',
       'sol-log.chip':'Lösungen · Logistik','sol-log.h1':'FX für Logistik &','sol-log.h1.em':'Fracht.',
       'sol-corp.chip':'Lösungen · Konzerne','sol-corp.h1':'FX für Mittelstand &','sol-corp.h1.em':'Konzerne.',
+      'sol-corp.hero.h1.html':'Der FX-Partner für Mittelstand und<br><em>Großunternehmen.</em>',
       'sol-sme.chip':'Lösungen · KMU','sol-sme.h1':'FX für','sol-sme.h1.em':'Kleinunternehmen.',
       // platform
       'platform.chip':'Plattform-Übersicht','platform.h1':'Die Zahlungsplattform','platform.h1.em':'für Unternehmen.',

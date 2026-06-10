@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Centre — HansePay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;--n500:#1E4E80;
+  --n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;--n100:#C4DDEF;--n050:#EBF4FB;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --off:#F5F1EA;--gold:#C9A961;
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:'Libre Baskerville',Georgia,serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+  --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:6px;
+  --container:1200px;--container-pad:clamp(20px,5vw,80px);
+}
+html,body{font-family:var(--font-ui);font-size:15px;color:var(--ink);background:#fff;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--n400);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── NAV, see assets/nav.js ── */
+
+/* ── PAGE HERO ── */
+.page-hero{background:var(--n050);border-bottom:1px solid rgba(11,25,41,.07);padding:116px 40px 40px}
+.page-hero-inner{max-width:1100px;margin:0 auto}
+.page-hero-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--n400);margin-bottom:10px}
+.page-hero-title{font-family:'Libre Baskerville',serif;font-size:32px;font-weight:400;color:var(--n800);margin-bottom:10px}
+.page-hero-sub{font-size:14.5px;color:var(--ink3);max-width:560px;line-height:1.6}
+.page-hero-meta{margin-top:20px;display:flex;gap:24px;flex-wrap:wrap}
+.hero-meta-item{font-size:12.5px;color:var(--ink3)}
+.hero-meta-item b{color:var(--ink2);font-weight:600}
+
+/* ── LAYOUT ── */
+.layout{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:220px 1fr;gap:56px;padding:52px 40px 96px;align-items:start}
+
+/* ── SIDEBAR ── */
+.sidebar{position:sticky;top:80px}
+.sidebar-section{margin-bottom:28px}
+.sidebar-section-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink3);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #EEF3F8}
+.sidebar-nav{list-style:none;display:flex;flex-direction:column;gap:2px}
+.sidebar-link{display:block;padding:7px 12px;border-radius:var(--r-sm);font-size:13.5px;color:var(--ink2);cursor:pointer;transition:.15s;text-decoration:none}
+.sidebar-link:hover{background:var(--n050);color:var(--n700);text-decoration:none}
+.sidebar-link.active{background:var(--n050);color:var(--n800);font-weight:600}
+
+/* ── CONTENT ── */
+.doc-pane{display:none}
+.doc-pane.active{display:block}
+
+.doc-header{margin-bottom:36px;padding-bottom:24px;border-bottom:1.5px solid #EEF3F8;position:relative}
+.doc-badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--n500);background:var(--n050);border:1px solid var(--n100);border-radius:var(--r-sm);padding:3px 10px;margin-bottom:12px}
+.doc-title{font-family:'Libre Baskerville',serif;font-size:26px;font-weight:400;color:var(--n800);margin-bottom:8px;line-height:1.3}
+.doc-date{font-size:13px;color:var(--ink3)}
+.doc-dl-btn{position:absolute;top:0;right:0;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);border:1.5px solid var(--n200);background:#fff;color:var(--n600);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .14s,border-color .14s}
+.doc-dl-btn:hover{background:var(--n050);border-color:var(--n400)}
+.doc-dl-btn svg{flex-shrink:0}
+
+.doc-body h2{font-size:16px;font-weight:700;color:var(--n800);margin:36px 0 12px;padding-top:8px}
+.doc-body h3{font-size:14px;font-weight:700;color:var(--n700);margin:24px 0 8px}
+.doc-body p{font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:14px}
+.doc-body ul,.doc-body ol{padding-left:22px;margin-bottom:14px}
+.doc-body li{font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:5px}
+.doc-body strong{color:var(--ink);font-weight:600}
+.doc-body a{color:var(--n400)}
+
+.info-box{background:var(--n050);border:1px solid var(--n100);border-radius:var(--r-md);padding:16px 18px;margin-bottom:20px;font-size:13.5px;color:var(--ink2);line-height:1.65}
+.info-box b{color:var(--n700)}
+
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0}
+.contact-card{background:#FAFCFF;border:1.5px solid #DDE6EF;border-radius:var(--r-md);padding:16px 18px}
+.contact-card-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:6px}
+.contact-card-value{font-size:14px;color:var(--ink);font-weight:500}
+
+.cookie-table{width:100%;border-collapse:collapse;margin:16px 0 20px;font-size:13.5px}
+.cookie-table th{background:var(--n050);padding:10px 14px;text-align:left;font-weight:600;color:var(--ink);border-bottom:2px solid #DDE6EF;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.cookie-table td{padding:10px 14px;border-bottom:1px solid #EEF3F8;color:var(--ink2);vertical-align:top}
+.cookie-table tr:last-child td{border-bottom:none}
+
+.divider{height:1px;background:#EEF3F8;margin:32px 0}
+
+/* ── CONTAINER (used by footer.js) ── */
+.container{max-width:var(--container);margin:0 auto;padding:0 var(--container-pad)}
+
+/* ── FOOTER, see assets/footer.js ── */
+
+/* ── MOBILE ── */
+.mobile-doc-select{display:none}
+@media(max-width:860px){
+  .page-hero{padding:88px 20px 28px}
+  .layout{grid-template-columns:1fr;gap:0;padding:0}
+  .sidebar{display:none;position:static}
+  .mobile-doc-select{display:block;background:var(--n050);border-bottom:1px solid #DDE6EF;padding:16px 20px}
+  .mobile-doc-select select{width:100%;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none}
+  .doc-pane{padding:28px 20px}
+  .doc-pane.active{display:block}
+  .contact-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<script src="assets/nav.js"></script>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div class="page-hero-label">Legal</div>
+    <h1 class="page-hero-title">Legal Centre</h1>
+    <p class="page-hero-sub">All governing documents for HansePay's platform and services — including our terms, privacy practices, compliance obligations, and complaints process.</p>
+    <div class="page-hero-meta">
+      <span class="hero-meta-item"><b>Operated by</b> Atrya Technologies SIA</span>
+      <span class="hero-meta-item"><b>Registered</b> Republic of Latvia</span>
+      <span class="hero-meta-item"><b>Operating address</b> Stadtdeich 2–4, 20097 Hamburg, Germany</span>
+      <span class="hero-meta-item"><b>Last reviewed</b> February 2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE SELECT -->
+<div class="mobile-doc-select">
+  <select onchange="showDoc(this.value)">
+    <option value="imprint">Legal Notice / Imprint</option>
+    <option value="terms">Terms of Service</option>
+    <option value="privacy">Privacy Policy</option>
+    <option value="cookies">Cookie Policy</option>
+    <option value="aml">AML &amp; Compliance</option>
+    <option value="complaints">Complaints</option>
+  </select>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Documents</div>
+      <ul class="sidebar-nav">
+        <li><a class="sidebar-link active" onclick="showDoc('imprint')">Legal Notice / Imprint</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('terms')">Terms of Service</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('privacy')">Privacy Policy</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('cookies')">Cookie Policy</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('aml')">AML &amp; Compliance</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('complaints')">Complaints</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Contact</div>
+      <ul class="sidebar-nav">
+        <li style="padding:7px 12px;font-size:13px;color:var(--ink3);line-height:1.6">
+          General enquiries<br><a href="mailto:hello@hansepay.com">hello@hansepay.com</a><br><br>
+          Legal &amp; compliance<br><a href="mailto:legal@hansepay.com">legal@hansepay.com</a><br><br>
+          Data protection<br><a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a>
+        </li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- CONTENT AREA -->
+  <main>
+
+    <!-- ══════════════════════════════════════════════════════════
+         1. LEGAL NOTICE / IMPRINT
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane active" id="doc-imprint">
+      <div class="doc-header">
+        <div class="doc-badge">Legal Notice</div>
+        <h1 class="doc-title">Legal Notice / Imprint</h1>
+        <p class="doc-date">In accordance with § 5 DDG (Digital Services Act) and § 5 TMG (German Telemedia Act)</p>
+        <a class="doc-dl-btn" href="/api/legal/imprint/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          This legal notice is provided in accordance with the German Digital Services Act (DDG) and the Telemedia Act (TMG), which require operators of commercial websites accessible from Germany to disclose identifying information.
+        </div>
+
+        <h2>Service Provider</h2>
+        <p><strong>Atrya Technologies SIA</strong><br>
+        (trading as <strong>HansePay</strong>)</p>
+
+        <h2>Registered Office</h2>
+        <p>Marijas iela 2A<br>
+        Rīga, LV-1050<br>
+        Republic of Latvia</p>
+        <p>Registered in the Latvian Commercial Register<br>
+        Registration number: [registration number]</p>
+
+        <h2>Operating Address (Germany)</h2>
+        <p>c/o Factory Works GmbH<br>
+        Stadtdeich 2–4<br>
+        20097 Hamburg<br>
+        Germany</p>
+
+        <h2>Contact</h2>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-card-label">Email</div>
+            <div class="contact-card-value"><a href="mailto:hello@hansepay.com">hello@hansepay.com</a></div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-card-label">Legal matters</div>
+            <div class="contact-card-value"><a href="mailto:legal@hansepay.com">legal@hansepay.com</a></div>
+          </div>
+        </div>
+
+        <h2>Regulatory Authority</h2>
+        <p>Atrya Technologies SIA is supervised by <strong>Latvijas Banka</strong> (Bank of Latvia), the competent financial supervisory authority of the Republic of Latvia (home Member State).</p>
+        <p><strong>Authorisation:</strong> [authorisation type and register/reference number to be confirmed]. The full and current authorisation details are maintained in the public register of Latvijas Banka.</p>
+        <p>Where services are provided to customers in Germany, conduct of business is additionally subject to the oversight of the German Federal Financial Supervisory Authority (<strong>BaFin</strong>) as host Member State authority, in accordance with EU passporting rules (freedom to provide services / freedom of establishment).</p>
+        <p>Latvijas Banka<br>
+        K. Valdemāra iela 2A<br>
+        Rīga, LV-1050<br>
+        Latvia<br>
+        <a href="https://www.bank.lv" target="_blank" rel="noopener noreferrer">www.bank.lv</a></p>
+
+        <h2>Authorised Representative</h2>
+        <p>Member(s) of the Board / Managing Director: [full name(s) of the authorised representative(s)]</p>
+
+        <h2>VAT Identification Number</h2>
+        <p>VAT ID: [VAT number — to be confirmed]</p>
+
+        <div class="divider"></div>
+
+        <h2>Liability for Content</h2>
+        <p>The content of these pages has been prepared with the utmost care. However, we cannot guarantee the accuracy, completeness, or timeliness of the content. As a service provider, we are responsible for our own content on these pages in accordance with general law pursuant to § 7 para. 1 TMG. According to §§ 8 to 10 TMG, however, we are not obligated as a service provider to monitor transmitted or stored third-party information, or to investigate circumstances that indicate illegal activity.</p>
+        <p>Obligations to remove or block the use of information under general law remain unaffected. However, liability in this regard is only possible from the point in time at which a concrete legal infringement becomes known. Upon notification of such violations, we will remove the content immediately.</p>
+
+        <h2>Liability for Links</h2>
+        <p>Our website contains links to external websites. We have no influence over their content, and therefore cannot accept any liability for this external content. The respective operator or provider of each linked page is always responsible for the content of those pages. The linked pages were checked for possible legal violations at the time of linking. No illegal content was apparent at the time of linking. Continuous monitoring of the linked pages is unreasonable without concrete evidence of an infringement. Upon notification of violations, we will remove such links immediately.</p>
+
+        <h2>Copyright</h2>
+        <p>The content and works created by the site operators on these pages are subject to German and Latvian copyright law. Duplication, editing, distribution, or any form of utilisation beyond the scope of copyright law requires the written consent of the respective author or creator. Downloads and copies of this website are only permitted for private, non-commercial use.</p>
+
+        <h2>Consumer Dispute Resolution</h2>
+        <p>The European Commission's Online Dispute Resolution (ODR) platform was discontinued on 20 July 2025 and is no longer available. Consumers may instead use the national alternative dispute resolution (ADR) routes set out in our <a href="#" onclick="showDoc('complaints'); return false">Complaints Policy</a>, which also explains how to escalate a complaint to our supervisor.</p>
+        <p>Our contact address for dispute resolution purposes: <a href="mailto:legal@hansepay.com">legal@hansepay.com</a></p>
+        <p>We are generally not obligated to participate in dispute resolution proceedings before a consumer arbitration board. However, we are willing to consider participating where this would help resolve a dispute.</p>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         2. TERMS OF SERVICE
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane" id="doc-terms">
+      <div class="doc-header">
+        <div class="doc-badge">Terms of Service</div>
+        <h1 class="doc-title">Terms of Service</h1>
+        <p class="doc-date">Effective: 1 February 2026 · Version 1.0</p>
+        <a class="doc-dl-btn" href="/api/legal/terms/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          <b>These Terms govern your use of HansePay's platform and payment services.</b> By creating an account or using our services, you agree to be bound by these Terms. Please read them carefully before proceeding.
+        </div>
+
+        <h2>1. About HansePay</h2>
+        <p>HansePay is a trading name of <strong>Atrya Technologies SIA</strong>, a company registered in the Republic of Latvia (Commercial Register no. [reg. no.]), with its registered office at Marijas iela 2A, Rīga, LV-1050, Latvia, and operating from Stadtdeich 2–4, 20097 Hamburg, Germany.</p>
+        <p>Atrya Technologies SIA is supervised by Latvijas Banka (Bank of Latvia). HansePay enables cross-border payments and currency exchange for individuals and businesses. Certain regulated payment and e-money services are provided in partnership with licensed payment institutions (see clause 8). Our full authorisation details are set out in our <a href="#" onclick="showDoc('imprint'); return false">Legal Notice</a>.</p>
+
+        <h2>2. Services</h2>
+        <p>HansePay provides the following payment services to eligible individuals and businesses within the European Economic Area (EEA):</p>
+        <ul>
+          <li>Opening and operating payment accounts (individual and business)</li>
+          <li>Executing domestic and cross-border payment transactions (SEPA Credit Transfers, SWIFT)</li>
+          <li>Currency exchange (FX) services</li>
+          <li>Receiving and holding funds in payment accounts</li>
+          <li>Onward remittance and business treasury services</li>
+        </ul>
+        <p>We do not offer deposit-taking, lending, or investment services. Depending on the payment corridor, settlement may be performed using payment rails operated by our regulated partners. Funds held in connection with these services are safeguarded — not protected by a deposit guarantee scheme — as described in clause 8.</p>
+
+        <h2>3. Eligibility</h2>
+        <p><strong>Individual accounts:</strong> You must be at least 18 years of age and a resident of the European Economic Area. By accepting these Terms, you confirm that you are not subject to any sanctions or legal restrictions that would prevent you from using our services.</p>
+        <p><strong>Business accounts:</strong> The authorised representative accepting these Terms on behalf of a legal entity confirms that they have authority to bind the entity, that the entity is duly incorporated and in good standing in its jurisdiction, and that the entity is not subject to sanctions or legal restrictions.</p>
+
+        <h2>4. Account Opening and Identity Verification</h2>
+        <p>We are required by law to verify your identity and, for business accounts, the identity of directors and beneficial owners (UBOs) before activating your account. This process (Know Your Customer — KYC) involves providing:</p>
+        <ul>
+          <li>Personal identification documents (passport or national ID)</li>
+          <li>Proof of address</li>
+          <li>For businesses: company registration documents, ownership structure, and information about persons with significant control</li>
+          <li>Information about the purpose of your account and the source of your funds</li>
+        </ul>
+        <p>We may request additional documentation at any time to comply with our regulatory obligations. Failure to provide requested information may result in account restriction or closure.</p>
+        <p>HansePay reserves the right to decline any application without providing reasons, subject to applicable law.</p>
+
+        <h2>5. Using Your Account</h2>
+        <h3>5.1 Account Security</h3>
+        <p>You are responsible for maintaining the confidentiality of your account credentials. You must notify us immediately at <a href="mailto:hello@hansepay.com">hello@hansepay.com</a> if you become aware of any unauthorised access to your account. We will not be liable for losses resulting from your failure to maintain the security of your credentials.</p>
+
+        <h3>5.2 Payment Instructions</h3>
+        <p>You authorise HansePay to execute payment instructions submitted through your account. You are responsible for ensuring the accuracy of all payment details including IBAN, account numbers, and beneficiary information. We cannot recover funds sent to incorrect account details.</p>
+
+        <h3>5.3 Processing Times</h3>
+        <p>SEPA Credit Transfers within the EEA are typically processed by the next business day (D+1). International (SWIFT) transfers may take 1–5 business days depending on the destination country and correspondent banking arrangements. We are not responsible for delays caused by third-party financial institutions.</p>
+
+        <h2>6. Fees</h2>
+        <p>HansePay's current fee schedule is available at <a href="/pricing.html">hansepay.com/pricing</a>. Fees may change on 30 days' notice. Continued use of our services after the effective date of a fee change constitutes acceptance of the new fees.</p>
+
+        <h2>7. Prohibited Activities</h2>
+        <p>You agree not to use HansePay's services for:</p>
+        <ul>
+          <li>Any activity that is illegal under applicable law, including but not limited to money laundering, tax evasion, fraud, or financing of terrorism</li>
+          <li>Transactions involving parties or jurisdictions subject to international sanctions administered by the EU, UN, US (OFAC), or UK</li>
+          <li>Processing payments on behalf of third parties (money service business activity) without disclosure and our prior written consent</li>
+          <li>Gambling, adult entertainment, arms dealing, or other activities that we determine at our sole discretion to present unacceptable risk</li>
+          <li>Any activity that violates any third party's intellectual property rights or privacy</li>
+        </ul>
+        <p>Breach of this section may result in immediate account suspension, reporting to law enforcement, and civil or criminal liability.</p>
+
+        <h2>8. Safeguarding of Funds and Payment Partners</h2>
+        <p>Where regulated payment or e-money services are provided through a licensed partner (for example, BlindPay), customer funds are held and safeguarded by that partner under its own authorisation, in accounts segregated from operating funds. Where Atrya Technologies SIA itself holds customer funds, those funds are safeguarded in line with applicable EU requirements in segregated accounts held with regulated credit institutions.</p>
+        <p>Funds held in a payment or e-money account are <strong>not</strong> covered by a deposit guarantee scheme. Safeguarding protects your funds in the event of insolvency by keeping them segregated and ahead of unsecured creditors. To use payment services, you may be required to accept the terms of our payment partner in addition to these Terms.</p>
+
+        <h2>9. Liability and Limitation</h2>
+        <p>We will not be liable for:</p>
+        <ul>
+          <li>Indirect, consequential, or special losses arising from your use of our services</li>
+          <li>Losses arising from system outages, third-party payment network failures, or force majeure events</li>
+          <li>Losses arising from your provision of incorrect payment details</li>
+          <li>Regulatory or compliance actions taken against your account that are required by law</li>
+        </ul>
+        <p>Our aggregate liability to you in any 12-month period shall not exceed the total fees paid by you to HansePay in that period, or €500, whichever is greater.</p>
+        <p>Nothing in these Terms limits liability for death or personal injury caused by negligence, or for fraud or fraudulent misrepresentation.</p>
+
+        <h2>10. Intellectual Property</h2>
+        <p>All content on the HansePay platform, including software, design, text, and logos, is the property of Atrya Technologies SIA or its licensors and is protected by copyright, trademark, and other intellectual property laws. You may not reproduce, distribute, or create derivative works without our prior written consent.</p>
+
+        <h2>11. Suspension and Termination</h2>
+        <p>We may suspend or close your account with notice where:</p>
+        <ul>
+          <li>You breach these Terms or our Acceptable Use Policy</li>
+          <li>We are required to do so by law or regulatory authority</li>
+          <li>We reasonably suspect fraudulent, unlawful, or harmful activity</li>
+          <li>You fail to provide required identity verification documents</li>
+        </ul>
+        <p>You may close your account at any time by contacting <a href="mailto:hello@hansepay.com">hello@hansepay.com</a>. Following account closure, we will return any outstanding balances to you within a reasonable period, less any amounts owed to us, provided we are not legally restricted from doing so.</p>
+
+        <h2>12. Amendments</h2>
+        <p>We may update these Terms at any time. We will provide at least 60 days' advance notice for material changes by email and/or a prominent notice on our platform. If you do not agree to the updated Terms, you may close your account before the effective date of the change. Continued use after the effective date constitutes acceptance.</p>
+
+        <h2>13. Governing Law and Dispute Resolution</h2>
+        <p>These Terms and any dispute arising in connection with them are governed by the laws of the Republic of Latvia, without regard to conflict-of-law principles. For consumer disputes, mandatory consumer protection laws of your country of residence apply to the extent they provide greater protection.</p>
+        <p>In the first instance, please contact us at <a href="mailto:legal@hansepay.com">legal@hansepay.com</a>. See our <a href="#" onclick="showDoc('complaints'); return false">Complaints Policy</a> for details of our formal complaints process and escalation routes.</p>
+
+        <h2>14. Contact</h2>
+        <p>Atrya Technologies SIA, trading as HansePay<br>
+        c/o Factory Works GmbH, Stadtdeich 2–4, 20097 Hamburg, Germany<br>
+        <a href="mailto:legal@hansepay.com">legal@hansepay.com</a></p>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         3. PRIVACY POLICY
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane" id="doc-privacy">
+      <div class="doc-header">
+        <div class="doc-badge">Privacy Policy</div>
+        <h1 class="doc-title">Privacy Policy</h1>
+        <p class="doc-date">Effective: 1 February 2026 · Version 1.0</p>
+        <a class="doc-dl-btn" href="/api/legal/privacy/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          This Privacy Policy explains how <b>Atrya Technologies SIA</b> (trading as HansePay) collects, uses, and protects your personal data in accordance with Regulation (EU) 2016/679 (GDPR) and applicable Latvian and German data protection law.
+        </div>
+
+        <h2>1. Data Controller</h2>
+        <p>The data controller is <strong>Atrya Technologies SIA</strong>, Marijas iela 2A, Rīga, LV-1050, Latvia, operating under the brand HansePay from Stadtdeich 2–4, 20097 Hamburg, Germany.</p>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-card-label">Data Protection contact</div>
+            <div class="contact-card-value"><a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a></div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-card-label">General enquiries</div>
+            <div class="contact-card-value"><a href="mailto:hello@hansepay.com">hello@hansepay.com</a></div>
+          </div>
+        </div>
+
+        <h2>2. Data We Collect</h2>
+        <h3>2.1 Account and identity data</h3>
+        <ul>
+          <li>Full name, date of birth, nationality</li>
+          <li>Government-issued identification documents (passport or national ID)</li>
+          <li>Residential address and proof of address</li>
+          <li>Email address and phone number</li>
+          <li>Profile photograph (from ID documents)</li>
+        </ul>
+        <h3>2.2 Business account data (additional)</h3>
+        <ul>
+          <li>Company name, registration number, registered address, legal form</li>
+          <li>NACE industry codes and business description</li>
+          <li>Details of directors, authorised signatories, and beneficial owners (UBOs)</li>
+          <li>Corporate structure and ownership information</li>
+          <li>Company financial information (source of funds, account purpose)</li>
+        </ul>
+        <h3>2.3 Transaction data</h3>
+        <ul>
+          <li>Payment amounts, currencies, dates, and reference information</li>
+          <li>Sender and recipient account details (IBANs, SWIFT codes, names)</li>
+          <li>Transaction purpose and payment references</li>
+        </ul>
+        <h3>2.4 Usage and technical data</h3>
+        <ul>
+          <li>IP address, browser type and version, operating system</li>
+          <li>Device identifiers</li>
+          <li>Pages visited, time spent, click-through paths</li>
+          <li>Login timestamps and session data</li>
+        </ul>
+        <h3>2.5 Compliance data</h3>
+        <ul>
+          <li>Politically Exposed Person (PEP) status and sanctions screening results</li>
+          <li>Source of wealth and source of funds declarations</li>
+          <li>Risk assessment scores and customer due diligence records</li>
+          <li>Correspondence with us relating to your account</li>
+        </ul>
+
+        <h2>3. How We Collect Data</h2>
+        <ul>
+          <li><strong>Directly from you</strong> — when you apply for an account, fill in forms, upload documents, or communicate with us</li>
+          <li><strong>From identity verification providers</strong> — our KYC partner (Signicat) processes your biometric and document data to verify your identity</li>
+          <li><strong>From sanctions and PEP databases</strong> — we screen your details against EU, UN, OFAC, and UK consolidated sanctions lists</li>
+          <li><strong>Automatically</strong> — when you use our website or platform, via cookies and server logs (see our Cookie Policy)</li>
+          <li><strong>From third-party payment networks</strong> — when receiving payments, counterparty data arrives via SEPA and SWIFT messaging</li>
+        </ul>
+
+        <h2>4. Why We Process Your Data (Legal Basis)</h2>
+        <table class="cookie-table">
+          <thead><tr><th>Purpose</th><th>Legal basis</th></tr></thead>
+          <tbody>
+            <tr><td>Opening and operating your payment account</td><td>Contract (Art. 6(1)(b) GDPR)</td></tr>
+            <tr><td>Processing payment transactions</td><td>Contract (Art. 6(1)(b) GDPR)</td></tr>
+            <tr><td>Identity verification (KYC)</td><td>Legal obligation (Art. 6(1)(c) GDPR) — EU AML Directive</td></tr>
+            <tr><td>Sanctions and PEP screening</td><td>Legal obligation (Art. 6(1)(c) GDPR)</td></tr>
+            <tr><td>Transaction monitoring for AML</td><td>Legal obligation (Art. 6(1)(c) GDPR)</td></tr>
+            <tr><td>Regulatory reporting</td><td>Legal obligation (Art. 6(1)(c) GDPR)</td></tr>
+            <tr><td>Fraud prevention and security</td><td>Legitimate interests (Art. 6(1)(f) GDPR)</td></tr>
+            <tr><td>Service improvement and analytics</td><td>Legitimate interests (Art. 6(1)(f) GDPR)</td></tr>
+            <tr><td>Marketing communications</td><td>Consent (Art. 6(1)(a) GDPR) — you can opt out at any time</td></tr>
+          </tbody>
+        </table>
+
+        <h2>5. Automated Decision-Making</h2>
+        <p>In line with our AML and KYC obligations, we use automated processing — including sanctions-list screening and risk scoring — to assess the risk profile of applicants and transactions. Some of these decisions may be made solely by automated means within the meaning of <strong>Article 22 GDPR</strong>, where this is necessary for entering into or performing our contract with you, or to comply with a legal obligation to which we are subject. Where this is the case, you have the right to obtain human intervention, to express your point of view, and to contest the decision by contacting <a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a>.</p>
+
+        <h2>6. Sharing Your Data</h2>
+        <p>We share your personal data only where necessary:</p>
+        <ul>
+          <li><strong>Signicat</strong> (Norway, within the EEA) — identity verification and KYC processing under a Data Processing Agreement</li>
+          <li><strong>Correspondent banks and payment networks</strong> — required to execute your payment instructions (SEPA, SWIFT)</li>
+          <li><strong>Sanctions screening providers</strong> — to comply with AML obligations</li>
+          <li><strong>Latvijas Banka and other regulatory authorities</strong> — when required by law</li>
+          <li><strong>Law enforcement agencies</strong> — when legally required or to prevent serious crime</li>
+          <li><strong>Professional advisers</strong> (lawyers, auditors) — under strict confidentiality</li>
+          <li><strong>Successors in business</strong> — in the event of a merger, acquisition, or sale of assets</li>
+        </ul>
+        <p>We do not sell your personal data. We do not share your data for third-party marketing purposes.</p>
+
+        <h2>7. International Data Transfers</h2>
+        <p>Most of our processing takes place within the European Economic Area (EEA). Service providers located in the EEA — including our identity-verification partner Signicat (Norway) — are not subject to third-country transfer restrictions. Where we do transfer personal data to a country outside the EEA, we rely on one of the following safeguards:</p>
+        <ul>
+          <li>European Commission adequacy decisions</li>
+          <li>Standard Contractual Clauses (SCCs) approved by the European Commission</li>
+          <li>Binding Corporate Rules where applicable</li>
+        </ul>
+        <p>You may request a copy of the relevant transfer safeguards by contacting <a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a>.</p>
+
+        <h2>8. Data Retention</h2>
+        <p>We retain your personal data for as long as necessary to provide our services and to comply with our legal obligations. Key retention periods include:</p>
+        <ul>
+          <li><strong>Account and KYC data:</strong> 5 years from account closure (EU AML Directive requirement)</li>
+          <li><strong>Transaction records:</strong> 5 years from the date of the transaction</li>
+          <li><strong>Compliance and risk records:</strong> Up to 10 years where required by regulatory or legal proceedings</li>
+          <li><strong>Marketing preferences:</strong> Until you withdraw consent</li>
+          <li><strong>Technical logs:</strong> 12 months</li>
+        </ul>
+
+        <h2>9. Your Rights Under GDPR</h2>
+        <p>You have the following rights regarding your personal data:</p>
+        <ul>
+          <li><strong>Right of access (Art. 15):</strong> Request a copy of the personal data we hold about you</li>
+          <li><strong>Right to rectification (Art. 16):</strong> Request correction of inaccurate data</li>
+          <li><strong>Right to erasure (Art. 17):</strong> Request deletion of your data where we no longer have a legal basis to retain it</li>
+          <li><strong>Right to restriction (Art. 18):</strong> Request that we limit processing of your data in certain circumstances</li>
+          <li><strong>Right to data portability (Art. 20):</strong> Receive your data in a structured, machine-readable format</li>
+          <li><strong>Right to object (Art. 21):</strong> Object to processing based on legitimate interests</li>
+          <li><strong>Right to withdraw consent:</strong> Where processing is based on consent, you may withdraw it at any time without affecting the lawfulness of prior processing</li>
+        </ul>
+        <p>Note that some rights are subject to limitations — for example, we may be unable to delete data we are required to retain for AML or regulatory purposes.</p>
+        <p>To exercise any of these rights, contact <a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a>. We will respond within 30 days.</p>
+
+        <h2>10. Supervisory Authority</h2>
+        <p>If you believe we have not handled your personal data in accordance with GDPR, you have the right to lodge a complaint with the relevant supervisory authority:</p>
+        <p><strong>Datu valsts inspekcija</strong> (Latvian Data State Inspectorate)<br>
+        Elijas iela 17, Rīga, LV-1050, Latvia<br>
+        <a href="https://www.dvi.gov.lv" target="_blank" rel="noopener noreferrer">www.dvi.gov.lv</a></p>
+        <p>You may also contact the supervisory authority in your country of residence.</p>
+
+        <h2>11. Cookies</h2>
+        <p>We use cookies and similar tracking technologies on our website. Please see our <a href="#" onclick="showDoc('cookies'); return false">Cookie Policy</a> for full details.</p>
+
+        <h2>12. Policy Updates</h2>
+        <p>We may update this Privacy Policy from time to time. We will notify you of material changes by email or prominent notice on our platform before the changes take effect. The current version is always available at this page.</p>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         4. COOKIE POLICY
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane" id="doc-cookies">
+      <div class="doc-header">
+        <div class="doc-badge">Cookie Policy</div>
+        <h1 class="doc-title">Cookie Policy</h1>
+        <p class="doc-date">Effective: 1 February 2026 · Version 1.0</p>
+        <a class="doc-dl-btn" href="/api/legal/cookies/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          This Cookie Policy explains how HansePay uses cookies and similar tracking technologies on <b>hansepay.com</b> and our web platform, in accordance with the EU ePrivacy Directive and GDPR.
+        </div>
+
+        <h2>1. What Are Cookies?</h2>
+        <p>Cookies are small text files placed on your device when you visit a website. They allow the website to remember your preferences and actions over time, or to collect data about how you use the site. Similar technologies include web beacons, pixels, local storage, and session storage.</p>
+
+        <h2>2. Categories of Cookies We Use</h2>
+
+        <h3>2.1 Strictly Necessary Cookies</h3>
+        <p>These cookies are essential to make our website and platform function. Without them, services such as logging in or completing your account application cannot be provided. They do not require your consent.</p>
+        <table class="cookie-table">
+          <thead><tr><th>Cookie</th><th>Purpose</th><th>Duration</th></tr></thead>
+          <tbody>
+            <tr><td>hp_session</td><td>Maintains your logged-in session and security token</td><td>Session</td></tr>
+            <tr><td>hp_csrf</td><td>Prevents cross-site request forgery attacks</td><td>Session</td></tr>
+            <tr><td>hp_onb</td><td>Saves your progress through the account opening flow</td><td>30 days</td></tr>
+            <tr><td>hp_pref</td><td>Stores your language and interface preferences</td><td>1 year</td></tr>
+            <tr><td>cookieconsent</td><td>Records your cookie consent choices</td><td>1 year</td></tr>
+          </tbody>
+        </table>
+
+        <h3>2.2 Analytics Cookies</h3>
+        <p>These cookies help us understand how visitors use our website — which pages are most visited, where users drop off in the onboarding flow, and how to improve our product. We only place these cookies with your consent.</p>
+        <table class="cookie-table">
+          <thead><tr><th>Cookie</th><th>Provider</th><th>Purpose</th><th>Duration</th></tr></thead>
+          <tbody>
+            <tr><td>_ga, _ga_*</td><td>Google Analytics</td><td>Page views, session analytics, user journey data</td><td>2 years</td></tr>
+            <tr><td>_gid</td><td>Google Analytics</td><td>Distinguishes individual users</td><td>24 hours</td></tr>
+            <tr><td>ph_*</td><td>PostHog (self-hosted)</td><td>Product analytics and funnel analysis</td><td>1 year</td></tr>
+          </tbody>
+        </table>
+
+        <h3>2.3 Marketing and Targeting Cookies</h3>
+        <p>These cookies may be placed by our advertising partners to build a profile of your interests and show you relevant advertisements on other sites. We only place these cookies with your explicit consent.</p>
+        <table class="cookie-table">
+          <thead><tr><th>Cookie</th><th>Provider</th><th>Purpose</th><th>Duration</th></tr></thead>
+          <tbody>
+            <tr><td>_fbp, fr</td><td>Meta (Facebook)</td><td>Ad targeting and conversion tracking</td><td>90 days</td></tr>
+            <tr><td>li_fat_id</td><td>LinkedIn</td><td>LinkedIn ad conversion and retargeting</td><td>30 days</td></tr>
+            <tr><td>_gcl_au</td><td>Google Ads</td><td>Conversion tracking for Google advertising</td><td>90 days</td></tr>
+          </tbody>
+        </table>
+
+        <h2>3. Managing Your Cookie Preferences</h2>
+        <p>When you first visit our website, we present a cookie consent banner where you can accept all cookies, reject non-essential cookies, or customise your preferences. You can change your preferences at any time by clicking the "Cookie settings" link in the footer of any page.</p>
+        <p>You can also control cookies through your browser settings. Most browsers allow you to:</p>
+        <ul>
+          <li>View and delete cookies that have been set</li>
+          <li>Block cookies from specific sites</li>
+          <li>Block third-party cookies</li>
+          <li>Clear cookies when you close your browser</li>
+        </ul>
+        <p>Please note that blocking strictly necessary cookies will prevent you from using some features of our platform, including logging in.</p>
+        <p>For more information on managing cookies in popular browsers, visit:</p>
+        <ul>
+          <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer">Google Chrome</a></li>
+          <li><a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" target="_blank" rel="noopener noreferrer">Mozilla Firefox</a></li>
+          <li><a href="https://support.apple.com/en-gb/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer">Apple Safari</a></li>
+          <li><a href="https://support.microsoft.com/en-us/windows/delete-and-manage-cookies" target="_blank" rel="noopener noreferrer">Microsoft Edge</a></li>
+        </ul>
+
+        <h2>4. Contact</h2>
+        <p>For questions about our use of cookies, contact <a href="mailto:privacy@hansepay.com">privacy@hansepay.com</a>.</p>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         5. AML & COMPLIANCE
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane" id="doc-aml">
+      <div class="doc-header">
+        <div class="doc-badge">AML &amp; Compliance</div>
+        <h1 class="doc-title">AML &amp; Compliance Policy</h1>
+        <p class="doc-date">Effective: 1 February 2026 · Version 1.0</p>
+        <a class="doc-dl-btn" href="/api/legal/aml/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          <b>This policy sets out HansePay's obligations under EU anti-money laundering legislation and explains what we require from our customers.</b> As a regulated payment institution, we are subject to the EU Anti-Money Laundering Directives (AMLD) and are obligated to take active steps to prevent our platform from being used for financial crime.
+        </div>
+
+        <h2>1. Regulatory Framework</h2>
+        <p>Atrya Technologies SIA (HansePay) is subject to the following key regulatory instruments:</p>
+        <ul>
+          <li><strong>Directive (EU) 2015/849</strong> (4th AMLD), as amended by <strong>Directive (EU) 2018/843</strong> (5th AMLD) — customer due diligence and AML/CFT obligations</li>
+          <li><strong>Directive (EU) 2018/1673</strong> (6th AMLD) — harmonisation of money-laundering criminal offences across the EU</li>
+          <li><strong>Regulation (EU) 2023/1113</strong> — information accompanying transfers of funds and certain crypto-assets (recast "Transfer of Funds" Regulation)</li>
+          <li><strong>Latvian Law on the Prevention of Money Laundering and Terrorism and Proliferation Financing</strong></li>
+          <li>Supervision by <strong>Latvijas Banka</strong> (Bank of Latvia)</li>
+        </ul>
+        <p>The EU's new anti-money-laundering package — Regulation (EU) 2024/1624 (the single AML Rulebook, "AMLR"), Directive (EU) 2024/1640, and the new Anti-Money Laundering Authority (AMLA) — applies progressively from 2027. We are preparing for this transition.</p>
+
+        <h2>2. Know Your Customer (KYC)</h2>
+        <p>Before opening an account or activating payment services, we are required to verify the identity of all customers. This process exists to prevent our platform from being used for money laundering, terrorist financing, tax evasion, and sanctions violations.</p>
+        <h3>2.1 Individual customers</h3>
+        <p>We collect and verify:</p>
+        <ul>
+          <li>Full legal name, date of birth, and nationality</li>
+          <li>Residential address</li>
+          <li>Government-issued photo identification (passport or national ID)</li>
+          <li>Source of income and employment status</li>
+          <li>Account purpose and expected transaction volumes</li>
+        </ul>
+        <h3>2.2 Business customers</h3>
+        <p>For legal entities we collect and verify:</p>
+        <ul>
+          <li>Company name, registration number, jurisdiction, and legal form</li>
+          <li>Articles of incorporation and governance documents</li>
+          <li>Register of shareholders / proof of ownership</li>
+          <li>Identity of all directors and authorised signatories</li>
+          <li>Identity and residential address of all Ultimate Beneficial Owners (UBOs) — persons owning or controlling 25% or more of the entity</li>
+          <li>Business activity description, NACE industry classification</li>
+          <li>Source of business funds and expected payment flows</li>
+          <li>Account purpose and main counterparty countries</li>
+        </ul>
+
+        <h2>3. Enhanced Due Diligence (EDD)</h2>
+        <p>We apply additional verification measures where we identify higher risk. This includes, but is not limited to:</p>
+        <ul>
+          <li>Customers who are Politically Exposed Persons (PEPs) or close associates of PEPs</li>
+          <li>Customers or transactions with connections to higher-risk countries (as identified by FATF or EU-designated high-risk third countries)</li>
+          <li>Customers operating in higher-risk sectors (crypto-assets, gambling, arms, cash-intensive businesses)</li>
+          <li>Complex corporate structures or high transaction volumes relative to stated business activity</li>
+          <li>Customers who are subject to adverse media or have previously been flagged by a financial institution</li>
+        </ul>
+        <p>Enhanced due diligence may include requests for source of wealth documentation, additional corporate structure clarification, or senior management approval before account activation.</p>
+
+        <h2>4. Politically Exposed Persons (PEPs)</h2>
+        <p>A Politically Exposed Person (PEP) is an individual who holds, or has held, a prominent public function. This includes heads of state, government ministers, senior judges, senior military officers, executives of state-owned enterprises, and members of senior governing bodies of international organisations. In line with EU requirements, we continue to apply enhanced measures for at least 12 months after a person ceases to hold such a function, and for longer where the risk remains.</p>
+        <p>Close associates and immediate family members of PEPs are also subject to enhanced scrutiny. We ask all customers to self-declare PEP status during onboarding, and we additionally screen all customers and beneficial owners against PEP databases.</p>
+        <p>Being a PEP does not automatically prevent you from using HansePay, but additional review and documentation will be required.</p>
+
+        <h2>5. Sanctions Screening</h2>
+        <p>We screen all customers and beneficial owners against the following sanctions lists upon onboarding and on an ongoing basis:</p>
+        <ul>
+          <li>European Union Consolidated Sanctions List</li>
+          <li>United Nations Security Council Sanctions List</li>
+          <li>US Office of Foreign Assets Control (OFAC) Specially Designated Nationals (SDN) List</li>
+          <li>UK Office of Financial Sanctions Implementation (OFSI) Consolidated List</li>
+          <li>Latvian national sanctions registers</li>
+        </ul>
+        <p>We are prohibited by law from processing transactions for or with any sanctioned party. If a customer is matched to a sanctions list, we are obligated to freeze their funds and report to the relevant authority. We cannot provide advance notice of such actions.</p>
+
+        <h2>6. Transaction Monitoring</h2>
+        <p>We monitor transactions on an ongoing basis for indicators of suspicious activity, including:</p>
+        <ul>
+          <li>Transactions inconsistent with a customer's stated business activity or expected volumes</li>
+          <li>Unusual patterns such as rapid structuring to avoid reporting thresholds</li>
+          <li>Payments to or from high-risk jurisdictions without a clear business rationale</li>
+          <li>Transactions involving counterparties flagged in adverse media or sanctions databases</li>
+        </ul>
+
+        <h2>7. Suspicious Activity Reporting</h2>
+        <p>We are legally required to report suspicious transactions to the relevant financial intelligence unit (FIU). In Latvia, this is the <strong>Financial Intelligence Unit (Finanšu izlūkošanas dienests — FID)</strong>. We are prohibited by law ("tipping off" provisions) from informing customers that a report has been, or is being, made.</p>
+
+        <h2>8. Your Obligations as a Customer</h2>
+        <p>By using HansePay, you agree to:</p>
+        <ul>
+          <li>Provide accurate and complete information during onboarding and on any ongoing request</li>
+          <li>Promptly notify us of any material changes to your circumstances, ownership structure, or business activity</li>
+          <li>Not use our platform to process funds derived from criminal activity or to circumvent legal obligations</li>
+          <li>Cooperate fully with any enhanced due diligence request we make</li>
+          <li>Ensure that you are not subject to sanctions and that your transactions do not involve sanctioned parties or jurisdictions</li>
+        </ul>
+        <p>Failure to comply with these obligations may result in account restriction, account closure, and reporting to relevant authorities.</p>
+
+        <h2>9. Record Keeping</h2>
+        <p>In accordance with EU AML legislation, we retain all customer due diligence records and transaction records for a minimum of <strong>five years</strong> from the date of the transaction or the end of the business relationship. Extended retention may apply in the case of ongoing legal or regulatory proceedings.</p>
+
+        <h2>10. Contact</h2>
+        <p>For compliance-related enquiries: <a href="mailto:compliance@hansepay.com">compliance@hansepay.com</a></p>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         6. COMPLAINTS
+    ══════════════════════════════════════════════════════════ -->
+    <div class="doc-pane" id="doc-complaints">
+      <div class="doc-header">
+        <div class="doc-badge">Complaints</div>
+        <h1 class="doc-title">Complaints Policy</h1>
+        <p class="doc-date">Effective: 1 February 2026 · Version 1.0</p>
+        <a class="doc-dl-btn" href="/api/legal/complaints/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+        <div class="info-box">
+          <b>We take complaints seriously.</b> If you are not satisfied with our service, this policy explains how to raise a complaint, what to expect from us, and how to escalate if you remain dissatisfied.
+        </div>
+
+        <h2>1. How to Submit a Complaint</h2>
+        <p>You may submit a complaint using any of the following channels:</p>
+        <div class="contact-grid">
+          <div class="contact-card">
+            <div class="contact-card-label">Email</div>
+            <div class="contact-card-value"><a href="mailto:complaints@hansepay.com">complaints@hansepay.com</a></div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-card-label">Post</div>
+            <div class="contact-card-value">Atrya Technologies SIA<br>c/o Factory Works GmbH<br>Stadtdeich 2–4<br>20097 Hamburg, Germany</div>
+          </div>
+        </div>
+        <p>When submitting your complaint, please include:</p>
+        <ul>
+          <li>Your full name and account reference (if applicable)</li>
+          <li>A clear description of the issue and what outcome you are seeking</li>
+          <li>The date(s) of the relevant transaction(s) or events</li>
+          <li>Any supporting documents (screenshots, payment confirmations, correspondence)</li>
+        </ul>
+
+        <h2>2. Our Complaints Process</h2>
+        <h3>Step 1 — Acknowledgement (within 3 business days)</h3>
+        <p>We will acknowledge receipt of your complaint within 3 business days and provide you with a reference number and the name of the person handling your case.</p>
+        <h3>Step 2 — Investigation (within 15 business days)</h3>
+        <p>We will investigate your complaint thoroughly and provide a full written response within <strong>15 business days</strong> of receipt. In complex cases, we may require up to 35 business days — we will notify you if this is necessary and explain the reason for the delay.</p>
+        <h3>Step 3 — Final Response</h3>
+        <p>Our final response will either uphold your complaint (and explain what remedial action we will take) or explain why we do not believe the complaint can be upheld, including your right to escalate.</p>
+
+        <h2>3. Escalation — Financial Supervisor</h2>
+        <p>If you remain dissatisfied after receiving our final response, or if we have not responded within 35 business days, you may escalate your complaint to our regulatory supervisor:</p>
+        <p><strong>Latvijas Banka</strong> (Bank of Latvia) — Consumer Rights Protection<br>
+        K. Valdemāra iela 2A, Rīga, LV-1050, Latvia<br>
+        Phone: +371 67 022 300<br>
+        <a href="https://www.bank.lv/en/consumers" target="_blank" rel="noopener noreferrer">www.bank.lv/en/consumers</a></p>
+
+        <h2>4. EU Online Dispute Resolution</h2>
+        <p>The European Commission's Online Dispute Resolution (ODR) platform was discontinued on 20 July 2025 and is no longer available. Consumers should instead use the national alternative dispute resolution (ADR) routes described in this policy.</p>
+
+        <h2>5. Out-of-Court Dispute Resolution (Germany)</h2>
+        <p>Customers in Germany may be able to refer a payment-services dispute to the statutory arbitration body at the Deutsche Bundesbank (<em>Schlichtungsstelle bei der Deutschen Bundesbank</em>):</p>
+        <p>Deutsche Bundesbank — Schlichtungsstelle<br>
+        Postfach 11 12 32, 60047 Frankfurt am Main, Germany<br>
+        <a href="https://www.bundesbank.de" target="_blank" rel="noopener noreferrer">www.bundesbank.de</a></p>
+        <p>The competent ADR body depends on our authorisation and any scheme membership. We will confirm the applicable body, and your right to refer the matter to it, in our final response to your complaint.</p>
+
+        <h2>6. What We Cannot Help With</h2>
+        <p>Some matters fall outside our complaints process:</p>
+        <ul>
+          <li>Complaints that are the subject of ongoing litigation</li>
+          <li>Decisions we are required to make under AML, sanctions, or regulatory law (for example, account restriction or closure ordered by a regulatory authority)</li>
+          <li>Complaints about the actions of third parties, such as correspondent banks, beneficiary banks, or card networks, over which we have no control</li>
+        </ul>
+
+        <h2>7. Contact</h2>
+        <p>For any complaints or feedback: <a href="mailto:complaints@hansepay.com">complaints@hansepay.com</a><br>
+        Atrya Technologies SIA, trading as HansePay<br>
+        c/o Factory Works GmbH, Stadtdeich 2–4, 20097 Hamburg, Germany</p>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="assets/footer.js"></script>
+
+<script>
+// Load live content from API and update pane
+function fetchDocContent(slug) {
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/legal/' + slug)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(doc){
+      if (!doc) return;
+      var pane = document.getElementById('doc-' + slug);
+      if (!pane) return;
+      var titleEl = pane.querySelector('.doc-title');
+      var badgeEl = pane.querySelector('.doc-badge');
+      var dateEl  = pane.querySelector('.doc-date');
+      var bodyEl  = pane.querySelector('.doc-body');
+      if (titleEl && doc.title) titleEl.textContent = doc.title;
+      if (badgeEl && doc.badge) badgeEl.textContent = doc.badge;
+      if (dateEl  && doc.effectiveLine) dateEl.innerHTML = doc.effectiveLine;
+      if (bodyEl  && doc.body) bodyEl.innerHTML = doc.body;
+    })
+    .catch(function(){});
+}
+
+function showDoc(id){
+  fetchDocContent(id);
+
+  // Hide all panes
+  document.querySelectorAll('.doc-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+
+  // Show selected
+  const pane=document.getElementById('doc-'+id);
+  if(pane)pane.classList.add('active');
+
+  // Highlight nav link
+  const links=document.querySelectorAll('.sidebar-link');
+  const docMap={imprint:0,terms:1,privacy:2,cookies:3,aml:4,complaints:5};
+  const idx=docMap[id];
+  if(idx!==undefined&&links[idx])links[idx].classList.add('active');
+
+  // Sync mobile select
+  const sel=document.querySelector('.mobile-doc-select select');
+  if(sel)sel.value=id;
+
+  // Scroll to top
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Handle URL hash on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const hash=location.hash.replace('#','');
+  if(['imprint','terms','privacy','cookies','aml','complaints'].includes(hash)){
+    showDoc(hash);
+  } else {
+    fetchDocContent('imprint');
+  }
+});
+</script>
+</body>
+</html>

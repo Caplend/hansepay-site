@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Accounts — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --success:#16a34a;--warn:#d97706;--danger:#dc2626;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--off);color:var(--ink);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* ── SIDEBAR (inherited from shared pattern) ── */
+.sidebar{width:240px;min-height:100vh;background:var(--n800);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:28px 20px 22px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sidebar-brand{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1}
+.sidebar-admin-badge{font-size:.625rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.35);display:block;margin-top:4px}
+.sidebar-nav{flex:1;padding:18px 12px}
+.nav-section{font-size:.6875rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.22);padding:12px 12px 6px;margin-top:4px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:.8125rem;font-weight:500;color:rgba(255,255,255,.55);transition:all .15s;margin-bottom:2px;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--n600);color:#fff;font-weight:600;border-left-color:var(--gold)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,.07)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:8px}
+.sidebar-avatar{width:30px;height:30px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:.6875rem;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-user-name{font-size:.75rem;font-weight:500;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-email{font-size:.6875rem;color:rgba(255,255,255,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.signout-link{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-md);font-size:.75rem;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s;background:none;border:none;font-family:'Inter',sans-serif;width:100%;text-align:left}
+.signout-link:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.signout-link svg{width:14px;height:14px}
+
+/* ── MAIN ── */
+.main{flex:1;margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid rgba(11,25,41,.08);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:'Playfair Display',serif;font-size:1.375rem;font-weight:600;color:var(--n800)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-avatar{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border-radius:var(--r-pill);border:1px solid rgba(11,25,41,.09);background:var(--off)}
+.topbar-avatar-circle{width:28px;height:28px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:.6875rem;font-weight:700;color:#fff}
+.topbar-avatar-name{font-size:.8125rem;font-weight:500;color:var(--ink2)}
+.content{padding:32px;flex:1}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:#fff;border-radius:var(--r-lg);padding:22px 24px;border:1px solid rgba(11,25,41,.08);box-shadow:0 1px 4px rgba(11,25,41,.04)}
+.stat-card-label{font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.stat-card-label .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.stat-value{font-family:'Playfair Display',serif;font-size:2.25rem;font-weight:400;color:var(--n800);line-height:1;margin-bottom:6px}
+.stat-delta{font-size:.75rem;color:var(--ink3)}
+.stat-delta.up{color:var(--success)}
+.stat-delta.down{color:var(--danger)}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.search-wrap{position:relative;flex:1;max-width:360px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--ink3);pointer-events:none}
+.search-input{width:100%;padding:9px 12px 9px 36px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--n300)}
+.filter-select{padding:9px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);background:#fff;outline:none;cursor:pointer}
+
+/* ── TABLE ── */
+.table-card{background:#fff;border-radius:var(--r-lg);border:1px solid rgba(11,25,41,.08);box-shadow:0 1px 4px rgba(11,25,41,.04);overflow:hidden}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding:12px 18px;text-align:left;border-bottom:1px solid rgba(11,25,41,.06);background:#fafbfc;white-space:nowrap}
+.data-table td{padding:14px 18px;font-size:.875rem;color:var(--ink2);border-bottom:1px solid rgba(11,25,41,.04);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tbody tr{cursor:pointer;transition:background .12s}
+.data-table tbody tr:hover td{background:var(--n050)}
+
+.acct-cell{display:flex;align-items:center;gap:12px}
+.acct-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.acct-name{font-weight:600;color:var(--ink);font-size:.875rem;line-height:1.2}
+.acct-sub{font-size:.75rem;color:var(--ink3);margin-top:1px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--r-pill);font-size:.6875rem;font-weight:600;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-active{background:#dcfce7;color:#15803d}.badge-active::before{background:#16a34a}
+.badge-review{background:#fef9c3;color:#854d0e}.badge-review::before{background:#ca8a04}
+.badge-process{background:var(--n050);color:var(--n600)}.badge-process::before{background:var(--n400)}
+.badge-docs{background:#fff7ed;color:#c2410c}.badge-docs::before{background:#ea580c}
+.badge-suspended{background:#fee2e2;color:#991b1b}.badge-suspended::before{background:var(--danger)}
+
+.mono{font-family:'SF Mono','Fira Code',monospace;font-size:.8125rem}
+.vol-bar-wrap{display:flex;align-items:center;gap:8px}
+.vol-bar-track{width:64px;height:5px;background:rgba(11,25,41,.08);border-radius:3px;flex-shrink:0}
+.vol-bar-fill{height:100%;border-radius:3px;background:var(--n400);transition:width .3s}
+
+.row-btn{padding:5px 12px;border-radius:var(--r-sm);font-size:.75rem;font-weight:600;background:transparent;border:1px solid rgba(11,25,41,.12);cursor:pointer;font-family:'Inter',sans-serif;color:var(--ink2);transition:all .15s;white-space:nowrap}
+.row-btn:hover{background:var(--n050);border-color:var(--n300);color:var(--n500)}
+
+/* ── DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(11,25,41,.35);z-index:300;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.drawer-overlay.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:560px;background:#fff;box-shadow:-8px 0 48px rgba(11,25,41,.14);z-index:301;transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.3,1);display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:24px 28px;border-bottom:1px solid rgba(11,25,41,.08);display:flex;align-items:flex-start;gap:16px;flex-shrink:0}
+.drawer-head-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.125rem;font-weight:700;color:#fff;flex-shrink:0}
+.drawer-head-info{flex:1;min-width:0}
+.drawer-company{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:600;color:var(--n800);line-height:1.2}
+.drawer-sub{font-size:.8125rem;color:var(--ink3);margin-top:3px}
+.drawer-close{background:none;border:none;cursor:pointer;padding:4px;color:var(--ink3);flex-shrink:0;margin-top:2px}
+.drawer-close:hover{color:var(--ink)}
+.drawer-body{flex:1;overflow-y:auto;padding:24px 28px}
+.drawer-foot{padding:16px 28px;border-top:1px solid rgba(11,25,41,.08);display:flex;gap:10px;flex-shrink:0}
+
+/* drawer sections */
+.d-section{margin-bottom:24px}
+.d-section-title{font-size:.6875rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(11,25,41,.06)}
+.d-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px}
+.d-kpi{background:var(--off);border-radius:var(--r-md);padding:14px 16px}
+.d-kpi-val{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:400;color:var(--n800);line-height:1;margin-bottom:4px}
+.d-kpi-label{font-size:.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)}
+.d-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(11,25,41,.04)}
+.d-row:last-child{border-bottom:none}
+.d-row-label{font-size:.8125rem;color:var(--ink3)}
+.d-row-val{font-size:.8125rem;font-weight:500;color:var(--ink)}
+.d-tx{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(11,25,41,.04)}
+.d-tx:last-child{border-bottom:none}
+.d-tx-icon{width:32px;height:32px;border-radius:9px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.d-tx-meta{flex:1;min-width:0}
+.d-tx-name{font-size:.8125rem;font-weight:500;color:var(--ink)}
+.d-tx-date{font-size:.75rem;color:var(--ink3);margin-top:1px}
+.d-tx-amt{font-size:.875rem;font-weight:600;color:var(--ink)}
+.d-doc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(11,25,41,.04)}
+.d-doc-row:last-child{border-bottom:none}
+.d-doc-icon{width:28px;height:28px;border-radius:7px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--n400)}
+.d-doc-name{flex:1;font-size:.8125rem;color:var(--ink)}
+.d-doc-status{font-size:.6875rem;font-weight:600;padding:2px 8px;border-radius:var(--r-pill)}
+.doc-ok{background:#dcfce7;color:#15803d}
+.doc-missing{background:#fee2e2;color:#991b1b}
+.doc-pending{background:#fef9c3;color:#854d0e}
+
+.btn-primary{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r-pill);background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:none;cursor:pointer;transition:background .15s}
+.btn-primary:hover{background:var(--n600)}
+.btn-ghost{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r-pill);background:#fff;color:var(--ink2);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:1.5px solid rgba(11,25,41,.12);cursor:pointer;transition:all .15s}
+.btn-ghost:hover{border-color:var(--n300);color:var(--n500)}
+
+/* ── CHART ── */
+.chart-card{background:#fff;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);padding:24px;box-shadow:0 1px 4px rgba(11,25,41,.04);margin-bottom:24px}
+.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.chart-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--n800)}
+.chart-sub{font-size:.75rem;color:var(--ink3);margin-top:2px}
+
+/* empty state */
+.empty-state{text-align:center;padding:64px 24px;color:var(--ink3)}
+.empty-state svg{margin:0 auto 16px;display:block;opacity:.35}
+.empty-state p{font-size:.9375rem}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR (hp-sidebar placeholder) -->
+<div id="hp-sidebar"></div>
+
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="page-title">Accounts</span>
+    <div class="topbar-right">
+      <div class="topbar-avatar">
+        <div class="topbar-avatar-circle" id="hp-topbar-avatar">–</div>
+        <span class="topbar-avatar-name" id="hp-topbar-name">–</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- STAT STRIP -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-card-label"><span class="dot" style="background:var(--n400)"></span>Total accounts</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-delta">All registered customers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label"><span class="dot" style="background:var(--success)"></span>Active</div>
+        <div class="stat-value" id="statActive">—</div>
+        <div class="stat-delta up" id="statActiveDelta"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label"><span class="dot" style="background:#ca8a04"></span>Under review</div>
+        <div class="stat-value" id="statReview">—</div>
+        <div class="stat-delta">Pending compliance</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label"><span class="dot" style="background:var(--n400)"></span>30-day volume</div>
+        <div class="stat-value" id="statVolume">—</div>
+        <div class="stat-delta up" id="statVolumeDelta"></div>
+      </div>
+    </div>
+
+    <!-- VOLUME CHART -->
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Transaction volume</div>
+          <div class="chart-sub">Last 12 months · all active accounts</div>
+        </div>
+        <select class="filter-select" id="chartPeriod" onchange="renderChart()">
+          <option value="12m">Last 12 months</option>
+          <option value="6m">Last 6 months</option>
+          <option value="3m">Last 3 months</option>
+        </select>
+      </div>
+      <canvas id="volumeChart" height="80"></canvas>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="searchInput" placeholder="Search accounts…" oninput="renderTable()">
+      </div>
+      <select class="filter-select" id="filterStatus" onchange="renderTable()">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="review">Under review</option>
+        <option value="process">In process</option>
+        <option value="docs">Pending docs</option>
+        <option value="suspended">Suspended</option>
+      </select>
+      <select class="filter-select" id="filterType" onchange="renderTable()">
+        <option value="">All types</option>
+        <option value="Business">Business</option>
+        <option value="Individual">Individual</option>
+      </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th>Vol (30d)</th>
+            <th>Avg transfer</th>
+            <th>Last active</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="accountsBody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- DETAIL DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-head-avatar" id="drawerAvatar"></div>
+    <div class="drawer-head-info">
+      <div class="drawer-company" id="drawerCompany"></div>
+      <div class="drawer-sub" id="drawerSub"></div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot">
+    <button class="btn-primary" id="drawerPrimaryBtn">Approve account</button>
+    <button class="btn-ghost" onclick="closeDrawer()">Close</button>
+  </div>
+</div>
+
+<script src="components.js"></script>
+<script>
+// components.js handles auth + compliance routing
+HPAdmin.renderSidebar('accounts');
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+var PALETTE = ['#1E4E80','#163659','#2E6BAD','#0F2540','#3B7BC4','#1a3a5c','#245d94','#0d2035'];
+function avatarColor(name) { var h=0; for(var i=0;i<name.length;i++)h=name.charCodeAt(i)+((h<<5)-h); return PALETTE[Math.abs(h)%PALETTE.length]; }
+function initials(n) { return n.split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase(); }
+function eur(n) { return '€'+Number(n).toLocaleString('en-GB'); }
+function eurK(n) { return n>=1e6?'€'+(n/1e6).toFixed(1)+'M':n>=1e3?'€'+Math.round(n/1000)+'k':'€'+n; }
+
+// ── Read all real transaction log entries ─────────────────────────────────
+function getTxLog(){
+  try { return JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){ return []; }
+}
+
+// ── Build account object from hp_onb state ────────────────────────────────
+function buildAccountFromOnb(s, ci){
+  var fn = s.firstName || ''; var ln = s.lastName || '';
+  var name = s.coName || ((fn+' '+ln).trim()) || s.email;
+  var userEmail = s.coEmail || s.email || '';
+  var txLog = getTxLog();
+  var now30 = Date.now() - 30*24*60*60*1000;
+  var userTx = txLog.filter(function(t){
+    return t.userEmail === userEmail && new Date(t.timestamp||0).getTime() > now30;
+  });
+  var vol30 = userTx.reduce(function(sum,t){ return sum+(t.amount||0); }, 0);
+  var avgT  = userTx.length ? Math.round(vol30/userTx.length) : 0;
+  // status: step index ≥ 14 means they submitted; <14 = still in process
+  var status = (ci||0) >= 14 ? 'review' : 'process';
+  var docOk  = function(f){ return f ? 'ok' : 'pending'; };
+  return {
+    id:          'onb-' + userEmail.replace(/[^a-z0-9]/gi,'').slice(0,10),
+    company:     name,
+    contact:     (fn+(ln?' '+ln:'')).trim() || userEmail,
+    email:       userEmail,
+    type:        s.accountType==='personal' ? 'Individual' : 'Business',
+    status:      status,
+    joined:      s._registeredAt || new Date().toISOString().split('T')[0],
+    lastActive:  s._lastLogin    || new Date().toISOString().split('T')[0],
+    vol30:       vol30,
+    avgTransfer: avgT,
+    txCount30:   userTx.length,
+    balance:     0,
+    iban:        '—',
+    country:     (s.coAddrCountry||'DE').slice(0,2).toUpperCase(),
+    city:        s.coCity||'',
+    regNum:      s.coRegNum||'—',
+    vat:         s.coVAT||'—',
+    plan:        '—',
+    txHistory:   userTx.slice(0,5).map(function(t){
+      return {name:t.recipient||'Transfer', date:t.date||'', amt:t.amount||0, dir:t.dir||'out'};
+    }),
+    docs:[
+      {name:'Articles of Incorporation', st:docOk(s.coIncFileName)},
+      {name:'Proof of ownership',        st:docOk(s.coOwnerFileName)},
+      {name:'Proof of address (UBO)',    st:docOk(s.coOwnerPOAFileName)},
+      {name:'ID — '+((fn+' '+ln).trim()||'Applicant'), st:docOk(s.idFileName)},
+    ],
+  };
+}
+
+// ── Account cache (populated async on load) ───────────────────────────────
+var _accountCache = null;  // null = not loaded yet
+
+function mergeLocalAccounts(list){
+  // Merge-in any accounts from localStorage that aren't in the server list
+  // (covers partial onboarding sessions that haven't submitted yet)
+  var seen = {};
+  list.forEach(function(a){ if(a.email) seen[a.email]=true; });
+
+  function maybeAdd(acct){
+    if(!acct.email || seen[acct.email]) return;
+    seen[acct.email] = true;
+    list.push(acct);
+  }
+
+  // hp_regs (same-browser submitted registrations)
+  try {
+    var regs = JSON.parse(localStorage.getItem('hp_regs') || '[]');
+    regs.forEach(function(r){ maybeAdd(r); });
+  } catch(e){}
+
+  // hp_onb (active/partial session)
+  try {
+    var onb = JSON.parse(localStorage.getItem('hp_onb') || 'null');
+    if(onb && onb.s && onb.s.email){
+      if(!onb.s._registeredAt){
+        onb.s._registeredAt = new Date().toISOString().split('T')[0];
+        localStorage.setItem('hp_onb', JSON.stringify(onb));
+      }
+      maybeAdd(buildAccountFromOnb(onb.s, onb.ci));
+    }
+  } catch(e){}
+}
+
+// Convert a server-side registration record to the display shape
+function buildAccountFromReg(r){
+  var txLog  = getTxLog();
+  var now30  = Date.now() - 30*24*60*60*1000;
+  var userTx = txLog.filter(function(t){
+    return t.userEmail === r.email && new Date(t.timestamp||0).getTime() > now30;
+  });
+  var vol30  = userTx.reduce(function(s,t){ return s+(t.amount||0); }, 0);
+  var avgT   = userTx.length ? Math.round(vol30/userTx.length) : 0;
+  return {
+    id:             r.applicationRef || r.id || r.email,
+    applicationRef: r.applicationRef || r.id || null,
+    company:        r.company || ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
+    contact:     ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
+    email:       r.email,
+    type:        r.accountType==='personal' ? 'Individual' : 'Business',
+    status:      r.status || 'review',
+    joined:      (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    lastActive:  (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    vol30:       vol30,
+    avgTransfer: avgT,
+    txCount30:   userTx.length,
+    balance:     0,
+    iban:        '—',
+    country:     (r.country||'DE').slice(0,2).toUpperCase(),
+    city:        r.city||'',
+    regNum:      r.regNum||'—',
+    vat:         r.vat||'—',
+    plan:        '—',
+    txHistory:   userTx.slice(0,5).map(function(t){
+      return {name:t.recipient||'Transfer', date:t.date||'', amt:t.amount||0, dir:t.dir||'out'};
+    }),
+    docs:[
+      {name:'Articles of Incorporation', st:'pending'},
+      {name:'Proof of ownership',        st:'pending'},
+      {name:'Proof of address (UBO)',    st:'pending'},
+      {name:'ID — '+((r.firstName||'')+' '+(r.lastName||'')).trim(), st:'pending'},
+    ],
+  };
+}
+
+function allAccounts(){
+  return _accountCache || [];
+}
+
+// Async loader — fetches from API, merges localStorage, then re-renders
+function loadAccountsAsync(){
+  var token = localStorage.getItem('hp_token');
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registrations',{
+    headers:{ 'Authorization':'Bearer '+token }
+  })
+  .then(function(r){ return r.ok ? r.json() : []; })
+  .then(function(serverRegs){
+    var list = (Array.isArray(serverRegs) ? serverRegs : []).map(buildAccountFromReg);
+    mergeLocalAccounts(list);
+    _accountCache = list;
+    renderStats();
+    renderChart();
+    renderTable();
+  })
+  .catch(function(){
+    // API unavailable — fall back to localStorage only
+    var list = [];
+    mergeLocalAccounts(list);
+    _accountCache = list;
+    renderStats();
+    renderChart();
+    renderTable();
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────
+function renderStats(){
+  var all    = allAccounts();
+  var total  = all.length;
+  var active = all.filter(function(a){return a.status==='active';}).length;
+  var review = all.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
+  var vol    = all.reduce(function(s,a){return s+a.vol30;},0);
+
+  document.getElementById('statTotal').textContent  = total;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statReview').textContent = review;
+  document.getElementById('statVolume').textContent = eurK(vol);
+  // Only show delta text when there's actual data
+  document.getElementById('statActiveDelta').textContent  = total ? active+' of '+total+' fully active' : 'Awaiting first registration';
+  document.getElementById('statVolumeDelta').textContent  = vol ? 'Real 30-day total' : 'No transactions yet';
+}
+
+// ── Chart — real data from hp_txlog ──────────────────────────────────────
+var chartInstance;
+function renderChart(){
+  var period = document.getElementById('chartPeriod').value;
+  var months = period==='3m'?3:period==='6m'?6:12;
+  var now    = new Date();
+  var labels = [];
+  var data   = [];
+
+  // Build month buckets
+  var buckets = {};
+  for(var i=months-1;i>=0;i--){
+    var d   = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var lbl = d.toLocaleString('en-GB',{month:'short',year:months>6?'2-digit':undefined});
+    labels.push(lbl);
+    buckets[key] = 0;
+  }
+
+  // Sum real transactions into buckets
+  var txLog = getTxLog();
+  txLog.forEach(function(t){
+    var ts = t.timestamp ? new Date(t.timestamp) : null;
+    if(!ts || isNaN(ts.getTime())) return;
+    var key = ts.getFullYear()+'-'+String(ts.getMonth()+1).padStart(2,'0');
+    if(buckets[key] !== undefined) buckets[key] += (t.amount||0);
+  });
+
+  var keys = Object.keys(buckets).sort();
+  keys.forEach(function(k){ data.push(buckets[k]); });
+
+  var hasData = data.some(function(v){ return v > 0; });
+
+  // Show/hide no-data overlay
+  var wrap = document.getElementById('volumeChart').parentNode;
+  var noData = document.getElementById('chartNoData');
+  if(!noData){
+    noData = document.createElement('div');
+    noData.id = 'chartNoData';
+    noData.style.cssText = 'text-align:center;padding:48px 24px;color:var(--ink3);font-size:13.5px;display:none';
+    noData.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px;display:block;opacity:.4"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>No transaction data yet.<br>Transactions will appear here once accounts are active.';
+    wrap.appendChild(noData);
+  }
+
+  if(!hasData){
+    document.getElementById('volumeChart').style.display = 'none';
+    noData.style.display = 'block';
+    if(chartInstance){ chartInstance.destroy(); chartInstance=null; }
+    return;
+  }
+
+  document.getElementById('volumeChart').style.display = '';
+  noData.style.display = 'none';
+
+  if(chartInstance) chartInstance.destroy();
+  var ctx = document.getElementById('volumeChart').getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'Volume (€)',
+        data:data,
+        borderColor:'#1E4E80',
+        backgroundColor:'rgba(30,78,128,.07)',
+        fill:true,
+        tension:.35,
+        pointRadius:4,
+        pointBackgroundColor:'#1E4E80',
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '  €'+c.raw.toLocaleString('en-GB');}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{family:'Inter',size:12}}},
+        y:{beginAtZero:true,grid:{color:'rgba(11,25,41,.05)'},ticks:{font:{family:'Inter',size:12},callback:function(v){return v>=1e6?'€'+(v/1e6).toFixed(1)+'M':v>=1e3?'€'+(v/1000)+'k':'€'+v;}}}
+      }
+    }
+  });
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────
+var STATUS_LABELS = {active:'Active',approved:'Approved',review:'Under review',process:'In process',docs:'Pending docs',suspended:'Suspended'};
+var STATUS_CLASSES = {active:'badge-active',approved:'badge-active',review:'badge-review',process:'badge-process',docs:'badge-docs',suspended:'badge-suspended'};
+
+function fmtDate(iso){
+  var d=new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+function timeAgo(iso){
+  var d=Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+  if(d===0)return'Today';if(d===1)return'Yesterday';
+  if(d<30)return d+'d ago';
+  return Math.floor(d/30)+'mo ago';
+}
+
+function renderTable(){
+  var q    = (document.getElementById('searchInput').value||'').toLowerCase();
+  var fSt  = document.getElementById('filterStatus').value;
+  var fTyp = document.getElementById('filterType').value;
+  var rows = allAccounts().filter(function(a){
+    if(q && !(a.company.toLowerCase().includes(q)||a.contact.toLowerCase().includes(q)||a.email.toLowerCase().includes(q))) return false;
+    if(fSt && a.status!==fSt) return false;
+    if(fTyp && a.type!==fTyp) return false;
+    return true;
+  });
+
+  var maxVol = Math.max.apply(null, allAccounts().map(function(a){return a.vol30;}));
+  var tbody = document.getElementById('accountsBody');
+  var total = allAccounts().length;
+  if(!rows.length){
+    var msg = total === 0
+      ? 'No registered accounts yet. Accounts appear here as soon as someone completes the onboarding.'
+      : 'No accounts match your filters.';
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><p>'+msg+'</p></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(function(a){
+    var ini  = initials(a.company);
+    var col  = avatarColor(a.company);
+    var pct  = maxVol>0?Math.round(a.vol30/maxVol*100):0;
+    var volHtml = a.status==='active'
+      ? '<div class="vol-bar-wrap"><span style="min-width:56px;font-weight:500;color:var(--ink)">'+eurK(a.vol30)+'</span>'
+        +'<div class="vol-bar-track"><div class="vol-bar-fill" style="width:'+pct+'%"></div></div></div>'
+      : '<span style="color:var(--ink3);font-size:.8125rem">—</span>';
+    var avgHtml = a.avgTransfer ? '<span class="mono">'+eur(a.avgTransfer)+'</span>' : '<span style="color:var(--ink3)">—</span>';
+
+    return '<tr onclick="openDrawer(\''+a.id+'\')">'
+      +'<td><div class="acct-cell">'
+      +'<div class="acct-avatar" style="background:'+col+'">'+ini+'</div>'
+      +'<div><div class="acct-name">'+a.company+'</div><div class="acct-sub">'+a.contact+' · '+a.email+'</div></div>'
+      +'</div></td>'
+      +'<td><span style="font-size:.8125rem">'+a.type+'</span></td>'
+      +'<td><span class="badge '+STATUS_CLASSES[a.status]+'">'+STATUS_LABELS[a.status]+'</span></td>'
+      +'<td>'+fmtDate(a.joined)+'</td>'
+      +'<td>'+volHtml+'</td>'
+      +'<td>'+avgHtml+'</td>'
+      +'<td>'+timeAgo(a.lastActive)+'</td>'
+      +'<td><button class="row-btn" onclick="event.stopPropagation();openDrawer('+a.id+')">View →</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── Drawer ─────────────────────────────────────────────────────────────────
+var _drawerAccount = null;  // currently open account
+
+function approveAccount(){
+  if(!_drawerAccount)return;
+  var a = _drawerAccount;
+  var btn = document.getElementById('drawerPrimaryBtn');
+  if(!a.applicationRef && a.id){
+    // If no applicationRef field, use id (which equals applicationRef for server records)
+    a.applicationRef = String(a.id).startsWith('HP-') ? a.id : null;
+  }
+  if(!a.applicationRef){
+    alert('Cannot approve: no application reference found for this account.');
+    return;
+  }
+  btn.disabled=true;
+  btn.innerHTML='<span style="opacity:.7">Approving…</span>';
+  var token = localStorage.getItem('hp_token');
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/approve',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body: JSON.stringify({applicationRef: a.applicationRef}),
+  })
+  .then(function(r){return r.json();})
+  .then(function(r){
+    if(r.ok){
+      // Update local cache
+      if(_accountCache){
+        var idx = _accountCache.findIndex(function(x){return String(x.id)===String(a.id);});
+        if(idx>=0) _accountCache[idx].status = 'approved';
+      }
+      btn.disabled=false;
+      btn.textContent='Approved ✓';
+      btn.style.background='var(--n400)';
+      // Update badge in header
+      document.getElementById('drawerSub').innerHTML='<span class="badge badge-active">Approved</span> &nbsp;'+a.type+' · '+a.country;
+      // Re-render table stats
+      renderStats();
+      renderTable();
+      var msg = r.emailSent ? 'Account approved — approval email sent to '+a.email+'.' : 'Account approved. (Email delivery pending.)';
+      showNotice(msg, 'success');
+    } else {
+      btn.disabled=false;
+      btn.textContent='Approve account';
+      showNotice('Approval failed: '+(r.error||'unknown error'), 'error');
+    }
+  })
+  .catch(function(e){
+    btn.disabled=false;
+    btn.textContent='Approve account';
+    showNotice('Network error — please retry.', 'error');
+  });
+}
+
+function showNotice(msg, type){
+  var n = document.getElementById('drawerNotice');
+  if(!n){
+    n = document.createElement('div');
+    n.id = 'drawerNotice';
+    n.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:500;z-index:9999;transition:opacity .3s;box-shadow:0 4px 20px rgba(0,0,0,.18);';
+    document.body.appendChild(n);
+  }
+  n.textContent = msg;
+  n.style.background = type==='success' ? '#16a34a' : '#dc2626';
+  n.style.color = '#fff';
+  n.style.opacity = '1';
+  clearTimeout(n._t);
+  n._t = setTimeout(function(){n.style.opacity='0';},4000);
+}
+
+function openDrawer(id){
+  var a = allAccounts().find(function(x){return String(x.id)===String(id);});
+  if(!a) return;
+  _drawerAccount = a;
+
+  var ini = initials(a.company);
+  var col = avatarColor(a.company);
+  document.getElementById('drawerAvatar').textContent  = ini;
+  document.getElementById('drawerAvatar').style.background = col;
+  document.getElementById('drawerCompany').textContent = a.company;
+  document.getElementById('drawerSub').innerHTML = '<span class="badge '+STATUS_CLASSES[a.status]+'">'+STATUS_LABELS[a.status]+'</span> &nbsp;'+a.type+' · '+a.country;
+
+  // Primary action based on status
+  var btn = document.getElementById('drawerPrimaryBtn');
+  btn.disabled = false;
+  btn.onclick = null;
+  if(a.status==='active'||a.status==='approved'){
+    btn.textContent='Send message';btn.style.background='var(--n500)';
+    btn.onclick=function(){alert('Messaging not yet implemented.');};
+  } else if(a.status==='review'||a.status==='docs'){
+    btn.textContent='Approve account';btn.style.background='var(--success)';
+    btn.onclick=approveAccount;
+  } else if(a.status==='process'){
+    btn.textContent='Request documents';btn.style.background='var(--n400)';
+    btn.onclick=function(){alert('Document request not yet implemented.');};
+  } else if(a.status==='suspended'){
+    btn.textContent='Reinstate account';btn.style.background='var(--warn)';
+    btn.onclick=function(){alert('Reinstatement not yet implemented.');};
+  }
+
+  // Build body
+  var kpisHtml = '';
+  if(a.status==='active'){
+    kpisHtml = '<div class="d-kpis">'
+      +'<div class="d-kpi"><div class="d-kpi-val">'+eurK(a.vol30)+'</div><div class="d-kpi-label">Volume (30d)</div></div>'
+      +'<div class="d-kpi"><div class="d-kpi-val">'+eur(a.avgTransfer)+'</div><div class="d-kpi-label">Avg. transfer</div></div>'
+      +'<div class="d-kpi"><div class="d-kpi-val">'+a.txCount30+'</div><div class="d-kpi-label">Transfers (30d)</div></div>'
+      +'<div class="d-kpi"><div class="d-kpi-val">'+eurK(a.balance)+'</div><div class="d-kpi-label">Balance</div></div>'
+      +'</div>';
+  }
+
+  var txHtml = '';
+  if(a.txHistory && a.txHistory.length){
+    txHtml = '<div class="d-section"><div class="d-section-title">Recent transactions</div>'
+      +a.txHistory.map(function(t){
+        var arrowPath = t.dir==='in'
+          ? 'M12 5v14M5 12l7 7 7-7'
+          : 'M12 19V5M5 12l7-7 7 7';
+        var arrowColor = t.dir==='in' ? 'var(--success)' : 'var(--ink3)';
+        var prefix = t.dir==='in' ? '+' : '−';
+        return '<div class="d-tx">'
+          +'<div class="d-tx-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+arrowColor+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="'+arrowPath+'"/></svg></div>'
+          +'<div class="d-tx-meta"><div class="d-tx-name">'+t.name+'</div><div class="d-tx-date">'+t.date+'</div></div>'
+          +'<div class="d-tx-amt" style="color:'+(t.dir==='in'?'var(--success)':'var(--ink)')+'">'+prefix+eur(t.amt)+'</div>'
+          +'</div>';
+      }).join('')+'</div>';
+  }
+
+  var accountHtml = '<div class="d-section"><div class="d-section-title">Account information</div>'
+    +'<div class="d-row"><span class="d-row-label">Contact</span><span class="d-row-val">'+a.contact+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">Email</span><span class="d-row-val">'+a.email+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">City</span><span class="d-row-val">'+a.city+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">Reg. number</span><span class="d-row-val mono">'+a.regNum+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">VAT ID</span><span class="d-row-val mono">'+a.vat+'</span></div>'
+    +(a.iban!=='—'?'<div class="d-row"><span class="d-row-label">IBAN</span><span class="d-row-val mono" style="font-size:.75rem">'+a.iban+'</span></div>':'')
+    +'<div class="d-row"><span class="d-row-label">Plan</span><span class="d-row-val">'+a.plan+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">Joined</span><span class="d-row-val">'+fmtDate(a.joined)+'</span></div>'
+    +'<div class="d-row"><span class="d-row-label">Last active</span><span class="d-row-val">'+timeAgo(a.lastActive)+'</span></div>'
+    +'</div>';
+
+  var DOC_LABEL = {ok:'Verified',missing:'Missing',pending:'Pending review'};
+  var DOC_CLASS = {ok:'doc-ok',missing:'doc-missing',pending:'doc-pending'};
+  var docsHtml = '<div class="d-section"><div class="d-section-title">Documents</div>'
+    +a.docs.map(function(d){
+      return '<div class="d-doc-row">'
+        +'<div class="d-doc-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>'
+        +'<span class="d-doc-name">'+d.name+'</span>'
+        +'<span class="d-doc-status '+DOC_CLASS[d.st]+'">'+DOC_LABEL[d.st]+'</span>'
+        +'</div>';
+    }).join('')+'</div>';
+
+  document.getElementById('drawerBody').innerHTML = kpisHtml + accountHtml + txHtml + docsHtml;
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+
+function closeDrawer(){
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+// Keyboard close
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
+
+// ── Init ───────────────────────────────────────────────────────────────────
+// Show empty state immediately, then load real data from API
+_accountCache = [];
+renderStats();
+renderChart();
+renderTable();
+loadAccountsAsync();
+</script>
+</body>
+</html>

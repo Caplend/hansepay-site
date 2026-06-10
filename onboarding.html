@@ -228,7 +228,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 .review-edit:hover{text-decoration:underline}
 .review-row{display:flex;align-items:flex-start;justify-content:space-between;padding:6px 0;font-size:13.5px;gap:12px}
 .review-key{color:var(--ink3);flex-shrink:0;width:150px}
-.review-val{color:var(--ink);font-weight:500;text-align:right}
+.review-val{color:var(--ink);font-weight:500;text-align:right;word-break:break-word;overflow-wrap:anywhere;max-width:280px}
 
 /* NAV FOOTER */
 .nav-footer{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid rgba(11,25,41,.07);padding:14px 40px;display:flex;align-items:center;gap:16px;z-index:50}
@@ -331,13 +331,26 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 </div>
 
 
+<!-- LEAVE CONFIRMATION MODAL -->
+<div id="leaveModal" style="display:none;position:fixed;inset:0;background:rgba(6,13,26,.55);z-index:10000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)">
+  <div style="background:#fff;border-radius:20px;padding:36px 40px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(6,13,26,.28)">
+    <div style="width:52px;height:52px;border-radius:50%;background:#FEF9EC;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B8761A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <h2 style="font-family:'Libre Baskerville',serif;font-size:20px;color:var(--n800);margin-bottom:8px">Leave application?</h2>
+    <p style="font-size:14px;color:var(--ink3);line-height:1.6;margin-bottom:24px">Your progress has been saved. You can continue your application at any time — just return to this page.</p>
+    <button onclick="closeLeavModal()" style="width:100%;padding:13px;border-radius:100px;border:none;background:var(--n800);color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px">Continue application</button>
+    <button id="leaveConfirmBtn" onclick="confirmLeave()" style="width:100%;padding:13px;border-radius:100px;border:1.5px solid rgba(11,25,41,.15);background:transparent;color:var(--ink2);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer">Leave page</button>
+  </div>
+</div>
+
 <!-- TOP HEADER -->
 <header class="ob-topbar">
-  <a class="ob-topbar-logo" href="/">
+  <a class="ob-topbar-logo" href="/" id="topbarLogo">
     <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay">
     <span class="ob-topbar-logo-text">HansePay</span>
   </a>
-  <a class="ob-topbar-exit" href="/">Save &amp; exit</a>
+  <a class="ob-topbar-exit" href="/" id="topbarExit">Save &amp; exit</a>
 </header>
 
 <!-- HORIZONTAL STEPPER -->
@@ -393,12 +406,12 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
           <div class="success-step-label">Account created</div>
           <span class="success-step-status done">Complete</span>
         </div>
-        <div class="success-step-row">
-          <div class="success-step-icon done">
+        <div class="success-step-row" id="successStep2Row">
+          <div class="success-step-icon done" id="successStep2Icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
           </div>
-          <div class="success-step-label">Identity verified</div>
-          <span class="success-step-status done">Complete</span>
+          <div class="success-step-label" id="successStep2Label">Identity verified</div>
+          <span class="success-step-status done" id="successStep2Status">Complete</span>
         </div>
         <div class="success-step-row">
           <div class="success-step-icon pending">
@@ -453,6 +466,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 // =============================================================
 const S = {
   firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
+  _emailCode:'',
   phoneCountry:'+49',phone:'',
   accountType:'',
   middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
@@ -476,11 +490,86 @@ const S = {
   coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
   coSourceOfFunds:'',coSourceOfFundsOther:'',
   coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
-  coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
+  coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
+  coManagement:[],
+  coOwnerMgmt:[],coOwnerExtra:[],
+  // B6 – Business activity & payments
+  coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
+  coCompanySize:'',
+  coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
+  // B9 – Terms
+  coTcAccepted:false,coBlindpayAccepted:false,
+  // B7 – Risk declarations (default 'no' so pre-selected state matches validation)
+  coSanctionsExposure:'no',coSanctionsDetail:'',
+  coHighRiskCountries:'no',coHighRiskDetail:'',
+  coPreviousAccountClosure:'no',coPreviousClosureDetail:'',
+  coFraudDisputes:'no',coFraudDetail:'',
+  // B8_POA – Proof of address for largest owner
+  coOwnerPOAType:'',coOwnerPOAFileName:''
 };
 
 let CI = 0; // currentIndex
 let resendTimer = null;
+
+// ── IP Geolocation → Phone Dialling Code ──────────────────────────────────
+// Detects the user's country from their IP and pre-selects the matching
+// country dial code on all phone fields. Falls back to +49 on any error.
+// Result is cached in localStorage so the API is only hit once.
+const _GEO_DIAL_SET = new Set([
+  '+1','+7','+20','+27','+30','+31','+32','+33','+34','+36','+39',
+  '+40','+41','+43','+44','+45','+46','+47','+48','+49',
+  '+51','+52','+54','+55','+56','+57','+58',
+  '+60','+61','+62','+63','+64','+65','+66',
+  '+81','+82','+84','+86','+90','+91','+92','+94','+95',
+  '+212','+213','+216','+218','+220','+221','+233','+234','+254','+255','+256',
+  '+351','+352','+353','+354','+355','+356','+357','+358','+359',
+  '+370','+371','+372','+373','+374','+375','+376','+377','+380','+381','+385','+386','+387','+389',
+  '+420','+421','+423','+994','+995','+998'
+]);
+let _geoCC = null; // resolved once and reused
+
+async function _detectGeoCC(){
+  // Use cached value if already resolved this session
+  if(_geoCC) return _geoCC;
+  // Use localStorage cache (avoids hitting API on every page load)
+  const stored = localStorage.getItem('hp_geo_cc');
+  if(stored){ _geoCC=stored; return _geoCC; }
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 3000);
+    const r = await fetch('https://ipapi.co/json/', {signal:ctrl.signal});
+    clearTimeout(t);
+    const d = await r.json();
+    const cc = d.country_calling_code; // e.g. "+49", "+44"
+    if(cc && typeof cc==='string' && cc.startsWith('+') && _GEO_DIAL_SET.has(cc)){
+      localStorage.setItem('hp_geo_cc', cc);
+      _geoCC = cc;
+      return _geoCC;
+    }
+  } catch(e){ /* silent — network error or timeout */ }
+  return '+49'; // fallback
+}
+
+async function applyGeoCC(){
+  const cc = await _detectGeoCC();
+  if(cc==='+49') return; // already the default — nothing to do
+  // Update state fields that are still at the initial default
+  if(S.phoneCountry==='+49'){ S.phoneCountry=cc; }
+  if(S.coPhoneCC==='+49'){ S.coPhoneCC=cc; }
+  // Update any already-rendered phone selects on the page
+  for(const id of ['phoneCountry','coPhoneCC']){
+    const el = document.getElementById(id);
+    if(el && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  }
+  // Update management person selects (mp0PhoneCC, mp1PhoneCC, …)
+  document.querySelectorAll('[id^="mp"][id$="PhoneCC"]').forEach(el=>{
+    if(el.value==='+49' && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  });
+  // Update extra owner selects (oe0PhoneCC, oe1PhoneCC, …)
+  document.querySelectorAll('[id^="oe"][id$="PhoneCC"]').forEach(el=>{
+    if(el.value==='+49' && el.querySelector(`option[value="${cc}"]`)) el.value=cc;
+  });
+}
 
 const PHASES = [
   {id:'account',  label:'Account',    steps:[1,2,'3a','3b']},
@@ -491,9 +580,13 @@ const PHASES = [
   {id:'review',   label:'Review',     steps:[12,13,14]}
 ];
 const BUSINESS_PHASES = [
-  {id:'account',   label:'Account',   steps:[1,2,'3a','3b',4]},
-  {id:'company',   label:'Company',   steps:['B1','B2']},
-  {id:'documents', label:'Documents', steps:['B3','B4']},
+  {id:'account',    label:'Account',    steps:[1,2,'3a','3b',4]},
+  {id:'company',    label:'Company',    steps:['B1','B2']},
+  {id:'documents',  label:'Documents',  steps:['B3','B4']},
+  {id:'management', label:'Management & Owners', steps:['B5','B8','B8_POA']},
+  {id:'activity',   label:'Activity',   steps:['B6','B7']},
+  {id:'bterms',     label:'Terms',      steps:['B9']},
+  {id:'bverify',    label:'Verify',     steps:['B10','B11']},
 ];
 function getPhases(){ return S.accountType==='company'?BUSINESS_PHASES:PHASES; }
 const PHASE_HELP = {
@@ -509,7 +602,11 @@ const COUNTRIES = ['Germany','Latvia','Afghanistan','Albania','Algeria','Andorra
 
 function getActiveSteps(){
   if(S.accountType==='company'){
-    return [1,2,'3a','3b',4,'B1','B2','B3','B4'];
+    const _base=[1,2,'3a','3b',4,'B1','B2','B3','B4','B5','B8'];
+    const _hasOwners=(S.coOwnerMgmt&&S.coOwnerMgmt.length>0)||(S.coOwnerExtra&&S.coOwnerExtra.length>0);
+    if(_hasOwners) _base.push('B8_POA');
+    _base.push('B6','B7','B9','B10','B11');
+    return _base;
   }
   let s=[1,2,'3a','3b',4,5];
   if(S.actingOnBehalf==='no') s.push('5b');
@@ -629,7 +726,7 @@ function renderStep(id){
     case 6:return R6();case 7:return R7();case 8:return R8();case 9:return R9();
     case 10:return R10();case 12:return R12();case 13:return R13();
     case 14:return R14();
-    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();
+    case'B1':return RB1();case'B2':return RB2();case'B3':return RB3();case'B4':return RB4();case'B5':return RB5();case'B8':return RB8();case'B8_POA':return RB8_POA();case'B6':return RB6();case'B7':return RB7();case'B9':return RB9();case'B10':return RB10();case'B11':return RB11();
   }
   return '';
 }
@@ -678,9 +775,23 @@ function R2(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><rect x="8" y="16" width="48" height="36" rx="6" stroke="var(--n800)" stroke-width="2.5" fill="none"/><path d="M8 22 L32 38 L56 22" stroke="var(--n800)" stroke-width="2.5" stroke-linejoin="round" fill="none"/></svg></div>
     <h1 class="step-heading">Check your inbox.</h1>
-    <p class="step-sub">We sent a verification link to <b>${esc(S.email)}</b></p>
-    <p style="font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:24px">Click the link in the email to verify your address. If you don't see it, check your spam folder. The link expires in 24 hours.</p>
-    <button class="btn btn-ghost" style="margin-bottom:12px" onclick="showToast('Verification email resent!')">Resend email</button>
+    <p class="step-sub">We sent a verification link and 6-digit code to <b>${esc(S.email)}</b>.</p>
+
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.65;margin-bottom:32px;display:flex;align-items:flex-start;gap:12px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span>Click the <b>link in the email</b> to verify instantly — or enter the 6-digit code below. Check your spam folder if you don't see it.</span>
+    </div>
+
+    <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);text-align:center;margin-bottom:16px">Enter 6-digit code</p>
+    <div class="otp-wrap" id="emailOtpWrap">
+      ${[0,1,2,3,4,5].map(i=>`<input type="text" maxlength="1" class="otp-input" id="emailOtp${i}" inputmode="numeric" pattern="[0-9]*">`).join('')}
+    </div>
+    <div class="resend-row">
+      <span id="emailResendText">Resend code in <b id="emailResendCount">30</b>s</span>
+      <span id="emailResendLink" class="resend-link" style="display:none" onclick="resendEmailCode()">Resend code</span>
+    </div>
+    <div class="field-error" id="emailOtp-err" style="text-align:center;margin-bottom:12px"></div>
+    <button class="btn btn-primary" onclick="verifyEmailCode()">Verify email →</button>
   </div>`;
 }
 
@@ -763,8 +874,11 @@ function R5(){
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:6px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Address</div>
     <div class="field-group" style="position:relative">
       <label>Search your address</label>
-      <input type="text" id="addrSearch" placeholder="Start typing your address…" autocomplete="off"
-        oninput="addrLookup(this.value)" style="border-radius:var(--r-md)">
+      <span style="position:relative;display:block">
+        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink3);opacity:.5" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="addrSearch" placeholder="Start typing your address…" autocomplete="off"
+          oninput="addrLookup(this.value)" style="padding-left:38px;border-radius:var(--r-md);width:100%;box-sizing:border-box">
+      </span>
       <div id="addrDrop" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:220px;overflow-y:auto"></div>
       <div style="font-size:11.5px;color:var(--ink3);margin-top:5px">Or fill in manually below.</div>
     </div>
@@ -934,10 +1048,10 @@ function R8(){
     <div class="field-group">
       <label>Expected monthly payment volume</label>
       ${radioCardsHTML('rcVolume',[
-        {v:'under1k',label:'Under €1,000'},
-        {v:'1k-10k',label:'€1,000–€10,000'},
-        {v:'10k-50k',label:'€10,000–€50,000'},
-        {v:'over50k',label:'Over €50,000'}
+        {v:'under1k',label:'Under 1.000 €'},
+        {v:'1k-10k',label:'1.000 € – 10.000 €'},
+        {v:'10k-50k',label:'10.000 € – 50.000 €'},
+        {v:'over50k',label:'Over 50.000 €'}
       ],S.monthlyVolume,2)}
       <div class="field-error" id="monthlyVolume-err"></div>
     </div>
@@ -1014,9 +1128,9 @@ function R9(){
     <div class="field-group">
       <label>Approximate annual income before tax</label>
       ${radioCardsHTML('rcAnnualIncome',[
-        {v:'under15k',label:'Under €15,000'},{v:'15k-30k',label:'€15,000–€30,000'},
-        {v:'30k-60k',label:'€30,001–€60,000'},{v:'60k-100k',label:'€60,001–€100,000'},
-        {v:'over100k',label:'Over €100,000'},{v:'prefer-not',label:'Prefer not to say'}
+        {v:'under15k',label:'Under 15.000 €'},{v:'15k-30k',label:'15.000 € – 30.000 €'},
+        {v:'30k-60k',label:'30.001 € – 60.000 €'},{v:'60k-100k',label:'60.001 € – 100.000 €'},
+        {v:'over100k',label:'Over 100.000 €'},{v:'prefer-not',label:'Prefer not to say'}
       ],S.annualIncome,2)}
       <div class="field-error" id="annualIncome-err"></div>
     </div>
@@ -1147,7 +1261,7 @@ function R11(){
     true)}
 
     ${selectHTML('netWorth','Approximate total net worth',
-      ['Under €15,000','€15,000–€30,000','€30,001–€60,000','€60,001–€100,000','€100,001–€250,000','€250,001–€1,000,000','Over €1,000,000','Prefer not to say'].map(s=>`<option value="${s}"${S.netWorth===s?' selected':''}>${s}</option>`).join(''),
+      ['Under 15.000 €','15.000 € – 30.000 €','30.001 € – 60.000 €','60.001 € – 100.000 €','100.001 € – 250.000 €','250.001 € – 1.000.000 €','Over 1.000.000 €','Prefer not to say'].map(s=>`<option value="${s}"${S.netWorth===s?' selected':''}>${s}</option>`).join(''),
     true)}
 
     <div class="field-group">
@@ -1258,16 +1372,11 @@ function R13(){
 }
 
 function R14(){
-  setTimeout(()=>{
-    document.getElementById('mainLayout').style.display='none';
-    document.getElementById('mobileTop').style.display='none';
-    document.getElementById('successPage').style.display='block';
-    document.getElementById('successHeading').textContent='Application submitted'+(S.firstName?', '+S.firstName:'')+'.';
-    if(S.email)document.getElementById('successEmailLine').textContent='We\'ll email you at '+S.email+' once approved';
-    document.getElementById('successRef').textContent='Reference: '+S.applicationRef;
-    const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';
-  },50);
-  return`<div class="step-card" id="sCard"><p style="text-align:center;padding:20px;color:var(--ink3)">Finalising…</p></div>`;
+  setTimeout(()=>showSuccessPage('individual'),50);
+  return`<div class="step-card" id="sCard" style="text-align:center;padding:40px 20px">
+    <div style="width:48px;height:48px;border:3px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 16px"></div>
+    <p style="color:var(--ink3);font-size:14px">Submitting your application…</p>
+  </div>`;
 }
 
 // =============================================================
@@ -1391,12 +1500,9 @@ const NACE_CODES=[
 
 // ── Fake company data ──────────────────────────────────────────────────────
 const FAKE_CO={
-  name:'Meridian Digital GmbH',legalForm:'GmbH',regNum:'HRB 239847 B',
+  name:'Meridian Digital GmbH',legalForm:'GmbH (Limited Liability Company)',regNum:'HRB 239847 B',
   regDate:'2020-09-14',vat:'DE321456789',
   nace:[{code:'62.01',label:'Computer programming activities'}],
-  description:'We develop and maintain B2B SaaS platforms for logistics and supply chain management companies across Europe.',
-  email:'info@meridiandigital.de',phone:'30 4567 8900',phoneCC:'+49',
-  website:'https://meridiandigital.de',
   addr1:'Unter den Linden 22',city:'Berlin',state:'Berlin',postcode:'10117',country:'Germany'
 };
 
@@ -1418,11 +1524,19 @@ window.useFakeCompany=function(){
   Object.assign(S,{
     coName:FAKE_CO.name,coLegalForm:FAKE_CO.legalForm,coRegNum:FAKE_CO.regNum,
     coRegDate:FAKE_CO.regDate,coVAT:FAKE_CO.vat,coNACE:[...FAKE_CO.nace],
-    coDescription:FAKE_CO.description,coEmail:FAKE_CO.email,
-    coPhone:FAKE_CO.phone,coPhoneCC:FAKE_CO.phoneCC,coWebsite:FAKE_CO.website,
     coAddr1:FAKE_CO.addr1,coCity:FAKE_CO.city,coState:FAKE_CO.state,
     coPostcode:FAKE_CO.postcode,coAddrCountry:FAKE_CO.country,coSearchDone:true
   });
+  // Seed management with account holder as first person
+  if(!S.coManagement.length){
+    S.coManagement=[{
+      firstName:S.firstName,middleName:'',lastName:S.lastName,
+      email:S.email,phoneCC:S.phoneCountry||'+49',phone:'',
+      dob:'',companyStartDate:'',
+      addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',
+      role:'',isDirector:true
+    }];
+  }
   saveState();
   const steps=getActiveSteps();
   CI=steps.indexOf('B2');
@@ -1477,8 +1591,8 @@ window.selectNACE=function(code,label){
 function RB1(){
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div></div>
-    <h1 class="step-heading">Company account setup.</h1>
-    <p class="step-sub">We'll pre-fill your details from the commercial registry.</p>
+    <h1 class="step-heading" style="text-align:center">Company Account Setup.</h1>
+    <p class="step-sub" style="text-align:center">We'll pre-fill your details from the commercial registry.</p>
 
     <div style="background:#F8FAFB;border:1.5px solid #DDE6EF;border-radius:var(--r-lg);padding:24px 26px;margin-bottom:20px">
       <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">Company lookup</div>
@@ -1535,13 +1649,16 @@ function RB2(){
 
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><line x1="8" y1="11" x2="8" y2="17"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="16" y1="11" x2="16" y2="17"/></svg></div></div>
-    <h1 class="step-heading">Company information.</h1>
-    <p class="step-sub">Review and complete your company's details.</p>
+    <h1 class="step-heading" style="text-align:center">Company Information.</h1>
+    <p class="step-sub" style="text-align:center">Review and complete your company's details.</p>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Company details</div>
 
     ${fieldHTML('coName','Registered name','text',S.coName,'','true')}
-    ${fieldHTML('coTradeName','Trade name','text',S.coTradeName,'If different from registered name')}
+    <div class="field-group">
+      <label for="coTradeName">Trade name <span style="font-weight:400;opacity:.6">(optional)</span></label>
+      <input type="text" id="coTradeName" value="${esc(S.coTradeName||'')}" placeholder="If different from registered name">
+    </div>
 
     <div class="field-row">
       <div class="field-group">
@@ -1552,13 +1669,10 @@ function RB2(){
       ${fieldHTML('coRegNum','Registration number','text',S.coRegNum,'e.g. HRB 239847 B','true')}
     </div>
 
-    <div class="field-row">
-      <div class="field-group">
-        <label for="coRegDate">Registration date</label>
-        <input type="date" id="coRegDate" value="${esc(S.coRegDate||'')}">
-        <div class="field-error" id="coRegDate-err"></div>
-      </div>
-      ${fieldHTML('coVAT','VAT number','text',S.coVAT,'e.g. DE321456789')}
+    <div class="field-group">
+      <label for="coRegDate">Registration date</label>
+      <input type="date" id="coRegDate" value="${esc(S.coRegDate||'')}">
+      <div class="field-error" id="coRegDate-err"></div>
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>&ensp;Industry &amp; activity</div>
@@ -1573,42 +1687,46 @@ function RB2(){
       <div class="field-error" id="coNACE-err"></div>
     </div>
 
-    ${fieldHTML('coDescription','Business description','textarea',S.coDescription,'Briefly describe what your company does and who your customers are (min. 35 characters)','true')}
+    <div class="field-group">
+      <label for="coDescription">Business description</label>
+      <textarea id="coDescription" placeholder="Briefly describe what your company does, what you sell, and who your customers are." rows="4" style="resize:none" oninput="(function(n){var el=document.getElementById('coDescCount');el.textContent=n+' characters';el.style.color=n>=50?'var(--success)':'var(--ink3)';})(this.value.length)">${esc(S.coDescription||'')}</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">
+        <span style="font-size:12px;color:var(--ink3)">Minimum 50 characters</span>
+        <span id="coDescCount" style="font-size:12px;white-space:nowrap;transition:color .2s;color:${(S.coDescription||'').length>=50?'var(--success)':'var(--ink3)'}">${(S.coDescription||'').length} characters</span>
+      </div>
+      <div class="field-error" id="coDescription-err"></div>
+    </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 9.14 19.79 19.79 0 0 1 1 .5 2 2 0 0 1 2.82.34h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>&ensp;Contact</div>
 
-    <div class="field-row">
-      ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
-      <div class="field-group">
-        <label>Phone number</label>
-        <div class="phone-row">
-          <select id="coPhoneCC">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
-          <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 30 1234 5678">
-        </div>
-        <div class="field-error" id="coPhone-err"></div>
+    ${fieldHTML('coEmail','Company email','email',S.coEmail,'info@company.com','true')}
+    <div class="field-group">
+      <label>Phone number</label>
+      <div class="phone-row">
+        <select id="coPhoneCC" style="width:130px;min-width:130px">${phoneCodes.map(([v,l])=>`<option value="${v}"${S.coPhoneCC===v?' selected':''}>${esc(l)}</option>`).join('')}</select>
+        <input type="tel" id="coPhone" value="${esc(S.coPhone||'')}" placeholder="e.g. 1234 567 890">
       </div>
+      <div class="field-error" id="coPhone-err"></div>
     </div>
-    ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com')}
+    ${fieldHTML('coWebsite','Website','text',S.coWebsite,'https://yourcompany.com','true')}
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>&ensp;Account &amp; funds</div>
 
-    <div class="field-row">
-      <div class="field-group">
-        <label for="coAccountPurpose">Account purpose</label>
-        <select id="coAccountPurpose"><option value="">Select…</option>${bizPurposeOpts}</select>
-        <div class="field-error" id="coAccountPurpose-err"></div>
-      </div>
-      <div class="field-group">
-        <label for="coSourceOfFunds">Main source of funds</label>
-        <select id="coSourceOfFunds"><option value="">Select…</option>${sofOpts}</select>
-        <div class="field-error" id="coSourceOfFunds-err"></div>
-      </div>
+    <div class="field-group">
+      <label for="coAccountPurpose">Account purpose</label>
+      <select id="coAccountPurpose"><option value="">Select…</option>${bizPurposeOpts}</select>
+      <div class="field-error" id="coAccountPurpose-err"></div>
     </div>
-    <div id="coPurposeOtherWrap" style="display:${(S.coAccountPurpose||'').includes('Other')?' block':'none'}">
-      ${fieldHTML('coAccountPurposeOther','Please explain','text',S.coAccountPurposeOther,'','true')}
+    <div id="coPurposeOtherWrap" style="display:${(S.coAccountPurpose||'').includes('Other')?'block':'none'};margin-top:-8px;margin-bottom:16px">
+      ${fieldHTML('coAccountPurposeOther','Please explain the account purpose','text',S.coAccountPurposeOther,'','true')}
     </div>
-    <div id="coSOFOtherWrap" style="display:${(S.coSourceOfFunds||'').includes('Other')?' block':'none'}">
-      ${fieldHTML('coSourceOfFundsOther','Please explain','text',S.coSourceOfFundsOther,'','true')}
+    <div class="field-group">
+      <label for="coSourceOfFunds">Main source of funds</label>
+      <select id="coSourceOfFunds"><option value="">Select…</option>${sofOpts}</select>
+      <div class="field-error" id="coSourceOfFunds-err"></div>
+    </div>
+    <div id="coSOFOtherWrap" style="display:${(S.coSourceOfFunds||'').includes('Other')?'block':'none'};margin-top:-8px;margin-bottom:16px">
+      ${fieldHTML('coSourceOfFundsOther','Please explain the source of funds','text',S.coSourceOfFundsOther,'','true')}
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>&ensp;Registered address</div>
@@ -1658,8 +1776,8 @@ function RB3(){
   const opAddr=S.coHasDiffOp&&S.coOpAddr1?[S.coOpAddr1,S.coOpAddr2,S.coOpCity,S.coOpState,S.coOpPostcode,S.coOpCountry].filter(Boolean).join(', '):'Same as registered';
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
-    <h1 class="step-heading">Review company details.</h1>
-    <p class="step-sub">Please confirm before we continue.</p>
+    <h1 class="step-heading" style="text-align:center">Review Company Details.</h1>
+    <p class="step-sub" style="text-align:center">Please confirm before we continue.</p>
 
     <div class="review-section">
       <div class="review-section-header">
@@ -1671,7 +1789,6 @@ function RB3(){
       ${rv('Legal form',S.coLegalForm)}
       ${rv('Registration no.',S.coRegNum)}
       ${rv('Registration date',S.coRegDate)}
-      ${S.coVAT?rv('VAT number',S.coVAT):''}
     </div>
 
     <div class="review-section">
@@ -1704,26 +1821,23 @@ function RB3(){
       ${rv('Operating',opAddr)}
     </div>
 
-    <button class="btn btn-primary" style="margin-top:28px" onclick="nextStep()">Confirm &amp; continue →</button>
   </div>`;
 }
 
 // ── B4 — Company documents ─────────────────────────────────────────────────
 function RB4(){
   const docs=[
-    {id:'docAoA',label:'Articles of Association / Certificate of Incorporation',desc:'Official document confirming the company\'s legal formation and governance structure.'},
-    {id:'docShareholder',label:'Shareholder Register / Share Certificate',desc:'Document showing the company\'s shareholders and their ownership stakes.'},
-    {id:'docBankStmt',label:'Company Bank Statement',desc:'Recent bank statement (within last 3 months) verifying the company bank account and account holder name.'},
+    {id:'docAoA',label:'Incorporation',desc:'Please upload your articles of incorporation or certificate of incorporation. This document confirms your company\'s legal formation and typically includes the company name, business purpose, registered address, share structure, governance framework, and a list of all current directors. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
+    {id:'docShareholder',label:'Proof of ownership',desc:'Please upload your proof of ownership. This document should show the names of all shareholders and their respective ownership percentages. Only PDF and image files are accepted (.jpg, .jpeg, .png, .pdf), max 10 MB.'},
   ];
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div></div>
-    <h1 class="step-heading">Company documents.</h1>
-    <p class="step-sub">Upload the required documents below. PDF or image (JPG, PNG), max 10 MB each.</p>
+    <h1 class="step-heading" style="text-align:center">Company Documents.</h1>
+    <p class="step-sub" style="text-align:center">Upload the required documents below. PDF or image (JPG, PNG), max 10 MB each.</p>
 
     ${docs.map(d=>`
     <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
-      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px">${esc(d.label)}</div>
-      <div style="font-size:12.5px;color:var(--ink3);margin-bottom:14px;line-height:1.5">${esc(d.desc)}</div>
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:0">${esc(d.label)}<span class="tooltip-wrap"><span class="tooltip-icon" tabindex="0" style="margin-left:7px">i</span><span class="tooltip-box" style="width:300px;left:0;transform:none">${esc(d.desc)}</span></span></div>
       <div class="upload-zone" onclick="document.getElementById('${d.id}File').click()">
         <input type="file" id="${d.id}File" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleDocUpload('${d.id}')">
         <div id="${d.id}Empty">
@@ -1747,7 +1861,964 @@ function RB4(){
       All documents are processed securely and stored encrypted in compliance with GDPR.
     </div>
 
-    <button class="btn btn-primary" style="margin-top:20px" onclick="nextStep()">Continue →</button>
+  </div>`;
+}
+
+// ── B5 — Company Management ────────────────────────────────────────────────
+const MGMT_ROLES=['CEO','CFO','COO','Managing Director','President','General Partner','Board Member','Authorised Signatory','Other — please specify'];
+const MGMT_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
+
+function blankMgmtPerson(){
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:_geoCC||'+49',phone:'',
+    dob:'',companyStartDate:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',
+    role:'',isDirector:false};
+}
+
+function renderMgmtPerson(p,i){
+  const name=(p.firstName||p.lastName)?[p.firstName,p.lastName].filter(Boolean).join(' '):'—';
+  const roleOpts=MGMT_ROLES.map(r=>`<option value="${esc(r)}"${p.role===r?' selected':''}>${esc(r)}</option>`).join('');
+  const phoneSel=MGMT_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(p.phoneCC||_geoCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(p.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
+  return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="mgmt-person-${i}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--n050);border:2px solid var(--n100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--ink)">Company Management ${i+1}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${esc(name)}</div>
+      </div>
+      ${i>0?`<button type="button" onclick="removeMgmtPerson(${i})" style="background:none;border:none;cursor:pointer;color:var(--ink3);padding:4px;border-radius:6px;display:flex;align-items:center" title="Remove">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>`:''}
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="mp${i}First">First name</label>
+        <input type="text" id="mp${i}First" value="${esc(p.firstName||'')}" placeholder="First name" oninput="updateMgmtHeader(${i})">
+        <div class="field-error" id="mp${i}First-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="mp${i}Middle">Middle name <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <input type="text" id="mp${i}Middle" value="${esc(p.middleName||'')}" placeholder="Middle name">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Last">Last name</label>
+      <input type="text" id="mp${i}Last" value="${esc(p.lastName||'')}" placeholder="Last name" oninput="updateMgmtHeader(${i})">
+      <div class="field-error" id="mp${i}Last-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Email">Email</label>
+      <input type="email" id="mp${i}Email" value="${esc(p.email||'')}" placeholder="person@company.com">
+      <div class="field-error" id="mp${i}Email-err"></div>
+    </div>
+    <div class="field-group">
+      <label>Phone number</label>
+      <div class="phone-row">
+        <select id="mp${i}PhoneCC" style="width:130px;min-width:130px">${phoneSel}</select>
+        <input type="tel" id="mp${i}Phone" value="${esc(p.phone||'')}" placeholder="e.g. 1234 567 890">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}DOB">Date of birth</label>
+      <input type="date" id="mp${i}DOB" value="${esc(p.dob||'')}" max="${todayMinus18()}">
+      <div class="field-error" id="mp${i}DOB-err"></div>
+    </div>
+
+    <div class="field-group" style="position:relative">
+      <label>Search address</label>
+      <span style="position:relative;display:block">
+        <svg style="position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink3);opacity:.5" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="mp${i}AddrSearch" placeholder="Start typing address…" autocomplete="off"
+          oninput="mgmtAddrLookup(${i},this.value)" style="padding-left:38px;border-radius:var(--r-md);width:100%;box-sizing:border-box">
+      </span>
+      <div id="mp${i}AddrDrop" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1.5px solid #DDE6EF;border-radius:var(--r-md);box-shadow:0 8px 28px rgba(11,25,41,.12);z-index:200;max-height:220px;overflow-y:auto"></div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Or fill in manually below.</div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Addr1">Address line 1</label>
+      <input type="text" id="mp${i}Addr1" value="${esc(p.addr1||'')}" placeholder="Street and number">
+      <div class="field-error" id="mp${i}Addr1-err"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="mp${i}City">City</label>
+        <input type="text" id="mp${i}City" value="${esc(p.city||'')}" placeholder="City">
+        <div class="field-error" id="mp${i}City-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="mp${i}Postcode">Post code</label>
+        <input type="text" id="mp${i}Postcode" value="${esc(p.postcode||'')}" placeholder="Post code">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="mp${i}Country">Country of residence</label>
+      <select id="mp${i}Country">${countryOpts}</select>
+    </div>
+
+    <div style="border-top:1px solid #EEF3F8;margin:16px 0 16px;padding-top:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Managing</div>
+      <div class="field-group">
+        <label for="mp${i}Role">Role</label>
+        <input type="text" id="mp${i}Role" value="${esc(p.role||'')}" placeholder="e.g. CEO, Managing Director, CFO">
+        <div class="field-error" id="mp${i}Role-err"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+        <input type="checkbox" id="mp${i}IsDirector" ${p.isDirector?'checked':''} style="width:16px;height:16px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" onchange="S.coManagement[${i}].isDirector=this.checked;saveState()">
+        <label for="mp${i}IsDirector" style="font-size:13.5px;color:var(--ink2);font-weight:400;cursor:pointer;margin-bottom:0;letter-spacing:0;text-transform:none">Is a company director?</label>
+      </div>
+    </div>
+  </div>`;
+}
+
+function RB5(){
+  if(!S.coManagement.length){
+    S.coManagement=[blankMgmtPerson()];
+  }
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Company Management.</h1>
+    <p class="step-sub" style="text-align:center">Add all directors and authorised signatories. Each person will be subject to identity verification.</p>
+
+    <div id="mgmtPersonsWrap">
+      ${S.coManagement.map((p,i)=>renderMgmtPerson(p,i)).join('')}
+    </div>
+    <div class="field-error" id="directorRequired-err"></div>
+
+    <button type="button" onclick="addMgmtPerson()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:14px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add another person
+    </button>
+  </div>`;
+}
+
+window.addMgmtPerson=function(){
+  collectData();
+  S.coManagement.push(blankMgmtPerson());
+  saveState();
+  const wrap=document.getElementById('mgmtPersonsWrap');
+  if(wrap){
+    const i=S.coManagement.length-1;
+    wrap.insertAdjacentHTML('beforeend',renderMgmtPerson(S.coManagement[i],i));
+    attachMgmtRoleListener(i);
+    attachMgmtAddrSearch(i);
+    // Scroll to new card
+    const newCard=document.getElementById('mgmt-person-'+i);
+    if(newCard)newCard.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+};
+
+window.removeMgmtPerson=function(i){
+  collectData();
+  S.coManagement.splice(i,1);
+  saveState();
+  // Full re-render
+  const steps=getActiveSteps();
+  showStep('forward');
+};
+
+window.updateMgmtHeader=function(i){
+  const fn=document.getElementById('mp'+i+'First')?.value||'';
+  const ln=document.getElementById('mp'+i+'Last')?.value||'';
+  const nameEl=document.querySelector('#mgmt-person-'+i+' .mgmt-name');
+  if(nameEl)nameEl.textContent=[fn,ln].filter(Boolean).join(' ')||'—';
+};
+
+function attachMgmtRoleListener(i){ /* role is now a free text field — no listener needed */ }
+
+let _mgmtAddrTimers={};
+window._mgmtAddrResults={};
+window.mgmtAddrLookup=function(i,q){
+  clearTimeout(_mgmtAddrTimers[i]);
+  const drop=document.getElementById('mp'+i+'AddrDrop');
+  if(!drop)return;
+  if(!q||q.length<4){drop.style.display='none';return;}
+  _mgmtAddrTimers[i]=setTimeout(function(){
+    drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Searching…</div>';
+    drop.style.display='block';
+    fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&addressdetails=1&limit=6',{headers:{'Accept-Language':'en-GB,en'}})
+    .then(r=>r.json()).then(data=>{
+      if(!data||!data.length){drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">No results found</div>';return;}
+      window._mgmtAddrResults[i]=data.slice(0,5).map(r=>{
+        const a=r.address||{};
+        const road=a.road||a.pedestrian||a.street||'';
+        const no=a.house_number||'';
+        const street=road+(no?' '+no:'');
+        return{street:street||r.display_name.split(',')[0]||'',
+          city:a.city||a.town||a.village||a.suburb||'',
+          postcode:a.postcode||'',state:a.state||a.county||'',
+          country:ISO2[(a.country_code||'').toUpperCase()]||''};
+      });
+      drop.innerHTML=window._mgmtAddrResults[i].map((r,j)=>
+        `<div style="padding:11px 16px;cursor:pointer;border-bottom:1px solid #EEF3F8" `+
+        `onmouseover="this.style.background='var(--n050)'" onmouseout="this.style.background=''" `+
+        `onclick="mgmtPickAddr(${i},${j})">`+
+        `<div style="font-size:14px;font-weight:500;color:var(--ink)">${esc(r.street)}</div>`+
+        (r.postcode||r.city?`<div style="font-size:12px;color:var(--ink3)">${[r.postcode,r.city,r.country].filter(Boolean).join(' ')}</div>`:'')
+        +'</div>'
+      ).join('');
+      document.addEventListener('click',function cl(e){
+        if(!e.target.closest('#mp'+i+'AddrDrop')&&e.target.id!=='mp'+i+'AddrSearch'){
+          drop.style.display='none';document.removeEventListener('click',cl);
+        }
+      });
+    }).catch(()=>{drop.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--ink3)">Could not search</div>';});
+  },400);
+};
+
+window.mgmtPickAddr=function(i,j){
+  const r=(window._mgmtAddrResults[i]||[])[j];if(!r)return;
+  const map={Addr1:'street',City:'city',Postcode:'postcode',State:'state'};
+  Object.entries(map).forEach(([fid,key])=>{
+    const el=document.getElementById('mp'+i+fid);if(el&&r[key])el.value=r[key];
+  });
+  if(r.country){const el=document.getElementById('mp'+i+'Country');if(el)el.value=r.country;}
+  const drop=document.getElementById('mp'+i+'AddrDrop');if(drop)drop.style.display='none';
+};
+
+function attachMgmtAddrSearch(i){
+  // Delegate to mgmtAddrLookup — already wired via inline oninput on the input element
+  // Just close drop on outside click
+  document.addEventListener('click',function cl(e){
+    const inp=document.getElementById('mp'+i+'AddrSearch');
+    const drop=document.getElementById('mp'+i+'AddrDrop');
+    if(inp&&drop&&!inp.contains(e.target)&&!drop.contains(e.target)){
+      drop.style.display='none';
+    }
+  });
+}
+
+function collectMgmtData(){
+  S.coManagement.forEach((p,i)=>{
+    p.firstName=document.getElementById('mp'+i+'First')?.value||p.firstName;
+    p.middleName=document.getElementById('mp'+i+'Middle')?.value||'';
+    p.lastName=document.getElementById('mp'+i+'Last')?.value||p.lastName;
+    p.email=document.getElementById('mp'+i+'Email')?.value||p.email;
+    p.phoneCC=document.getElementById('mp'+i+'PhoneCC')?.value||p.phoneCC;
+    p.phone=document.getElementById('mp'+i+'Phone')?.value||'';
+    p.dob=document.getElementById('mp'+i+'DOB')?.value||'';
+    p.addr1=document.getElementById('mp'+i+'Addr1')?.value||'';
+    p.city=document.getElementById('mp'+i+'City')?.value||'';
+    p.postcode=document.getElementById('mp'+i+'Postcode')?.value||'';
+    p.country=document.getElementById('mp'+i+'Country')?.value||p.country;
+    p.role=document.getElementById('mp'+i+'Role')?.value||'';
+    const dirChk=document.getElementById('mp'+i+'IsDirector');
+    if(dirChk)p.isDirector=dirChk.checked;
+  });
+}
+
+// ── B9 — Terms & Conditions ───────────────────────────────────────────────
+function RB9(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Terms &amp; Conditions.</h1>
+    <p class="step-sub" style="text-align:center">Please review and accept our terms before continuing.</p>
+
+    <div class="tc-box">
+      <b>HansePay Business Payment Services Agreement</b><br><br>
+      By accepting, you confirm that your company agrees to HansePay's payment services agreement, fee schedule, acceptable use policy, and GDPR data processing terms. You also confirm that the information provided in this application is accurate and complete to the best of your knowledge.<br><br>
+      <b>Payment Services Agreement:</b> HansePay provides regulated payment services under EU Payment Services Directive 2 (PSD2). All transactions are processed securely and subject to our fee schedule. Business accounts are subject to ongoing transaction monitoring and periodic reviews.<br><br>
+      <b>Acceptable Use Policy:</b> You agree not to use HansePay for any illegal activities, money laundering, terrorist financing, tax evasion, or transactions involving sanctioned persons, entities, or jurisdictions. HansePay reserves the right to suspend or terminate accounts that violate this policy.<br><br>
+      <b>Data Processing:</b> Company and personal data of directors, UBOs, and authorised persons is processed in accordance with EU Regulation 2016/679 (GDPR). You have the right to access, rectify, and erase data subject to applicable legal obligations.<br><br>
+      <em>This is a placeholder — full terms to be inserted before go-live.</em>
+    </div>
+
+    <div class="blindpay-card">
+      <div class="blindpay-card-header">
+        <span class="blindpay-card-title">BlindPay Payment Services</span>
+        <span class="bp-status${S.coBlindpayAccepted?' accepted':' not-accepted'}" id="coBpStatus">${S.coBlindpayAccepted?'Accepted ✓':'Not accepted'}</span>
+      </div>
+      <p style="font-size:13px;color:var(--ink2);margin-bottom:12px">To use payment services you must also accept BlindPay's terms and conditions.</p>
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="openCoBlindPayModal()">Read &amp; accept BlindPay terms →</button>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="coTcCheck" ${S.coTcAccepted?'checked':''} onchange="onCoTCChange()">
+      <label for="coTcCheck">I have read and agree to the Terms and Conditions and Privacy Policy on behalf of the company.</label>
+    </div>
+    <p style="font-size:12px;color:var(--ink3);margin-bottom:16px">Your data is protected under GDPR.</p>
+    <div class="field-error" id="coTc-err"></div>
+    <button class="btn btn-primary" id="coAcceptBtn" onclick="nextStep()" ${(!S.coTcAccepted||!S.coBlindpayAccepted)?'disabled':''}>Accept &amp; continue</button>
+  </div>`;
+}
+
+function openCoBlindPayModal(){
+  const overlay=document.getElementById('modalOverlay');
+  document.getElementById('modalTitle').textContent='BlindPay Payment Services Terms';
+  document.getElementById('modalBody').innerHTML=`<p>By accepting BlindPay's terms, your company agrees to their payment processing agreement, including:</p>
+    <ul style="padding-left:20px;line-height:2.2;margin-top:12px">
+      <li>BlindPay processes payments as a regulated payment institution</li>
+      <li>Company funds are held in segregated client accounts</li>
+      <li>BlindPay may conduct its own compliance and AML checks on the company and its principals</li>
+      <li>Transactions are subject to BlindPay's fee schedule</li>
+      <li>BlindPay's GDPR data processing applies to all payment data</li>
+    </ul>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic;margin-top:16px">Placeholder — full terms to be inserted before go-live.</p>`;
+  document.getElementById('modalActions').innerHTML=`
+    <button class="btn btn-primary" onclick="acceptCoBlindPay()">Accept BlindPay terms</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="width:auto;min-width:100px">Cancel</button>`;
+  overlay.classList.add('open');
+}
+function acceptCoBlindPay(){
+  S.coBlindpayAccepted=true;closeModal();
+  const st=document.getElementById('coBpStatus');
+  if(st){st.textContent='Accepted ✓';st.className='bp-status accepted';}
+  updateCoAcceptBtn();saveState();
+}
+function updateCoAcceptBtn(){
+  const btn=document.getElementById('coAcceptBtn');
+  if(btn)btn.disabled=!(S.coTcAccepted&&S.coBlindpayAccepted);
+}
+function onCoTCChange(){
+  S.coTcAccepted=gc('coTcCheck');updateCoAcceptBtn();saveState();
+}
+
+// ── B10 — Identity verification (KYC) ─────────────────────────────────────
+if(!window._kycSent)window._kycSent={};
+
+function kycPersonRow(key,name,role,email,isPrimary){
+  const sent=window._kycSent[key];
+  return`<div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid #EEF3F8;last-child:border-none" id="kyc-row-${key}">
+    <div style="width:34px;height:34px;border-radius:50%;background:var(--n050);border:1.5px solid var(--n100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;font-size:14px;color:var(--ink)">${esc(name||'—')}</div>
+      <div style="font-size:12px;color:var(--ink3)">${role?esc(role)+(email?'  ·  ':''):''} ${esc(email||'')}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0" id="kyc-actions-${key}">
+      ${sent
+        ? `<span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>
+           <button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`
+        : isPrimary
+          ? `<span style="font-size:12px;color:var(--ink3);white-space:nowrap">You</span>
+             <button type="button" id="bVerifyBtn" onclick="startBVerify()" class="btn btn-primary" style="width:auto;padding:8px 18px;font-size:13px;white-space:nowrap">Start →</button>`
+          : `<span style="font-size:12px;color:var(--ink3);white-space:nowrap">Not started</span>
+             <button type="button" onclick="kycSendEmail('${key}','${esc(name||'')}','${esc(email||'')}')" class="btn btn-ghost btn-sm" style="width:auto;gap:6px;white-space:nowrap">
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+               Send email
+             </button>`
+      }
+    </div>
+  </div>`;
+}
+
+function RB10(){
+  const mgmt=S.coManagement||[];
+  const extraOwners=S.coOwnerExtra||[];
+  // Owners from management list
+  const mgmtOwnerIdxs=(S.coOwnerMgmt||[]).map(o=>o.mgmtIdx);
+
+  const whatToExpect=[
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,title:'No person to speak to',desc:'The process is entirely automated — no calls or video interviews required.'},
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,title:'Have your ID ready',desc:'Each person needs a valid government-issued ID — passport or national ID.'},
+    {icon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--n500)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,title:'Keep a phone nearby',desc:'A smartphone is required to complete the verification steps.'},
+  ];
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+    <h1 class="step-heading" style="text-align:center">Verify Company Management.</h1>
+    <p class="step-sub" style="text-align:center">Each member of company management must complete identity verification. We'll email them a secure link to our partner Signicat.</p>
+
+    <div class="section-header" style="margin-top:4px">What to expect</div>
+    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:22px">
+      ${whatToExpect.map((r,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:14px 18px${i<2?';border-bottom:1px solid #EEF3F8':''}">
+        <div style="width:34px;height:34px;border-radius:9px;background:var(--n050);display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.icon}</div>
+        <div><div style="font-weight:600;font-size:14px;color:var(--ink)">${r.title}</div><div style="font-size:12.5px;color:var(--ink3);margin-top:1px">${r.desc}</div></div>
+      </div>`).join('')}
+    </div>
+
+    ${mgmt.length>0?`
+    <div style="border:1.5px solid #DDE6EF;border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px">
+      <div style="padding:14px 16px;background:var(--n050);border-bottom:1px solid #EEF3F8;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">Company management</div>
+          <div style="font-size:12px;color:var(--ink3)">Each member of company management must complete identity verification.</div>
+        </div>
+      </div>
+      ${mgmt.map((p,i)=>kycPersonRow('mgmt-'+i,[p.firstName,p.lastName].filter(Boolean).join(' '),p.role||'',p.email||'',i===0)).join('')}
+    </div>`:''}
+
+    <div id="bVerifyStatus" style="display:none;background:#dcfce7;border-radius:var(--r-md);padding:14px 18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;color:#166534">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <b>Your identity verified.</b> We'll notify others by email.
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--ink3);text-align:center;margin-bottom:16px">Secured by Signicat · bank-grade identity verification</p>
+
+    ${mgmt.length===0?`<button class="btn btn-primary" id="bVerifyBtn" onclick="startBVerify()">Start verification →</button>`:''}
+    <button class="btn btn-ghost" onclick="nextStep()" style="margin-top:8px">Continue without verifying →</button>
+  </div>`;
+}
+
+const KYC_INVITE_API='https://hansepay-deploy-production-328c.up.railway.app/api/email/kyc-invite';
+
+function _kycDoSend(key,name,email,onDone){
+  const actions=document.getElementById('kyc-actions-'+key);
+  if(!actions)return;
+  if(!email){
+    actions.innerHTML=`<span style="font-size:12px;color:var(--error)">No email address for this person</span>`;
+    return;
+  }
+  actions.innerHTML=`<div class="spinner" style="width:16px;height:16px;border-width:2px;border-color:var(--n200);border-top-color:var(--n500);flex-shrink:0"></div>`;
+  fetch(KYC_INVITE_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      recipientName:name,
+      recipientEmail:email,
+      companyName:S.coName||'',
+      inviterName:(S.firstName||'')+(S.lastName?' '+S.lastName:''),
+      lang:document.documentElement.lang||'en',
+    }),
+  })
+  .then(r=>r.json())
+  .then(r=>{
+    window._kycSent[key]=true;
+    if(onDone)onDone(actions,key,name,email,r.sent);
+  })
+  .catch(()=>{
+    window._kycSent[key]=true;
+    if(onDone)onDone(actions,key,name,email,false);
+  });
+}
+
+function _kycSetSentUI(actions,key,name,email,sent){
+  const label=sent
+    ?`<span style="font-size:12.5px;color:var(--success);font-weight:600;white-space:nowrap">Email sent ✓</span>`
+    :`<span style="font-size:12.5px;color:var(--warn);font-weight:500;white-space:nowrap">Sent (delivery pending)</span>`;
+  actions.innerHTML=label+
+    `<button type="button" onclick="kycResend('${key}','${esc(name||'')}','${esc(email||'')}')" style="background:none;border:none;cursor:pointer;font-size:12.5px;color:var(--n400);text-decoration:underline;white-space:nowrap">Resend</button>`;
+}
+
+window.kycSendEmail=function(key,name,email){
+  _kycDoSend(key,name,email,_kycSetSentUI);
+};
+
+window.kycResend=function(key,name,email){
+  _kycDoSend(key,name,email,_kycSetSentUI);
+};
+
+window.startBVerify=function(){
+  var m=document.getElementById('verifyModal');
+  if(m)m.style.display='flex';
+  var sel=document.getElementById('vModalCountry');
+  if(sel&&sel.options.length<2){
+    Object.entries(ISO2).forEach(function(entry){
+      var o=document.createElement('option');
+      o.value=entry[0];o.textContent=flagEmoji(entry[0])+' '+entry[1];
+      sel.appendChild(o);
+    });
+  }
+  // Override submitVerify to go to B11
+  window._bVerifyMode=true;
+};
+
+// Patch submitVerify to handle business mode
+const _origSubmitVerify=window.submitVerify;
+window.submitVerify=function(){
+  if(window._bVerifyMode){
+    var sel=document.getElementById('vModalCountry');
+    if(!sel||!sel.value){sel.style.borderColor='#dc2626';return;}
+    sel.style.borderColor='';
+    S.docCountry=ISO2[sel.value]||sel.value;
+    S.docVerified=true;
+    saveState();
+    var m=document.getElementById('verifyModal');if(m)m.style.display='none';
+    var vs=document.getElementById('bVerifyStatus');if(vs)vs.style.display='block';
+    var vb=document.getElementById('bVerifyBtn');if(vb)vb.style.display='none';
+    window._bVerifyMode=false;
+    setTimeout(function(){nextStep();},800);
+  } else {
+    _origSubmitVerify && _origSubmitVerify();
+  }
+};
+
+// ── B11 — Success ──────────────────────────────────────────────────────────
+function RB11(){
+  setTimeout(()=>showSuccessPage('business'),50);
+  return`<div class="step-card" id="sCard" style="text-align:center;padding:40px 20px">
+    <div style="width:48px;height:48px;border:3px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .6s linear infinite;margin:0 auto 16px"></div>
+    <p style="color:var(--ink3);font-size:14px">Submitting your application…</p>
+  </div>`;
+}
+
+// ── Generic business country multi-picker ─────────────────────────────────
+function bizCountryPicker(pickerId,stateArr){
+  const inp=document.getElementById('bcp-'+pickerId+'-inp');
+  const drop=document.getElementById('bcp-'+pickerId+'-drop');
+  if(!inp||!drop)return;
+  function renderDrop(q){
+    const results=fuzzyCountrySearch(q||'');
+    drop.innerHTML=results.map(c=>{
+      const added=stateArr.includes(c.name);
+      return`<div class="country-opt${added?' calready-opt':''}" onclick="bcpSelect('${pickerId}','${esc(c.name)}')">
+        <span style="font-size:18px">${flagEmoji(c.iso)}</span>
+        <span class="cname">${esc(c.name)}</span>
+        ${added?'<span class="calready">Added ✓</span>':''}
+      </div>`;
+    }).join('');
+    drop.style.display='block';
+  }
+  inp.addEventListener('input',()=>renderDrop(inp.value));
+  inp.addEventListener('focus',()=>renderDrop(inp.value||''));
+  document.addEventListener('click',function cl(e){
+    if(!inp.contains(e.target)&&!drop.contains(e.target))drop.style.display='none';
+  });
+}
+window.bcpSelect=function(pickerId,name){
+  const map={coCustomerCountries:S.coCustomerCountries,coOperatingCountries:S.coOperatingCountries,coSendingCountries:S.coSendingCountries};
+  const arr=map[pickerId];
+  if(arr&&!arr.includes(name)){arr.push(name);bcpRenderChips(pickerId,arr);}
+  const inp=document.getElementById('bcp-'+pickerId+'-inp');if(inp)inp.value='';
+  const drop=document.getElementById('bcp-'+pickerId+'-drop');if(drop)drop.style.display='none';
+  saveState();
+};
+function bcpRenderChips(pickerId,arr){
+  const w=document.getElementById('bcp-'+pickerId+'-chips');
+  if(!w)return;
+  w.innerHTML=arr.map(c=>`<div class="chip selected" style="font-size:13px">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="bcpRemove('${pickerId}','${esc(c)}')">×</span></div>`).join('');
+}
+window.bcpRemove=function(pickerId,name){
+  const map={coCustomerCountries:S.coCustomerCountries,coOperatingCountries:S.coOperatingCountries,coSendingCountries:S.coSendingCountries};
+  const arr=map[pickerId];
+  if(arr){const i=arr.indexOf(name);if(i>-1)arr.splice(i,1);bcpRenderChips(pickerId,arr);}
+  saveState();
+};
+function bcpPickerHTML(pickerId,label,arr,req){
+  const optStr=req?'':' <span style="font-weight:400;opacity:.6;text-transform:none">(optional)</span>';
+  return`<div class="field-group">
+    <label>${esc(label)}${optStr}</label>
+    <div style="position:relative">
+      <input type="text" id="bcp-${pickerId}-inp" placeholder="Search and add countries…" autocomplete="off" style="border-radius:var(--r-md)">
+      <div class="country-drop" id="bcp-${pickerId}-drop" style="display:none"></div>
+    </div>
+    <div class="chip-group" id="bcp-${pickerId}-chips" style="margin-top:8px">${arr.map(c=>`<div class="chip selected" style="font-size:13px">${flagEmoji(getISO(c))} ${esc(c)} <span class="chip-x" onclick="bcpRemove('${pickerId}','${esc(c)}')">×</span></div>`).join('')}</div>
+    <div class="field-error" id="bcp-${pickerId}-err"></div>
+  </div>`;
+}
+
+// ── B8 — Company Owners (UBOs) ────────────────────────────────────────────
+const OWNER_PHONE_CODES=[['+49','🇩🇪 +49'],['+371','🇱🇻 +371'],['+44','🇬🇧 +44'],['+33','🇫🇷 +33'],['+31','🇳🇱 +31'],['+34','🇪🇸 +34'],['+39','🇮🇹 +39'],['+41','🇨🇭 +41'],['+43','🇦🇹 +43'],['+48','🇵🇱 +48'],['+46','🇸🇪 +46'],['+1','🇺🇸 +1']];
+
+function blankOwnerExtra(){
+  return{firstName:'',middleName:'',lastName:'',email:'',phoneCC:_geoCC||'+49',phone:'',
+    dob:'',addr1:'',addr2:'',city:'',state:'',postcode:'',country:'Germany',pct:''};
+}
+
+function renderOwnerExtra(o,i){
+  const name=(o.firstName||o.lastName)?[o.firstName,o.lastName].filter(Boolean).join(' '):'—';
+  const phoneSel=OWNER_PHONE_CODES.map(([v,l])=>`<option value="${v}"${(o.phoneCC||_geoCC||'+49')===v?' selected':''}>${esc(l)}</option>`).join('');
+  const countryOpts=COUNTRIES.map(c=>`<option value="${esc(c)}"${(o.country||'Germany')===c?' selected':''}>${esc(c)}</option>`).join('');
+  return`<div style="border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:22px 24px;margin-bottom:14px" id="owner-extra-${i}">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:var(--ink)">Owner ${i+1}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${esc(name)}</div>
+      </div>
+      <button type="button" onclick="removeOwnerExtra(${i})" style="background:none;border:none;cursor:pointer;color:var(--error);padding:4px;border-radius:6px;display:flex;align-items:center" title="Remove">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="oe${i}First">First name</label>
+        <input type="text" id="oe${i}First" value="${esc(o.firstName||'')}" placeholder="First name">
+        <div class="field-error" id="oe${i}First-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="oe${i}Middle">Middle name <span style="font-weight:400;opacity:.6">(optional)</span></label>
+        <input type="text" id="oe${i}Middle" value="${esc(o.middleName||'')}" placeholder="Middle name">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Last">Last name</label>
+      <input type="text" id="oe${i}Last" value="${esc(o.lastName||'')}" placeholder="Last name">
+      <div class="field-error" id="oe${i}Last-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Email">Email</label>
+      <input type="email" id="oe${i}Email" value="${esc(o.email||'')}" placeholder="owner@company.com">
+      <div class="field-error" id="oe${i}Email-err"></div>
+    </div>
+    <div class="field-group">
+      <label>Phone number</label>
+      <div class="phone-row">
+        <select id="oe${i}PhoneCC" style="width:130px;min-width:130px">${phoneSel}</select>
+        <input type="tel" id="oe${i}Phone" value="${esc(o.phone||'')}" placeholder="e.g. 1234 567 890">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}DOB">Date of birth</label>
+      <input type="date" id="oe${i}DOB" value="${esc(o.dob||'')}" max="${todayMinus18()}">
+      <div class="field-error" id="oe${i}DOB-err"></div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Addr1">Address line 1</label>
+      <input type="text" id="oe${i}Addr1" value="${esc(o.addr1||'')}" placeholder="Street and number">
+      <div class="field-error" id="oe${i}Addr1-err"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label for="oe${i}City">City</label>
+        <input type="text" id="oe${i}City" value="${esc(o.city||'')}" placeholder="City">
+        <div class="field-error" id="oe${i}City-err"></div>
+      </div>
+      <div class="field-group">
+        <label for="oe${i}Postcode">Post code</label>
+        <input type="text" id="oe${i}Postcode" value="${esc(o.postcode||'')}" placeholder="Post code">
+      </div>
+    </div>
+    <div class="field-group">
+      <label for="oe${i}Country">Country of residence</label>
+      <select id="oe${i}Country">${countryOpts}</select>
+    </div>
+    <div style="border-top:1px solid #EEF3F8;margin:16px 0 14px;padding-top:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);opacity:.7;margin-bottom:12px">Ownership</div>
+      <div class="field-group">
+        <label for="oe${i}Pct">Ownership %</label>
+        <input type="number" id="oe${i}Pct" value="${esc(String(o.pct||''))}" placeholder="51" min="25" max="100" step="1" style="max-width:160px" oninput="recalcOwnerTotal()">
+        <div class="field-error" id="oe${i}Pct-err"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function RB8(){
+  const mgmtList=S.coManagement||[];
+  const mgmtCheckboxes=mgmtList.map((p,i)=>{
+    const sel=S.coOwnerMgmt.find(o=>o.mgmtIdx===i);
+    const checked=!!sel;
+    const pct=sel?sel.pct:'';
+    return`<div style="border:1.5px solid ${checked?'var(--n500)':'#E2EBF3'};border-radius:var(--r-md);padding:14px 16px;margin-bottom:8px;transition:.18s" id="om-row-${i}">
+      <div style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="toggleOwnerMgmt(${i})">
+        <input type="checkbox" id="om-chk-${i}" ${checked?'checked':''} style="width:17px;height:17px;accent-color:var(--n500);cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();toggleOwnerMgmt(${i})">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px;color:var(--ink)">${esc([p.firstName,p.lastName].filter(Boolean).join(' ')||'—')}</div>
+          <div style="font-size:12.5px;color:var(--ink3)">${esc(p.email||'')}${p.role?'  ·  '+esc(p.role):''}</div>
+        </div>
+      </div>
+      <div id="om-pct-${i}" style="display:${checked?'block':'none'};margin-top:12px;padding-top:12px;border-top:1px solid #EEF3F8">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)">Ownership % <span style="color:var(--error)">*</span></label>
+        <input type="number" id="om-pct-inp-${i}" min="25" max="100" step="1" placeholder="51" value="${esc(String(pct))}" style="margin-top:6px;width:160px;padding:10px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px" oninput="updateOwnerMgmtPct(${i},this.value)">
+        <div style="font-size:11.5px;color:var(--ink3);margin-top:4px">Enter 25–100.</div>
+        <div class="field-error" id="om-pct-err-${i}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Company Owners.</h1>
+    <p class="step-sub" style="text-align:center;margin-bottom:10px">Add all individuals who ultimately own or control the company. This includes directors and anyone with significant ownership or control.</p>
+
+    <div class="section-header" style="margin-top:0">Company management list</div>
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px">Select any company management persons who are also owners.</p>
+
+    <div id="ownerMgmtList">
+      ${mgmtCheckboxes||'<p style="font-size:13.5px;color:var(--ink3);padding:12px 0">No management persons added yet. Go back to add them.</p>'}
+    </div>
+
+    ${S.coOwnerExtra.length>0?`<div class="section-header">Additional owners</div><div id="ownerExtraList">${S.coOwnerExtra.map((o,i)=>renderOwnerExtra(o,i)).join('')}</div>`:`<div id="ownerExtraList"></div>`}
+
+    <div class="field-error" id="ownerPctTotal-err"></div>
+
+    <button type="button" onclick="addOwnerExtra()" style="width:100%;padding:13px;border:1.5px dashed #C8D9E8;border-radius:var(--r-lg);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--n500);display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s;margin-top:8px" onmouseover="this.style.borderColor='var(--n400)';this.style.background='var(--n050)'" onmouseout="this.style.borderColor='#C8D9E8';this.style.background='#fff'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add another owner
+    </button>
+  </div>`;
+}
+
+// ── Helper: find the owner with the largest stake ──────────────────────────
+function getLargestOwner(){
+  let best=null,bestPct=0;
+  (S.coOwnerMgmt||[]).forEach(o=>{
+    const pct=Number(o.pct||0);
+    if(pct>bestPct){
+      const m=(S.coManagement||[])[o.mgmtIdx];
+      if(m){bestPct=pct;best={name:[m.firstName,m.lastName].filter(Boolean).join(' ')||'—',pct};}
+    }
+  });
+  (S.coOwnerExtra||[]).forEach(o=>{
+    const pct=Number(o.pct||0);
+    if(pct>bestPct){bestPct=pct;best={name:[o.firstName,o.lastName].filter(Boolean).join(' ')||'—',pct};}
+  });
+  return best;
+}
+
+// ── B8_POA — Proof of address for largest owner ────────────────────────────
+function RB8_POA(){
+  const owner=getLargestOwner();
+  const ownerName=owner?owner.name:'Owner';
+  const poaTypes=['Utility bill','Bank statement','Rental agreement','Tax document','Government correspondence'];
+  const hasFile=!!S.coOwnerPOAFileName;
+  const selType=S.coOwnerPOAType||'';
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Proof of address.</h1>
+    <p class="step-sub" style="text-align:center">Upload a proof of address for the owner with the largest stake. PDF or image (JPG, PNG), max 10 MB.</p>
+
+    <div style="background:#fff;border:1.5px solid #E2EBF3;border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px">
+      <div style="font-weight:600;font-size:14px;color:var(--ink);margin-bottom:14px">${esc(ownerName)}</div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:6px;display:block">Document type <span style="color:var(--error)">*</span></label>
+        <select id="poaType" style="width:100%;padding:11px 14px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A9AB0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center" onchange="S.coOwnerPOAType=this.value;saveState()">
+          <option value="">Select type</option>
+          ${poaTypes.map(t=>`<option value="${t}"${selType===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+        <div class="field-error" id="poaType-err"></div>
+      </div>
+
+      <div class="upload-zone" onclick="document.getElementById('poaFile').click()">
+        <input type="file" id="poaFile" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handlePOAUpload()">
+        <div id="poaEmpty"${hasFile?' style="display:none"':''}>
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--n600)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="upload-text"><b>Click to upload</b> or drag and drop</div>
+          <div class="upload-hint">PDF, JPG or PNG · Max 10 MB</div>
+        </div>
+        <div id="poaDone" style="display:${hasFile?'block':'none'};padding:4px 0">
+          <div style="display:flex;align-items:center;gap:10px;color:var(--success);font-weight:600;font-size:14px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="poaFileName">${esc(S.coOwnerPOAFileName||'File uploaded')}</span>
+          </div>
+        </div>
+      </div>
+      <div class="field-error" id="poaFile-err"></div>
+    </div>
+
+    <div style="background:var(--n050);border-radius:var(--r-md);padding:14px 16px;margin-top:8px;margin-bottom:4px;font-size:13px;color:var(--ink3);line-height:1.6">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      All documents are processed securely and stored encrypted in compliance with GDPR.
+    </div>
+  </div>`;
+}
+
+window.handlePOAUpload=function(){
+  const inp=document.getElementById('poaFile');
+  if(!inp||!inp.files.length)return;
+  const f=inp.files[0];
+  S.coOwnerPOAFileName=f.name;
+  saveState();
+  const empty=document.getElementById('poaEmpty');
+  const done=document.getElementById('poaDone');
+  const name=document.getElementById('poaFileName');
+  if(empty)empty.style.display='none';
+  if(done)done.style.display='block';
+  if(name)name.textContent=f.name;
+};
+
+window.toggleOwnerMgmt=function(mgmtIdx){
+  const chk=document.getElementById('om-chk-'+mgmtIdx);
+  const pctWrap=document.getElementById('om-pct-'+mgmtIdx);
+  const row=document.getElementById('om-row-'+mgmtIdx);
+  const existing=S.coOwnerMgmt.findIndex(o=>o.mgmtIdx===mgmtIdx);
+  if(existing===-1){
+    S.coOwnerMgmt.push({mgmtIdx,pct:''});
+    if(chk)chk.checked=true;
+    if(pctWrap)pctWrap.style.display='block';
+    if(row)row.style.borderColor='var(--n500)';
+  } else {
+    S.coOwnerMgmt.splice(existing,1);
+    if(chk)chk.checked=false;
+    if(pctWrap)pctWrap.style.display='none';
+    if(row)row.style.borderColor='#E2EBF3';
+  }
+  saveState();
+  recalcOwnerTotal();
+};
+
+window.updateOwnerMgmtPct=function(mgmtIdx,val){
+  const o=S.coOwnerMgmt.find(o=>o.mgmtIdx===mgmtIdx);
+  if(o)o.pct=val;
+  saveState();
+  recalcOwnerTotal();
+};
+
+function recalcOwnerTotal(){
+  // Clears the >100% error live as the user corrects values
+  let total=0;
+  (S.coOwnerMgmt||[]).forEach(o=>{
+    const inp=document.getElementById('om-pct-inp-'+o.mgmtIdx);
+    total+=inp?Number(inp.value)||0:Number(o.pct)||0;
+  });
+  (S.coOwnerExtra||[]).forEach((o,i)=>{
+    const inp=document.getElementById('oe'+i+'Pct');
+    total+=inp?Number(inp.value)||0:Number(o.pct)||0;
+  });
+  if(total<=100){
+    const errEl=document.getElementById('ownerPctTotal-err');
+    if(errEl){errEl.textContent='';errEl.classList.remove('visible');}
+  }
+}
+window.recalcOwnerTotal=recalcOwnerTotal;
+
+window.addOwnerExtra=function(){
+  collectData();
+  S.coOwnerExtra.push(blankOwnerExtra());
+  saveState();
+  const list=document.getElementById('ownerExtraList');
+  if(list){
+    const i=S.coOwnerExtra.length-1;
+    list.insertAdjacentHTML('beforeend',renderOwnerExtra(S.coOwnerExtra[i],i));
+    const newCard=document.getElementById('owner-extra-'+i);
+    if(newCard)newCard.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+};
+
+window.removeOwnerExtra=function(i){
+  collectData();
+  S.coOwnerExtra.splice(i,1);
+  saveState();
+  showStep('forward');
+};
+
+function collectOwnerExtraData(){
+  S.coOwnerExtra.forEach((o,i)=>{
+    o.firstName=document.getElementById('oe'+i+'First')?.value||o.firstName;
+    o.middleName=document.getElementById('oe'+i+'Middle')?.value||'';
+    o.lastName=document.getElementById('oe'+i+'Last')?.value||o.lastName;
+    o.email=document.getElementById('oe'+i+'Email')?.value||o.email;
+    o.phoneCC=document.getElementById('oe'+i+'PhoneCC')?.value||o.phoneCC;
+    o.phone=document.getElementById('oe'+i+'Phone')?.value||'';
+    o.dob=document.getElementById('oe'+i+'DOB')?.value||'';
+    o.addr1=document.getElementById('oe'+i+'Addr1')?.value||'';
+    o.city=document.getElementById('oe'+i+'City')?.value||'';
+    o.postcode=document.getElementById('oe'+i+'Postcode')?.value||'';
+    o.country=document.getElementById('oe'+i+'Country')?.value||o.country;
+    const pct=document.getElementById('oe'+i+'Pct')?.value||'';
+    o.pct=pct;
+  });
+}
+
+// ── B6 — Business activity & payments ─────────────────────────────────────
+function RB6(){
+  const custTypeCards=radioCardsHTML('rcCustType',[
+    {v:'b2c',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,label:'Consumers',desc:'B2C — individuals'},
+    {v:'b2b',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>`,label:'Businesses',desc:'B2B — companies'},
+    {v:'both',icon:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg>`,label:'Both',desc:'Consumers & businesses'}
+  ],S.coCustomerType,3);
+
+  const sizeCards=radioCardsHTML('rcCoSize',[
+    {v:'only-me',label:'Only me'},
+    {v:'2-10',label:'2–10 employees'},
+    {v:'11-50',label:'11–50 employees'},
+    {v:'51-200',label:'51–200 employees'},
+    {v:'200+',label:'200+ employees'}
+  ],S.coCompanySize,2);
+
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Business Activity.</h1>
+    <p class="step-sub" style="text-align:center">Tell us about your business and how you plan to use HansePay.</p>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>&ensp;Business activity</div>
+
+    <div class="field-group">
+      <label>Who are your customers?</label>
+      ${custTypeCards}
+      <div class="field-error" id="coCustomerType-err"></div>
+    </div>
+
+    ${bcpPickerHTML('coCustomerCountries','In which countries does your business operate and serve customers?',S.coCustomerCountries,true)}
+
+    <div class="field-group">
+      <label>What is the size of your company?</label>
+      ${sizeCards}
+      <div class="field-error" id="coCompanySize-err"></div>
+    </div>
+
+    <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>&ensp;Payment volumes</div>
+
+    <div class="field-group">
+      <label>How much money will you send each month?</label>
+      ${radioCardsHTML('rcCoVolume',[
+        {v:'under5k',label:'Under 5.000 €'},
+        {v:'5k-25k',label:'5.000 € – 25.000 €'},
+        {v:'25k-100k',label:'25.000 € – 100.000 €'},
+        {v:'100k-500k',label:'100.000 € – 500.000 €'},
+        {v:'over500k',label:'Over 500.000 €'}
+      ],S.coMonthlyVolume,2)}
+      <div class="field-error" id="coMonthlyVolume-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>How many payments will you send each month?</label>
+      ${radioCardsHTML('rcCoTxns',[
+        {v:'1-10',label:'1–10 payments'},
+        {v:'11-50',label:'11–50 payments'},
+        {v:'51-200',label:'51–200 payments'},
+        {v:'200+',label:'200+ payments'}
+      ],S.coMonthlyTransactions,2)}
+      <div class="field-error" id="coMonthlyTransactions-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>What is your highest single transfer amount?</label>
+      ${radioCardsHTML('rcCoMaxTx',[
+        {v:'under1k',label:'Under 1.000 €'},
+        {v:'1k-10k',label:'1.000 € – 10.000 €'},
+        {v:'10k-50k',label:'10.000 € – 50.000 €'},
+        {v:'over50k',label:'Over 50.000 €'}
+      ],S.coMaxTransfer,2)}
+      <div class="field-error" id="coMaxTransfer-err"></div>
+    </div>
+
+    ${bcpPickerHTML('coSendingCountries','Which countries will you mainly send payments to?',S.coSendingCountries,true)}
+
+  </div>`;
+}
+
+// ── B7 — Risk declarations ─────────────────────────────────────────────────
+function RB7(){
+  return`<div class="step-card" id="sCard">
+    <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+    <h1 class="step-heading" style="text-align:center">Risk Declarations.</h1>
+    <p class="step-sub" style="text-align:center">Required by EU anti-money-laundering regulations. Your answers are confidential.</p>
+
+    <!-- Sanctions exposure -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Does your company, including its directors, UBOs, shareholders, business partners, accounts, source of funds, or planned transactions, have any connection to sanctioned, embargoed, or high-risk countries, persons, or entities?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This covers any direct or indirect link between your company, group, directors, UBOs, suppliers, customers, or payment counterparties and parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</span></span>
+      </div>
+      ${radioCardsHTML('rcCoSanctions',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coSanctionsExposure||'no',2)}
+      <div id="coSanctionsExplain" style="display:${S.coSanctionsExposure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please describe the connection, including the country, person/entity involved, nature of the relationship, and whether funds, goods, services, or transactions are involved.
+      </div>
+      <div id="coSanctionsWrap" class="collapsible${S.coSanctionsExposure==='yes'?' open':''}">
+        ${fieldHTML('coSanctionsDetail','Please describe the connection','textarea',S.coSanctionsDetail,'Include the country, person/entity involved, nature of the relationship, and whether funds, goods, services, or transactions are involved.','true')}
+      </div>
+      <div class="field-error" id="coSanctionsExposure-err"></div>
+    </div>
+
+    <!-- Previous account closure -->
+    <div class="compliance-block">
+      <div class="compliance-block-label">Has your company ever had its account restricted or terminated by a bank or financial service provider?
+        <span class="tooltip-wrap" style="margin-left:6px"><span class="tooltip-icon" tabindex="0">i</span><span class="tooltip-box">This includes any situation where your company, a group company, director, UBO, or related account had services restricted, frozen, terminated, placed on reserve, or subjected to enhanced monitoring by a bank, acquirer, PSP, EMI, or payment or MICA partner.</span></span>
+      </div>
+      ${radioCardsHTML('rcCoPrevClosure',[{v:'no',label:'No'},{v:'yes',label:'Yes'}],S.coPreviousAccountClosure||'no',2)}
+      <div id="coPrevClosureExplain" style="display:${S.coPreviousAccountClosure==='yes'?'block':'none'};background:var(--n050);border-radius:var(--r-md);padding:14px 18px;font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:14px">
+        Please describe what happened, including the name of the provider, the reason given, the date, and the current status of the account or relationship.
+      </div>
+      <div id="coPrevClosureWrap" class="collapsible${S.coPreviousAccountClosure==='yes'?' open':''}">
+        ${fieldHTML('coPreviousClosureDetail','Please provide details','textarea',S.coPreviousClosureDetail,'Include the provider, reason, date, and current status.','true')}
+      </div>
+      <div class="field-error" id="coPreviousAccountClosure-err"></div>
+    </div>
+
+
   </div>`;
 }
 
@@ -1888,6 +2959,71 @@ function validateStep(){
       if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
       ok=false;
     }
+  } else if(id==='B9'){
+    if(!S.coTcAccepted||!S.coBlindpayAccepted){
+      const e=document.getElementById('coTc-err');
+      if(e){e.textContent='Please accept all terms to continue';e.classList.add('visible');}
+      ok=false;
+    }
+  } else if(id==='B8_POA'){
+    if(!S.coOwnerPOAType){fail('poaType','Please select a document type');ok=false;}
+    if(!S.coOwnerPOAFileName){
+      const e=document.getElementById('poaFile-err');
+      if(e){e.textContent='Please upload a proof of address document';e.classList.add('visible');}
+      ok=false;
+    }
+  } else if(id==='B8'){
+    collectOwnerExtraData();
+    S.coOwnerMgmt.forEach(o=>{
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100){
+        const e=document.getElementById('om-pct-err-'+o.mgmtIdx);
+        if(e){e.textContent='Please enter a valid ownership % (25–100)';e.classList.add('visible');}ok=false;
+      }
+    });
+    S.coOwnerExtra.forEach((o,i)=>{
+      if(!(o.firstName||'').trim()) fail('oe'+i+'First','First name is required');
+      if(!(o.lastName||'').trim()) fail('oe'+i+'Last','Last name is required');
+      if(!o.dob) fail('oe'+i+'DOB','Date of birth is required');
+      if(!(o.addr1||'').trim()) fail('oe'+i+'Addr1','Address is required');
+      if(!(o.city||'').trim()) fail('oe'+i+'City','City is required');
+      if(!o.pct||isNaN(o.pct)||Number(o.pct)<25||Number(o.pct)>100) fail('oe'+i+'Pct','Enter a valid ownership % (25–100)');
+    });
+    // Total ownership must not exceed 100%
+    const _totalPct=
+      (S.coOwnerMgmt||[]).reduce((s,o)=>s+Number(o.pct||0),0)+
+      (S.coOwnerExtra||[]).reduce((s,o)=>s+Number(o.pct||0),0);
+    if(_totalPct>100){
+      const e=document.getElementById('ownerPctTotal-err');
+      if(e){e.textContent='Total ownership exceeds 100% — please adjust the percentages.';e.classList.add('visible');}
+      ok=false;
+    }
+  } else if(id==='B7'){
+    if(!S.coSanctionsExposure) fail('coSanctionsExposure','Please answer this question');
+    if(S.coSanctionsExposure==='yes'&&!(g('coSanctionsDetail')||'').trim()) fail('coSanctionsDetail','Please provide details');
+    if(!S.coPreviousAccountClosure) fail('coPreviousAccountClosure','Please answer this question');
+    if(S.coPreviousAccountClosure==='yes'&&!(g('coPreviousClosureDetail')||'').trim()) fail('coPreviousClosureDetail','Please provide details');
+  } else if(id==='B6'){
+    if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
+    if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
+    if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
+    if(!S.coMonthlyVolume) fail('coMonthlyVolume','Please select a volume range');
+    if(!S.coMonthlyTransactions) fail('coMonthlyTransactions','Please select a transaction range');
+    if(!S.coMaxTransfer) fail('coMaxTransfer','Please select a transfer amount');
+    if(!S.coSendingCountries.length){const e=document.getElementById('bcp-coSendingCountries-err');if(e){e.textContent='Please add at least one destination country';e.classList.add('visible');}ok=false;}
+  } else if(id==='B5'){
+    collectMgmtData();
+    S.coManagement.forEach((p,i)=>{
+      if(!(p.firstName||'').trim()) fail('mp'+i+'First','First name is required');
+      if(!(p.lastName||'').trim()) fail('mp'+i+'Last','Last name is required');
+      if(!p.dob) fail('mp'+i+'DOB','Date of birth is required');
+      if(!(p.addr1||'').trim()) fail('mp'+i+'Addr1','Address is required');
+      if(!(p.city||'').trim()) fail('mp'+i+'City','City is required');
+    });
+    if(!S.coManagement.some(p=>p.isDirector)){
+      const e=document.getElementById('directorRequired-err');
+      if(e){e.textContent='At least one person must be designated as a company director';e.classList.add('visible');}
+      ok=false;
+    }
   } else if(id==='B1'){
     if(!S.coSearchDone){showToast('Please search and select your company first');ok=false;}
   } else if(id==='B2'){
@@ -1897,8 +3033,10 @@ function validateStep(){
     if(!g('coRegDate')) fail('coRegDate','Registration date is required');
     if(!S.coNACE.length){const e=document.getElementById('coNACE-err');if(e){e.textContent='Please select at least one NACE code';e.classList.add('visible');}ok=false;}
     const desc=(g('coDescription')||'').trim();
-    if(!desc||desc.length<10) fail('coDescription','Please provide a description (at least 10 characters)');
+    if(!desc||desc.length<50) fail('coDescription','Please provide a description (at least 50 characters)');
     if(!isEmail(g('coEmail')||'')) fail('coEmail','Please enter a valid email address');
+    if(!(g('coPhone')||'').trim()) fail('coPhone','Phone number is required');
+    if(!(g('coWebsite')||'').trim()) fail('coWebsite','Website is required');
     if(!g('coAccountPurpose')) fail('coAccountPurpose','Please select an account purpose');
     if(!g('coSourceOfFunds')) fail('coSourceOfFunds','Please select the source of funds');
     if(!(g('coAddr1')||'').trim()) fail('coAddr1','Address line 1 is required');
@@ -1968,6 +3106,21 @@ function collectData(){
     S.majorFundsDesc=g('majorFundsDesc')||'';
   } else if(id===12){
     S.tcAccepted=gc('tcCheck');
+  } else if(id==='B8_POA'){
+    S.coOwnerPOAType=g('poaType')||S.coOwnerPOAType;
+  } else if(id==='B8'){
+    collectOwnerExtraData();
+    // coOwnerMgmt pcts are updated inline via updateOwnerMgmtPct
+  } else if(id==='B7'){
+    S.coSanctionsDetail=g('coSanctionsDetail')||'';
+    S.coHighRiskDetail=g('coHighRiskDetail')||'';
+    S.coPreviousClosureDetail=g('coPreviousClosureDetail')||'';
+  } else if(id==='B6'){
+    S.coSellsWhat=g('coSellsWhat')||S.coSellsWhat;
+    S.coRegulatedDetail=g('coRegulatedDetail')||'';
+    S.coIsRegulated=S.coIsRegulated;
+  } else if(id==='B5'){
+    collectMgmtData();
   } else if(id==='B1'){
     S.coLookupName=g('coLookupName')||S.coLookupName;
     S.coLookupCountry=g('coLookupCountry')||S.coLookupCountry;
@@ -2055,6 +3208,7 @@ function attachAll(id){
   }
 
   // OTP
+  if(id===2) initEmailOTP();
   if(id==='3b') initOTP();
 
   // Searchable selects
@@ -2079,6 +3233,20 @@ function attachAll(id){
   attachCountrySearch();
 
   // ── Business step handlers ──────────────────────────────────────────────
+  if(id==='B9'){
+    const tc=document.getElementById('coTcCheck');
+    if(tc)tc.addEventListener('change',()=>{S.coTcAccepted=tc.checked;updateCoAcceptBtn();saveState();});
+  }
+  if(id==='B6'){
+    bizCountryPicker('coCustomerCountries',S.coCustomerCountries);
+    bizCountryPicker('coSendingCountries',S.coSendingCountries);
+  }
+  if(id==='B5'){
+    S.coManagement.forEach((_,i)=>{
+      attachMgmtRoleListener(i);
+      attachMgmtAddrSearch(i);
+    });
+  }
   if(id==='B2'){
     // Operating address checkbox
     const chk=document.getElementById('coHasDiffOp');
@@ -2169,6 +3337,30 @@ function onRadioSelect(grp,val){
     const w=document.getElementById('pepDetailsWrap');if(w)w.style.display=val==='yes'?'block':'none';
     const e=document.getElementById('pepYesExplain');if(e)e.style.display=val==='yes'?'block':'none';
     computeHighRisk();updateCitizenshipVisibility();
+  }
+  else if(grp==='rcCustType'){S.coCustomerType=val;}
+  else if(grp==='rcCoRegulated'){
+    S.coIsRegulated=val;
+    const w=document.getElementById('coRegDetailWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+  }
+  else if(grp==='rcCoSize'){S.coCompanySize=val;}
+  else if(grp==='rcCoVolume'){S.coMonthlyVolume=val;}
+  else if(grp==='rcCoTxns'){S.coMonthlyTransactions=val;}
+  else if(grp==='rcCoMaxTx'){S.coMaxTransfer=val;}
+  else if(grp==='rcCoSanctions'){
+    S.coSanctionsExposure=val;
+    const w=document.getElementById('coSanctionsWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coSanctionsExplain');if(e)e.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcCoHRC'){
+    S.coHighRiskCountries=val;
+    const w=document.getElementById('coHRCWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coHRCExplain');if(e)e.style.display=val==='yes'?'block':'none';
+  }
+  else if(grp==='rcCoPrevClosure'){
+    S.coPreviousAccountClosure=val;
+    const w=document.getElementById('coPrevClosureWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
+    const e=document.getElementById('coPrevClosureExplain');if(e)e.style.display=val==='yes'?'block':'none';
   }
   else if(grp==='rcOwnsBiz'){S.ownsBusiness=val;}
   else if(grp==='rcMajorFunds'){
@@ -2687,6 +3879,103 @@ function verifyOTP(){
   else{const e=document.getElementById('otp-err');if(e){e.textContent='Please enter all 6 digits';e.classList.add('visible');}}
 }
 
+// ── Email OTP ──
+let _emailResendTimer;
+const OTP_API='https://hansepay-deploy-production-328c.up.railway.app/api/email/otp';
+
+function sendEmailOTP(){
+  S._emailCode=String(Math.floor(100000+Math.random()*900000));
+  saveState(); // persist the new code immediately
+  const email=S.email||'';
+  if(!email){showToast('No email address found — please go back and re-enter.');return;}
+
+  // Show "sending…" in the sub-text while the request is in flight
+  const sub=document.querySelector('#stepViewport .step-sub');
+  if(sub) sub.innerHTML='Sending code to <b>'+email+'</b>…';
+
+  fetch(OTP_API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      email,
+      code:S._emailCode,
+      firstName:S.firstName||'',
+      lang:document.documentElement.lang||'en',
+    }),
+  })
+  .then(r=>r.json())
+  .then(r=>{
+    if(r.sent){
+      if(sub) sub.innerHTML='We sent a verification link and 6-digit code to <b>'+email+'</b>. Check your spam folder if you don\'t see it.';
+    } else {
+      console.warn('[otp] email not delivered:',r);
+      if(sub) sub.innerHTML='Could not send to <b>'+email+'</b>. Use this code instead: <b>'+S._emailCode+'</b>';
+    }
+  })
+  .catch(e=>{
+    console.error('[otp] fetch error:',e);
+    if(sub) sub.innerHTML='Network error. Use this code: <b>'+S._emailCode+'</b>';
+  });
+}
+
+function initEmailOTP(){
+  if(window._skipOtpAutoSend){
+    // Came here from verify-link cross-device fallback — don't auto-send.
+    // User can enter their code manually or click resend.
+    window._skipOtpAutoSend = false;
+  } else {
+    // Normal entry: generate + send a fresh code.
+    S._emailCode = null;
+    sendEmailOTP();
+  }
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
+  inputs.forEach((inp,i)=>{
+    if(!inp)return;
+    inp.addEventListener('input',e=>{
+      const v=e.target.value.replace(/\D/g,'');
+      e.target.value=v.slice(-1);
+      inp.classList.toggle('filled',!!inp.value);
+      if(v&&i<5)inputs[i+1]?.focus();
+      if(inputs.every(x=>x&&x.value))setTimeout(verifyEmailCode,100);
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!inp.value&&i>0)inputs[i-1]?.focus();
+    });
+    inp.addEventListener('paste',e=>{
+      const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+      if(txt.length>=6){inputs.forEach((x,j)=>{if(x){x.value=txt[j]||'';x.classList.toggle('filled',!!x.value);}});setTimeout(verifyEmailCode,100);}
+      e.preventDefault();
+    });
+  });
+  startEmailResendTimer();
+}
+function startEmailResendTimer(){
+  let t=30;
+  const cnt=document.getElementById('emailResendCount');
+  const txt=document.getElementById('emailResendText');
+  const lnk=document.getElementById('emailResendLink');
+  if(txt)txt.style.display='';if(lnk)lnk.style.display='none';
+  clearInterval(_emailResendTimer);
+  _emailResendTimer=setInterval(()=>{
+    t--;if(cnt)cnt.textContent=t;
+    if(t<=0){clearInterval(_emailResendTimer);if(txt)txt.style.display='none';if(lnk)lnk.style.display='';}
+  },1000);
+}
+function resendEmailCode(){
+  sendEmailOTP();
+  startEmailResendTimer();
+}
+function verifyEmailCode(){
+  // If already verified via magic link, just advance
+  if(S.emailLinkVerified){ nextStep(); return; }
+  const inputs=Array.from({length:6},(_,i)=>document.getElementById('emailOtp'+i));
+  const entered=inputs.map(x=>x?x.value:'').join('');
+  const err=document.getElementById('emailOtp-err');
+  if(entered.length<6){if(err){err.textContent='Please enter all 6 digits';err.classList.add('visible');}return;}
+  if(entered!==S._emailCode){if(err){err.textContent='Incorrect code — please try again';err.classList.add('visible');}inputs[0]?.focus();return;}
+  nextStep();
+}
+
 function sendCode(){
   const ph=document.getElementById('phoneNum');
   if(!ph?.value.trim()){showErr('phone','Phone number is required');return;}
@@ -2735,6 +4024,61 @@ function handleSubmit(){
   S.applicationRef='HP-'+rand8();
   setTimeout(()=>{
     collectData();
+    // ── Persist registration to hp_regs so admin Accounts page can read it ──
+    try {
+      const fn=S.firstName||''; const ln=S.lastName||'';
+      const email=S.email||S.coEmail||'';
+      const reg={
+        id:'onb-'+email.replace(/[^a-z0-9]/gi,'').slice(0,10),
+        company: S.coName||((fn+' '+ln).trim())||email,
+        contact: (fn+(ln?' '+ln:'')).trim()||email,
+        email,
+        type:    S.accountType==='personal'?'Individual':'Business',
+        status:  'review',
+        joined:  S._registeredAt||new Date().toISOString().split('T')[0],
+        lastActive: new Date().toISOString().split('T')[0],
+        vol30:0, avgTransfer:0, txCount30:0, balance:0, iban:'—',
+        country:(S.coAddrCountry||'DE').slice(0,2).toUpperCase(),
+        city:S.coCity||'', regNum:S.coRegNum||'—', vat:S.coVAT||'—', plan:'—',
+        txHistory:[],
+        docs:[
+          {name:'Articles of Incorporation',st:S.coIncFileName?'ok':'pending'},
+          {name:'Proof of ownership',       st:S.coOwnerFileName?'ok':'pending'},
+          {name:'Proof of address (UBO)',   st:S.coOwnerPOAFileName?'ok':'pending'},
+          {name:'ID — '+((fn+' '+ln).trim()||'Applicant'),st:S.idFileName?'ok':'pending'},
+        ],
+        _submittedAt: new Date().toISOString(),
+      };
+      const existing=JSON.parse(localStorage.getItem('hp_regs')||'[]');
+      const filtered=existing.filter(r=>r.email!==email);
+      filtered.push(reg);
+      localStorage.setItem('hp_regs',JSON.stringify(filtered));
+    } catch(e){}
+    // ── Send confirmation email via backend ──────────────────────────
+    try {
+      const fn=S.firstName||''; const ln=S.lastName||'';
+      const emailAddr=S.email||S.coEmail||'';
+      fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/confirm',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          firstName:fn, lastName:ln,
+          email:emailAddr,
+          company:S.coName||((fn+' '+ln).trim())||emailAddr,
+          accountType:S.accountType||'business',
+          applicationRef:S.applicationRef||'HP-?',
+          lang:document.documentElement.lang||'en',
+          phone:(S.phoneCountry||'')+' '+(S.phone||''),
+          country:S.coAddrCountry||S.country||'',
+          city:S.coCity||'',
+          regNum:S.coRegNum||'',
+          vat:S.coVAT||'',
+        }),
+      }).then(r=>r.json()).then(r=>{
+        if(r.sent) console.log('[onboarding] confirmation email sent');
+        else console.warn('[onboarding] email not sent:',r.transport,r.reason||'');
+      }).catch(e=>console.warn('[onboarding] email fetch error:',e));
+    } catch(e){}
     const steps=getActiveSteps();
     CI=steps.indexOf(14);
     showStep('forward');
@@ -2827,7 +4171,7 @@ function updateLeftPanel(){
 // =============================================================
 function updateNavFooter(){
   const id=getActiveSteps()[CI];
-  if(id===14){const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';return;}
+  if(id===14||id==='B11'){const nf=document.getElementById('navFooter');if(nf)nf.style.display='none';return;}
   let nf=document.getElementById('navFooter');
   if(!nf){
     nf=document.createElement('div');nf.id='navFooter';nf.className='nav-footer';
@@ -2837,10 +4181,10 @@ function updateNavFooter(){
   const ph=getPhases().find(p=>p.id===getCurrentPhase());
   const steps=getActiveSteps();
   // Steps with their own primary action button (don't show generic Continue in footer)
-  const hasOwnAction=[1,'3a','3b',6,'B1','B3','B4'].includes(id);
+  const hasOwnAction=[1,'3a','3b',6,'B1','B9','B10'].includes(id);
   nf.innerHTML=`
     <div style="flex:1;min-width:90px">${CI>0?`<button class="btn btn-ghost btn-sm" style="width:auto" onclick="prevStep()">← Back</button>`:''}</div>
-    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${steps.length-1}</span></div>
+    <div class="nav-step-info" style="text-align:center;white-space:nowrap">${ph?`<b style="color:var(--n700)">${ph.label}</b>&ensp;`:''}<span style="color:var(--ink3)">Step ${CI+1} of ${(steps.includes(14)||steps.includes('B11'))?steps.length-1:steps.length}</span></div>
     <div style="flex:1;min-width:90px;display:flex;justify-content:flex-end">${hasOwnAction?'':
       `<button class="btn btn-primary" style="width:auto;padding:11px 28px" onclick="nextStep()">Continue →</button>`}</div>`;
 }
@@ -2864,26 +4208,154 @@ function clearAllErr(){
 }
 
 function init(){
+  applyGeoCC(); // fire-and-forget: pre-select dial code from IP
+
+  // ── Handle ?emailVerify=CODE magic link from OTP email ───────────────────
+  const urlCode = new URLSearchParams(window.location.search).get('emailVerify');
+  if(urlCode && /^\d{6}$/.test(String(urlCode))){
+    loadSaved();
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Same-device path: if we have email context in localStorage the user
+    // proved ownership by receiving and clicking the link — trust it directly.
+    // This avoids server round-trips that fail when Railway restarts reset
+    // the in-memory OTP store, and avoids the loop where _goToOtpStep()
+    // triggers initEmailOTP() which auto-sends yet another email.
+    if(S.email || S.coEmail){
+      S.emailLinkVerified = true;
+      S._emailCode = null;
+      saveState();
+      const steps = getActiveSteps();
+      const phoneIdx = steps.indexOf(3);
+      if(phoneIdx !== -1){
+        CI = phoneIdx;
+        showStep('forward');
+        setTimeout(()=>showToast('Email verified ✓ — continue with your phone number.'),200);
+      } else {
+        showStep('forward');
+        setTimeout(()=>showToast('Email verified ✓'),200);
+      }
+      return;
+    }
+
+    // Cross-device fallback (no email context in localStorage): show the OTP
+    // input step WITHOUT triggering a new email send. User can enter their
+    // code manually or click resend once the step loads.
+    window._skipOtpAutoSend = true;
+    const _fbSteps = getActiveSteps();
+    const _fbOtpIdx = _fbSteps.indexOf(2);
+    CI = _fbOtpIdx !== -1 ? _fbOtpIdx : 1;
+    showStep('forward');
+    setTimeout(()=>showToast('Please continue on the device where you started, or enter your code manually.'),300);
+    return;  // always return — resume gate never fires when ?emailVerify present
+  }
+
   const savedIdx=loadSaved();
+  // ── If application was already submitted, show the status screen ────────
+  if(S.applicationRef){
+    const ref = S.applicationRef;
+    // Show the success screen immediately (with cached status)
+    showSuccessPage(S.accountType==='business'?'business':'personal');
+    // Then silently check current status from server
+    fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/status?ref='+encodeURIComponent(ref))
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.status==='approved'){
+          // Update success screen to show approved state
+          const h=document.getElementById('successHeading');
+          if(h) h.textContent='Account approved'+(S.coName?' — '+S.coName:'')+'.';
+          const sub=document.querySelector('.success-hero-sub');
+          if(sub) sub.textContent='Your account is active. Check your email for login details.';
+          // Mark compliance row as done
+          const rows=document.querySelectorAll('.success-step-row');
+          if(rows[2]){
+            rows[2].querySelector('.success-step-icon').className='success-step-icon done';
+            rows[2].querySelector('.success-step-icon').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            const st=rows[2].querySelector('.success-step-status');
+            if(st){st.textContent='Complete';st.className='success-step-status done';}
+          }
+          if(rows[3]){
+            rows[3].querySelector('.success-step-icon').className='success-step-icon done';
+            rows[3].querySelector('.success-step-icon').innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            const st=rows[3].querySelector('.success-step-status');
+            if(st){st.textContent='Complete';st.className='success-step-status done';}
+          }
+        }
+      })
+      .catch(()=>{});
+    return;
+  }
   if(savedIdx!==null&&savedIdx>0){
-    // Show "continue" banner first
-    const vp=document.getElementById('stepViewport');
-    const banner=document.createElement('div');
-    banner.className='saved-banner';
-    banner.innerHTML=`<span>You have a saved application. <b>Continue where you left off?</b></span>
-      <div class="saved-btns">
-        <button class="btn btn-primary btn-sm" onclick="continueSaved(${savedIdx})">Continue</button>
-        <button class="btn btn-ghost btn-sm" onclick="startFresh()">Start over</button>
-      </div>`;
-    vp.appendChild(banner);
-    // Render first step below banner
-    const card=document.createElement('div');
-    card.innerHTML=renderStep(1);
-    vp.appendChild(card.firstElementChild);
-    updateProgress();updateLeftPanel();updateNavFooter();attachAll(1);
+    if(S.email&&S.password){
+      // Account already created — require password to resume
+      showResumeGate(savedIdx);
+    } else {
+      // Haven't finished step 1 yet — show simple banner + step 1 below
+      const vp=document.getElementById('stepViewport');
+      const banner=document.createElement('div');
+      banner.className='saved-banner';
+      banner.innerHTML=`<span>You have a saved application. <b>Continue where you left off?</b></span>
+        <div class="saved-btns">
+          <button class="btn btn-primary btn-sm" onclick="continueSaved(${savedIdx})">Continue</button>
+          <button class="btn btn-ghost btn-sm" onclick="startFresh()">Start over</button>
+        </div>`;
+      vp.appendChild(banner);
+      const card=document.createElement('div');
+      card.innerHTML=renderStep(1);
+      vp.appendChild(card.firstElementChild);
+      updateProgress();updateLeftPanel();updateNavFooter();attachAll(1);
+    }
   } else {
     showStep('forward');
   }
+}
+
+function showResumeGate(idx){
+  const vp=document.getElementById('stepViewport');
+  const name=S.firstName?', '+esc(S.firstName):'';
+  vp.innerHTML=`
+    <div class="step-card enter-right" id="resumeGateCard">
+      <div class="step-icon">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+      </div>
+      <h1 class="step-heading" style="text-align:center">Welcome back${name}.</h1>
+      <p class="step-sub" style="text-align:center">Enter your password to continue your application.</p>
+
+      <div style="display:flex;align-items:center;gap:10px;background:var(--n050);border:1.5px solid var(--n100);border-radius:var(--r-md);padding:11px 16px;margin-bottom:20px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--n400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span style="font-size:13.5px;color:var(--ink2)">${esc(S.email)}</span>
+      </div>
+
+      <div class="field-group">
+        <label for="resumePw">Password</label>
+        <div style="position:relative">
+          <input type="password" id="resumePw" placeholder="Enter your password" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')submitResumeGate(${idx})">
+          <button type="button" onclick="togglePw('resumePw')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:var(--ink3)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="resumePw-err"></div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="submitResumeGate(${idx})">Continue application →</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="startFresh()">Start a new application</button>
+    </div>`;
+  updateProgress();updateLeftPanel();updateNavFooter();
+}
+
+function submitResumeGate(idx){
+  const pw=document.getElementById('resumePw');
+  const err=document.getElementById('resumePw-err');
+  if(!pw?.value.trim()){if(err){err.textContent='Please enter your password';err.classList.add('visible');}return;}
+  if(pw.value!==S.password){
+    if(err){err.textContent='Incorrect password — please try again';err.classList.add('visible');}
+    pw.value='';pw.focus();
+    return;
+  }
+  continueSaved(idx);
 }
 
 function continueSaved(idx){
@@ -2892,7 +4364,8 @@ function continueSaved(idx){
 function startFresh(){
   Object.assign(S,{
     firstName:'',lastName:'',email:'',password:'',agreedToTerms:false,
-    phoneCountry:'+49',phone:'',accountType:'',
+    _emailCode:'',
+    phoneCountry:_geoCC||'+49',phone:'',accountType:'',
     middleName:'',dob:'',street:'',addressLine2:'',city:'',stateProvince:'',postcode:'',
     countryOfResidence:'',changedResidence:'',previousCountry:'',actingOnBehalf:'',
     thirdPartyName:'',thirdPartyRelation:'',
@@ -2907,18 +4380,128 @@ function startFresh(){
     tcAccepted:false,blindpayAccepted:false,isHighRisk:false,applicationRef:'',
     coLookupName:'',coLookupCountry:'Germany',coSearchDone:false,
     coName:'',coTradeName:'',coLegalForm:'',coRegNum:'',coRegDate:'',coVAT:'',
-    coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:'+49',
+    coNACE:[],coDescription:'',coEmail:'',coPhone:'',coPhoneCC:_geoCC||'+49',
     coWebsite:'',coAccountPurpose:'',coAccountPurposeOther:'',
     coSourceOfFunds:'',coSourceOfFundsOther:'',
     coAddr1:'',coAddr2:'',coCity:'',coState:'',coPostcode:'',coAddrCountry:'Germany',
-    coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:''
+    coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
+    coManagement:[],coOwnerMgmt:[],coOwnerExtra:[],coTcAccepted:false,coBlindpayAccepted:false,
+    coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
+    coCompanySize:'',
+    coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
+    coSanctionsExposure:'no',coSanctionsDetail:'',coHighRiskCountries:'no',coHighRiskDetail:'',
+    coPreviousAccountClosure:'no',coPreviousClosureDetail:'',coFraudDisputes:'no',coFraudDetail:''
   });
   CI=0;
   try{localStorage.removeItem('hp_onb');}catch(e){}
   showStep('forward');
 }
 
+// =============================================================
+// LEAVE GUARD
+// =============================================================
+let _leaveTarget='/';
+
+function isOnboardingActive(){
+  const steps=getActiveSteps();
+  const id=steps[CI];
+  // Active if we're past step 1 and not on a terminal success step
+  return CI>0 && id!==14 && id!=='B11';
+}
+
+function openLeaveModal(href){
+  _leaveTarget=href||'/';
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='flex';
+}
+window.closeLeavModal=function(){
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='none';
+};
+window.confirmLeave=function(){
+  const m=document.getElementById('leaveModal');
+  if(m)m.style.display='none';
+  window.location.href=_leaveTarget;
+};
+
+function initLeaveGuard(){
+  // Native beforeunload (browser handles the message — we can't customise it)
+  window.addEventListener('beforeunload',function(e){
+    if(isOnboardingActive()){
+      e.preventDefault();
+      e.returnValue='';
+    }
+  });
+
+  // HansePay logo
+  const logo=document.getElementById('topbarLogo');
+  if(logo){
+    logo.addEventListener('click',function(e){
+      if(isOnboardingActive()){e.preventDefault();openLeaveModal('/');}
+    });
+  }
+
+  // Save & exit
+  const exit=document.getElementById('topbarExit');
+  if(exit){
+    exit.addEventListener('click',function(e){
+      if(isOnboardingActive()){e.preventDefault();openLeaveModal('/');}
+    });
+  }
+
+  // Close leave modal on backdrop click
+  const m=document.getElementById('leaveModal');
+  if(m) m.addEventListener('click',function(e){if(e.target===m)closeLeavModal();});
+}
+
+// =============================================================
+// SHARED SUCCESS PAGE
+// =============================================================
+function showSuccessPage(type){
+  // Hide onboarding layout
+  const layout=document.getElementById('mainLayout');
+  if(layout)layout.style.display='none';
+  const mobileTop=document.getElementById('mobileTop');
+  if(mobileTop)mobileTop.style.display='none';
+  const nf=document.getElementById('navFooter');
+  if(nf)nf.style.display='none';
+  const stepper=document.querySelector('.ob-stepper-wrap');
+  if(stepper)stepper.style.display='none';
+
+  // Show success page
+  const page=document.getElementById('successPage');
+  if(page)page.style.display='block';
+
+  // Ref number
+  S.applicationRef=S.applicationRef||'HP-'+rand8();
+  const ref=document.getElementById('successRef');
+  if(ref)ref.textContent='Reference: '+S.applicationRef;
+
+  if(type==='business'){
+    // Heading
+    const h=document.getElementById('successHeading');
+    if(h)h.textContent='Application submitted'+(S.coName?' — '+S.coName:'')+'.';
+    // Email line
+    const el=document.getElementById('successEmailLine');
+    if(el)el.textContent='We\'ll email you at '+(S.coEmail||S.email||'you')+' once approved';
+    // Step 2: swap "Identity verified" for KYC sent
+    const lbl=document.getElementById('successStep2Label');
+    if(lbl)lbl.innerHTML='KYC verification sent<div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:400;margin-top:1px">Invitations emailed to management</div>';
+    const st=document.getElementById('successStep2Status');
+    if(st)st.textContent='Sent';
+    const ic=document.getElementById('successStep2Icon');
+    if(ic)ic.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>';
+  } else {
+    // Individual
+    const h=document.getElementById('successHeading');
+    if(h)h.textContent='Application submitted'+(S.firstName?', '+S.firstName:'')+'.';
+    const el=document.getElementById('successEmailLine');
+    if(el&&S.email)el.textContent='We\'ll email you at '+S.email+' once approved';
+  }
+}
+
 init();
+initLeaveGuard();
 </script>
 </body>
 </html>

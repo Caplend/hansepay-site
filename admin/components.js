@@ -92,31 +92,49 @@
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/>',
     signout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
     sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+    shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    card: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
   };
   function svg(p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
 
   var NAV = [
-    { sec: 'Main' },
-    { key: 'dash', label: 'Dashboard', href: '/hansepay/admin/', icon: 'dash' },
-    { key: 'bookings', label: 'Bookings', href: '/hansepay/admin/bookings.html', icon: 'cal' },
-    { sec: 'Growth' },
-    { key: 'sales', label: 'Sales Pipeline', href: '/hansepay/admin/sales.html', icon: 'pipeline' },
-    { key: 'crm', label: 'Customers (CRM)', href: '/hansepay/admin/crm.html', icon: 'users' },
-    { key: 'enrich', label: 'Enrichment', href: '/hansepay/admin/enrich.html', icon: 'sparkle' },
-    { key: 'marketing', label: 'Marketing', href: '/hansepay/admin/marketing.html', icon: 'mega' },
-    { sec: 'Content' },
-    { key: 'posts', label: 'Posts', href: '/hansepay/admin/posts.html', icon: 'doc' },
-    { key: 'new-post', label: 'New Post', href: '/hansepay/admin/new-post.html', icon: 'plus' },
-    { sec: 'Optimise' },
-    { key: 'seo', label: 'SEO Manager', href: '/hansepay/admin/seo.html', icon: 'search' },
-    { key: 'analytics', label: 'Analytics', href: '/hansepay/admin/analytics.html', icon: 'pipeline' },
-    { sec: 'Admin' },
-    { key: 'users', label: 'Users', href: '/hansepay/admin/users.html', icon: 'users' },
-    { key: 'settings', label: 'Settings', href: '/hansepay/admin/settings.html', icon: 'settings' },
+    { sec: 'Main',     roles: ['admin','editor'] },
+    { key: 'dash',     label: 'Dashboard',       href: '/hansepay/admin/',                  icon: 'dash',     roles: ['admin','editor'] },
+    { key: 'bookings', label: 'Bookings',         href: '/hansepay/admin/bookings.html',     icon: 'cal',      roles: ['admin','editor'] },
+    { sec: 'Banking',   roles: ['admin','editor','compliance'] },
+    { key: 'accounts', label: 'Accounts',          href: '/hansepay/admin/accounts.html',     icon: 'card',     roles: ['admin','editor','compliance'] },
+    { sec: 'Growth',   roles: ['admin','editor'] },
+    { key: 'sales',    label: 'Sales Pipeline',   href: '/hansepay/admin/sales.html',        icon: 'pipeline', roles: ['admin','editor'] },
+    { key: 'crm',      label: 'Customers (CRM)',  href: '/hansepay/admin/crm.html',          icon: 'users',    roles: ['admin','editor'] },
+    { key: 'enrich',   label: 'Enrichment',       href: '/hansepay/admin/enrich.html',       icon: 'sparkle',  roles: ['admin','editor'] },
+    { key: 'marketing',label: 'Marketing',        href: '/hansepay/admin/marketing.html',    icon: 'mega',     roles: ['admin','editor'] },
+    { sec: 'Content',  roles: ['admin','editor'] },
+    { key: 'posts',    label: 'Posts',            href: '/hansepay/admin/posts.html',        icon: 'doc',      roles: ['admin','editor'] },
+    { key: 'new-post', label: 'New Post',         href: '/hansepay/admin/new-post.html',     icon: 'plus',     roles: ['admin','editor'] },
+    { sec: 'Optimise', roles: ['admin','editor'] },
+    { key: 'seo',      label: 'SEO Manager',      href: '/hansepay/admin/seo.html',          icon: 'search',   roles: ['admin','editor'] },
+    { key: 'analytics',label: 'Analytics',        href: '/hansepay/admin/analytics.html',    icon: 'pipeline', roles: ['admin','editor'] },
+    { sec: 'Legal',    roles: ['admin','compliance'] },
+    { key: 'legal',    label: 'Legal Centre',     href: '/hansepay/admin/legal.html',        icon: 'shield',   roles: ['admin','compliance'] },
+    { sec: 'Admin',    roles: ['admin'] },
+    { key: 'users',    label: 'Users',            href: '/hansepay/admin/users.html',        icon: 'users',    roles: ['admin'] },
+    { key: 'settings', label: 'Settings',         href: '/hansepay/admin/settings.html',     icon: 'settings', roles: ['admin'] },
   ];
 
   function renderSidebar(active) {
-    var nav = NAV.map(function (n) {
+    var role = (user && user.role) || 'editor';
+
+    // Compliance users may only access legal.html and accounts.html
+    var complianceAllowed = ['legal', 'accounts'];
+    if (role === 'compliance' && complianceAllowed.indexOf(active) === -1) {
+      window.location.href = '/hansepay/admin/legal.html';
+      return;
+    }
+
+    var nav = NAV.filter(function(n) {
+      if (!n.roles || n.roles.length === 0) return true;
+      return n.roles.indexOf(role) !== -1;
+    }).map(function (n) {
       if (n.sec) return '<span class="nav-section">' + n.sec + '</span>';
       return '<a href="' + n.href + '" class="nav-item' + (n.key === active ? ' active' : '') + '">' + svg(ICONS[n.icon]) + n.label + '</a>';
     }).join('');

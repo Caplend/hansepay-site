@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Legal Centre — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;--n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;--n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;--ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;--r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;--success:#1A7A4A;--error:#C0392B}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--off);color:var(--ink);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.sidebar{width:240px;min-height:100vh;background:var(--n800);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:28px 20px 22px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sidebar-brand{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#fff;letter-spacing:-0.01em;line-height:1}
+.sidebar-admin-badge{font-family:'Inter',sans-serif;font-size:0.625rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:rgba(255,255,255,0.35);display:block;margin-top:4px}
+.sidebar-nav{flex:1;padding:18px 12px;overflow-y:auto}
+.nav-section{font-size:0.6875rem;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;color:rgba(255,255,255,0.22);padding:12px 12px 6px;margin-top:4px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:0.8125rem;font-weight:500;color:rgba(255,255,255,0.55);transition:all 0.15s;margin-bottom:2px;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.85)}
+.nav-item.active{background:var(--n600);color:#fff;font-weight:600;border-left-color:var(--gold)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,0.07)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:8px}
+.sidebar-avatar{width:30px;height:30px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-user-info{overflow:hidden}
+.sidebar-user-name{font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-email{font-size:0.6875rem;color:rgba(255,255,255,0.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.signout-link{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-md);font-size:0.75rem;font-weight:500;color:rgba(255,255,255,0.45);cursor:pointer;transition:all 0.15s;background:none;border:none;font-family:'Inter',sans-serif;width:100%;text-align:left}
+.signout-link:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75)}
+.signout-link svg{width:14px;height:14px}
+.main{flex:1;margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid rgba(11,25,41,0.08);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.page-title{font-family:'Playfair Display',serif;font-size:1.375rem;font-weight:600;color:var(--n800)}
+.topbar-avatar{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border-radius:var(--r-pill);border:1px solid rgba(11,25,41,0.09);background:var(--off)}
+.topbar-avatar-circle{width:28px;height:28px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:0.6875rem;font-weight:700;color:#fff}
+.topbar-avatar-name{font-size:0.8125rem;font-weight:500;color:var(--ink2)}
+.content{display:flex;flex:1;overflow:hidden}
+
+/* ── Doc list sidebar ── */
+.doc-list{width:220px;flex-shrink:0;background:#fff;border-right:1px solid rgba(11,25,41,0.08);padding:20px 0;overflow-y:auto;display:flex;flex-direction:column}
+.doc-list-head{padding:0 16px 14px;font-size:0.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid #F0F4F8;margin-bottom:8px}
+.doc-item{display:flex;flex-direction:column;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;transition:.15s}
+.doc-item:hover{background:var(--n050)}
+.doc-item.active{background:var(--n050);border-left-color:var(--n500)}
+.doc-item-title{font-size:0.8125rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-item-meta{font-size:0.6875rem;color:var(--ink3);margin-top:2px}
+.view-link{display:flex;align-items:center;gap:5px;padding:8px 16px;font-size:0.75rem;color:var(--n400);margin-top:auto;padding-top:16px;border-top:1px solid #F0F4F8}
+.view-link svg{width:12px;height:12px}
+
+/* ── Editor panel ── */
+.editor-panel{flex:1;overflow-y:auto;padding:32px 40px}
+.editor-loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--ink3);font-size:.9rem}
+.editor-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:20px}
+.editor-meta{flex:1}
+.editor-doc-label{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--n400);margin-bottom:6px}
+.editor-title-input{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:600;color:var(--n800);border:none;background:transparent;width:100%;outline:none;padding:0;line-height:1.3}
+.editor-title-input:focus{background:var(--n050);border-radius:6px;padding:4px 8px}
+.editor-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.btn-save{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:var(--r-pill);background:var(--n500);color:#fff;font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:none;cursor:pointer;transition:background .15s}
+.btn-save:hover{background:var(--n600)}
+.btn-save:disabled{background:#B8C9D9;cursor:not-allowed}
+.btn-pdf{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-pill);background:transparent;color:var(--n600);font-family:'Inter',sans-serif;font-size:.875rem;font-weight:600;border:1.5px solid var(--n200);cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+.btn-pdf:hover{background:var(--n050);border-color:var(--n400)}
+.save-status{font-size:.75rem;color:var(--ink3)}
+
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.meta-field label{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);display:block;margin-bottom:5px}
+.meta-field input{width:100%;padding:8px 12px;border:1.5px solid #DDE6EF;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8375rem;color:var(--ink);background:#fff;outline:none;transition:.15s}
+.meta-field input:focus{border-color:var(--n400)}
+.effective-field{grid-column:1/-1}
+
+/* ── Rich text editor ── */
+.rte-wrap{border:1.5px solid #DDE6EF;border-radius:var(--r-lg);background:#fff;overflow:hidden}
+.rte-toolbar{display:flex;align-items:center;gap:2px;padding:8px 12px;border-bottom:1px solid #EEF3F8;background:#FAFCFF;flex-wrap:wrap}
+.rte-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;border:none;background:none;cursor:pointer;font-size:.8rem;font-weight:700;color:var(--ink2);transition:.12s}
+.rte-btn:hover{background:var(--n050);color:var(--n500)}
+.rte-btn.active{background:var(--n050);color:var(--n500)}
+.rte-sep{width:1px;height:20px;background:#E2EBF3;margin:0 4px}
+.rte-body{padding:24px 28px;min-height:400px;outline:none;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--ink2);line-height:1.75}
+.rte-body:focus{outline:none}
+.rte-body h2{font-size:1rem;font-weight:700;color:var(--n800);margin:28px 0 10px}
+.rte-body h3{font-size:.875rem;font-weight:700;color:var(--n700);margin:20px 0 7px}
+.rte-body p{margin-bottom:12px}
+.rte-body ul,.rte-body ol{padding-left:20px;margin-bottom:12px}
+.rte-body li{margin-bottom:4px}
+.rte-body strong{font-weight:700;color:var(--ink)}
+.rte-body a{color:var(--n400)}
+.rte-body table{width:100%;border-collapse:collapse;font-size:.8rem;margin:14px 0}
+.rte-body th{background:var(--n050);padding:8px 12px;text-align:left;font-weight:600;border-bottom:2px solid #DDE6EF}
+.rte-body td{padding:8px 12px;border-bottom:1px solid #EEF3F8;vertical-align:top}
+.updated-note{font-size:.75rem;color:var(--ink3);margin-top:12px}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--n800);color:#fff;padding:12px 20px;border-radius:var(--r-md);font-size:.875rem;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1;pointer-events:auto}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--error)}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="page-title">Legal Centre</span>
+    </div>
+    <div class="topbar-avatar">
+      <div class="topbar-avatar-circle" id="hp-topbar-avatar">A</div>
+      <span class="topbar-avatar-name" id="hp-topbar-name">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Document list -->
+    <div class="doc-list" id="docList">
+      <div class="doc-list-head">Documents</div>
+      <div id="docListItems">
+        <div class="editor-loading">Loading&hellip;</div>
+      </div>
+      <a href="/hansepay/legal.html" target="_blank" class="view-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        View public page
+      </a>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-panel" id="editorPanel">
+      <div class="editor-loading" id="editorLoading">Select a document to edit</div>
+      <div id="editorContent" style="display:none">
+        <div class="editor-header">
+          <div class="editor-meta">
+            <div class="editor-doc-label" id="edBadgeLabel">Document</div>
+            <input class="editor-title-input" id="edTitle" placeholder="Document title"/>
+          </div>
+          <div class="editor-actions">
+            <span class="save-status" id="saveStatus"></span>
+            <a class="btn-pdf" id="btnPdf" href="#" target="_blank" style="display:none">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Preview PDF
+            </a>
+            <button class="btn-save" id="btnSave" onclick="saveDoc()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save changes
+            </button>
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-field">
+            <label>Badge label</label>
+            <input type="text" id="edBadge" placeholder="e.g. Terms of Service"/>
+          </div>
+          <div class="meta-field effective-field">
+            <label>Effective / date line</label>
+            <input type="text" id="edEffective" placeholder="e.g. Effective: 1 January 2026 &middot; Version 1.0"/>
+          </div>
+        </div>
+
+        <!-- Rich text editor -->
+        <div class="rte-wrap">
+          <div class="rte-toolbar">
+            <button class="rte-btn" title="Bold" onclick="fmt('bold')"><b>B</b></button>
+            <button class="rte-btn" title="Italic" onclick="fmt('italic')"><i>I</i></button>
+            <button class="rte-btn" title="Underline" onclick="fmt('underline')"><u>U</u></button>
+            <div class="rte-sep"></div>
+            <button class="rte-btn" title="Heading 2" onclick="fmt('formatBlock','h2')">H2</button>
+            <button class="rte-btn" title="Heading 3" onclick="fmt('formatBlock','h3')">H3</button>
+            <button class="rte-btn" title="Paragraph" onclick="fmt('formatBlock','p')">&#182;</button>
+            <div class="rte-sep"></div>
+            <button class="rte-btn" title="Bullet list" onclick="fmt('insertUnorderedList')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button class="rte-btn" title="Numbered list" onclick="fmt('insertOrderedList')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none">1</text><text x="2" y="14" font-size="7" fill="currentColor" stroke="none">2</text><text x="2" y="20" font-size="7" fill="currentColor" stroke="none">3</text></svg>
+            </button>
+            <div class="rte-sep"></div>
+            <button class="rte-btn" title="Insert link" onclick="insertLink()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </button>
+            <button class="rte-btn" title="Remove formatting" onclick="fmt('removeFormat')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/><line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+          </div>
+          <div class="rte-body" id="rteBody" contenteditable="true"></div>
+        </div>
+        <div class="updated-note" id="updatedNote"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="hp-toast" class="toast"></div>
+
+<script src="/hansepay/admin/components.js"></script>
+<script>
+HPAdmin.renderSidebar('legal');
+
+var API = HPAdmin.API;
+var authFetch = HPAdmin.authFetch;
+var currentSlug = null;
+var docs = [];
+
+function fmt(cmd, val) {
+  document.execCommand(cmd, false, val || null);
+  document.getElementById('rteBody').focus();
+}
+
+function insertLink() {
+  var url = prompt('URL:', 'https://');
+  if (url) document.execCommand('createLink', false, url);
+}
+
+function loadDocList() {
+  authFetch('/api/legal').then(function(r){ return r.json(); }).then(function(data){
+    docs = data;
+    var html = data.map(function(d){
+      var dt = d.updatedAt ? new Date(d.updatedAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+      return '<div class="doc-item" id="di-'+d.slug+'" onclick="loadDoc(\''+d.slug+'\')">' +
+        '<div class="doc-item-title">'+HPAdmin.escapeHtml(d.title)+'</div>' +
+        '<div class="doc-item-meta">'+dt+(d.updatedBy?' &middot; '+HPAdmin.escapeHtml(d.updatedBy):'')+'</div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('docListItems').innerHTML = html;
+    // Load first doc automatically
+    if (data.length) loadDoc(data[0].slug);
+  }).catch(function(){
+    document.getElementById('docListItems').innerHTML = '<div style="padding:12px 16px;color:var(--error);font-size:.8rem">Failed to load documents</div>';
+  });
+}
+
+function loadDoc(slug) {
+  currentSlug = slug;
+  // Highlight active in list
+  document.querySelectorAll('.doc-item').forEach(function(el){ el.classList.remove('active'); });
+  var activeEl = document.getElementById('di-'+slug);
+  if (activeEl) activeEl.classList.add('active');
+
+  document.getElementById('editorLoading').style.display = 'flex';
+  document.getElementById('editorContent').style.display = 'none';
+
+  authFetch('/api/legal/'+slug).then(function(r){ return r.json(); }).then(function(doc){
+    document.getElementById('edBadgeLabel').textContent = doc.badge || doc.title;
+    document.getElementById('edTitle').value = doc.title || '';
+    document.getElementById('edBadge').value = doc.badge || '';
+    document.getElementById('edEffective').value = doc.effectiveLine || '';
+    document.getElementById('rteBody').innerHTML = doc.body || '';
+    var dt = doc.updatedAt ? new Date(doc.updatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    document.getElementById('updatedNote').textContent = dt ? 'Last saved '+dt+(doc.updatedBy?' by '+doc.updatedBy:'') : '';
+    document.getElementById('saveStatus').textContent = '';
+    document.getElementById('editorLoading').style.display = 'none';
+    document.getElementById('editorContent').style.display = 'block';
+    // Show PDF preview button
+    var pdfBtn = document.getElementById('btnPdf');
+    if (pdfBtn) {
+      pdfBtn.href = '/api/legal/' + slug + '/pdf';
+      pdfBtn.style.display = 'inline-flex';
+    }
+  }).catch(function(){
+    document.getElementById('editorLoading').textContent = 'Failed to load document.';
+  });
+}
+
+function saveDoc() {
+  if (!currentSlug) return;
+  var btn = document.getElementById('btnSave');
+  var status = document.getElementById('saveStatus');
+  btn.disabled = true;
+  status.textContent = 'Saving…';
+
+  var payload = {
+    title: document.getElementById('edTitle').value.trim(),
+    badge: document.getElementById('edBadge').value.trim(),
+    effectiveLine: document.getElementById('edEffective').value.trim(),
+    body: document.getElementById('rteBody').innerHTML,
+  };
+
+  authFetch('/api/legal/'+currentSlug, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }).then(function(r){
+    if (!r.ok) throw new Error('Save failed');
+    return r.json();
+  }).then(function(doc){
+    btn.disabled = false;
+    status.textContent = 'Saved ✓';
+    setTimeout(function(){ status.textContent = ''; }, 3000);
+    var dt = doc.updatedAt ? new Date(doc.updatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    document.getElementById('updatedNote').textContent = dt ? 'Last saved '+dt+(doc.updatedBy?' by '+doc.updatedBy:'') : '';
+    document.getElementById('edBadgeLabel').textContent = doc.badge || doc.title;
+    // Refresh list metadata
+    var item = document.getElementById('di-'+currentSlug);
+    if (item) {
+      item.querySelector('.doc-item-meta').textContent = new Date(doc.updatedAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})+(doc.updatedBy?' · '+doc.updatedBy:'');
+      item.querySelector('.doc-item-title').textContent = doc.title;
+    }
+    HPAdmin.toast('Document saved', 'success');
+  }).catch(function(){
+    btn.disabled = false;
+    status.textContent = 'Save failed';
+    HPAdmin.toast('Save failed — please try again', 'error');
+  });
+}
+
+// Ctrl+S / Cmd+S to save
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey||e.metaKey) && e.key === 's') { e.preventDefault(); saveDoc(); }
+});
+
+loadDocList();
+</script>
+</body>
+</html>

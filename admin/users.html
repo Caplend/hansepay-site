@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Team — HansePay Admin</title>
@@ -62,6 +65,7 @@ a { color: inherit; text-decoration: none; }
 .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:var(--r-pill); font-size:0.6875rem; font-weight:600; }
 .badge-admin { background:var(--n500); color:#fff; }
 .badge-editor { background:var(--n050); color:var(--ink2); }
+.badge-compliance { background:#FEF3C7; color:#92400E; }
 .actions { display:flex; align-items:center; gap:4px; }
 .btn-act { padding:5px 10px; border-radius:var(--r-sm); font-size:0.75rem; font-weight:600; background:transparent; border:none; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s; }
 .btn-act-edit { color:var(--n400); } .btn-act-edit:hover { background:var(--n050); color:var(--n600); }
@@ -151,6 +155,11 @@ a { color: inherit; text-decoration: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       Analytics
     </a>
+    <span class="nav-section">Legal</span>
+    <a href="/hansepay/admin/legal.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Legal Centre
+    </a>
     <span class="nav-section">Admin</span>
     <a href="/hansepay/admin/users.html" class="nav-item active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -233,6 +242,7 @@ a { color: inherit; text-decoration: none; }
       <label for="m-role">Role</label>
       <select id="m-role">
         <option value="editor">Editor</option>
+        <option value="compliance">Compliance</option>
         <option value="admin">Admin</option>
       </select>
     </div>
@@ -273,6 +283,7 @@ fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { he
   .then(function(r) { if (!r.ok) { localStorage.removeItem('hp_token'); window.location.href = '/hansepay/admin/login.html'; } });
 
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
+if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 if (user && user.name) {
   var initials = user.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
   document.getElementById('sidebar-avatar').textContent = initials;
@@ -326,7 +337,7 @@ function renderUsers(users) {
     return '<tr id="row-' + id + '">' +
       '<td><div class="user-cell"><div class="user-initials">' + getInitials(u.name) + '</div><span class="user-name-text">' + safeName + '</span></div></td>' +
       '<td>' + safeEmail + '</td>' +
-      '<td><span class="badge ' + (role === 'admin' ? 'badge-admin' : 'badge-editor') + '">' + role.charAt(0).toUpperCase() + role.slice(1) + '</span></td>' +
+      '<td><span class="badge badge-' + role + '">' + role.charAt(0).toUpperCase() + role.slice(1) + '</span></td>' +
       '<td>' + formatDate(u.lastLogin) + '</td>' +
       '<td><div class="actions">' +
         '<button class="btn-act btn-act-edit" onclick="startEdit(\'' + id + '\')">Edit</button>' +
@@ -347,6 +358,7 @@ function startEdit(id) {
     '<td><input class="inline-input" id="ei-email-' + id + '" type="email" value="' + (u.email || '').replace(/"/g, '&quot;') + '" style="max-width:200px" /></td>' +
     '<td><select class="inline-select" id="ei-role-' + id + '">' +
       '<option value="editor"' + (u.role === 'editor' ? ' selected' : '') + '>Editor</option>' +
+      '<option value="compliance"' + (u.role === 'compliance' ? ' selected' : '') + '>Compliance</option>' +
       '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Admin</option>' +
     '</select></td>' +
     '<td>' + safeLastLogin + '</td>' +
