@@ -4029,11 +4029,12 @@ function handleSubmit(){
       const fn=S.firstName||''; const ln=S.lastName||'';
       const email=S.email||S.coEmail||'';
       const reg={
-        id:'onb-'+email.replace(/[^a-z0-9]/gi,'').slice(0,10),
+        id: S.applicationRef || ('onb-'+email.replace(/[^a-z0-9]/gi,'').slice(0,10)),
+        applicationRef: S.applicationRef || null,
         company: S.coName||((fn+' '+ln).trim())||email,
-        contact: (fn+(ln?' '+ln:'')).trim()||email,
+        contact: (fn+(fn&&ln?' ':'')+ln).trim()||email,
         email,
-        type:    S.accountType==='personal'?'Individual':'Business',
+        type:    S.accountType==='company'?'Business':'Individual',
         status:  'review',
         joined:  S._registeredAt||new Date().toISOString().split('T')[0],
         lastActive: new Date().toISOString().split('T')[0],

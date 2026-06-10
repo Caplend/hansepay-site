@@ -311,15 +311,16 @@ function buildAccountFromOnb(s, ci){
   });
   var vol30 = userTx.reduce(function(sum,t){ return sum+(t.amount||0); }, 0);
   var avgT  = userTx.length ? Math.round(vol30/userTx.length) : 0;
-  // status: step index ≥ 14 means they submitted; <14 = still in process
-  var status = (ci||0) >= 14 ? 'review' : 'process';
+  // applicationRef is set in handleSubmit() the moment they confirm — use it
+  var status = s.applicationRef ? 'review' : 'process';
   var docOk  = function(f){ return f ? 'ok' : 'pending'; };
   return {
-    id:          'onb-' + userEmail.replace(/[^a-z0-9]/gi,'').slice(0,10),
-    company:     name,
-    contact:     (fn+(ln?' '+ln:'')).trim() || userEmail,
-    email:       userEmail,
-    type:        s.accountType==='personal' ? 'Individual' : 'Business',
+    id:             s.applicationRef || ('onb-' + userEmail.replace(/[^a-z0-9]/gi,'').slice(0,10)),
+    applicationRef: s.applicationRef || null,
+    company:        name,
+    contact:        (fn+(ln?' '+ln:'')).trim() || userEmail,
+    email:          userEmail,
+    type:        s.accountType==='individual' ? 'Individual' : 'Business',
     status:      status,
     joined:      s._registeredAt || new Date().toISOString().split('T')[0],
     lastActive:  s._lastLogin    || new Date().toISOString().split('T')[0],
@@ -369,7 +370,7 @@ function mergeLocalAccounts(list){
   // hp_onb (active/partial session)
   try {
     var onb = JSON.parse(localStorage.getItem('hp_onb') || 'null');
-    if(onb && onb.s && onb.s.email){
+    if(onb && onb.s && (onb.s.email || onb.s.coEmail)){
       if(!onb.s._registeredAt){
         onb.s._registeredAt = new Date().toISOString().split('T')[0];
         localStorage.setItem('hp_onb', JSON.stringify(onb));
@@ -394,7 +395,7 @@ function buildAccountFromReg(r){
     company:        r.company || ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
     contact:     ((r.firstName||'')+' '+(r.lastName||'')).trim() || r.email,
     email:       r.email,
-    type:        r.accountType==='personal' ? 'Individual' : 'Business',
+    type:        r.accountType==='individual' ? 'Individual' : 'Business',
     status:      r.status || 'review',
     joined:      (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
     lastActive:  (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
