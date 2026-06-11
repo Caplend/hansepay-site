@@ -827,14 +827,13 @@ function R3a(){
   const verifiedEmail = S.email || S.coEmail || '';
   const showBanner = !!window._emailJustVerified;
   if(showBanner) window._emailJustVerified = false;
-  return`<div class="step-card" id="sCard">
-    ${showBanner ? `<div class="email-verified-banner">
+  return`${showBanner ? `<div class="email-verified-banner">
       <div class="evb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="evb-body">
         <div class="evb-title">Email verified</div>
         <div class="evb-sub">${esc(verifiedEmail)} is confirmed.</div>
       </div>
-    </div>` : ''}
+    </div>` : ''}<div class="step-card" id="sCard">
     <h1 class="step-heading">Secure your account.</h1>
     <p class="step-sub">We'll send a verification code to your phone.</p>
     <div class="field-group">
