@@ -2888,6 +2888,22 @@ function nextStep(){
   collectData();
   saveState();
   const steps=getActiveSteps();
+  // After step 1 (name + email captured), save a draft to the server so the
+  // admin can see this signup immediately — before the full form is submitted.
+  if(steps[CI]===1 && (S.email||S.coEmail)){
+    try{
+      fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/start',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          firstName:S.firstName||'',
+          lastName:S.lastName||'',
+          email:S.email||S.coEmail||'',
+          lang:document.documentElement.lang||'en',
+        }),
+      }).catch(function(){});
+    }catch(e){}
+  }
   if(CI<steps.length-1){CI++;showStep('forward');}
 }
 

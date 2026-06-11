@@ -2256,6 +2256,41 @@ app.get('/api/registrations', authenticateToken, (req, res) => {
   res.json(Array.isArray(list) ? list : []);
 });
 
+// POST /api/registration/start — public, called from onboarding after step 1 (email captured).
+// Creates a lightweight 'started' record so the admin can see in-progress signups immediately.
+// Never downgrades a record that has already reached 'review' or 'approved'.
+app.post('/api/registration/start', (req, res) => {
+  const { firstName, lastName, email, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  try {
+    const regs = readData('registrations.json');
+    const idx  = regs.findIndex(r => r.email === email);
+    // Don't overwrite a record already in review or approved
+    if (idx >= 0 && ['review', 'approved'].includes(regs[idx].status)) {
+      return res.json({ ok: true, status: regs[idx].status });
+    }
+    const existing = idx >= 0 ? regs[idx] : null;
+    const record = Object.assign(existing || {}, {
+      id:         existing ? existing.id : ('start-' + Buffer.from(email).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, 10)),
+      firstName:  firstName || existing && existing.firstName || '',
+      lastName:   lastName  || existing && existing.lastName  || '',
+      email,
+      status:     'started',
+      startedAt:  existing ? (existing.startedAt || new Date().toISOString()) : new Date().toISOString(),
+      lang:       lang || 'en',
+    });
+    if (idx >= 0) regs[idx] = record; else regs.push(record);
+    writeData('registrations.json', regs);
+    console.log(`[registration] started: ${email}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[registration] start error:', err.message);
+    res.status(500).json({ error: 'Failed to save' });
+  }
+});
+
 // POST /api/registration/confirm — public, called from onboarding on submit.
 // Persists to registrations.json AND sends branded confirmation email.
 app.post('/api/registration/confirm', async (req, res) => {

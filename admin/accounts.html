@@ -90,6 +90,7 @@ a{color:inherit;text-decoration:none}
 .badge-active{background:#dcfce7;color:#15803d}.badge-active::before{background:#16a34a}
 .badge-review{background:#fef9c3;color:#854d0e}.badge-review::before{background:#ca8a04}
 .badge-process{background:var(--n050);color:var(--n600)}.badge-process::before{background:var(--n400)}
+.badge-started{background:#f0f4ff;color:#3730a3}.badge-started::before{background:#6366f1}
 .badge-docs{background:#fff7ed;color:#c2410c}.badge-docs::before{background:#ea580c}
 .badge-suspended{background:#fee2e2;color:#991b1b}.badge-suspended::before{background:var(--danger)}
 
@@ -229,6 +230,7 @@ a{color:inherit;text-decoration:none}
         <option value="">All statuses</option>
         <option value="active">Active</option>
         <option value="review">Under review</option>
+        <option value="started">Started</option>
         <option value="process">In process</option>
         <option value="docs">Pending docs</option>
         <option value="suspended">Suspended</option>
@@ -397,8 +399,8 @@ function buildAccountFromReg(r){
     email:       r.email,
     type:        r.accountType==='individual' ? 'Individual' : 'Business',
     status:      r.status || 'review',
-    joined:      (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
-    lastActive:  (r.submittedAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    joined:      ((r.submittedAt||r.startedAt||'')).split('T')[0] || new Date().toISOString().split('T')[0],
+    lastActive:  ((r.submittedAt||r.startedAt||'')).split('T')[0] || new Date().toISOString().split('T')[0],
     vol30:       vol30,
     avgTransfer: avgT,
     txCount30:   userTx.length,
@@ -456,7 +458,7 @@ function renderStats(){
   var all    = allAccounts();
   var total  = all.length;
   var active = all.filter(function(a){return a.status==='active';}).length;
-  var review = all.filter(function(a){return a.status==='review'||a.status==='docs';}).length;
+  var review = all.filter(function(a){return a.status==='review'||a.status==='docs'||a.status==='started';}).length;
   var vol    = all.reduce(function(s,a){return s+a.vol30;},0);
 
   document.getElementById('statTotal').textContent  = total;
@@ -551,8 +553,8 @@ function renderChart(){
 }
 
 // ── Table ─────────────────────────────────────────────────────────────────
-var STATUS_LABELS = {active:'Active',approved:'Approved',review:'Under review',process:'In process',docs:'Pending docs',suspended:'Suspended'};
-var STATUS_CLASSES = {active:'badge-active',approved:'badge-active',review:'badge-review',process:'badge-process',docs:'badge-docs',suspended:'badge-suspended'};
+var STATUS_LABELS = {active:'Active',approved:'Approved',review:'Under review',started:'Started',process:'In process',docs:'Pending docs',suspended:'Suspended'};
+var STATUS_CLASSES = {active:'badge-active',approved:'badge-active',review:'badge-review',started:'badge-started',process:'badge-process',docs:'badge-docs',suspended:'badge-suspended'};
 
 function fmtDate(iso){
   var d=new Date(iso);
