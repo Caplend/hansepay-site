@@ -331,6 +331,43 @@ app.get('/api/health', (req, res) => {
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
+// POST /api/auth/register — public, called from onboarding step 1.
+// Creates or updates a user record so logins work from any device.
+app.post('/api/auth/register', (req, res) => {
+  const { email, password, firstName, lastName } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  if (!password || password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const users = readData('users.json');
+  const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  const passwordHash = bcrypt.hashSync(password, 10);
+  const name = ((firstName || '') + ' ' + (lastName || '')).trim() || email;
+
+  if (idx >= 0) {
+    // Update credentials for returning user (re-registration / password change)
+    users[idx].passwordHash = passwordHash;
+    users[idx].name = name || users[idx].name;
+  } else {
+    users.push({
+      id:           'usr_' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 10),
+      name,
+      email,
+      passwordHash,
+      role:         'user',
+      avatar:       '',
+      createdAt:    new Date().toISOString(),
+      lastLogin:    null,
+    });
+  }
+  writeData('users.json', users);
+  console.log(`[auth] register: ${email} (${idx >= 0 ? 'updated' : 'created'})`);
+  res.json({ ok: true });
+});
+
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });

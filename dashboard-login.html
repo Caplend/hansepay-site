@@ -254,29 +254,64 @@ function handleLogin(e){
 
   if(!ok)return;
 
+  // ── 1. Try localStorage first (same device as onboarding) ──────────────
   try{
     var onb=JSON.parse(localStorage.getItem('hp_onb')||'{}');
     var s=onb.s||{};
     var storedEmail=(s.email||s.coEmail||'').toLowerCase();
-    if(!storedEmail||!s.password){
-      setGlobalErr('No account found. Please complete the onboarding to create an account.');return;
+    if(storedEmail && s.password && storedEmail===email.toLowerCase() && s.password===pw){
+      s._lastLogin=new Date().toISOString().split('T')[0];
+      onb.s=s;
+      localStorage.setItem('hp_onb',JSON.stringify(onb));
+      sessionStorage.setItem('hp_dash_auth','1');
+      window.location.href='dashboard.html';
+      return;
     }
-    if(storedEmail!==email.toLowerCase()){
-      setGlobalErr('No account found with that email address.');return;
+  }catch(e){}
+
+  // ── 2. Fall back to server-side auth (any device) ───────────────────────
+  var submitBtn=document.getElementById('submitBtn');
+  if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='Signing in…';}
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email,password:pw}),
+  })
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='Sign in <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';}
+    if(data.token){
+      localStorage.setItem('hp_token',data.token);
+      // Populate hp_onb with server user data if not already set on this device
+      try{
+        var existing=JSON.parse(localStorage.getItem('hp_onb')||'{}');
+        if(!(existing.s&&(existing.s.email||existing.s.coEmail))){
+          var nameParts=(data.user.name||'').split(' ');
+          localStorage.setItem('hp_onb',JSON.stringify({s:{
+            email:data.user.email,
+            firstName:nameParts[0]||'',
+            lastName:nameParts.slice(1).join(' ')||'',
+            password:pw,
+            _lastLogin:new Date().toISOString().split('T')[0],
+          }}));
+        }
+      }catch(e2){}
+      sessionStorage.setItem('hp_dash_auth','1');
+      window.location.href='dashboard.html';
+    } else {
+      var msg=data.error||'';
+      if(msg==='Invalid credentials'){
+        setGlobalErr('Incorrect password. Please try again.');
+        pwEl.value='';pwEl.focus();
+      } else {
+        setGlobalErr('No account found. Please complete the onboarding to create an account.');
+      }
     }
-    if(s.password!==pw){
-      setGlobalErr('Incorrect password. Please try again.');
-      pwEl.value='';pwEl.focus();return;
-    }
-    // Stamp last login so admin "Last active" is always current
-    s._lastLogin = new Date().toISOString().split('T')[0];
-    onb.s = s;
-    localStorage.setItem('hp_onb', JSON.stringify(onb));
-    sessionStorage.setItem('hp_dash_auth','1');
-    window.location.href='dashboard.html';
-  }catch(err){
-    setGlobalErr('Something went wrong. Please try again.');
-  }
+  })
+  .catch(function(){
+    if(submitBtn){submitBtn.disabled=false;submitBtn.innerHTML='Sign in <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';}
+    setGlobalErr('Could not reach the server. Please check your connection and try again.');
+  });
 }
 </script>
 </body>
