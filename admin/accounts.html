@@ -427,23 +427,78 @@ function allAccounts(){
   return _accountCache || [];
 }
 
+// Convert a CRM customer record to the display shape
+function buildAccountFromCustomer(c){
+  var txLog  = getTxLog();
+  var now30  = Date.now() - 30*24*60*60*1000;
+  var userTx = txLog.filter(function(t){
+    return t.userEmail === c.email && new Date(t.timestamp||0).getTime() > now30;
+  });
+  var vol30  = userTx.reduce(function(s,t){ return s+(t.amount||0); }, 0);
+  var avgT   = userTx.length ? Math.round(vol30/userTx.length) : 0;
+  var name   = ((c.firstName||'')+' '+(c.lastName||'')).trim();
+  return {
+    id:             c.id || c.email,
+    applicationRef: null,
+    company:        c.company || name || c.email,
+    contact:     name || c.email,
+    email:       c.email,
+    type:        c.company ? 'Business' : 'Individual',
+    status:      'active',
+    joined:      (c.createdAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    lastActive:  (c.lastContactAt||c.updatedAt||c.createdAt||'').split('T')[0] || new Date().toISOString().split('T')[0],
+    vol30:       vol30,
+    avgTransfer: avgT,
+    txCount30:   userTx.length,
+    balance:     0,
+    iban:        '—',
+    country:     (c.country||'DE').slice(0,2).toUpperCase(),
+    city:        c.city||'',
+    regNum:      '—',
+    vat:         '—',
+    plan:        '—',
+    txHistory:   userTx.slice(0,5).map(function(t){
+      return {name:t.recipient||'Transfer', date:t.date||'', amt:t.amount||0, dir:t.dir||'out'};
+    }),
+    docs:[
+      {name:'Articles of Incorporation', st:'pending'},
+      {name:'Proof of ownership',        st:'pending'},
+      {name:'Proof of address (UBO)',    st:'pending'},
+      {name:'ID — '+name, st:'pending'},
+    ],
+  };
+}
+
 // Async loader — fetches from API, merges localStorage, then re-renders
 function loadAccountsAsync(){
+  var BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
   var token = localStorage.getItem('hp_token');
-  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registrations',{
-    headers:{ 'Authorization':'Bearer '+token }
-  })
-  .then(function(r){ return r.ok ? r.json() : []; })
-  .then(function(serverRegs){
-    var list = (Array.isArray(serverRegs) ? serverRegs : []).map(buildAccountFromReg);
+  var headers = { 'Authorization':'Bearer '+token };
+
+  var regsFetch  = fetch(BASE+'/api/registrations', {headers:headers})
+    .then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+  var custFetch  = fetch(BASE+'/api/customers',     {headers:headers})
+    .then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+
+  Promise.all([regsFetch, custFetch]).then(function(results){
+    var serverRegs  = Array.isArray(results[0]) ? results[0] : [];
+    var serverCusts = Array.isArray(results[1]) ? results[1] : [];
+
+    var list = serverRegs.map(buildAccountFromReg);
+
+    // Merge active CRM customers not already covered by a registration record
+    var regEmails = {};
+    list.forEach(function(a){ if(a.email) regEmails[a.email.toLowerCase()] = true; });
+    serverCusts
+      .filter(function(c){ return c.status === 'active' && c.email && !regEmails[c.email.toLowerCase()]; })
+      .forEach(function(c){ list.push(buildAccountFromCustomer(c)); });
+
     mergeLocalAccounts(list);
     _accountCache = list;
     renderStats();
     renderChart();
     renderTable();
-  })
-  .catch(function(){
-    // API unavailable — fall back to localStorage only
+  }).catch(function(){
     var list = [];
     mergeLocalAccounts(list);
     _accountCache = list;

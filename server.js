@@ -154,7 +154,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json'];
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json', 'transactions.json'];
   const defaultVal = arrayFiles.includes(filename) ? [] : {};
   if (!fs.existsSync(fp)) return defaultVal;
   try {
@@ -2421,6 +2421,85 @@ app.post('/api/email/kyc-invite', async (req, res) => {
     console.error('[kyc-invite] error:', err.message);
     res.status(500).json({ error: 'Failed to send KYC invite' });
   }
+});
+
+// ─── Transaction 2FA + confirmation ───────────────────────────────────────────
+
+// In-memory OTP store for transaction authorisation (separate from email-verify OTPs)
+const _txOtpStore = {};
+
+// POST /api/tx/otp/send — authenticated. Generates a 6-digit OTP and emails it to the user.
+// Body: { email, firstName, tx: { recipientName, sendAmount, sendCurrency } }
+app.post('/api/tx/otp/send', authenticateToken, async (req, res) => {
+  const { email, firstName, tx } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  _txOtpStore[email.toLowerCase()] = { code, expiresAt: Date.now() + 10 * 60 * 1000 };
+  console.log(`[tx-otp] generated for ${email} (expires in 10 min)`);
+
+  if (!mailer || !mailer.renderTxOtpEmail) {
+    console.log('[tx-otp] mailer not available, code:', code);
+    return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+  }
+
+  try {
+    const mail = mailer.renderTxOtpEmail({ firstName, email, code, tx: tx || {} });
+    const result = await mailer.sendMail(mail);
+    console.log(`[tx-otp] email → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[tx-otp] error:', err.message);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+// POST /api/tx/otp/verify — authenticated. Verifies the OTP.
+// Body: { email, code }
+app.post('/api/tx/otp/verify', authenticateToken, (req, res) => {
+  const { email, code } = req.body || {};
+  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+
+  const entry = _txOtpStore[email.toLowerCase()];
+  if (!entry) return res.json({ valid: false, reason: 'no_code' });
+  if (Date.now() > entry.expiresAt) {
+    delete _txOtpStore[email.toLowerCase()];
+    return res.json({ valid: false, reason: 'expired' });
+  }
+  if (entry.code !== String(code).trim()) return res.json({ valid: false, reason: 'mismatch' });
+
+  delete _txOtpStore[email.toLowerCase()];
+  res.json({ valid: true });
+});
+
+// POST /api/tx/submit — authenticated. Saves a completed transaction and sends confirmation email.
+// Body: tx object from the dashboard (userEmail, amount, currency, recipient, ...)
+app.post('/api/tx/submit', authenticateToken, async (req, res) => {
+  const tx = req.body || {};
+  if (!tx.userEmail) return res.status(400).json({ error: 'userEmail is required' });
+
+  // Append to transactions.json
+  const txs = readData('transactions.json') || [];
+  const record = { ...tx, savedAt: new Date().toISOString() };
+  txs.push(record);
+  writeData('transactions.json', txs);
+  console.log(`[tx] saved transaction for ${tx.userEmail}: ${tx.sendAmount || tx.amount} ${tx.sendCurrency || tx.currency || 'EUR'} → ${tx.recipientName || tx.recipient || '?'}`);
+
+  // Send confirmation email
+  let emailResult = { sent: false };
+  if (mailer && mailer.renderTransactionEmail) {
+    try {
+      const mail = mailer.renderTransactionEmail({ tx: record });
+      emailResult = await mailer.sendMail(mail);
+      console.log(`[tx] confirmation email → ${tx.userEmail}: ${emailResult.sent ? 'sent' : 'skipped (' + emailResult.reason + ')'}`);
+    } catch (err) {
+      console.error('[tx] confirmation email error:', err.message);
+    }
+  }
+
+  res.json({ ok: true, emailSent: emailResult.sent });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
