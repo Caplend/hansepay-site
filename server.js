@@ -109,7 +109,9 @@ app.use((req, res, next) => {
                      '/booking.html', '/hansepay/booking.html',
                      '/hansepay/imprint.html', '/hansepay/cookie-policy.html',
                      '/onboarding.html', '/hansepay/onboarding.html',
-                     '/rebook.html', '/hansepay/rebook.html'];
+                     '/rebook.html', '/hansepay/rebook.html',
+                     '/dashboard-login.html', '/hansepay/dashboard-login.html',
+                     '/dashboard.html', '/hansepay/dashboard.html'];
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
   if (skipExact.includes(req.path)) return next();
 
@@ -2573,6 +2575,78 @@ app.post('/api/tx/submit', authenticateToken, async (req, res) => {
   }
 
   res.json({ ok: true, emailSent: emailResult.sent });
+});
+
+// ─── Password reset ───────────────────────────────────────────────────────────
+
+const _pwResetStore = {};
+
+// POST /api/auth/forgot-password — public.
+// Generates a 15-min OTP and sends it to the registered email.
+// Always returns { ok: true } — never reveals whether the account exists.
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email required' });
+  }
+
+  const users = readData('users.json');
+  const user  = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  const code  = String(Math.floor(100000 + Math.random() * 900000));
+
+  if (user) {
+    _pwResetStore[email.toLowerCase()] = { code, expiresAt: Date.now() + 15 * 60 * 1000 };
+    console.log(`[pw-reset] OTP generated for ${email}`);
+
+    if (mailer && mailer.renderPasswordResetEmail) {
+      try {
+        const nameParts = (user.name || '').split(' ');
+        const mail = mailer.renderPasswordResetEmail({ firstName: nameParts[0] || '', email, code });
+        const result = await mailer.sendMail(mail);
+        console.log(`[pw-reset] email → ${email}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
+      } catch (err) {
+        console.error('[pw-reset] email error:', err.message);
+      }
+    }
+  } else {
+    console.log(`[pw-reset] no account for ${email} — skipping email`);
+  }
+
+  res.json({ ok: true });
+});
+
+// POST /api/auth/reset-password — public.
+// Verifies OTP and replaces the user's password hash.
+app.post('/api/auth/reset-password', (req, res) => {
+  const { email, code, password } = req.body || {};
+  if (!email || !code || !password) {
+    return res.status(400).json({ error: 'email, code and password are required' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const entry = _pwResetStore[email.toLowerCase()];
+  if (!entry) return res.status(400).json({ error: 'No reset code found — please request a new one' });
+  if (Date.now() > entry.expiresAt) {
+    delete _pwResetStore[email.toLowerCase()];
+    return res.status(400).json({ error: 'Code expired — please request a new one' });
+  }
+  if (entry.code !== String(code).trim()) {
+    return res.status(400).json({ error: 'Incorrect code — please try again' });
+  }
+
+  delete _pwResetStore[email.toLowerCase()];
+
+  const users = readData('users.json');
+  const idx   = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  if (idx === -1) return res.status(404).json({ error: 'Account not found' });
+
+  users[idx].passwordHash = bcrypt.hashSync(password, 10);
+  users[idx].updatedAt    = new Date().toISOString();
+  writeData('users.json', users);
+  console.log(`[pw-reset] password updated for ${email}`);
+  res.json({ ok: true });
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
