@@ -379,6 +379,39 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
 
+    <!-- Email & Notifications -->
+    <div class="settings-card">
+      <div class="settings-card-title">Email &amp; notifications</div>
+      <div class="settings-card-desc">Test and diagnose transactional email delivery. HansePay uses Gmail OAuth — the same Google credentials as calendar bookings.</div>
+      <div class="settings-divider"></div>
+
+      <div id="email-status-row" style="display:flex;align-items:center;gap:10px;padding:12px 0 16px;border-bottom:1px solid rgba(11,25,41,.07);margin-bottom:18px">
+        <div id="email-status-dot" style="width:10px;height:10px;border-radius:50%;background:#d1d5db;flex-shrink:0"></div>
+        <div id="email-status-text" style="font-size:.8125rem;color:var(--ink2)">Checking email configuration…</div>
+      </div>
+
+      <div style="font-size:.8125rem;font-weight:600;color:var(--ink);margin-bottom:10px">Send a test email</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+        <input type="email" id="email-test-to" placeholder="Recipient (blank = your address)" style="flex:1;min-width:180px;padding:8px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);outline:none">
+        <select id="email-test-type" style="padding:8px 12px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);background:#fff;outline:none">
+          <option value="booking">Booking confirmation</option>
+          <option value="registration">Registration confirmation</option>
+          <option value="approval">Account approved</option>
+        </select>
+        <button onclick="sendTestEmail()" style="padding:8px 18px;background:#1E4E80;color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;cursor:pointer;white-space:nowrap">Send test</button>
+      </div>
+      <div id="email-test-result" style="display:none;padding:10px 14px;border-radius:8px;font-size:.8125rem;line-height:1.5;margin-bottom:14px"></div>
+
+      <div id="email-reauth-note" style="display:none;padding:12px 16px;background:#fef9c3;border:1px solid #fde68a;border-radius:8px;font-size:.8125rem;line-height:1.7;color:#92400e">
+        <b>Gmail "send email" scope may be missing.</b> Re-run the Google OAuth flow to grant it:<br>
+        1. Open in your browser: <code style="background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px">https://hansepay-deploy-production-328c.up.railway.app/api/booking/auth</code><br>
+        2. On the Google consent screen, approve <b>"Send email on your behalf"</b>.<br>
+        3. Copy the new <code style="background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px">refresh_token</code> from the response.<br>
+        4. In Railway → your service → <b>Variables</b>, update <code style="background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px">GOOGLE_REFRESH_TOKEN</code>.<br>
+        5. Redeploy and click <b>Send test</b> again.
+      </div>
+    </div>
+
     <!-- Sales Reps -->
     <div class="settings-card">
       <div class="settings-card-title">Sales reps &amp; routing</div>
@@ -701,6 +734,76 @@ function saveReps() {
 
 function escapeHtml(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Email diagnostics ────────────────────────────────────────
+
+function checkEmailStatus() {
+  authFetch('/api/email/diagnostics')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var dot    = document.getElementById('email-status-dot');
+      var txt    = document.getElementById('email-status-text');
+      var reauth = document.getElementById('email-reauth-note');
+      if (d.configured) {
+        dot.style.background = '#22c55e';
+        var from = d.env.EMAIL_FROM || d.env.CALENDAR_OWNER_EMAIL || 'Google account';
+        txt.innerHTML = '<b style="color:#166534">Gmail connected</b> — sending as ' + escapeHtml(from);
+      } else if (d.module !== 'loaded') {
+        dot.style.background = '#ef4444';
+        txt.innerHTML = '<b style="color:#991b1b">Email module failed to load.</b> Check Railway deployment logs.';
+      } else {
+        var missing = [];
+        if (!d.env.GOOGLE_CLIENT_ID)     missing.push('GOOGLE_CLIENT_ID');
+        if (!d.env.GOOGLE_CLIENT_SECRET) missing.push('GOOGLE_CLIENT_SECRET');
+        if (!d.env.GOOGLE_REFRESH_TOKEN) missing.push('GOOGLE_REFRESH_TOKEN');
+        if (!d.env.CALENDAR_OWNER_EMAIL && !d.env.EMAIL_FROM) missing.push('CALENDAR_OWNER_EMAIL');
+        if (missing.length) {
+          dot.style.background = '#f97316';
+          txt.innerHTML = '<b style="color:#9a3412">Not configured.</b> Missing Railway env vars: <code style="background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:11px">' + missing.join(', ') + '</code>';
+        } else {
+          dot.style.background = '#f97316';
+          txt.innerHTML = '<b style="color:#9a3412">Env vars present but not verified.</b> Try sending a test email to confirm.';
+          reauth.style.display = 'block';
+        }
+      }
+    })
+    .catch(function() {
+      document.getElementById('email-status-dot').style.background = '#d1d5db';
+      document.getElementById('email-status-text').textContent = 'Could not reach server.';
+    });
+}
+checkEmailStatus();
+
+function sendTestEmail() {
+  var to      = document.getElementById('email-test-to').value.trim();
+  var type    = document.getElementById('email-test-type').value;
+  var resultEl = document.getElementById('email-test-result');
+  resultEl.style.display = 'none';
+  authFetch('/api/email/test', {
+    method: 'POST',
+    body: JSON.stringify({ to: to || undefined, type: type, lang: 'en' }),
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      resultEl.style.display = 'block';
+      if (d.sent) {
+        resultEl.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:.8125rem;line-height:1.5;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;margin-bottom:14px';
+        resultEl.innerHTML = '<b>Sent</b> via ' + escapeHtml(d.transport) + ' → ' + escapeHtml(d.to);
+        // Refresh status dot to green if it wasn't already
+        document.getElementById('email-status-dot').style.background = '#22c55e';
+      } else {
+        resultEl.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:.8125rem;line-height:1.5;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;margin-bottom:14px';
+        resultEl.innerHTML = '<b>Failed:</b> ' + escapeHtml(d.reason || d.error || 'unknown error') + (d.transport ? ' <span style="opacity:.6">(transport: ' + escapeHtml(d.transport) + ')</span>' : '');
+        if ((d.reason || '').match(/scope|grant|auth|credential/i)) {
+          document.getElementById('email-reauth-note').style.display = 'block';
+        }
+      }
+    })
+    .catch(function(e) {
+      resultEl.style.cssText = 'display:block;padding:10px 14px;border-radius:8px;font-size:.8125rem;line-height:1.5;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;margin-bottom:14px';
+      resultEl.innerHTML = 'Request failed: ' + escapeHtml(e.message);
+    });
 }
 
 // ── Site settings ────────────────────────────────────────────
