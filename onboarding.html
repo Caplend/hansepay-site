@@ -291,7 +291,17 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 .nationality-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r-pill);background:var(--n050);border:1.5px solid var(--n200);font-size:14px;font-weight:500;color:var(--n600);margin-bottom:12px}
 
 /* TOAST */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--n800);color:#fff;padding:10px 20px;border-radius:var(--r-pill);font-size:13.5px;z-index:9999;transition:opacity .3s;pointer-events:none;opacity:0}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--n800);color:#fff;padding:11px 22px;border-radius:var(--r-pill);font-size:13.5px;z-index:9999;transition:opacity .35s,transform .35s;pointer-events:none;opacity:0;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(11,25,41,.22);max-width:calc(100vw - 40px);text-align:center;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:#166534;color:#fff}
+#toast.success .toast-icon{color:#86efac}
+
+/* EMAIL VERIFIED BANNER */
+.email-verified-banner{display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 18px;margin-bottom:22px}
+.email-verified-banner .evb-icon{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center}
+.email-verified-banner .evb-body{flex:1}
+.email-verified-banner .evb-title{font-size:14px;font-weight:700;color:#166534;margin-bottom:1px}
+.email-verified-banner .evb-sub{font-size:12.5px;color:#15803d;line-height:1.4}
 
 @media(max-width:768px){
   .left-panel{display:none}
@@ -642,10 +652,15 @@ function todayMinus18(){const d=new Date();d.setFullYear(d.getFullYear()-18);ret
 function maskPhone(cc,ph){if(!ph)return'';return cc+' '+('•'.repeat(Math.max(0,ph.length-3)))+ph.slice(-3)}
 function rand8(){return Math.floor(10000000+Math.random()*90000000)}
 
-function showToast(msg){
+function showToast(msg,type){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',2500);
+  t.className=type?'show '+type:'show';
+  if(type==='success'){
+    t.innerHTML=`<span class="toast-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>${msg}`;
+  } else {
+    t.textContent=msg;
+  }
+  clearTimeout(t._tid);t._tid=setTimeout(()=>{t.className='';},type==='success'?3500:2500);
 }
 
 function showErr(id,msg){
@@ -809,7 +824,17 @@ function R3a(){
     ['+357','🇨🇾 +357 Cyprus'],['+30','🇬🇷 +30 Greece'],['+1','🇺🇸 +1 USA'],
     ['+1','🇨🇦 +1 Canada'],['+61','🇦🇺 +61 Australia']
   ];
+  const verifiedEmail = S.email || S.coEmail || '';
+  const showBanner = !!window._emailJustVerified;
+  if(showBanner) window._emailJustVerified = false;
   return`<div class="step-card" id="sCard">
+    ${showBanner ? `<div class="email-verified-banner">
+      <div class="evb-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="evb-body">
+        <div class="evb-title">Email verified</div>
+        <div class="evb-sub">${esc(verifiedEmail)} is confirmed.</div>
+      </div>
+    </div>` : ''}
     <h1 class="step-heading">Secure your account.</h1>
     <p class="step-sub">We'll send a verification code to your phone.</p>
     <div class="field-group">
@@ -4226,16 +4251,15 @@ function init(){
       S.emailLinkVerified = true;
       S._emailCode = null;
       saveState();
+      window._emailJustVerified = true;
       const steps = getActiveSteps();
       const phoneIdx = steps.indexOf('3a');  // step '3a' = phone entry (was: indexOf(3) which always returned -1)
       if(phoneIdx !== -1){
         CI = phoneIdx;
         showStep('forward');
-        setTimeout(()=>showToast('Email verified ✓ — enter your phone number to continue.'),200);
       } else {
         CI++;
         showStep('forward');
-        setTimeout(()=>showToast('Email verified ✓'),200);
       }
       return;
     }
