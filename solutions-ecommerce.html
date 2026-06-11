@@ -120,18 +120,26 @@ section{position:relative}
 @media(max-width:768px){.cta-band{padding:80px 0}}
 
 /* Comparison table */
-.comp-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:44px}
-.comp-table{width:100%;border-collapse:collapse;min-width:640px}
-.comp-table th{padding:14px 20px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left;border-bottom:2px solid rgba(11,25,41,.08)}
-.comp-table th.hp-col{color:var(--n500);background:rgba(30,78,128,.04)}
-.comp-table td{padding:18px 20px;font-size:13px;color:var(--ink2);line-height:1.55;border-bottom:1px solid rgba(11,25,41,.06);vertical-align:top}
-.comp-table td.hp-col{background:rgba(30,78,128,.04);color:var(--n800);font-weight:500}
-.comp-table tr:last-child td{border-bottom:none}
-.comp-feat{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);display:block;margin-bottom:4px}
-.comp-bad{color:#B91C1C}
-.comp-mid{color:#B45309}
-.comp-good{color:var(--n500);font-weight:600}
+/* Comparison matrix — elevated card with a HansePay spotlight column (Platform-inspired) */
+.comp-wrap{margin-top:44px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);background:#fff;box-shadow:0 8px 32px rgba(11,25,41,.06);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.comp-table{width:100%;border-collapse:collapse;min-width:680px}
+.comp-table thead th{padding:20px 22px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left;background:#FAFBFD;border-bottom:1px solid rgba(11,25,41,.08);vertical-align:bottom}
+.comp-table thead th:first-child{color:var(--ink2)}
+.comp-table thead th.hp-col{color:#fff;background:var(--n800);border-bottom:none}
+.comp-table tbody td{padding:18px 22px;font-size:13px;color:var(--ink2);line-height:1.55;border-bottom:1px solid rgba(11,25,41,.06);vertical-align:top;transition:background .15s}
+.comp-table tbody td.hp-col{background:rgba(30,78,128,.045);color:var(--n800);font-weight:500;box-shadow:inset 1px 0 0 rgba(30,78,128,.12),inset -1px 0 0 rgba(30,78,128,.12)}
+.comp-table tbody tr:last-child td{border-bottom:none}
+.comp-table tbody tr:last-child td.hp-col{box-shadow:inset 1px 0 0 rgba(30,78,128,.12),inset -1px 0 0 rgba(30,78,128,.12),inset 0 -2px 0 var(--n500)}
+.comp-table tbody tr:hover td{background:rgba(11,25,41,.015)}
+.comp-table tbody tr:hover td.hp-col{background:rgba(30,78,128,.075)}
+.comp-feat{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);display:block;margin-bottom:5px}
+.comp-bad,.comp-mid,.comp-good{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13px}
+.comp-bad::before,.comp-mid::before,.comp-good::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.comp-bad{color:#B91C1C}.comp-bad::before{background:#B91C1C}
+.comp-mid{color:#B45309}.comp-mid::before{background:#B45309}
+.comp-good{color:var(--n500)}.comp-good::before{background:var(--n500)}
 .comp-footnote{font-size:11px;color:var(--ink3);margin-top:16px;line-height:1.5}
+@media(max-width:768px){.comp-table thead th,.comp-table tbody td{padding:14px 16px}}
 /* Coverage pills */
 .cov-pill-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}
 .cov-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--r-pill);background:#fff;border:1px solid rgba(11,25,41,.08);font-size:13px;font-weight:500;color:var(--n800)}
