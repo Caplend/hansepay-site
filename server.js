@@ -857,17 +857,59 @@ app.get('/api/email/status', authenticateToken, requireAdmin, (req, res) => {
 // Sends a sample branded booking confirmation and returns the exact result.
 app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) => {
   if (!mailer) return res.status(503).json({ error: 'email module not loaded' });
-  const to = (req.body && req.body.to) || req.user.email;
+  const to   = (req.body && req.body.to)   || req.user.email;
   const lang = (req.body && req.body.lang) || 'en';
-  const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
-  const sample = mailer.renderBookingEmail({
-    slot: { startISO: start.toISOString(), endISO: new Date(start.getTime() + 1800000).toISOString(), label: '11:00 – 11:30' },
-    meetLink: 'https://meet.google.com/test-link-demo',
-    lead: { firstName: (req.user.name || 'there').split(' ')[0], email: to, company: 'Sample Co', industry: 'Manufacturing', fxVolume: '€250k–€1M', lang },
-  });
+  const type = (req.body && req.body.type) || 'booking';
+  const firstName = (req.user.name || 'Test User').split(' ')[0];
+  const lastName  = (req.user.name || '').split(' ').slice(1).join(' ') || 'User';
+
+  let sample;
+  if (type === 'registration') {
+    sample = mailer.renderRegistrationEmail({
+      firstName, lastName, email: to,
+      company: 'Sample Company GmbH',
+      accountType: 'company',
+      applicationRef: 'HP-TEST01',
+      lang,
+    });
+  } else if (type === 'approval') {
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    sample = mailer.renderApprovalEmail({
+      firstName, lastName, email: to,
+      company: 'Sample Company GmbH',
+      applicationRef: 'HP-TEST01',
+      lang,
+      loginUrl: siteBase + '/hansepay/dashboard-login.html',
+    });
+  } else {
+    const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
+    sample = mailer.renderBookingEmail({
+      slot: { startISO: start.toISOString(), endISO: new Date(start.getTime() + 1800000).toISOString(), label: '11:00 – 11:30' },
+      meetLink: 'https://meet.google.com/test-link-demo',
+      lead: { firstName, email: to, company: 'Sample Co', industry: 'Manufacturing', fxVolume: '€250k–€1M', lang },
+    });
+  }
   sample.to = to;
   const result = await mailer.sendMail(sample);
-  res.json(Object.assign({ to }, result));
+  res.json(Object.assign({ to, type }, result));
+});
+
+// GET /api/email/diagnostics — admin only. Returns email transport configuration status.
+app.get('/api/email/diagnostics', authenticateToken, requireAdmin, (req, res) => {
+  const configured = mailer ? mailer.gmailConfigured() : false;
+  res.json({
+    module:     mailer ? 'loaded' : 'not loaded',
+    configured,
+    env: {
+      GOOGLE_CLIENT_ID:     !!process.env.GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET,
+      GOOGLE_REFRESH_TOKEN: !!process.env.GOOGLE_REFRESH_TOKEN,
+      CALENDAR_OWNER_EMAIL: process.env.CALENDAR_OWNER_EMAIL || null,
+      EMAIL_FROM:           process.env.EMAIL_FROM || null,
+      EMAIL_BCC:            process.env.EMAIL_BCC ? '(set)' : null,
+      PUBLIC_BASE_URL:      process.env.PUBLIC_BASE_URL || null,
+    },
+  });
 });
 
 // ─── Public API (API-key auth) ───────────────────────────────────────────────
@@ -2212,6 +2254,41 @@ app.get('/api/email/otp/verify', (req, res) => {
 app.get('/api/registrations', authenticateToken, (req, res) => {
   const list = readData('registrations.json');
   res.json(Array.isArray(list) ? list : []);
+});
+
+// POST /api/registration/start — public, called from onboarding after step 1 (email captured).
+// Creates a lightweight 'started' record so the admin can see in-progress signups immediately.
+// Never downgrades a record that has already reached 'review' or 'approved'.
+app.post('/api/registration/start', (req, res) => {
+  const { firstName, lastName, email, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  try {
+    const regs = readData('registrations.json');
+    const idx  = regs.findIndex(r => r.email === email);
+    // Don't overwrite a record already in review or approved
+    if (idx >= 0 && ['review', 'approved'].includes(regs[idx].status)) {
+      return res.json({ ok: true, status: regs[idx].status });
+    }
+    const existing = idx >= 0 ? regs[idx] : null;
+    const record = Object.assign(existing || {}, {
+      id:         existing ? existing.id : ('start-' + Buffer.from(email).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, 10)),
+      firstName:  firstName || existing && existing.firstName || '',
+      lastName:   lastName  || existing && existing.lastName  || '',
+      email,
+      status:     'started',
+      startedAt:  existing ? (existing.startedAt || new Date().toISOString()) : new Date().toISOString(),
+      lang:       lang || 'en',
+    });
+    if (idx >= 0) regs[idx] = record; else regs.push(record);
+    writeData('registrations.json', regs);
+    console.log(`[registration] started: ${email}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[registration] start error:', err.message);
+    res.status(500).json({ error: 'Failed to save' });
+  }
 });
 
 // POST /api/registration/confirm — public, called from onboarding on submit.
