@@ -2361,13 +2361,49 @@ app.get('/api/registration/status', (req, res) => {
 });
 
 // POST /api/registration/approve — admin only. Approves a registration and sends approval email.
+// Body: { applicationRef, email?, accountData? }
+// If the record is not found by applicationRef it falls back to email lookup, then upserts
+// from accountData if still missing (handles Railway volume loss between deploys).
 app.post('/api/registration/approve', authenticateToken, requireAdmin, async (req, res) => {
-  const { applicationRef } = req.body || {};
-  if (!applicationRef) return res.status(400).json({ error: 'applicationRef is required' });
+  const { applicationRef, email: emailFallback, accountData } = req.body || {};
+  if (!applicationRef && !emailFallback) {
+    return res.status(400).json({ error: 'applicationRef or email is required' });
+  }
 
   const regs = readData('registrations.json');
-  const idx = regs.findIndex(r => r.applicationRef === applicationRef || r.id === applicationRef);
-  if (idx === -1) return res.status(404).json({ error: 'Registration not found' });
+  let idx = applicationRef
+    ? regs.findIndex(r => r.applicationRef === applicationRef || r.id === applicationRef)
+    : -1;
+
+  // Fallback: look up by email
+  if (idx === -1 && emailFallback) {
+    idx = regs.findIndex(r => r.email === emailFallback);
+  }
+
+  // Still not found — upsert from data the admin already has
+  if (idx === -1) {
+    const data = accountData || {};
+    const email = data.email || emailFallback;
+    if (!email) return res.status(404).json({ error: 'Registration not found' });
+    const ref = applicationRef || data.applicationRef || ('admin-' + Buffer.from(email).toString('base64').slice(0, 10));
+    regs.push({
+      id:          ref,
+      applicationRef: ref,
+      firstName:   data.firstName || '',
+      lastName:    data.lastName  || '',
+      email:       email,
+      company:     data.company   || '',
+      accountType: data.accountType || 'individual',
+      country:     data.country   || '',
+      city:        data.city      || '',
+      status:      'review',
+      submittedAt: new Date().toISOString(),
+      lang:        'en',
+      _restoredByAdmin: true,
+    });
+    idx = regs.length - 1;
+    console.log(`[registration] upserted missing record for ${email} during admin approve`);
+  }
 
   regs[idx].status     = 'approved';
   regs[idx].approvedAt = new Date().toISOString();
