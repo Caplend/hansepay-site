@@ -204,10 +204,11 @@ input.error{border-color:var(--error)}
   try{
     var onb=JSON.parse(localStorage.getItem('hp_onb')||'{}');
     var s=onb.s||{};
-    if(s.email&&s.password){
+    var acctEmail=s.email||s.coEmail||'';
+    if(acctEmail&&s.password){
       var fn=s.firstName||'';var ln=s.lastName||'';
       var ini=((fn[0]||'')+(ln[0]||'')).toUpperCase()||'?';
-      var name=(fn+(ln?' '+ln:'')).trim()||s.email;
+      var name=(fn+(ln?' '+ln:'')).trim()||acctEmail;
       document.getElementById('savedChip').style.display='flex';
       document.getElementById('savedChipAvatar').textContent=ini;
       document.getElementById('savedChipName').textContent=name;
@@ -218,7 +219,7 @@ input.error{border-color:var(--error)}
 function fillSavedEmail(){
   try{
     var s=(JSON.parse(localStorage.getItem('hp_onb')||'{}')).s||{};
-    document.getElementById('emailInput').value=s.email||'';
+    document.getElementById('emailInput').value=s.email||s.coEmail||'';
     document.getElementById('passwordInput').focus();
   }catch(e){}
 }
@@ -256,10 +257,11 @@ function handleLogin(e){
   try{
     var onb=JSON.parse(localStorage.getItem('hp_onb')||'{}');
     var s=onb.s||{};
-    if(!s.email||!s.password){
+    var storedEmail=(s.email||s.coEmail||'').toLowerCase();
+    if(!storedEmail||!s.password){
       setGlobalErr('No account found. Please complete the onboarding to create an account.');return;
     }
-    if(s.email.toLowerCase()!==email.toLowerCase()){
+    if(storedEmail!==email.toLowerCase()){
       setGlobalErr('No account found with that email address.');return;
     }
     if(s.password!==pw){
