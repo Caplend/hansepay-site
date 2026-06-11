@@ -421,7 +421,7 @@ function showErr(id){document.getElementById(id).classList.add('show');}
 function clearErr(id){document.getElementById(id).classList.remove('show');}
 function setBanner(id,msg,type){
   var b=document.getElementById(id);
-  b.textContent=msg;
+  b.innerHTML=msg;
   b.className=(type==='ok'?'ok-banner':'err-banner')+' show';
 }
 function clearBanner(id){
@@ -541,9 +541,16 @@ function sendResetCode(e) {
     btn.innerHTML = 'Send reset code <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
     if (data.ok || !data.error) {
       _fpEmail = email;
-      // Always proceed — server never reveals if account exists
       document.getElementById('fpCodeTarget').textContent = email;
       showView('forgot-otp');
+      // When email is not configured the server returns devCode — pre-fill + show notice
+      if (data.devCode) {
+        document.getElementById('fpOtpInput').value = data.devCode;
+        setBanner('fpOtpErr',
+          'Email delivery is not yet configured. Your code is: ' + data.devCode +
+          ' — it has been pre-filled above. This message only appears when email is not set up.',
+          'ok');
+      }
     } else {
       setBanner('fpEmailErr', data.error || 'Something went wrong. Please try again.');
     }

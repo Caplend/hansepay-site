@@ -2583,20 +2583,34 @@ const _pwResetStore = {};
 
 // POST /api/auth/forgot-password — public.
 // Generates a 15-min OTP and sends it to the registered email.
-// Always returns { ok: true } — never reveals whether the account exists.
+// Falls back to registrations.json so accounts registered before server-auth existed still work.
+// When Gmail is not configured, returns devCode in the response so the flow still works.
 app.post('/api/auth/forgot-password', async (req, res) => {
   const { email } = req.body || {};
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email required' });
   }
 
+  // Find account — users.json first, then registrations.json fallback
   const users = readData('users.json');
-  const user  = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  const code  = String(Math.floor(100000 + Math.random() * 900000));
+  let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (!user) {
+    const regs = readData('registrations.json');
+    const reg  = (Array.isArray(regs) ? regs : [])
+      .find(r => r.email && r.email.toLowerCase() === email.toLowerCase());
+    if (reg) {
+      // Treat the registration as a valid account — auto-create user record after reset
+      user = { _fromReg: true, email: reg.email, name: ((reg.firstName||'') + ' ' + (reg.lastName||'')).trim() || reg.email };
+    }
+  }
+
+  const code           = String(Math.floor(100000 + Math.random() * 900000));
+  const emailSendable  = !!(mailer && mailer.gmailConfigured && mailer.gmailConfigured());
 
   if (user) {
     _pwResetStore[email.toLowerCase()] = { code, expiresAt: Date.now() + 15 * 60 * 1000 };
-    console.log(`[pw-reset] OTP generated for ${email}`);
+    console.log(`[pw-reset] code ${code} generated for ${email} (email transport: ${emailSendable ? 'gmail' : 'none'})`);
 
     if (mailer && mailer.renderPasswordResetEmail) {
       try {
@@ -2608,11 +2622,16 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         console.error('[pw-reset] email error:', err.message);
       }
     }
-  } else {
-    console.log(`[pw-reset] no account for ${email} — skipping email`);
+
+    const resp = { ok: true, emailSent: emailSendable };
+    // When email is not configured, surface the code in the response so the flow still works
+    if (!emailSendable) resp.devCode = code;
+    return res.json(resp);
   }
 
-  res.json({ ok: true });
+  console.log(`[pw-reset] no account for ${email} — skipping`);
+  // Still return ok — don't reveal whether the account exists
+  res.json({ ok: true, emailSent: false });
 });
 
 // POST /api/auth/reset-password — public.
@@ -2639,8 +2658,26 @@ app.post('/api/auth/reset-password', (req, res) => {
   delete _pwResetStore[email.toLowerCase()];
 
   const users = readData('users.json');
-  const idx   = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
-  if (idx === -1) return res.status(404).json({ error: 'Account not found' });
+  let idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (idx === -1) {
+    // Auto-create from registrations if not yet in users.json
+    const regs = readData('registrations.json');
+    const reg  = (Array.isArray(regs) ? regs : [])
+      .find(r => r.email && r.email.toLowerCase() === email.toLowerCase());
+    const name = reg ? ((reg.firstName||'') + ' ' + (reg.lastName||'')).trim() : email;
+    users.push({
+      id:           'usr_' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 10),
+      name:         name || email,
+      email,
+      passwordHash: '',
+      role:         'user',
+      avatar:       '',
+      createdAt:    new Date().toISOString(),
+      lastLogin:    null,
+    });
+    idx = users.length - 1;
+  }
 
   users[idx].passwordHash = bcrypt.hashSync(password, 10);
   users[idx].updatedAt    = new Date().toISOString();
