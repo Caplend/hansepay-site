@@ -135,10 +135,7 @@ img.hp-cine,.hp-cine>img{
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.tech">Technology</div><div class="nav-dd-sub" data-i18n="nav.platform.tech.sub">The infrastructure behind every transfer</div></div>
             </a>
-            <a href="platform-security.html" class="nav-dd-link">
-              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.security">Security</div><div class="nav-dd-sub" data-i18n="nav.platform.security.sub">Regulation, safeguarding, and data protection</div></div>
-            </a>
+
           </div>
         </div>
       </li>
@@ -281,7 +278,7 @@ img.hp-cine,.hp-cine>img{
   <a class="mobile-menu-link" href="index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
   <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
   <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
-  <a class="mobile-menu-sub" href="platform-security.html" onclick="closeMobileMenu()" data-i18n="nav.platform.security">Security</a>
+
   <a class="mobile-menu-link" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions">Solutions</a>
   <a class="mobile-menu-sub" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</a>
   <a class="mobile-menu-sub" href="solutions-manufacturing.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</a>
@@ -625,7 +622,7 @@ img.hp-cine,.hp-cine>img{
       'nav.about':'About','nav.insights':'Insights','nav.cta':'Open an account',
       'nav.platform.overview':'Overview','nav.platform.overview.sub':'See the full platform at a glance',
       'nav.platform.tech':'Technology','nav.platform.tech.sub':'The infrastructure behind every transfer',
-      'nav.platform.security':'Security','nav.platform.security.sub':'Regulation, safeguarding, and data protection',
+
       'nav.solutions.by-industry':'By Industry','nav.solutions.by-size':'By Business Size',
       'nav.solutions.ecom':'E-Commerce & Retail','nav.solutions.ecom.sub':'Supplier payments, bulk FX, emerging markets',
       'nav.solutions.mfg':'Import & Manufacturing','nav.solutions.mfg.sub':'Industrial FX, big-ticket execution, supply chain',
@@ -699,7 +696,7 @@ img.hp-cine,.hp-cine>img{
       'gs.h2':'Open your account.','gs.sub':'Start sending money in minutes, or talk to us about your use case.',
       // ── HTML keys for data-i18n-html (headings with <em> tags) ──
       // index.html
-      'index.hero.h1.html':'Cross-border<br>payments, <em>at the real rate.</em>',
+      'index.hero.h1.html':'Cross-border<br>payments, <em>reimagined.</em>',
       'index.vp.h2.html':'The lowest fees.<br><em>The fastest transfers.</em>',
       'index.how.h2.html':'From quote to <em>cleared funds</em> in four steps.',
       'index.currencies.h2.html':'Send to <em>45+ markets.</em>',
@@ -738,7 +735,7 @@ img.hp-cine,.hp-cine>img{
       'nav.about':'Über uns','nav.insights':'Einblicke','nav.cta':'Konto eröffnen',
       'nav.platform.overview':'Übersicht','nav.platform.overview.sub':'Die gesamte Plattform auf einen Blick',
       'nav.platform.tech':'Technologie','nav.platform.tech.sub':'Die Infrastruktur hinter jeder Überweisung',
-      'nav.platform.security':'Sicherheit','nav.platform.security.sub':'Regulierung, Schutz der Gelder und Datenschutz',
+
       'nav.solutions.by-industry':'Nach Branche','nav.solutions.by-size':'Nach Unternehmensgröße',
       'nav.solutions.ecom':'E-Commerce & Einzelhandel','nav.solutions.ecom.sub':'Lieferantenzahlungen, FX-Volumen, Schwellenmärkte',
       'nav.solutions.mfg':'Import & Produktion','nav.solutions.mfg.sub':'Industrielles FX, Großaufträge, Lieferkette',
@@ -832,7 +829,7 @@ img.hp-cine,.hp-cine>img{
       'events.sub':'Wir finalisieren die Konferenzen, Panels und Meetups, bei denen das HansePay-Team 2026 vor Ort sein wird. Vollständiger Zeitplan folgt in Kürze.',
       // ── NEW KEYS (2026-06-01) ──
       // index hero
-      'index.hero.h1':'Internationale Zahlungen, zum echten Kurs.',
+      'index.hero.h1':'Internationale Zahlungen, neu gedacht.',
       'index.hero.sub':'Überweisungen in über 30 Währungen zum echten Interbanken-Kurs — ohne Aufschläge, ohne Überraschungen. Schnellere Abwicklung, niedrigere Kosten, jedes Mal.',
       'index.chip':'EU-reguliert · Hamburg',
       'cta.open-account':'Konto eröffnen',
@@ -1536,7 +1533,7 @@ img.hp-cine,.hp-cine>img{
       'team.gs.cta2':'Unsere Vision & Werte',
       // ── HTML keys for data-i18n-html (headings with <em> tags) ──
       // index.html
-      'index.hero.h1.html':'Internationale<br>Zahlungen, <em>zum echten Kurs.</em>',
+      'index.hero.h1.html':'Internationale<br>Zahlungen, <em>neu gedacht.</em>',
       'index.vp.h2.html':'Die niedrigsten Kosten.<br><em>Die schnellsten Überweisungen.</em>',
       'index.how.h2.html':'Vom Kurs zur <em>Gutschrift</em> in vier Schritten.',
       'index.currencies.h2.html':'Zahlungen in <em>45+ Märkte.</em>',
