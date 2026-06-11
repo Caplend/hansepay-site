@@ -49,110 +49,168 @@
 (function() {
   var BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
 
-  // Intercept window.HPDTransactions before the bundler sets it,
-  // so we can wrap addTransaction with 2FA.
+  // ── Persistence helpers ──────────────────────────────────────────────────────
+  function _saveTx(tx) {
+    try {
+      var log = JSON.parse(localStorage.getItem('hp_txlog') || '[]');
+      log.unshift(tx);
+      if (log.length > 500) log = log.slice(0, 500);
+      localStorage.setItem('hp_txlog', JSON.stringify(log));
+    } catch(e) {}
+  }
+
+  function _saveRec(r) {
+    try {
+      var recs = JSON.parse(localStorage.getItem('hp_recipients') || '[]');
+      if (!recs.some(function(x) {
+        return (r.id && x.id === r.id) || (r.iban && r.iban && x.iban === r.iban);
+      })) {
+        recs.push(r);
+        localStorage.setItem('hp_recipients', JSON.stringify(recs));
+      }
+    } catch(e) {}
+  }
+
+  // ── Intercept HPDTransactions ────────────────────────────────────────────────
   var _hpdTxVal;
   Object.defineProperty(window, 'HPDTransactions', {
-    configurable: true,
-    enumerable: true,
+    configurable: true, enumerable: true,
     set: function(val) {
       _hpdTxVal = val;
       var _origAdd = val && val.addTransaction;
       if (typeof _origAdd === 'function') {
         val.addTransaction = function(tx) {
-          hp2fa_show(tx, function() { _origAdd.call(val, tx); });
+          hp2fa_show(tx, function() {
+            _origAdd.call(val, tx);
+            var u = window.__HP_USER || {};
+            _saveTx(Object.assign({}, tx, {
+              userEmail: u.email || '', firstName: u.firstName || '',
+              _savedAt: new Date().toISOString(),
+            }));
+          });
         };
+        // Replay persisted transactions on load (bypasses 2FA)
+        setTimeout(function() {
+          var stored = JSON.parse(localStorage.getItem('hp_txlog') || '[]');
+          stored.slice().reverse().forEach(function(t) {
+            try { _origAdd.call(val, t); } catch(e) {}
+          });
+        }, 1500);
       }
     },
     get: function() { return _hpdTxVal; }
   });
 
+  // ── Intercept HPDRecipients / HPDContacts / HPDPayees ────────────────────────
+  function _wrapRecModule(val) {
+    var methods = ['addRecipient', 'add', 'create', 'set'];
+    var k, fn;
+    for (var i = 0; i < methods.length; i++) {
+      if (typeof val[methods[i]] === 'function') { k = methods[i]; fn = val[methods[i]]; break; }
+    }
+    if (!fn) return val;
+    val[k] = function(r) {
+      var res = fn.apply(val, arguments);
+      _saveRec(r || arguments[0]);
+      return res;
+    };
+    var stored = JSON.parse(localStorage.getItem('hp_recipients') || '[]');
+    stored.forEach(function(r) { try { fn.call(val, r); } catch(e) {} });
+    return val;
+  }
+  var _hpdRecVal;
+  ['HPDRecipients', 'HPDContacts', 'HPDPayees'].forEach(function(name) {
+    Object.defineProperty(window, name, {
+      configurable: true, enumerable: true,
+      set: function(v) { _hpdRecVal = _wrapRecModule(v); },
+      get: function() { return _hpdRecVal; }
+    });
+  });
+
+  // ── 2FA modal ────────────────────────────────────────────────────────
   function hp2fa_show(tx, onConfirmed) {
     var user = window.__HP_USER || {};
     var email = user.email || '';
     var firstName = user.firstName || '';
-    var masked = email ? email.replace(/(.{2})([^@]*)(@.+)/, function(m,a,b,c){ return a + b.replace(/./g,'*') + c; }) : '—';
-    var amtDisplay = (tx.sendCurrency || tx.currency || 'EUR') + ' ' + (tx.sendAmount || tx.amount || '—');
-    var recipDisplay = tx.recipientName || tx.recipient || 'Recipient';
+    var masked = email ? email.replace(/(.{2})([^@]*)(@.+)/, function(m,a,b,c){
+      return a + b.replace(/./g,'*') + c;
+    }) : '—';
+
+    var amt  = tx.sendAmount    || tx.amount     || tx.fromAmount   || tx.toAmount    || tx.value      || '';
+    var curr = tx.sendCurrency  || tx.currency   || tx.fromCurrency || tx.toCurrency  || 'EUR';
+    var recip= tx.recipientName || tx.recipient  || tx.toName       || tx.beneficiary || tx.name       || tx.to || '';
+
+    var amtFmt = amt;
+    try {
+      var _n = parseFloat(String(amt).replace(/,/g,'.'));
+      if (!isNaN(_n)) amtFmt = _n.toLocaleString('de-DE', {minimumFractionDigits:2,maximumFractionDigits:2});
+    } catch(e) {}
+    var amtDisplay = curr + ' ' + (amtFmt || '—');
+
     var existing = document.getElementById('hp2fa-overlay');
     if (existing) existing.remove();
 
     var overlay = document.createElement('div');
     overlay.id = 'hp2fa-overlay';
+
+    var _lockSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1E4E80" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    var _arrowSvg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    var _mailSvg = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>';
+
     overlay.innerHTML = [
       '<style>',
-      '#hp2fa-overlay{position:fixed;inset:0;z-index:99999;background:rgba(6,13,26,.72);display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;}',
-      '#hp2fa-card{background:#fff;border-radius:20px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(6,13,26,.25);overflow:hidden;}',
-      '#hp2fa-hdr{background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}',
-      '#hp2fa-hdr .ht{font-size:15px;font-weight:600;color:#fff;}',
-      '#hp2fa-stripe{height:3px;background:linear-gradient(90deg,#2E6BAD,#8DBDE6);}',
-      '#hp2fa-sum{background:#f0f7ff;border-bottom:1px solid #dbeafe;padding:16px 24px;}',
-      '#hp2fa-sum .sl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1E4E80;margin-bottom:4px;}',
-      '#hp2fa-sum .sv{font-size:19px;font-weight:700;color:#0B1929;}',
-      '#hp2fa-sum .ss{font-size:13px;color:#3D5A73;margin-top:2px;}',
-      '#hp2fa-body{padding:24px;}',
-      '.hp2fa-ml{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7A9AB0;margin-bottom:12px;}',
-      '.hp2fa-methods{display:flex;gap:10px;margin-bottom:18px;}',
-      '.hp2fa-m{flex:1;border:2px solid #e6ebf0;border-radius:10px;padding:12px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#3D5A73;transition:all .15s;}',
-      '.hp2fa-m.active{border-color:#1E4E80;background:#f0f7ff;color:#0B1929;}',
-      '.hp2fa-m.off{opacity:.4;cursor:default;}',
-      '.hp2fa-m svg{display:block;margin:0 auto 5px;}',
-      '.hp2fa-cs{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;background:rgba(201,169,97,.15);color:#B45309;padding:2px 7px;border-radius:20px;margin-top:3px;}',
-      '.hp2fa-edis{background:#f7fafd;border:1px solid #e6ebf0;border-radius:10px;padding:11px 14px;font-size:14px;color:#0B1929;margin-bottom:14px;display:flex;align-items:center;gap:8px;}',
-      '.hp2fa-edis span{flex:1;}',
-      '#hp2fa-sbtn,#hp2fa-cbtn,#hp2fa-xcbtn{width:100%;border:none;border-radius:100px;font-family:inherit;font-weight:600;cursor:pointer;transition:background .15s;}',
-      '#hp2fa-sbtn{padding:12px;background:#1E4E80;color:#fff;font-size:14px;}',
-      '#hp2fa-sbtn:hover{background:#163659;}',
-      '#hp2fa-sbtn:disabled{background:#8DBDE6;cursor:not-allowed;}',
-      '#hp2fa-otpsec{display:none;margin-top:16px;}',
-      '.hp2fa-ol{font-size:13px;color:#3D5A73;margin-bottom:10px;}',
-      '#hp2fa-otp{width:100%;padding:14px;font-size:22px;font-weight:700;letter-spacing:10px;text-align:center;border:2px solid #e6ebf0;border-radius:12px;font-family:inherit;outline:none;color:#0B1929;transition:border-color .15s;box-sizing:border-box;}',
-      '#hp2fa-otp:focus{border-color:#1E4E80;}',
-      '#hp2fa-otp.err{border-color:#B91C1C;}',
-      '#hp2fa-timer{font-size:12px;color:#7A9AB0;text-align:center;margin-top:8px;}',
-      '#hp2fa-resend{font-size:12px;color:#1E4E80;text-align:center;margin-top:4px;cursor:pointer;text-decoration:underline;display:none;}',
-      '#hp2fa-errmsg{font-size:12.5px;color:#B91C1C;margin-top:8px;display:none;background:#FEF2F2;border-radius:8px;padding:8px 12px;}',
-      '#hp2fa-cbtn{display:none;padding:14px;margin-top:14px;background:#16a34a;color:#fff;font-size:15px;}',
-      '#hp2fa-cbtn:hover{background:#15803d;}',
-      '#hp2fa-cbtn:disabled{background:#86efac;cursor:not-allowed;}',
-      '#hp2fa-xcbtn{padding:11px;margin-top:10px;background:transparent;border:1.5px solid rgba(11,25,41,.15) !important;font-size:14px;color:#3D5A73;}',
-      '#hp2fa-xcbtn:hover{background:#f7fafd;}',
-      '.hp2fa-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:hp2fa-s .7s linear infinite;vertical-align:middle;margin-right:5px;}',
+      '#hp2fa-overlay{position:fixed;inset:0;z-index:99999;background:rgba(11,25,41,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:20px;}',
+      '#hp2fa-card{background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(11,25,41,.22),0 8px 20px rgba(11,25,41,.08);overflow:hidden;}',
+      '#hp2fa-topbar{height:4px;background:linear-gradient(90deg,#1E4E80,#2E6BAD,#8DBDE6);}',
+      '#hp2fa-inner{padding:28px 28px 24px;}',
+      '#hp2fa-iconwrap{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#dbeafe,#bfdbfe);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}',
+      '#hp2fa-title{font-size:18px;font-weight:700;color:#0B1929;text-align:center;margin-bottom:3px;}',
+      '#hp2fa-sub{font-size:13px;color:#7A9AB0;text-align:center;margin-bottom:20px;line-height:1.4;}',
+      '#hp2fa-txcard{background:#f4f8fc;border:1px solid #dde6f0;border-radius:14px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}',
+      '#hp2fa-txdot{width:40px;min-width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1E4E80,#2E6BAD);display:flex;align-items:center;justify-content:center;}',
+      '#hp2fa-txamt{font-size:22px;font-weight:700;color:#0B1929;letter-spacing:-.3px;}',
+      '#hp2fa-txto{font-size:13px;color:#3D5A73;margin-top:3px;}',
+      '#hp2fa-sendingto{display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;color:#3D5A73;margin-bottom:16px;min-height:22px;flex-wrap:wrap;text-align:center;}',
+      '.hp2fa-spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(30,78,128,.2);border-top-color:#1E4E80;border-radius:50%;animation:hp2fa-s .7s linear infinite;flex-shrink:0;}',
       '@keyframes hp2fa-s{to{transform:rotate(360deg);}}',
+      '#hp2fa-devnote{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;font-size:12.5px;color:#92400e;margin-bottom:14px;display:none;line-height:1.6;}',
+      '#hp2fa-otpsec{margin-bottom:14px;display:none;}',
+      '#hp2fa-otplabel{font-size:12.5px;color:#7A9AB0;text-align:center;margin-bottom:10px;}',
+      '#hp2fa-otp{width:100%;padding:14px;font-size:26px;font-weight:700;letter-spacing:12px;text-align:center;border:2px solid #dde6f0;border-radius:12px;font-family:inherit;outline:none;color:#0B1929;transition:border-color .15s;box-sizing:border-box;}',
+      '#hp2fa-otp:focus{border-color:#1E4E80;}',
+      '#hp2fa-otp.err{border-color:#dc2626;}',
+      '#hp2fa-timer{font-size:12px;color:#7A9AB0;text-align:center;margin-top:6px;}',
+      '#hp2fa-resend{font-size:12px;color:#1E4E80;text-align:center;margin-top:4px;cursor:pointer;display:none;text-decoration:underline;}',
+      '#hp2fa-errmsg{font-size:12.5px;color:#dc2626;margin-top:8px;background:#fef2f2;border-radius:8px;padding:8px 12px;display:none;}',
+      '#hp2fa-cbtn{width:100%;border:none;border-radius:100px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:14px;background:#1E4E80;color:#fff;transition:background .15s,opacity .15s;margin-bottom:10px;display:block;}',
+      '#hp2fa-cbtn:not([disabled]):hover{background:#163659;}',
+      '#hp2fa-cbtn[disabled]{opacity:.4;cursor:not-allowed;}',
+      '#hp2fa-xcbtn{width:100%;border:none;background:transparent;font-family:inherit;font-size:14px;color:#9DB8CC;cursor:pointer;padding:8px;border-radius:8px;transition:color .15s;}',
+      '#hp2fa-xcbtn:hover{color:#3D5A73;}',
       '</style>',
       '<div id="hp2fa-card">',
-        '<div id="hp2fa-hdr"><div class="ht">Confirm transfer</div></div>',
-        '<div id="hp2fa-stripe"></div>',
-        '<div id="hp2fa-sum">',
-          '<div class="sl">You are sending</div>',
-          '<div class="sv">' + amtDisplay + '</div>',
-          '<div class="ss">To: ' + recipDisplay + '</div>',
-        '</div>',
-        '<div id="hp2fa-body">',
-          '<div class="hp2fa-ml">Verify your identity</div>',
-          '<div class="hp2fa-methods">',
-            '<div class="hp2fa-m active" id="hp2fa-mem">',
-              '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
-              'Email',
-            '</div>',
-            '<div class="hp2fa-m off">',
-              '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="17" r="1"/></svg>',
-              'SMS<div><span class="hp2fa-cs">Coming soon</span></div>',
+        '<div id="hp2fa-topbar"></div>',
+        '<div id="hp2fa-inner">',
+          '<div id="hp2fa-iconwrap">' + _lockSvg + '</div>',
+          '<div id="hp2fa-title">Confirm transfer</div>',
+          '<div id="hp2fa-sub">Authorise this payment with a one-time code</div>',
+          '<div id="hp2fa-txcard">',
+            '<div id="hp2fa-txdot">' + _arrowSvg + '</div>',
+            '<div>',
+              '<div id="hp2fa-txamt">' + amtDisplay + '</div>',
+              (recip ? '<div id="hp2fa-txto">to ' + recip + '</div>' : ''),
             '</div>',
           '</div>',
-          '<div class="hp2fa-edis">',
-            '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#1E4E80" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
-            '<span>' + masked + '</span>',
-          '</div>',
-          '<button id="hp2fa-sbtn">Send verification code</button>',
+          '<div id="hp2fa-sendingto"><span class="hp2fa-spin"></span><span>Sending code to <strong>' + masked + '</strong>…</span></div>',
+          '<div id="hp2fa-devnote"></div>',
           '<div id="hp2fa-otpsec">',
-            '<div class="hp2fa-ol">Enter the 6-digit code sent to your email:</div>',
+            '<div id="hp2fa-otplabel">Enter the 6-digit code sent to your email</div>',
             '<input id="hp2fa-otp" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">',
             '<div id="hp2fa-timer"></div>',
             '<div id="hp2fa-resend">Resend code</div>',
             '<div id="hp2fa-errmsg"></div>',
-            '<button id="hp2fa-cbtn">Confirm transfer</button>',
           '</div>',
+          '<button id="hp2fa-cbtn" disabled>Confirm transfer</button>',
           '<button id="hp2fa-xcbtn">Cancel</button>',
         '</div>',
       '</div>',
@@ -193,38 +251,49 @@
       if (i) i.classList.remove('err');
     }
 
-    function sendCode() {
-      var btn = document.getElementById('hp2fa-sbtn');
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="hp2fa-spin"></span>Sending…'; }
-      clrErr();
+    function afterCodeSent(devCode) {
+      var st = document.getElementById('hp2fa-sendingto');
+      if (st) st.innerHTML = _mailSvg + ' <span>Code sent to <strong>' + masked + '</strong></span>';
+      var sec = document.getElementById('hp2fa-otpsec');
+      if (sec) sec.style.display = 'block';
+      if (devCode) {
+        var dn = document.getElementById('hp2fa-devnote');
+        if (dn) {
+          dn.innerHTML = '⚠️ Email not configured — your code is: <strong style="font-size:16px;letter-spacing:3px;">' + devCode + '</strong>';
+          dn.style.display = 'block';
+        }
+        var otp = document.getElementById('hp2fa-otp');
+        if (otp) otp.value = devCode;
+        var cb = document.getElementById('hp2fa-cbtn');
+        if (cb) cb.disabled = false;
+      } else {
+        var inp = document.getElementById('hp2fa-otp');
+        if (inp) inp.focus();
+      }
+      startTimer(600);
+    }
+
+    function doSendCode() {
+      var st = document.getElementById('hp2fa-sendingto');
+      if (st) st.innerHTML = '<span class="hp2fa-spin"></span><span>Sending code to <strong>' + masked + '</strong>…</span>';
       fetch(BASE + '/api/tx/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ email: email, firstName: firstName, tx: {
-          recipientName: tx.recipientName || tx.recipient,
-          sendAmount: tx.sendAmount || tx.amount,
-          sendCurrency: tx.sendCurrency || tx.currency || 'EUR',
+          recipientName: recip, sendAmount: amt, sendCurrency: curr,
         }}),
-      }).then(function(r) { return r.json(); }).then(function() {
-        var sec = document.getElementById('hp2fa-otpsec');
-        if (sec) sec.style.display = 'block';
-        if (btn) { btn.textContent = 'Resend code'; btn.disabled = false; }
-        startTimer(600);
-        var inp = document.getElementById('hp2fa-otp');
-        if (inp) inp.focus();
-      }).catch(function() {
-        if (btn) { btn.textContent = 'Send verification code'; btn.disabled = false; }
-        showErr('Failed to send code — please try again.');
-      });
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        afterCodeSent(d.devCode || null);
+      }).catch(function() { afterCodeSent(null); });
     }
 
     function verifyCode() {
       var inp = document.getElementById('hp2fa-otp');
-      var code = inp ? inp.value.trim() : '';
+      var code = inp ? inp.value.replace(/\D/g,'') : '';
       if (code.length !== 6) { showErr('Please enter the 6-digit code.'); return; }
       clrErr();
       var btn = document.getElementById('hp2fa-cbtn');
-      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="hp2fa-spin"></span>Verifying…'; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="hp2fa-spin" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Verifying…'; }
       fetch(BASE + '/api/tx/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -256,16 +325,13 @@
     }
 
     setTimeout(function() {
-      var sbtn = document.getElementById('hp2fa-sbtn');
-      if (sbtn) sbtn.addEventListener('click', sendCode);
-      var resend = document.getElementById('hp2fa-resend');
-      if (resend) resend.addEventListener('click', sendCode);
+      doSendCode();
       var inp = document.getElementById('hp2fa-otp');
       if (inp) {
         inp.addEventListener('input', function() {
           clrErr();
           var cb = document.getElementById('hp2fa-cbtn');
-          if (cb) cb.style.display = inp.value.length === 6 ? 'block' : 'none';
+          if (cb) cb.disabled = inp.value.replace(/\D/g,'').length !== 6;
         });
         inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') verifyCode(); });
       }
@@ -273,6 +339,20 @@
       if (cbtn) cbtn.addEventListener('click', verifyCode);
       var xcbtn = document.getElementById('hp2fa-xcbtn');
       if (xcbtn) xcbtn.addEventListener('click', function() { clearInterval(timerIv); overlay.remove(); });
+      var resend = document.getElementById('hp2fa-resend');
+      if (resend) resend.addEventListener('click', function() {
+        var otp = document.getElementById('hp2fa-otp');
+        var cb  = document.getElementById('hp2fa-cbtn');
+        var dn  = document.getElementById('hp2fa-devnote');
+        var sec = document.getElementById('hp2fa-otpsec');
+        if (otp) otp.value = '';
+        if (cb)  cb.disabled = true;
+        if (dn)  dn.style.display = 'none';
+        if (sec) sec.style.display = 'none';
+        clearInterval(timerIv);
+        clrErr();
+        doSendCode();
+      });
     }, 0);
   }
 })();

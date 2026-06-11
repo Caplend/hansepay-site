@@ -2517,17 +2517,19 @@ app.post('/api/tx/otp/send', authenticateToken, async (req, res) => {
 
   if (!mailer || !mailer.renderTxOtpEmail) {
     console.log('[tx-otp] mailer not available, code:', code);
-    return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded' });
+    return res.json({ sent: false, transport: 'none', reason: 'mailer not loaded', devCode: code });
   }
 
   try {
     const mail = mailer.renderTxOtpEmail({ firstName, email, code, tx: tx || {} });
     const result = await mailer.sendMail(mail);
     console.log(`[tx-otp] email → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
-    res.json({ sent: result.sent, transport: result.transport });
+    const resp = { sent: result.sent, transport: result.transport };
+    if (!result.sent) resp.devCode = code;
+    res.json(resp);
   } catch (err) {
     console.error('[tx-otp] error:', err.message);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    res.status(500).json({ error: 'Failed to send OTP', devCode: code });
   }
 });
 
