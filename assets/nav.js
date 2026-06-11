@@ -37,9 +37,9 @@ nav.scrolled .nav-link:hover,nav.scrolled .nav-link.active-page{color:var(--n700
 .nav-dd-text{flex:1;min-width:0}
 .nav-dd-title{font-size:13px;font-weight:600;color:#fff;line-height:1.2}
 .nav-dd-sub{font-size:11px;color:rgba(255,255,255,.40);margin-top:1px;line-height:1.3}
-.nav-dd-active .nav-dd-icon{background:rgba(201,169,97,.14);border-color:rgba(201,169,97,.24)}
-.nav-dd-active .nav-dd-icon svg{color:var(--gold)}
-.nav-dd-active .nav-dd-title{color:var(--gold)}
+.nav-dd-active .nav-dd-icon{background:rgba(141,189,230,.18);border-color:rgba(141,189,230,.30)}
+.nav-dd-active .nav-dd-icon svg{color:var(--n200)}
+.nav-dd-active .nav-dd-title{color:var(--n200)}
 .nav-dropdown-sep{height:1px;background:rgba(255,255,255,.08);margin:6px 0}
 .nav-right{display:flex;align-items:center;gap:8px;margin-left:16px;flex-shrink:0}
 .nav-signin{background:none;border:none;color:rgba(255,255,255,.7);padding:4px 2px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-ui);transition:color .18s;letter-spacing:.01em}
@@ -99,6 +99,12 @@ nav.scrolled .nav-burger span{background:var(--n700)}
 img.hp-cine,.hp-cine>img{
   filter:saturate(0.88) contrast(1.08) brightness(0.92);
 }
+/* ── UNIVERSAL HERO CHIP (shared, locked) — identical bubble on every hero ──
+   Dark glass pill, white uppercase label, single blue dot. Overrides any
+   per-page .hero-chip styling so all hero bubbles match. */
+.hero-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:100px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.20);font-family:var(--font-ui,sans-serif);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.9);margin-bottom:28px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.hero-chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--n200,#8DBDE6);flex-shrink:0;box-shadow:0 0 6px rgba(141,189,230,.7)}
+.hero-chip .hero-chip-dot{display:none}
 `;
     document.head.appendChild(st);
   }
