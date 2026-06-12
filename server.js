@@ -863,6 +863,43 @@ app.get('/api/bookings/latest', requireApiKey, (req, res) => {
   res.json(latest);
 });
 
+// POST /api/bookings/seed-mock — admin only. Inserts demo bookings WITHOUT the
+// side effects of /api/booking (no calendar event, no confirmation email — the
+// lead emails point at real companies, so we must never mail them).
+// Body: { bookings: [{ slot, lead, createdAt?, status? }] }
+app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, (req, res) => {
+  const incoming = Array.isArray(req.body && req.body.bookings) ? req.body.bookings : [];
+  if (!incoming.length) return res.status(400).json({ error: 'bookings array required' });
+
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const settings = readData('settings.json');
+  const reps = Array.isArray(settings.salesReps) ? settings.salesReps.filter(r => r.active !== false) : [];
+
+  const added = incoming.map((b, i) => {
+    const id = 'mock_' + Date.now() + '_' + i;
+    const rep = reps.length ? reps[i % reps.length] : null;
+    const rec = {
+      id,
+      createdAt:  b.createdAt || new Date().toISOString(),
+      slot:       b.slot,
+      lead:       b.lead,
+      status:     b.status || 'new',
+      notes:      b.notes || '',
+      meetLink:   null,
+      eventId:    id,
+      rebookToken: makeRebookToken(id),
+      assignedTo: rep ? { id: rep.id, name: rep.name, color: rep.color || '#1E4E80' } : null,
+    };
+    list.push(rec);
+    try { upsertCustomerFromLead(b.lead, { bookingId: id, slot: b.slot, source: 'booking' }); } catch (e) {}
+    return rec.id;
+  });
+  writeData('bookings.json', list);
+  console.log(`[booking] seeded ${added.length} mock bookings`);
+  res.json({ ok: true, added });
+});
+
 app.patch('/api/bookings/:id', authenticateToken, (req, res) => {
   const bookings = readData('bookings.json');
   if (!Array.isArray(bookings)) return res.status(404).json({ error: 'Booking not found' });
