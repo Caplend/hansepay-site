@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cancel Your HansePay Call</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--off);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.cn-nav{background:var(--n800);background:linear-gradient(135deg,#0B1929 0%,#1E4E80 100%);padding:18px 28px;display:flex;align-items:center;gap:10px}
+.cn-nav-logo{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:400;color:#fff;letter-spacing:-.01em}
+.cn-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:48px 20px}
+.cn-card{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(11,25,41,.10);width:100%;max-width:480px;overflow:hidden}
+.cn-hero{background:linear-gradient(135deg,#060D1A 0%,#7f1d1d 100%);padding:32px 36px}
+.cn-hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(252,165,165,.15);color:#fca5a5;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:5px 12px;border-radius:var(--r-pill);margin-bottom:14px}
+.cn-hero-title{font-family:Georgia,'Times New Roman',serif;font-size:1.6rem;font-weight:400;color:#fff;line-height:1.3;margin-bottom:6px}
+.cn-hero-sub{font-size:14px;color:rgba(255,255,255,.6);line-height:1.5}
+.cn-slot{margin-top:18px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border-radius:var(--r-md);padding:13px 16px;font-size:13px;color:rgba(255,255,255,.75)}
+.cn-slot-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+.cn-body{padding:32px 36px}
+.cn-intro{font-size:15px;color:var(--ink2);line-height:1.65;margin-bottom:28px}
+.btn-cancel{display:block;width:100%;padding:14px;background:#dc2626;color:#fff;border:none;border-radius:var(--r-pill);font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;text-align:center;transition:.15s;margin-bottom:12px}
+.btn-cancel:hover{background:#b91c1c}
+.btn-cancel:disabled{opacity:.6;cursor:default}
+.btn-keep{display:block;width:100%;padding:13px;background:#fff;color:var(--ink2);border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-pill);font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer;text-align:center;text-decoration:none;transition:.15s}
+.btn-keep:hover{background:var(--n050);border-color:var(--n200)}
+.cn-error{background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--r-md);padding:16px 20px;color:#dc2626;font-size:14px;line-height:1.55;margin-bottom:24px}
+.cn-success{text-align:center;padding:12px 0}
+.cn-success-icon{width:64px;height:64px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;color:#6b7280}
+.cn-success-title{font-family:Georgia,'Times New Roman',serif;font-size:1.5rem;font-weight:400;color:var(--n800);margin-bottom:8px}
+.cn-success-sub{font-size:14px;color:var(--ink2);line-height:1.65;margin-bottom:24px}
+.btn-rebook{display:inline-block;padding:13px 28px;background:var(--n800);color:#fff;border-radius:var(--r-pill);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;text-decoration:none;transition:.15s}
+.btn-rebook:hover{background:var(--n600)}
+.cn-loading{text-align:center;padding:48px 0;color:var(--ink3);font-size:14px}
+.spinner{width:32px;height:32px;border:3px solid var(--n100);border-top-color:var(--n500);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav class="cn-nav">
+  <img src="/assets/hansepay-mark-uploaded-white.png" width="26" height="26" alt="HansePay" style="object-fit:contain">
+  <span class="cn-nav-logo">HansePay</span>
+</nav>
+
+<div class="cn-wrap">
+  <div class="cn-card">
+    <div id="cn-loading" class="cn-loading" style="padding:64px 36px">
+      <div class="spinner"></div>
+      Loading your booking…
+    </div>
+
+    <!-- MAIN CANCEL VIEW (hidden until loaded) -->
+    <div id="cn-main" style="display:none">
+      <div class="cn-hero">
+        <div class="cn-hero-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancel call
+        </div>
+        <div class="cn-hero-title" id="cn-hero-title">Cancel your call</div>
+        <div class="cn-hero-sub" id="cn-hero-sub">Are you sure you want to cancel?</div>
+        <div class="cn-slot" id="cn-slot" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div>
+            <div class="cn-slot-label">Scheduled call</div>
+            <div id="cn-slot-date" style="color:#fff;font-weight:500"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cn-body">
+        <p class="cn-intro" id="cn-intro">If you cancel, your slot will be released. You can always book again at a time that works better for you.</p>
+        <div id="cn-err" class="cn-error" style="display:none"></div>
+        <button class="btn-cancel" id="btn-do-cancel" onclick="doCancel()">Cancel my booking</button>
+        <a id="btn-go-back" href="/" class="btn-keep">Keep my call</a>
+      </div>
+    </div>
+
+    <!-- ALREADY CANCELLED VIEW -->
+    <div id="cn-already" style="display:none">
+      <div class="cn-hero" style="background:linear-gradient(135deg,#374151 0%,#4b5563 100%);">
+        <div class="cn-hero-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);">Already cancelled</div>
+        <div class="cn-hero-title">This call was already cancelled</div>
+        <div class="cn-hero-sub">No further action needed.</div>
+      </div>
+      <div class="cn-body" style="text-align:center;">
+        <p style="font-size:14px;color:var(--ink2);line-height:1.65;margin-bottom:24px;">Want to book a fresh slot? It only takes a minute.</p>
+        <a href="/booking.html" class="btn-rebook">Book a new call →</a>
+      </div>
+    </div>
+
+    <!-- SUCCESS VIEW -->
+    <div id="cn-success" style="display:none">
+      <div class="cn-body">
+        <div class="cn-success">
+          <div class="cn-success-icon">&#215;</div>
+          <div class="cn-success-title">Call cancelled.</div>
+          <div class="cn-success-sub">We've sent a confirmation to your email. If you'd like to chat at another time, booking a new slot takes less than a minute.</div>
+          <a id="btn-rebook-link" href="/booking.html" class="btn-rebook">Book a new call →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR VIEW -->
+    <div id="cn-fatal" style="display:none">
+      <div class="cn-body" style="text-align:center;padding:48px 36px;">
+        <div style="font-size:2rem;margin-bottom:16px;">&#9888;</div>
+        <div style="font-family:Georgia,serif;font-size:1.25rem;color:var(--n800);margin-bottom:10px;">Booking not found</div>
+        <div style="font-size:14px;color:var(--ink2);line-height:1.6;">This cancellation link may have expired or already been used. <a href="/booking.html" style="color:var(--n400);">Book a new call</a>.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
+var token = new URLSearchParams(window.location.search).get('token');
+var _rebookUrl = null;
+var _bookingId = null;
+
+var DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function formatSlot(slot) {
+  if (!slot || !slot.startISO) return '';
+  var d = new Date(slot.startISO);
+  var dayStr = DAYS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  var timeStr = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  return dayStr + ' · ' + timeStr + ' (Berlin time)';
+}
+
+function show(id) {
+  ['cn-loading','cn-main','cn-already','cn-success','cn-fatal'].forEach(function(v) {
+    var el = document.getElementById(v);
+    if (el) el.style.display = v === id ? '' : 'none';
+  });
+}
+
+function loadBooking() {
+  if (!token) { show('cn-fatal'); return; }
+  fetch(BASE + '/api/booking/cancel/' + encodeURIComponent(token))
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function(data) {
+      if (data.cancelled) { show('cn-already'); return; }
+      _bookingId = data.id;
+      _rebookUrl = '/rebook.html?token=' + encodeURIComponent(data.rebookToken || '');
+      var name = (data.lead && data.lead.firstName) ? data.lead.firstName : '';
+      if (name) {
+        document.getElementById('cn-hero-title').textContent = 'Cancel your call, ' + name + '.';
+      }
+      var slotStr = formatSlot(data.slot);
+      if (slotStr) {
+        document.getElementById('cn-slot-date').textContent = slotStr;
+        document.getElementById('cn-slot').style.display = 'flex';
+      }
+      // Set up "keep my call" link to go back (or use history)
+      var back = document.referrer || '/booking.html';
+      document.getElementById('btn-go-back').href = back;
+      show('cn-main');
+    })
+    .catch(function() { show('cn-fatal'); });
+}
+
+function doCancel() {
+  var btn = document.getElementById('btn-do-cancel');
+  var errEl = document.getElementById('cn-err');
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+  if (errEl) errEl.style.display = 'none';
+
+  fetch(BASE + '/api/booking/cancel/' + encodeURIComponent(token), { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        if (_rebookUrl) document.getElementById('btn-rebook-link').href = _rebookUrl;
+        show('cn-success');
+      } else {
+        if (btn) { btn.disabled = false; btn.textContent = 'Cancel my booking'; }
+        if (errEl) { errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display = ''; }
+      }
+    })
+    .catch(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Cancel my booking'; }
+      if (errEl) { errEl.textContent = 'Could not connect. Please try again.'; errEl.style.display = ''; }
+    });
+}
+
+loadBooking();
+</script>
+</body>
+</html>

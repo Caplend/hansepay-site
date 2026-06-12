@@ -338,6 +338,41 @@ a { color: inherit; text-decoration: none; }
 .status-qualified { background-color: #ede9fe; color: #6d28d9; }
 .status-won    { background-color: #dcfce7; color: #166534; }
 .status-lost   { background-color: #fee2e2; color: #991b1b; }
+.status-cancelled { background-color: #f3f4f6; color: #6b7280; }
+
+.btn-cancel-booking {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--r-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.btn-cancel-booking:hover { background: #fef2f2; border-color: #f87171; }
+.btn-cancel-booking:disabled { opacity: 0.5; cursor: default; }
+
+.cancel-confirm-overlay {
+  position: fixed; inset: 0; background: rgba(11,25,41,.55);
+  z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.cancel-confirm-box {
+  background: #fff; border-radius: var(--r-lg); padding: 28px 32px; max-width: 420px; width: 100%;
+  box-shadow: 0 20px 60px rgba(11,25,41,.2);
+}
+.cancel-confirm-title { font-size: 1rem; font-weight: 700; color: var(--n800); margin-bottom: 8px; }
+.cancel-confirm-sub { font-size: 0.875rem; color: var(--ink2); line-height: 1.55; margin-bottom: 22px; }
+.cancel-confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-confirm-cancel { padding: 9px 20px; border-radius: var(--r-md); font-size: 0.875rem; font-weight: 600; background: #dc2626; color: #fff; border: none; cursor: pointer; font-family: 'Inter', sans-serif; transition: background .15s; }
+.btn-confirm-cancel:hover { background: #b91c1c; }
+.btn-confirm-cancel:disabled { opacity: .6; cursor: default; }
+.btn-keep { padding: 9px 20px; border-radius: var(--r-md); font-size: 0.875rem; font-weight: 600; background: #fff; color: var(--ink2); border: 1px solid rgba(11,25,41,.12); cursor: pointer; font-family: 'Inter', sans-serif; }
 
 /* ACTIONS */
 .btn-details {
@@ -644,6 +679,7 @@ a { color: inherit; text-decoration: none; }
       <button class="filter-tab" data-status="qualified" onclick="setFilter('qualified')">Qualified <span class="tab-count" id="count-qualified">0</span></button>
       <button class="filter-tab" data-status="won" onclick="setFilter('won')">Won <span class="tab-count" id="count-won">0</span></button>
       <button class="filter-tab" data-status="lost" onclick="setFilter('lost')">Lost <span class="tab-count" id="count-lost">0</span></button>
+      <button class="filter-tab" data-status="cancelled" onclick="setFilter('cancelled')">Cancelled <span class="tab-count" id="count-cancelled">0</span></button>
     </div>
 
     <!-- Bookings table card -->
@@ -800,7 +836,7 @@ function computeStats(bookings) {
 }
 
 function computeTabCounts(bookings) {
-  var counts = { all: bookings.length, new: 0, contacted: 0, qualified: 0, won: 0, lost: 0 };
+  var counts = { all: bookings.length, new: 0, contacted: 0, qualified: 0, won: 0, lost: 0, cancelled: 0 };
   bookings.forEach(function(b) {
     var s = b.status || 'new';
     if (counts[s] !== undefined) counts[s]++;
@@ -823,7 +859,7 @@ function setFilter(status) {
 
 // ---- Status select color class ----
 function statusClass(s) {
-  var map = { new: 'status-new', contacted: 'status-contacted', qualified: 'status-qualified', won: 'status-won', lost: 'status-lost' };
+  var map = { new: 'status-new', contacted: 'status-contacted', qualified: 'status-qualified', won: 'status-won', lost: 'status-lost', cancelled: 'status-cancelled' };
   return map[s] || 'status-new';
 }
 
@@ -944,6 +980,10 @@ function buildDetailPanel(b) {
       '</button>' +
       meetBtn +
       '<span class="save-status" id="save-status-' + esc(b.id) + '"></span>' +
+      (b.status !== 'cancelled' ? '<button class="btn-cancel-booking" id="cancel-btn-' + esc(b.id) + '" onclick="showCancelConfirm(\'' + esc(b.id) + '\',\'' + esc([b.lead && b.lead.firstName, b.lead && b.lead.company].filter(Boolean).join(' — ')) + '\')" style="margin-left:auto;">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        'Cancel Booking' +
+      '</button>' : '<span style="font-size:0.75rem;color:#6b7280;font-weight:600;margin-left:auto;padding:7px 14px;">Cancelled</span>') +
     '</div>' +
   '</div>';
 }
@@ -1046,6 +1086,51 @@ function saveNotes(id) {
     if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Notes'; }
     if (statusEl) { statusEl.className = 'save-status err'; statusEl.textContent = 'Error saving'; }
   });
+}
+
+// ---- Cancel booking ----
+function showCancelConfirm(id, label) {
+  var existing = document.getElementById('cancel-confirm-overlay');
+  if (existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'cancel-confirm-overlay';
+  overlay.className = 'cancel-confirm-overlay';
+  overlay.innerHTML =
+    '<div class="cancel-confirm-box">' +
+      '<div class="cancel-confirm-title">Cancel this booking?</div>' +
+      '<div class="cancel-confirm-sub">This will cancel the call' + (label ? ' for <strong>' + esc(label) + '</strong>' : '') + ' and send a cancellation email to the customer with a link to rebook.</div>' +
+      '<div class="cancel-confirm-actions">' +
+        '<button class="btn-keep" onclick="document.getElementById(\'cancel-confirm-overlay\').remove()">Keep it</button>' +
+        '<button class="btn-confirm-cancel" id="confirm-cancel-do" onclick="doCancelBooking(\'' + id + '\')">Yes, cancel &amp; notify</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
+function doCancelBooking(id) {
+  var btn = document.getElementById('confirm-cancel-do');
+  if (btn) { btn.disabled = true; btn.textContent = 'Cancelling…'; }
+  authFetch('/api/bookings/' + id, { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var overlay = document.getElementById('cancel-confirm-overlay');
+      if (overlay) overlay.remove();
+      if (data.success) {
+        var booking = allBookings.find(function(b) { return b.id === id; });
+        if (booking) booking.status = 'cancelled';
+        computeStats(allBookings);
+        computeTabCounts(allBookings);
+        renderTable();
+      } else {
+        alert('Could not cancel booking. Please try again.');
+      }
+    })
+    .catch(function() {
+      var overlay = document.getElementById('cancel-confirm-overlay');
+      if (overlay) overlay.remove();
+      alert('Error cancelling booking. Please try again.');
+    });
 }
 
 // ---- Load bookings ----

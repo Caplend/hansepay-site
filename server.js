@@ -174,6 +174,10 @@ function makeRebookToken(bookingId) {
   return crypto.createHmac('sha256', JWT_SECRET).update(bookingId + '-rebook-hp').digest('hex').slice(0, 32);
 }
 
+function makeCancelToken(bookingId) {
+  return crypto.createHmac('sha256', JWT_SECRET).update(bookingId + '-cancel-hp').digest('hex').slice(0, 32);
+}
+
 // ─── CRM helpers ──────────────────────────────────────────────────────────────
 
 function logActivity({ customerId, type, title, body, by }) {
@@ -2079,6 +2083,7 @@ app.post('/api/booking', async (req, res) => {
         meetLink:     event.hangoutLink || null,
         eventId:      event.id,
         rebookToken,
+        cancelToken:  makeCancelToken(bookingId),
         assignedTo:   assignedRep ? { id: assignedRep.id, name: assignedRep.name, color: assignedRep.color || '#1E4E80' } : null,
       });
       writeData('bookings.json', list);
@@ -2101,6 +2106,7 @@ app.post('/api/booking', async (req, res) => {
           meetLink:    event.hangoutLink || null,
           calendarUrl: event.htmlLink    || null,
           rebookUrl:   `${host}/rebook.html?token=${rebookToken}`,
+          cancelUrl:   `${host}/cancel-booking.html?token=${makeCancelToken(bookingId)}`,
         });
         if (mail.to) {
           mailer.sendMail(mail).then(r => {
@@ -2199,6 +2205,98 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
     if (err.code === 409) return res.status(409).json({ error: 'That slot was just taken. Please pick another time.' });
     res.status(500).json({ error: 'Could not reschedule. Please try again or contact us directly.' });
   }
+});
+
+// GET /api/booking/cancel/:token — public, fetch booking details for cancel page
+app.get('/api/booking/cancel/:token', (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const b = list.find(b => (b.cancelToken || makeCancelToken(b.id)) === req.params.token);
+  if (!b) return res.status(404).json({ error: 'Booking not found. This link may have expired.' });
+  if (b.status === 'cancelled') return res.json({ id: b.id, cancelled: true, slot: b.slot, lead: { firstName: b.lead.firstName, lang: b.lead && b.lead.lang } });
+  res.json({
+    id: b.id,
+    slot: b.slot,
+    lead: { firstName: b.lead.firstName, lastName: b.lead.lastName, email: b.lead.email, company: b.lead.company, lang: b.lead.lang },
+    status: b.status,
+    rebookToken: b.rebookToken,
+  });
+});
+
+// POST /api/booking/cancel/:token — public, customer cancels their booking
+app.post('/api/booking/cancel/:token', async (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const idx = list.findIndex(b => (b.cancelToken || makeCancelToken(b.id)) === req.params.token);
+  if (idx === -1) return res.status(404).json({ error: 'Booking not found.' });
+
+  const b = list[idx];
+  if (b.status === 'cancelled') return res.json({ success: true, alreadyCancelled: true });
+
+  if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
+    try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel] calendar:', e.message); }
+  }
+
+  list[idx] = Object.assign({}, b, {
+    status:      'cancelled',
+    cancelledAt: new Date().toISOString(),
+    cancelledBy: 'customer',
+    updatedAt:   new Date().toISOString(),
+  });
+  writeData('bookings.json', list);
+
+  if (mailer && b.lead && b.lead.email) {
+    try {
+      const host = `${req.protocol}://${req.get('host')}`;
+      const mail = mailer.renderCancellationEmail({
+        slot: b.slot, lead: b.lead,
+        rebookUrl: `${host}/rebook.html?token=${b.rebookToken}`,
+        cancelledBy: 'customer',
+      });
+      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[cancel] email:', err.message));
+    } catch (e) { console.error('[cancel] email render:', e.message); }
+  }
+
+  console.log(`[booking] cancelled by customer: ${b.lead && b.lead.email} @ ${b.slot && b.slot.startISO}`);
+  res.json({ success: true });
+});
+
+// DELETE /api/bookings/:id — admin-only cancel with customer notification email
+app.delete('/api/bookings/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const bookings = readData('bookings.json');
+  const list = Array.isArray(bookings) ? bookings : [];
+  const idx = list.findIndex(b => b.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Booking not found' });
+
+  const b = list[idx];
+
+  if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
+    try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel/admin] calendar:', e.message); }
+  }
+
+  list[idx] = Object.assign({}, b, {
+    status:          'cancelled',
+    cancelledAt:     new Date().toISOString(),
+    cancelledBy:     'admin',
+    cancelledByName: req.user.name || req.user.email,
+    updatedAt:       new Date().toISOString(),
+  });
+  writeData('bookings.json', list);
+
+  if (mailer && b.lead && b.lead.email) {
+    try {
+      const host = `${req.protocol}://${req.get('host')}`;
+      const mail = mailer.renderCancellationEmail({
+        slot: b.slot, lead: b.lead,
+        rebookUrl: `${host}/rebook.html?token=${b.rebookToken}`,
+        cancelledBy: 'admin',
+      });
+      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[cancel/admin] email:', err.message));
+    } catch (e) { console.error('[cancel/admin] email render:', e.message); }
+  }
+
+  console.log(`[booking] cancelled by admin (${req.user.email}): ${b.lead && b.lead.email} @ ${b.slot && b.slot.startISO}`);
+  res.json({ success: true, booking: list[idx] });
 });
 
 // ─── Bookings: calendar feed + assignment ─────────────────────────────────────
