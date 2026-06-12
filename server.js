@@ -1014,6 +1014,223 @@ app.get('/api/email/diagnostics', authenticateToken, requireAdmin, (req, res) =>
   });
 });
 
+// ─── Email Center ─────────────────────────────────────────────────────────────
+
+const EMAIL_TEMPLATE_CATALOG = [
+  { id: 'booking-confirmation', name: 'Booking Confirmation',    category: 'Bookings',     icon: '📅', description: 'Sent when a discovery call is booked',                langs: ['en', 'de'] },
+  { id: 'booking-cancellation', name: 'Booking Cancellation',    category: 'Bookings',     icon: '✕',  description: 'Sent when a booking is cancelled',                  langs: ['en', 'de'] },
+  { id: 'email-otp',            name: 'Email Verification OTP',  category: 'Auth',         icon: '🔑', description: 'Sent during onboarding email verification',          langs: ['en', 'de'] },
+  { id: 'password-reset',       name: 'Password Reset',          category: 'Auth',         icon: '🔓', description: 'Password reset link',                               langs: ['en'] },
+  { id: 'tx-otp',               name: 'Transaction OTP',         category: 'Transactions', icon: '🔐', description: 'Sent to authorise a transfer (2FA)',                langs: ['en'] },
+  { id: 'tx-confirmation',      name: 'Transaction Receipt',     category: 'Transactions', icon: '✅', description: 'Receipt sent after a transfer completes',           langs: ['en'] },
+  { id: 'registration-received',name: 'Application Received',    category: 'Onboarding',   icon: '📋', description: 'Sent when a new account application is submitted',  langs: ['en', 'de'] },
+  { id: 'application-approved', name: 'Application Approved',    category: 'Onboarding',   icon: '🎉', description: 'Sent when an application is approved by the team',  langs: ['en', 'de'] },
+  { id: 'kyc-invite',           name: 'KYC Invite',              category: 'KYC',          icon: '📷', description: 'Invitation to complete identity verification',       langs: ['en', 'de'] },
+  { id: 'kyc-verified',         name: 'Identity Verified',       category: 'KYC',          icon: '✓',  description: 'Confirms successful identity verification',          langs: ['en', 'de'] },
+  { id: 'all-verified',         name: 'All Verifications Done',  category: 'KYC',          icon: '🎯', description: 'All KYC steps are complete — account is fully live', langs: ['en', 'de'] },
+];
+
+// GET /api/email/catalog — list all built-in template metadata
+app.get('/api/email/catalog', authenticateToken, requireAdmin, (req, res) => {
+  res.json(EMAIL_TEMPLATE_CATALOG);
+});
+
+// POST /api/email/preview/:id — render built-in template to HTML with sample / override data
+app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'mailer not loaded' });
+  const { lang = 'en', data = {} } = req.body || {};
+  const id = req.params.id;
+  const host = `${req.protocol}://${req.get('host')}`;
+  const siteBase = (process.env.PUBLIC_BASE_URL || host).replace(/\/$/, '');
+  const firstName = data.firstName || 'Max';
+  const lastName  = data.lastName  || 'Müller';
+  const email     = data.email     || 'max.mueller@example.com';
+  const company   = data.company   || 'Müller Logistics GmbH';
+
+  try {
+    let mail;
+    switch (id) {
+      case 'booking-confirmation': {
+        const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
+        mail = mailer.renderBookingEmail({
+          slot: { startISO: start.toISOString(), endISO: new Date(start.getTime() + 1800000).toISOString(), label: '11:00 – 11:30' },
+          meetLink: 'https://meet.google.com/demo-link-xyz',
+          calendarUrl: 'https://calendar.google.com/demo',
+          rebookUrl:  host + '/rebook.html?token=demo-token',
+          cancelUrl:  host + '/cancel-booking.html?token=demo-token',
+          lead: { firstName, lastName, email, company, industry: 'Logistics', fxVolume: '€250k–€1M', lang },
+        });
+        break;
+      }
+      case 'booking-cancellation': {
+        const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
+        mail = mailer.renderCancellationEmail({
+          slot: { startISO: start.toISOString() },
+          lead: { firstName, email, lang },
+          rebookUrl: host + '/rebook.html?token=demo-token',
+          cancelledBy: 'admin',
+        });
+        break;
+      }
+      case 'email-otp':
+        mail = mailer.renderOtpEmail({ firstName, email, code: '847 291', lang, verifyUrl: siteBase + '/hansepay/onboarding.html#verify' });
+        break;
+      case 'password-reset':
+        mail = mailer.renderPasswordResetEmail({ firstName, email, code: '738294' });
+        break;
+      case 'tx-otp':
+        mail = mailer.renderTxOtpEmail({ firstName, email, code: '384920', tx: { recipientName: 'Siemens AG', sendAmount: '12,500.00', sendCurrency: 'EUR' } });
+        break;
+      case 'tx-confirmation':
+        mail = mailer.renderTransactionEmail({ tx: {
+          userEmail: email, userFirstName: firstName,
+          id: 'HP-TX-2024-001', sendAmount: '12,500.00', sendCurrency: 'EUR',
+          receiveAmount: '10,871.43', receiveCurrency: 'GBP',
+          rate: '0.8697', fee: '37.50', feeCurrency: 'EUR',
+          recipientName: 'Siemens AG', recipientIban: 'DE89370400440532013000',
+          estimatedArrival: '1 business day', reference: 'INV-2024-0892',
+          createdAt: new Date().toISOString(),
+        }});
+        break;
+      case 'registration-received':
+        mail = mailer.renderRegistrationEmail({ firstName, lastName, email, company, accountType: 'company', applicationRef: 'HP-2024-0042', lang });
+        break;
+      case 'application-approved':
+        mail = mailer.renderApprovalEmail({ firstName, lastName, email, company, applicationRef: 'HP-2024-0042', lang, loginUrl: siteBase + '/hansepay/dashboard-login.html' });
+        break;
+      case 'kyc-invite':
+        mail = mailer.renderKycInviteEmail({ recipientName: firstName, recipientEmail: email, companyName: company, inviterName: 'HansePay Team', kycUrl: siteBase + '/hansepay/kyc-verify.html', lang });
+        break;
+      case 'kyc-verified':
+        mail = mailer.renderKycVerifiedEmail({ firstName, email, lang });
+        break;
+      case 'all-verified':
+        mail = mailer.renderAllVerificationsEmail({ firstName, email, lang, accountType: 'company', company });
+        break;
+      default:
+        return res.status(404).json({ error: 'Unknown template: ' + id });
+    }
+    res.json({ html: mail.html, subject: mail.subject });
+  } catch (err) {
+    console.error('[email/preview]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/email-settings — get persistent email UI settings (non-secret)
+app.get('/api/email-settings', authenticateToken, requireAdmin, (req, res) => {
+  const saved = readData('email-settings.json') || {};
+  res.json(Object.assign({
+    gmailConfigured: mailer ? mailer.gmailConfigured() : false,
+    fromAddress:  process.env.EMAIL_FROM || (process.env.CALENDAR_OWNER_EMAIL ? 'HansePay <' + process.env.CALENDAR_OWNER_EMAIL + '>' : null),
+    calendarOwner: process.env.CALENDAR_OWNER_EMAIL || null,
+    bccAddress:   process.env.EMAIL_BCC || null,
+    replyTo:      process.env.EMAIL_REPLY_TO || process.env.CALENDAR_OWNER_EMAIL || null,
+  }, saved));
+});
+
+// PUT /api/email-settings — save non-secret display settings
+app.put('/api/email-settings', authenticateToken, requireAdmin, (req, res) => {
+  const current = readData('email-settings.json') || {};
+  const allowed = ['footerTagline', 'fromDisplayName', 'defaultLang'];
+  const update  = {};
+  allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
+  const next = Object.assign({}, current, update, { updatedAt: new Date().toISOString() });
+  writeData('email-settings.json', next);
+  res.json(next);
+});
+
+// GET /api/email-custom — list custom templates
+app.get('/api/email-custom', authenticateToken, requireAdmin, (req, res) => {
+  const list = readData('custom-templates.json') || [];
+  res.json(Array.isArray(list) ? list : []);
+});
+
+// POST /api/email-custom — create custom template
+app.post('/api/email-custom', authenticateToken, requireAdmin, (req, res) => {
+  const list = readData('custom-templates.json') || [];
+  const arr  = Array.isArray(list) ? list : [];
+  const id   = 'custom-' + Date.now();
+  const t    = Object.assign({ blocks: [], footerTagline: 'EU-regulated cross-border payments · Hamburg' }, req.body, {
+    id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+  });
+  arr.push(t);
+  writeData('custom-templates.json', arr);
+  res.json(t);
+});
+
+// POST /api/email-custom/preview-blocks — render blocks without saving (live editor preview)
+app.post('/api/email-custom/preview-blocks', authenticateToken, requireAdmin, (req, res) => {
+  if (!mailer || !mailer.renderCustomTemplate) return res.status(503).json({ error: 'renderer not available' });
+  try {
+    const mail = mailer.renderCustomTemplate(req.body || {}, {});
+    res.json({ html: mail.html, subject: mail.subject });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/email-custom/:id — get single custom template
+app.get('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
+  const list = readData('custom-templates.json') || [];
+  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'Not found' });
+  res.json(t);
+});
+
+// PUT /api/email-custom/:id — update custom template
+app.put('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
+  const list = readData('custom-templates.json') || [];
+  const arr  = Array.isArray(list) ? list : [];
+  const idx  = arr.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  arr[idx] = Object.assign({}, arr[idx], req.body, { id: req.params.id, updatedAt: new Date().toISOString() });
+  writeData('custom-templates.json', arr);
+  res.json(arr[idx]);
+});
+
+// DELETE /api/email-custom/:id — delete custom template
+app.delete('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
+  const list = readData('custom-templates.json') || [];
+  const arr  = Array.isArray(list) ? list : [];
+  const idx  = arr.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  arr.splice(idx, 1);
+  writeData('custom-templates.json', arr);
+  res.json({ success: true });
+});
+
+// POST /api/email-custom/:id/preview — render custom template to HTML
+app.post('/api/email-custom/:id/preview', authenticateToken, requireAdmin, (req, res) => {
+  if (!mailer || !mailer.renderCustomTemplate) return res.status(503).json({ error: 'renderer not available' });
+  const list = readData('custom-templates.json') || [];
+  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'Not found' });
+  try {
+    const mail = mailer.renderCustomTemplate(t, req.body || {});
+    res.json({ html: mail.html, subject: mail.subject });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/email-custom/:id/test — send test for custom template
+app.post('/api/email-custom/:id/test', authenticateToken, requireAdmin, async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'mailer not loaded' });
+  const list = readData('custom-templates.json') || [];
+  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'Not found' });
+  const to = (req.body && req.body.to) || req.user.email;
+  try {
+    const mail = mailer.renderCustomTemplate(t, req.body || {});
+    mail.to = to;
+    const result = await mailer.sendMail(mail);
+    res.json(Object.assign({ to }, result));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Public API (API-key auth) ───────────────────────────────────────────────
 //
 // GET /api/crm/customers

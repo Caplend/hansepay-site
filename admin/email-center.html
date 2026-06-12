@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Center — HansePay Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+:root {
+  --n900:#060D1A; --n800:#0B1929; --n700:#0F2540; --n600:#163659;
+  --n500:#1E4E80; --n400:#2E6BAD; --n300:#3B7BC4; --n200:#8DBDE6;
+  --n100:#C4DDEF; --n050:#EBF4FB; --off:#F5F1EA; --gold:#C9A961;
+  --ink:#0B1929; --ink2:#3D5A73; --ink3:#7A9AB0;
+  --r-sm:6px; --r-md:10px; --r-lg:16px; --r-pill:100px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--off); color: var(--ink); display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--n800);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 20px 22px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.sidebar-admin-badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  display: block;
+  margin-top: 4px;
+}
+.sidebar-nav { flex: 1; padding: 18px 12px; overflow-y: auto; }
+.nav-section {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+  padding: 12px 12px 6px;
+  margin-top: 4px;
+  display: block;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: var(--n600); color: #fff; font-weight: 600; border-left-color: var(--gold); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.sidebar-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 8px; }
+.sidebar-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--n500);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.sidebar-user-info { overflow: hidden; }
+.sidebar-user-name { font-size: 0.75rem; font-weight: 500; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-email { font-size: 0.6875rem; color: rgba(255,255,255,0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.signout-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.75rem; font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer; transition: all 0.15s;
+  background: none; border: none;
+  font-family: 'Inter', sans-serif;
+  width: 100%; text-align: left;
+}
+.signout-link:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.75); }
+.signout-link svg { width: 14px; height: 14px; }
+
+/* ── MAIN LAYOUT ── */
+.main { flex: 1; margin-left: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--n800);
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-avatar {
+  display: flex; align-items: center; gap: 9px;
+  padding: 5px 14px 5px 5px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(11,25,41,0.09);
+  background: var(--off);
+}
+.topbar-avatar-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--n500);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem; font-weight: 700; color: #fff;
+}
+.topbar-avatar-name { font-size: 0.8125rem; font-weight: 500; color: var(--ink2); }
+
+/* ── EMAIL CENTER LAYOUT ── */
+.ec-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 64px);
+}
+
+/* ── EC LEFT PANEL (260px) ── */
+.ec-left {
+  width: 260px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid rgba(11,25,41,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sending section */
+.ec-sending {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(11,25,41,0.07);
+}
+.ec-section-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.gmail-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  font-size: 0.6875rem; font-weight: 600;
+  margin-bottom: 8px;
+}
+.gmail-status.connected { background: #dcfce7; color: #166534; }
+.gmail-status.not-configured { background: #fee2e2; color: #991b1b; }
+.gmail-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.from-address {
+  display: inline-flex; align-items: center;
+  max-width: 100%;
+  background: var(--n050);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  font-size: 0.6875rem; font-weight: 500; color: var(--ink2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-bottom: 5px;
+}
+.bcc-address {
+  font-size: 0.6875rem; color: var(--ink3);
+  padding: 0 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.edit-settings-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.6875rem; font-weight: 600; color: var(--n400);
+  margin-top: 9px; cursor: pointer;
+  background: none; border: none; font-family: 'Inter', sans-serif;
+  padding: 0;
+}
+.edit-settings-link:hover { color: var(--n500); text-decoration: underline; }
+.edit-settings-link svg { width: 11px; height: 11px; }
+
+/* Templates list */
+.ec-templates { flex: 1; overflow-y: auto; padding: 10px 8px 16px; }
+.ec-cat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 8px 5px;
+  cursor: pointer; user-select: none;
+}
+.ec-cat-name {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink3);
+}
+.ec-cat-chevron {
+  width: 12px; height: 12px; color: var(--ink3);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.ec-cat-chevron.open { transform: rotate(180deg); }
+.ec-cat-items { }
+.ec-cat-items.collapsed { display: none; }
+.ec-tpl-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 500; color: var(--ink2);
+  cursor: pointer; transition: all 0.13s;
+  margin-bottom: 1px;
+}
+.ec-tpl-row:hover { background: var(--n050); color: var(--ink); }
+.ec-tpl-row.active { background: #EBF2FA; color: #0B1929; font-weight: 600; }
+.ec-tpl-icon { font-size: 14px; flex-shrink: 0; line-height: 1; }
+.ec-tpl-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ec-new-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 600; color: var(--n400);
+  cursor: pointer; transition: all 0.13s;
+  margin-top: 3px;
+  background: none; border: none;
+  font-family: 'Inter', sans-serif;
+  width: 100%; text-align: left;
+}
+.ec-new-btn:hover { background: var(--n050); color: var(--n500); }
+.ec-new-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── EC RIGHT PANEL ── */
+.ec-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Template topbar */
+.ec-topbar {
+  background: #fff;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  padding: 0 24px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.ec-topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ec-breadcrumb {
+  font-size: 0.6875rem; font-weight: 600;
+  color: var(--ink3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+.ec-tpl-title {
+  font-size: 0.9375rem; font-weight: 600; color: var(--n800);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ec-topbar-sep { color: var(--ink3); font-size: 0.75rem; }
+.ec-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Lang toggle */
+.lang-toggle { display: flex; gap: 3px; }
+.lang-btn {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 0.6875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.13s;
+  border: none; font-family: 'Inter', sans-serif;
+}
+.lang-btn.active { background: var(--n800); color: #fff; }
+.lang-btn:not(.active) { background: rgba(11,25,41,0.07); color: var(--ink2); }
+.lang-btn:not(.active):hover { background: rgba(11,25,41,0.12); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--r-md);
+  font-size: 0.8125rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  border: none; font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--n800); color: #fff; }
+.btn-primary:hover { background: var(--n700); }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-secondary { background: #fff; color: var(--ink2); border: 1px solid rgba(11,25,41,0.12); }
+.btn-secondary:hover { background: var(--n050); border-color: var(--n200); color: var(--n500); }
+.btn-danger { background: #fff; color: #dc2626; border: 1px solid #fca5a5; }
+.btn-danger:hover { background: #fef2f2; border-color: #f87171; }
+.btn-ghost { background: none; color: var(--ink3); border: 1px solid rgba(11,25,41,0.1); }
+.btn-ghost:hover { background: var(--n050); color: var(--ink2); }
+.btn svg { width: 14px; height: 14px; }
+
+/* Preview iframe */
+.ec-preview-wrap {
+  flex: 1;
+  background: #f0f2f4;
+  position: relative;
+  overflow: hidden;
+}
+.ec-preview-iframe {
+  border: 0;
+  width: 100%;
+  height: 100%;
+  background: #f0f2f4;
+  display: block;
+}
+.ec-preview-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f2f4;
+  font-size: 0.875rem; color: var(--ink3);
+  pointer-events: none;
+}
+.ec-preview-loading.hidden { display: none; }
+.ec-preview-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(11,25,41,0.12);
+  border-top-color: var(--n400);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-right: 8px;
+}
+
+/* Bottom test bar */
+.ec-test-bar {
+  background: #fff;
+  border-top: 1px solid rgba(11,25,41,0.08);
+  padding: 10px 24px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.ec-test-label { font-size: 0.8125rem; color: var(--ink2); font-weight: 500; white-space: nowrap; }
+.ec-test-input {
+  flex: 1; max-width: 320px;
+  height: 36px; padding: 0 12px;
+  border: 1px solid rgba(11,25,41,0.14);
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem; color: var(--ink);
+  outline: none; background: #fff;
+  transition: border-color 0.15s;
+}
+.ec-test-input:focus { border-color: var(--n300); }
+.ec-test-send {
+  height: 36px; padding: 0 16px;
+  border-radius: var(--r-md);
+  font-size: 0.8125rem; font-weight: 600;
+  background: var(--n800); color: #fff;
+  border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.ec-test-send:hover { background: var(--n700); }
+.ec-test-send:disabled { opacity: 0.5; cursor: default; }
+.ec-test-send svg { width: 14px; height: 14px; }
+
+/* Welcome state */
+.ec-welcome {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px; text-align: center; gap: 16px;
+}
+.ec-welcome-icon {
+  font-size: 48px; line-height: 1; margin-bottom: 4px;
+}
+.ec-welcome-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem; font-weight: 600; color: var(--n800);
+}
+.ec-welcome-sub { font-size: 0.875rem; color: var(--ink3); max-width: 340px; line-height: 1.6; }
+.ec-welcome-info {
+  background: #fff;
+  border: 1px solid rgba(11,25,41,0.08);
+  border-radius: var(--r-lg);
+  padding: 18px 24px;
+  display: flex; flex-direction: column; gap: 8px;
+  width: 100%; max-width: 380px;
+  margin-top: 8px;
+}
+.ec-welcome-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ec-welcome-key { font-size: 0.75rem; font-weight: 600; color: var(--ink3); }
+.ec-welcome-val { font-size: 0.75rem; color: var(--ink2); font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 0.8125rem; font-weight: 500;
+  box-shadow: 0 4px 20px rgba(11,25,41,0.18);
+  pointer-events: all;
+  animation: toast-in 0.25s ease;
+  max-width: 320px;
+}
+.toast.success { background: #fff; border-left: 3px solid #22c55e; color: var(--ink); }
+.toast.error { background: #fff; border-left: 3px solid #ef4444; color: var(--ink); }
+.toast.info { background: #fff; border-left: 3px solid var(--n400); color: var(--ink); }
+.toast-icon { font-size: 15px; flex-shrink: 0; }
+.toast-out { animation: toast-fade 0.25s ease forwards; }
+
+/* ── SETTINGS MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,25,41,0.55);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.hidden { display: none; }
+.settings-modal {
+  background: #fff;
+  border-radius: var(--r-lg);
+  width: 100%; max-width: 520px;
+  box-shadow: 0 20px 60px rgba(11,25,41,0.2);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  max-height: 90vh;
+}
+.modal-header {
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid rgba(11,25,41,0.07);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: 'Playfair Display', serif; font-size: 1.125rem; font-weight: 600; color: var(--n800); }
+.modal-close {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--r-md);
+  border: none; background: none; cursor: pointer;
+  color: var(--ink3); font-size: 18px; line-height: 1;
+  transition: all 0.13s;
+}
+.modal-close:hover { background: var(--n050); color: var(--ink); }
+.modal-body { padding: 22px 28px; flex: 1; overflow-y: auto; }
+.modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid rgba(11,25,41,0.07);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+.field-group { margin-bottom: 18px; }
+.field-label {
+  display: block;
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+.field-label small { font-weight: 400; color: var(--ink3); font-size: 0.6875rem; margin-left: 5px; }
+.field-input {
+  width: 100%; height: 38px; padding: 0 12px;
+  border: 1px solid rgba(11,25,41,0.14);
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem; color: var(--ink);
+  outline: none; background: #fff;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--n300); }
+.field-input:read-only { background: #f7f9fb; color: var(--ink2); cursor: default; }
+.field-select {
+  width: 100%; height: 38px; padding: 0 12px;
+  border: 1px solid rgba(11,25,41,0.14);
+  border-radius: var(--r-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem; color: var(--ink);
+  outline: none; background: #fff;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.field-select:focus { border-color: var(--n300); }
+.field-note { font-size: 0.6875rem; color: var(--ink3); margin-top: 5px; }
+.field-row-static {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  background: #f7f9fb;
+  border: 1px solid rgba(11,25,41,0.08);
+  border-radius: var(--r-md);
+  font-size: 0.8125rem; color: var(--ink2);
+}
+.field-divider { border: none; border-top: 1px solid rgba(11,25,41,0.07); margin: 20px 0; }
+
+/* ── BUILDER MODAL ── */
+.builder-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,25,41,0.72);
+  z-index: 600;
+  display: flex; flex-direction: column;
+}
+.builder-overlay.hidden { display: none; }
+.builder-modal {
+  background: var(--off);
+  flex: 1;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.builder-header {
+  background: #fff;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  padding: 0 28px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.builder-title { font-family: 'Playfair Display', serif; font-size: 1.125rem; font-weight: 600; color: var(--n800); }
+.builder-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Builder left = editor */
+.builder-editor {
+  width: 420px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid rgba(11,25,41,0.08);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.builder-editor-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+.builder-field-group { margin-bottom: 14px; }
+.builder-section-sep {
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink3);
+  padding: 12px 0 6px;
+  border-top: 1px solid rgba(11,25,41,0.07);
+  margin-top: 8px;
+}
+.builder-blocks-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.builder-block-item {
+  background: var(--off);
+  border: 1px solid rgba(11,25,41,0.1);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.builder-block-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.builder-block-type {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--ink2);
+  flex: 1;
+}
+.builder-block-controls { display: flex; gap: 3px; }
+.builder-block-btn {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px;
+  border: none; background: none; cursor: pointer;
+  color: var(--ink3); font-size: 12px;
+  transition: all 0.12s;
+}
+.builder-block-btn:hover { background: rgba(11,25,41,0.07); color: var(--ink); }
+.builder-block-btn svg { width: 12px; height: 12px; }
+.builder-block-edit { padding: 10px 12px 12px; border-top: 1px solid rgba(11,25,41,0.07); }
+.builder-block-edit.hidden { display: none; }
+.builder-block-edit .field-label { font-size: 0.6875rem; }
+.builder-block-edit .field-input,
+.builder-block-edit .field-select { height: 34px; font-size: 0.8125rem; }
+.builder-block-edit textarea.field-input {
+  height: auto; min-height: 72px; padding: 8px 12px;
+  resize: vertical; line-height: 1.5;
+}
+
+.info-card-rows { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+.info-card-row { display: flex; gap: 5px; align-items: center; }
+.info-card-row input { flex: 1; height: 30px; padding: 0 8px; border: 1px solid rgba(11,25,41,0.12); border-radius: 5px; font-family: 'Inter', sans-serif; font-size: 0.75rem; color: var(--ink); outline: none; }
+.info-card-row input:focus { border-color: var(--n300); }
+.info-card-row-del { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: none; background: none; color: var(--ink3); cursor: pointer; font-size: 14px; border-radius: 4px; flex-shrink: 0; }
+.info-card-row-del:hover { background: #fee2e2; color: #dc2626; }
+
+.add-row-btn { font-size: 0.6875rem; font-weight: 600; color: var(--n400); background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; padding: 2px 0; }
+.add-row-btn:hover { color: var(--n500); }
+
+.add-block-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px;
+  border: 2px dashed rgba(11,25,41,0.14);
+  border-radius: var(--r-md);
+  font-size: 0.8125rem; font-weight: 600; color: var(--ink3);
+  background: none; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.13s;
+  position: relative;
+}
+.add-block-btn:hover { border-color: var(--n300); color: var(--n400); background: var(--n050); }
+.add-block-btn svg { width: 14px; height: 14px; }
+
+.block-type-dropdown {
+  position: absolute; bottom: calc(100% + 4px); left: 0;
+  background: #fff; border: 1px solid rgba(11,25,41,0.12);
+  border-radius: var(--r-md);
+  box-shadow: 0 6px 20px rgba(11,25,41,0.12);
+  z-index: 50; min-width: 180px;
+  overflow: hidden;
+}
+.block-type-dropdown.hidden { display: none; }
+.block-type-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  font-size: 0.8125rem; font-weight: 500; color: var(--ink2);
+  cursor: pointer; transition: background 0.12s;
+}
+.block-type-opt:hover { background: var(--n050); color: var(--ink); }
+.block-type-opt-icon { font-size: 14px; }
+
+.signoff-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.signoff-row label { font-size: 0.8125rem; color: var(--ink2); font-weight: 500; cursor: pointer; }
+.signoff-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--n500); cursor: pointer; }
+
+/* Builder right = preview */
+.builder-preview {
+  flex: 1;
+  display: flex; flex-direction: column;
+  background: #f0f2f4;
+  overflow: hidden;
+}
+.builder-preview-bar {
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0f2f4;
+  border-bottom: 1px solid rgba(11,25,41,0.08);
+  flex-shrink: 0;
+}
+.builder-preview-label { font-size: 0.75rem; font-weight: 600; color: var(--ink3); }
+.builder-preview-frame {
+  flex: 1;
+  border: 0; width: 100%; background: #f0f2f4;
+  display: block;
+}
+
+.builder-footer {
+  background: #fff;
+  border-top: 1px solid rgba(11,25,41,0.08);
+  padding: 14px 24px;
+  display: flex; justify-content: flex-end; gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Delete confirm */
+.delete-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,25,41,0.55);
+  z-index: 700;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.delete-overlay.hidden { display: none; }
+.delete-box {
+  background: #fff; border-radius: var(--r-lg); padding: 28px 32px; max-width: 380px; width: 100%;
+  box-shadow: 0 20px 60px rgba(11,25,41,0.2);
+}
+.delete-title { font-size: 1rem; font-weight: 700; color: var(--n800); margin-bottom: 8px; }
+.delete-sub { font-size: 0.875rem; color: var(--ink2); line-height: 1.55; margin-bottom: 22px; }
+.delete-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes toast-fade { to { opacity: 0; transform: translateY(8px); } }
+  </style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div>
+      <div class="sidebar-brand">HansePay</div>
+      <span class="sidebar-admin-badge">Admin</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <span class="nav-section">Main</span>
+    <a href="/hansepay/admin/" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="/hansepay/admin/bookings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </a>
+    <a href="/hansepay/admin/calendar.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Calendar
+    </a>
+    <span class="nav-section">Growth</span>
+    <a href="/hansepay/admin/sales.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Sales Pipeline
+    </a>
+    <a href="/hansepay/admin/crm.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customers (CRM)
+    </a>
+    <a href="/hansepay/admin/marketing.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+      Marketing
+    </a>
+    <span class="nav-section">Content</span>
+    <a href="/hansepay/admin/posts.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Posts
+    </a>
+    <a href="/hansepay/admin/new-post.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Post
+    </a>
+    <span class="nav-section">Optimise</span>
+    <a href="/hansepay/admin/seo.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      SEO Manager
+    </a>
+    <a href="/hansepay/admin/analytics.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <span class="nav-section">Legal</span>
+    <a href="/hansepay/admin/legal.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Legal Centre
+    </a>
+    <span class="nav-section">Admin</span>
+    <a href="/hansepay/admin/users.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </a>
+    <a href="/hansepay/admin/email-center.html" class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Email Center
+    </a>
+    <a href="/hansepay/admin/settings.html" class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+      Settings
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-name">Admin</div>
+        <div class="sidebar-user-email" id="sidebar-email">admin@hansepay.com</div>
+      </div>
+    </div>
+    <button class="signout-link" onclick="signOut()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">Email Center</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="openSettings()" title="Email settings" style="padding:7px 10px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+      </button>
+      <div class="topbar-avatar">
+        <div class="topbar-avatar-circle" id="topbar-avatar">A</div>
+        <span class="topbar-avatar-name" id="topbar-name">Admin</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Center Body -->
+  <div class="ec-body">
+
+    <!-- ── LEFT PANEL ── -->
+    <div class="ec-left">
+      <!-- Sending section -->
+      <div class="ec-sending">
+        <div class="ec-section-label">Sending</div>
+        <div id="gmail-badge" class="gmail-status not-configured">
+          <span class="gmail-status-dot"></span>
+          <span id="gmail-badge-text">Not configured</span>
+        </div>
+        <div id="from-address" class="from-address" style="display:none;"></div>
+        <div id="bcc-address" class="bcc-address" style="display:none;"></div>
+        <button class="edit-settings-link" onclick="openSettings()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+          Edit settings
+        </button>
+      </div>
+
+      <!-- Templates section -->
+      <div class="ec-templates" id="ec-templates">
+        <div id="templates-loading" style="padding:20px 12px;font-size:0.8125rem;color:var(--ink3);">Loading templates…</div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <div class="ec-right" id="ec-right">
+      <!-- Welcome state (default) -->
+      <div class="ec-welcome" id="ec-welcome">
+        <div class="ec-welcome-icon">✉️</div>
+        <div class="ec-welcome-title">Email Center</div>
+        <div class="ec-welcome-sub">Select a template from the left panel to preview it, or create a custom email template.</div>
+        <div class="ec-welcome-info" id="welcome-info" style="display:none;">
+          <div class="ec-welcome-row">
+            <span class="ec-welcome-key">Status</span>
+            <span class="ec-welcome-val" id="welcome-status">—</span>
+          </div>
+          <div class="ec-welcome-row" id="welcome-from-row" style="display:none;">
+            <span class="ec-welcome-key">From</span>
+            <span class="ec-welcome-val" id="welcome-from">—</span>
+          </div>
+          <div class="ec-welcome-row" id="welcome-lang-row">
+            <span class="ec-welcome-key">Default language</span>
+            <span class="ec-welcome-val" id="welcome-lang">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Template view (hidden until selection) -->
+      <div id="ec-tpl-view" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+        <!-- Template topbar -->
+        <div class="ec-topbar">
+          <div class="ec-topbar-left">
+            <span class="ec-breadcrumb" id="tpl-category">Category</span>
+            <span class="ec-topbar-sep">›</span>
+            <span class="ec-tpl-title" id="tpl-name">Template</span>
+          </div>
+          <div class="ec-topbar-right">
+            <div class="lang-toggle" id="lang-toggle" style="display:none;">
+              <button class="lang-btn active" id="lang-en" onclick="setLang('en')">EN</button>
+              <button class="lang-btn" id="lang-de" onclick="setLang('de')">DE</button>
+            </div>
+            <button class="btn btn-ghost" id="btn-edit-custom" style="display:none;" onclick="openEditor()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button class="btn btn-danger" id="btn-delete-custom" style="display:none;" onclick="confirmDelete()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Delete
+            </button>
+            <button class="btn btn-primary" id="btn-send-test-top" onclick="focusTestInput()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send test
+            </button>
+          </div>
+        </div>
+
+        <!-- Preview iframe -->
+        <div class="ec-preview-wrap">
+          <div class="ec-preview-loading" id="preview-loading">
+            <div class="ec-preview-spinner"></div>
+            Loading preview…
+          </div>
+          <iframe id="preview-iframe" class="ec-preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+
+        <!-- Test bar -->
+        <div class="ec-test-bar">
+          <span class="ec-test-label">Send test to:</span>
+          <input type="email" class="ec-test-input" id="test-email-input" placeholder="you@example.com" oninput="updateTestBtn()" />
+          <button class="ec-test-send" id="test-send-btn" onclick="sendTest()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.ec-body -->
+</main>
+
+<!-- ══ TOAST CONTAINER ══ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ══ SETTINGS MODAL ══ -->
+<div class="modal-overlay hidden" id="settings-overlay" onclick="closeSettingsOnBg(event)">
+  <div class="settings-modal">
+    <div class="modal-header">
+      <div class="modal-title">Email Settings</div>
+      <button class="modal-close" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Gmail status</label>
+        <div class="field-row-static" id="settings-gmail-status">
+          <span id="settings-gmail-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
+          <span id="settings-gmail-text">Checking…</span>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">From address <small>Read-only</small></label>
+        <input type="text" class="field-input" id="settings-from" readonly />
+      </div>
+      <div class="field-group">
+        <label class="field-label">BCC address <small>Read-only</small></label>
+        <input type="text" class="field-input" id="settings-bcc" readonly />
+        <div class="field-note">To change BCC or Gmail credentials, update your Railway environment variables.</div>
+      </div>
+      <hr class="field-divider" />
+      <div class="field-group">
+        <label class="field-label" for="settings-display-name">Display name</label>
+        <input type="text" class="field-input" id="settings-display-name" placeholder="HansePay" />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="settings-footer-tagline">Footer tagline</label>
+        <input type="text" class="field-input" id="settings-footer-tagline" placeholder="Trusted cross-border payments." />
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="settings-default-lang">Default language</label>
+        <select class="field-select" id="settings-default-lang">
+          <option value="en">English (EN)</option>
+          <option value="de">German (DE)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" id="settings-save-btn" onclick="saveSettings()">Save settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BUILDER MODAL ══ -->
+<div class="builder-overlay hidden" id="builder-overlay">
+  <div class="builder-modal">
+    <div class="builder-header">
+      <div class="builder-title" id="builder-title">New email</div>
+      <button class="modal-close" onclick="closeBuilder()" style="font-size:22px;">×</button>
+    </div>
+    <div class="builder-body">
+
+      <!-- Editor left -->
+      <div class="builder-editor">
+        <div class="builder-editor-scroll">
+          <div class="builder-field-group">
+            <label class="field-label" for="b-name">Template name</label>
+            <input type="text" class="field-input" id="b-name" placeholder="e.g. Welcome Email" oninput="schedulePreview()" />
+          </div>
+          <div class="builder-field-group">
+            <label class="field-label" for="b-category">Category</label>
+            <input type="text" class="field-input" id="b-category" placeholder="e.g. Onboarding" oninput="schedulePreview()" />
+          </div>
+          <div class="builder-field-group">
+            <label class="field-label" for="b-subject">Subject line</label>
+            <input type="text" class="field-input" id="b-subject" placeholder="e.g. Welcome to HansePay" oninput="schedulePreview()" />
+          </div>
+          <div class="builder-field-group">
+            <label class="field-label" for="b-hero-subtitle">Header subtitle</label>
+            <input type="text" class="field-input" id="b-hero-subtitle" placeholder="e.g. Your account is ready" oninput="schedulePreview()" />
+          </div>
+          <div class="builder-field-group">
+            <label class="field-label" for="b-lang">Language</label>
+            <select class="field-select" id="b-lang" onchange="schedulePreview()">
+              <option value="en">English (EN)</option>
+              <option value="de">German (DE)</option>
+            </select>
+          </div>
+
+          <div class="builder-section-sep">Blocks</div>
+
+          <div class="builder-blocks-list" id="builder-blocks-list"></div>
+
+          <div style="position:relative;">
+            <button class="add-block-btn" onclick="toggleBlockDropdown(event)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add block
+            </button>
+            <div class="block-type-dropdown hidden" id="block-type-dropdown">
+              <div class="block-type-opt" onclick="addBlock('hero')"><span class="block-type-opt-icon">🦸</span>Hero</div>
+              <div class="block-type-opt" onclick="addBlock('text')"><span class="block-type-opt-icon">📝</span>Text</div>
+              <div class="block-type-opt" onclick="addBlock('heading')"><span class="block-type-opt-icon">🔤</span>Heading</div>
+              <div class="block-type-opt" onclick="addBlock('button')"><span class="block-type-opt-icon">🔘</span>Button</div>
+              <div class="block-type-opt" onclick="addBlock('infocard')"><span class="block-type-opt-icon">📋</span>Info Card</div>
+              <div class="block-type-opt" onclick="addBlock('divider')"><span class="block-type-opt-icon">➖</span>Divider</div>
+              <div class="block-type-opt" onclick="addBlock('spacer')"><span class="block-type-opt-icon">↕️</span>Spacer</div>
+            </div>
+          </div>
+
+          <div class="builder-section-sep">Footer</div>
+
+          <div class="builder-field-group">
+            <label class="field-label" for="b-footer-tagline">Footer tagline</label>
+            <input type="text" class="field-input" id="b-footer-tagline" placeholder="Trusted cross-border payments." oninput="schedulePreview()" />
+          </div>
+          <div class="signoff-row">
+            <input type="checkbox" id="b-signoff" onchange="schedulePreview()" />
+            <label for="b-signoff">Show sign-off</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview right -->
+      <div class="builder-preview">
+        <div class="builder-preview-bar">
+          <span class="builder-preview-label">Live preview</span>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:0.75rem;" onclick="refreshBuilderPreview()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+        <iframe id="builder-preview-frame" class="builder-preview-frame" sandbox="allow-same-origin allow-scripts"></iframe>
+      </div>
+    </div>
+
+    <div class="builder-footer">
+      <button class="btn btn-secondary" onclick="closeBuilder()">Cancel</button>
+      <button class="btn btn-primary" id="builder-save-btn" onclick="saveCustomTemplate()">Save template</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE CONFIRM OVERLAY ══ -->
+<div class="delete-overlay hidden" id="delete-overlay">
+  <div class="delete-box">
+    <div class="delete-title">Delete this template?</div>
+    <div class="delete-sub">This will permanently remove the template. This action cannot be undone.</div>
+    <div class="delete-actions">
+      <button class="btn btn-secondary" onclick="closeDelete()">Cancel</button>
+      <button class="btn btn-danger" id="delete-confirm-btn" onclick="doDelete()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function getToken() {
+  return localStorage.getItem('hp_token');
+}
+function authFetch(url, opts = {}) {
+  const token = getToken();
+  const headers = Object.assign({}, opts.headers || {}, {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  });
+  return fetch(BASE + url, Object.assign({}, opts, { headers }));
+}
+if (!getToken()) {
+  window.location.href = '/hansepay/admin/login.html';
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let catalog = [];            // built-in templates
+let customTemplates = [];    // custom templates
+let emailSettings = {};
+let activeTpl = null;        // { id, type:'builtin'|'custom', name, category, langs }
+let activeLang = 'en';
+let builderMode = 'create';  // 'create' | 'edit'
+let builderEditId = null;
+let builderBlocks = [];
+let builderBlockIdSeq = 0;
+let previewDebounceTimer = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  loadSidebarUser();
+  try {
+    const [catRes, settingsRes, customRes] = await Promise.all([
+      authFetch('/api/email/catalog'),
+      authFetch('/api/email-settings'),
+      authFetch('/api/email-custom')
+    ]);
+    catalog = catRes.ok ? await catRes.json() : [];
+    emailSettings = settingsRes.ok ? await settingsRes.json() : {};
+    customTemplates = customRes.ok ? await customRes.json() : [];
+  } catch (e) {
+    showToast('Failed to load data. Check your connection.', 'error');
+  }
+  renderSendingSection();
+  renderTemplateList();
+  renderWelcomeInfo();
+}
+
+function loadSidebarUser() {
+  const raw = localStorage.getItem('hp_user');
+  if (!raw) return;
+  try {
+    const u = JSON.parse(raw);
+    const name = u.name || u.email || 'Admin';
+    const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = name;
+    document.getElementById('sidebar-email').textContent = u.email || '';
+    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('topbar-name').textContent = name.split(' ')[0];
+  } catch (e) {}
+}
+
+function signOut() {
+  localStorage.removeItem('hp_token');
+  localStorage.removeItem('hp_user');
+  window.location.href = '/hansepay/admin/login.html';
+}
+
+// ── Sending section ───────────────────────────────────────────────────────────
+function renderSendingSection() {
+  const badge = document.getElementById('gmail-badge');
+  const badgeText = document.getElementById('gmail-badge-text');
+  const fromEl = document.getElementById('from-address');
+  const bccEl = document.getElementById('bcc-address');
+
+  if (emailSettings.gmailConfigured) {
+    badge.className = 'gmail-status connected';
+    badgeText.textContent = 'Connected';
+  } else {
+    badge.className = 'gmail-status not-configured';
+    badgeText.textContent = 'Not configured';
+  }
+
+  if (emailSettings.fromAddress) {
+    fromEl.textContent = emailSettings.fromAddress;
+    fromEl.style.display = 'inline-flex';
+  }
+  if (emailSettings.bccAddress) {
+    bccEl.textContent = 'BCC: ' + emailSettings.bccAddress;
+    bccEl.style.display = 'block';
+  }
+}
+
+function renderWelcomeInfo() {
+  const box = document.getElementById('welcome-info');
+  box.style.display = 'flex';
+  document.getElementById('welcome-status').textContent =
+    emailSettings.gmailConfigured ? 'Gmail connected' : 'Not configured';
+  if (emailSettings.fromAddress) {
+    document.getElementById('welcome-from').textContent = emailSettings.fromAddress;
+    document.getElementById('welcome-from-row').style.display = 'flex';
+  }
+  const langMap = { en: 'English', de: 'German' };
+  document.getElementById('welcome-lang').textContent =
+    langMap[emailSettings.defaultLang] || emailSettings.defaultLang || '—';
+}
+
+// ── Template list ─────────────────────────────────────────────────────────────
+const CATEGORY_ORDER = ['Bookings', 'Auth', 'Onboarding', 'KYC', 'Transactions', 'Custom'];
+
+function renderTemplateList() {
+  const container = document.getElementById('ec-templates');
+  container.innerHTML = '';
+
+  // Group built-in by category
+  const catMap = {};
+  for (const tpl of catalog) {
+    const cat = tpl.category || 'Other';
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(tpl);
+  }
+
+  // Ordered list
+  const cats = [...CATEGORY_ORDER.filter(c => catMap[c] || c === 'Custom')];
+  for (const cat of Object.keys(catMap)) {
+    if (!cats.includes(cat)) cats.push(cat);
+  }
+
+  for (const cat of cats) {
+    const catId = 'cat-' + cat.toLowerCase().replace(/\s+/g, '-');
+    const header = document.createElement('div');
+    header.className = 'ec-cat-header';
+    header.innerHTML = `<span class="ec-cat-name">${esc(cat)}</span>
+      <svg class="ec-cat-chevron open" id="chevron-${catId}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+    header.onclick = () => toggleCat(catId);
+    container.appendChild(header);
+
+    const items = document.createElement('div');
+    items.className = 'ec-cat-items';
+    items.id = catId;
+
+    if (cat === 'Custom') {
+      for (const tpl of customTemplates) {
+        items.appendChild(makeTplRow(tpl.id, tpl.name, tpl.category || 'Custom', tpl.icon || '✉️', 'custom'));
+      }
+      const newBtn = document.createElement('button');
+      newBtn.className = 'ec-new-btn';
+      newBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New email`;
+      newBtn.onclick = openNewTemplate;
+      items.appendChild(newBtn);
+    } else {
+      const tpls = catMap[cat] || [];
+      for (const tpl of tpls) {
+        items.appendChild(makeTplRow(tpl.id, tpl.name, tpl.category, tpl.icon || '✉️', 'builtin', tpl.langs));
+      }
+    }
+
+    container.appendChild(items);
+  }
+}
+
+function makeTplRow(id, name, category, icon, type, langs) {
+  const row = document.createElement('div');
+  row.className = 'ec-tpl-row';
+  row.id = 'tpl-row-' + type + '-' + id;
+  row.innerHTML = `<span class="ec-tpl-icon">${icon || '✉️'}</span><span class="ec-tpl-name">${esc(name)}</span>`;
+  row.onclick = () => selectTemplate(id, name, category, icon, type, langs);
+  return row;
+}
+
+function toggleCat(catId) {
+  const items = document.getElementById(catId);
+  const chevron = document.getElementById('chevron-' + catId);
+  if (!items) return;
+  items.classList.toggle('collapsed');
+  chevron.classList.toggle('open');
+}
+
+// ── Template selection ────────────────────────────────────────────────────────
+async function selectTemplate(id, name, category, icon, type, langs) {
+  // Deactivate previous
+  document.querySelectorAll('.ec-tpl-row.active').forEach(r => r.classList.remove('active'));
+  const row = document.getElementById('tpl-row-' + type + '-' + id);
+  if (row) row.classList.add('active');
+
+  activeTpl = { id, name, category, type, langs: langs || [] };
+  activeLang = emailSettings.defaultLang || 'en';
+
+  // Show template view
+  document.getElementById('ec-welcome').style.display = 'none';
+  const view = document.getElementById('ec-tpl-view');
+  view.style.display = 'flex';
+
+  // Topbar
+  document.getElementById('tpl-category').textContent = category || 'Custom';
+  document.getElementById('tpl-name').textContent = name;
+
+  // Lang toggle
+  const langToggle = document.getElementById('lang-toggle');
+  const hasDE = type === 'custom' || (langs && langs.includes('de'));
+  langToggle.style.display = hasDE ? 'flex' : 'none';
+  updateLangButtons();
+
+  // Edit/delete buttons
+  document.getElementById('btn-edit-custom').style.display = type === 'custom' ? 'flex' : 'none';
+  document.getElementById('btn-delete-custom').style.display = type === 'custom' ? 'flex' : 'none';
+
+  // Reset test input
+  document.getElementById('test-email-input').value = '';
+  updateTestBtn();
+
+  // Load preview
+  await loadPreview();
+}
+
+function setLang(lang) {
+  activeLang = lang;
+  updateLangButtons();
+  loadPreview();
+}
+
+function updateLangButtons() {
+  document.getElementById('lang-en').className = 'lang-btn' + (activeLang === 'en' ? ' active' : '');
+  document.getElementById('lang-de').className = 'lang-btn' + (activeLang === 'de' ? ' active' : '');
+}
+
+async function loadPreview() {
+  if (!activeTpl) return;
+  const loadingEl = document.getElementById('preview-loading');
+  const iframe = document.getElementById('preview-iframe');
+  loadingEl.classList.remove('hidden');
+  iframe.srcdoc = '';
+
+  try {
+    let res;
+    if (activeTpl.type === 'builtin') {
+      res = await authFetch('/api/email/preview/' + activeTpl.id, {
+        method: 'POST',
+        body: JSON.stringify({ lang: activeLang, data: {} })
+      });
+    } else {
+      res = await authFetch('/api/email-custom/' + activeTpl.id + '/preview', {
+        method: 'POST',
+        body: JSON.stringify({ lang: activeLang })
+      });
+    }
+    if (res.ok) {
+      const data = await res.json();
+      iframe.srcdoc = data.html || '<p style="padding:20px;font-family:sans-serif;color:#666;">No preview available.</p>';
+    } else {
+      iframe.srcdoc = '<p style="padding:20px;font-family:sans-serif;color:#666;">Preview failed to load.</p>';
+    }
+  } catch (e) {
+    iframe.srcdoc = '<p style="padding:20px;font-family:sans-serif;color:#ef4444;">Error loading preview.</p>';
+  } finally {
+    loadingEl.classList.add('hidden');
+  }
+}
+
+// ── Send test ─────────────────────────────────────────────────────────────────
+function updateTestBtn() {
+  const val = document.getElementById('test-email-input').value.trim();
+  document.getElementById('test-send-btn').disabled = !val || !val.includes('@');
+}
+
+function focusTestInput() {
+  document.getElementById('test-email-input').focus();
+}
+
+async function sendTest() {
+  if (!activeTpl) return;
+  const to = document.getElementById('test-email-input').value.trim();
+  if (!to) return;
+  const btn = document.getElementById('test-send-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="ec-preview-spinner" style="margin:0;width:14px;height:14px;border-width:2px;"></div> Sending…';
+
+  try {
+    let res;
+    if (activeTpl.type === 'builtin') {
+      res = await authFetch('/api/email/test', {
+        method: 'POST',
+        body: JSON.stringify({ to, type: activeTpl.id, lang: activeLang })
+      });
+    } else {
+      res = await authFetch('/api/email-custom/' + activeTpl.id + '/test', {
+        method: 'POST',
+        body: JSON.stringify({ to, lang: activeLang })
+      });
+    }
+    const data = await res.json();
+    if (data.sent) {
+      showToast('Test email sent to ' + to + (data.transport ? ' via ' + data.transport : ''), 'success');
+    } else {
+      showToast('Send failed: ' + (data.reason || 'Unknown error'), 'error');
+    }
+  } catch (e) {
+    showToast('Network error — could not send test.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send';
+    updateTestBtn();
+  }
+}
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+function openSettings() {
+  const m = emailSettings;
+  // Gmail status
+  const configured = m.gmailConfigured;
+  document.getElementById('settings-gmail-dot').style.background = configured ? '#22c55e' : '#ef4444';
+  document.getElementById('settings-gmail-text').textContent = configured ? 'Gmail connected' : 'Not configured';
+  document.getElementById('settings-from').value = m.fromAddress || '';
+  document.getElementById('settings-bcc').value = m.bccAddress || '';
+  document.getElementById('settings-display-name').value = m.fromDisplayName || '';
+  document.getElementById('settings-footer-tagline').value = m.footerTagline || '';
+  document.getElementById('settings-default-lang').value = m.defaultLang || 'en';
+  document.getElementById('settings-overlay').classList.remove('hidden');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.add('hidden');
+}
+
+function closeSettingsOnBg(e) {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+}
+
+async function saveSettings() {
+  const btn = document.getElementById('settings-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    const body = {
+      fromDisplayName: document.getElementById('settings-display-name').value.trim(),
+      footerTagline: document.getElementById('settings-footer-tagline').value.trim(),
+      defaultLang: document.getElementById('settings-default-lang').value
+    };
+    const res = await authFetch('/api/email-settings', { method: 'PUT', body: JSON.stringify(body) });
+    if (res.ok) {
+      const updated = await res.json();
+      emailSettings = Object.assign({}, emailSettings, updated);
+      renderSendingSection();
+      renderWelcomeInfo();
+      closeSettings();
+      showToast('Settings saved.', 'success');
+    } else {
+      showToast('Failed to save settings.', 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save settings';
+  }
+}
+
+// ── Builder ───────────────────────────────────────────────────────────────────
+function openNewTemplate() {
+  builderMode = 'create';
+  builderEditId = null;
+  builderBlocks = [];
+  document.getElementById('builder-title').textContent = 'New email';
+  document.getElementById('b-name').value = '';
+  document.getElementById('b-category').value = '';
+  document.getElementById('b-subject').value = '';
+  document.getElementById('b-hero-subtitle').value = '';
+  document.getElementById('b-lang').value = emailSettings.defaultLang || 'en';
+  document.getElementById('b-footer-tagline').value = emailSettings.footerTagline || '';
+  document.getElementById('b-signoff').checked = false;
+  renderBuilderBlocks();
+  document.getElementById('builder-overlay').classList.remove('hidden');
+  document.getElementById('builder-preview-frame').srcdoc = '';
+  schedulePreview();
+}
+
+async function openEditor() {
+  if (!activeTpl || activeTpl.type !== 'custom') return;
+  try {
+    const res = await authFetch('/api/email-custom/' + activeTpl.id);
+    if (!res.ok) { showToast('Failed to load template.', 'error'); return; }
+    const tpl = await res.json();
+    builderMode = 'edit';
+    builderEditId = tpl.id;
+    builderBlocks = (tpl.blocks || []).map(b => Object.assign({ _id: ++builderBlockIdSeq, _open: false }, b));
+    document.getElementById('builder-title').textContent = 'Edit: ' + (tpl.name || '');
+    document.getElementById('b-name').value = tpl.name || '';
+    document.getElementById('b-category').value = tpl.category || '';
+    document.getElementById('b-subject').value = tpl.subject || '';
+    document.getElementById('b-hero-subtitle').value = tpl.heroSubtitle || '';
+    document.getElementById('b-lang').value = tpl.lang || 'en';
+    document.getElementById('b-footer-tagline').value = tpl.footerTagline || '';
+    document.getElementById('b-signoff').checked = !!tpl.showSignoff;
+    renderBuilderBlocks();
+    document.getElementById('builder-overlay').classList.remove('hidden');
+    schedulePreview();
+  } catch (e) {
+    showToast('Network error.', 'error');
+  }
+}
+
+function closeBuilder() {
+  document.getElementById('builder-overlay').classList.add('hidden');
+}
+
+// Block management
+function getBlockDefaults(type) {
+  switch (type) {
+    case 'hero':      return { type, icon: '✉️', iconBg: '#1E4E80', text: '', accentText: '', accentColor: '#C9A961' };
+    case 'text':      return { type, content: '' };
+    case 'heading':   return { type, text: '' };
+    case 'button':    return { type, label: '', url: '' };
+    case 'infocard':  return { type, rows: [{ key: '', value: '' }] };
+    case 'divider':   return { type };
+    case 'spacer':    return { type, height: 24 };
+    default:          return { type };
+  }
+}
+
+function addBlock(type) {
+  document.getElementById('block-type-dropdown').classList.add('hidden');
+  const block = Object.assign({ _id: ++builderBlockIdSeq, _open: true }, getBlockDefaults(type));
+  builderBlocks.push(block);
+  renderBuilderBlocks();
+  schedulePreview();
+}
+
+function removeBlock(id) {
+  builderBlocks = builderBlocks.filter(b => b._id !== id);
+  renderBuilderBlocks();
+  schedulePreview();
+}
+
+function moveBlock(id, dir) {
+  const idx = builderBlocks.findIndex(b => b._id === id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= builderBlocks.length) return;
+  const tmp = builderBlocks[idx];
+  builderBlocks[idx] = builderBlocks[newIdx];
+  builderBlocks[newIdx] = tmp;
+  renderBuilderBlocks();
+  schedulePreview();
+}
+
+function toggleBlockOpen(id) {
+  const b = builderBlocks.find(b => b._id === id);
+  if (b) b._open = !b._open;
+  renderBuilderBlocks();
+}
+
+function readBlockFields(id) {
+  const b = builderBlocks.find(b => b._id === id);
+  if (!b) return;
+  const prefix = 'blk-' + id + '-';
+  function val(suf) {
+    const el = document.getElementById(prefix + suf);
+    return el ? el.value : undefined;
+  }
+  switch (b.type) {
+    case 'hero':
+      b.icon = val('icon') !== undefined ? val('icon') : b.icon;
+      b.iconBg = val('iconbg') !== undefined ? val('iconbg') : b.iconBg;
+      b.text = val('text') !== undefined ? val('text') : b.text;
+      b.accentText = val('accenttext') !== undefined ? val('accenttext') : b.accentText;
+      b.accentColor = val('accentcolor') !== undefined ? val('accentcolor') : b.accentColor;
+      break;
+    case 'text':
+      b.content = val('content') !== undefined ? val('content') : b.content;
+      break;
+    case 'heading':
+      b.text = val('text') !== undefined ? val('text') : b.text;
+      break;
+    case 'button':
+      b.label = val('label') !== undefined ? val('label') : b.label;
+      b.url = val('url') !== undefined ? val('url') : b.url;
+      break;
+    case 'infocard':
+      // rows read separately
+      break;
+    case 'spacer':
+      b.height = parseInt(val('height')) || b.height;
+      break;
+  }
+}
+
+function renderBuilderBlocks() {
+  const list = document.getElementById('builder-blocks-list');
+  list.innerHTML = '';
+  builderBlocks.forEach((b, idx) => {
+    const item = document.createElement('div');
+    item.className = 'builder-block-item';
+    const bar = document.createElement('div');
+    bar.className = 'builder-block-bar';
+    bar.innerHTML = `
+      <span class="builder-block-type">${b.type}</span>
+      <div class="builder-block-controls">
+        <button class="builder-block-btn" title="Move up" onclick="readAllBlockFields();moveBlock(${b._id},-1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="builder-block-btn" title="Move down" onclick="readAllBlockFields();moveBlock(${b._id},1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <button class="builder-block-btn" title="Delete" onclick="removeBlock(${b._id})" style="color:#ef4444;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button class="builder-block-btn" title="Toggle" onclick="readAllBlockFields();toggleBlockOpen(${b._id})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${b._open ? '<polyline points="18 15 12 9 6 15"/>' : '<polyline points="6 9 12 15 18 9"/>'}</svg>
+        </button>
+      </div>`;
+    item.appendChild(bar);
+
+    const edit = document.createElement('div');
+    edit.className = 'builder-block-edit' + (b._open ? '' : ' hidden');
+    edit.innerHTML = buildBlockEditHTML(b);
+    item.appendChild(edit);
+
+    list.appendChild(item);
+  });
+}
+
+function buildBlockEditHTML(b) {
+  const p = 'blk-' + b._id + '-';
+  switch (b.type) {
+    case 'hero':
+      return `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div><label class="field-label">Icon (emoji)</label>
+            <input class="field-input" id="${p}icon" value="${esc(b.icon||'')}" oninput="schedulePreview()" placeholder="✉️" /></div>
+          <div><label class="field-label">Icon BG</label>
+            <input type="color" class="field-input" id="${p}iconbg" value="${b.iconBg||'#1E4E80'}" oninput="schedulePreview()" style="padding:2px 4px;height:34px;cursor:pointer;" /></div>
+        </div>
+        <div style="margin-bottom:8px;"><label class="field-label">Main text</label>
+          <input class="field-input" id="${p}text" value="${esc(b.text||'')}" oninput="schedulePreview()" /></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div><label class="field-label">Accent text</label>
+            <input class="field-input" id="${p}accenttext" value="${esc(b.accentText||'')}" oninput="schedulePreview()" /></div>
+          <div><label class="field-label">Accent color</label>
+            <input type="color" class="field-input" id="${p}accentcolor" value="${b.accentColor||'#C9A961'}" oninput="schedulePreview()" style="padding:2px 4px;height:34px;cursor:pointer;" /></div>
+        </div>`;
+    case 'text':
+      return `<label class="field-label">Content</label>
+        <textarea class="field-input" id="${p}content" rows="4" oninput="schedulePreview()">${esc(b.content||'')}</textarea>`;
+    case 'heading':
+      return `<label class="field-label">Heading text</label>
+        <input class="field-input" id="${p}text" value="${esc(b.text||'')}" oninput="schedulePreview()" />`;
+    case 'button':
+      return `<div style="margin-bottom:8px;"><label class="field-label">Label</label>
+          <input class="field-input" id="${p}label" value="${esc(b.label||'')}" oninput="schedulePreview()" /></div>
+        <label class="field-label">URL</label>
+        <input class="field-input" id="${p}url" value="${esc(b.url||'')}" oninput="schedulePreview()" placeholder="https://" />`;
+    case 'infocard':
+      return buildInfoCardHTML(b);
+    case 'divider':
+      return `<span style="font-size:0.75rem;color:var(--ink3);">No configuration needed.</span>`;
+    case 'spacer':
+      return `<label class="field-label">Height (px)</label>
+        <input type="number" class="field-input" id="${p}height" value="${b.height||24}" min="4" max="200" oninput="schedulePreview()" style="width:100px;" />`;
+    default:
+      return '';
+  }
+}
+
+function buildInfoCardHTML(b) {
+  const rows = b.rows || [];
+  let html = `<div class="info-card-rows" id="icrows-${b._id}">`;
+  rows.forEach((r, i) => {
+    html += `<div class="info-card-row" id="icrow-${b._id}-${i}">
+      <input placeholder="Key" value="${esc(r.key||'')}" oninput="updateInfoCardRow(${b._id},${i},'key',this.value)" />
+      <input placeholder="Value" value="${esc(r.value||'')}" oninput="updateInfoCardRow(${b._id},${i},'value',this.value)" />
+      <button class="info-card-row-del" onclick="removeInfoCardRow(${b._id},${i})" title="Remove row">×</button>
+    </div>`;
+  });
+  html += `</div>
+    <button class="add-row-btn" onclick="addInfoCardRow(${b._id})">+ Add row</button>`;
+  return html;
+}
+
+function updateInfoCardRow(blockId, rowIdx, field, value) {
+  const b = builderBlocks.find(b => b._id === blockId);
+  if (!b || !b.rows) return;
+  if (!b.rows[rowIdx]) return;
+  b.rows[rowIdx][field] = value;
+  schedulePreview();
+}
+
+function addInfoCardRow(blockId) {
+  const b = builderBlocks.find(b => b._id === blockId);
+  if (!b) return;
+  if (!b.rows) b.rows = [];
+  b.rows.push({ key: '', value: '' });
+  renderBuilderBlocks();
+  schedulePreview();
+}
+
+function removeInfoCardRow(blockId, rowIdx) {
+  const b = builderBlocks.find(b => b._id === blockId);
+  if (!b || !b.rows) return;
+  b.rows.splice(rowIdx, 1);
+  renderBuilderBlocks();
+  schedulePreview();
+}
+
+function readAllBlockFields() {
+  builderBlocks.forEach(b => readBlockFields(b._id));
+}
+
+function toggleBlockDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('block-type-dropdown');
+  dd.classList.toggle('hidden');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('block-type-dropdown').classList.add('hidden');
+});
+
+// Builder preview
+function schedulePreview() {
+  clearTimeout(previewDebounceTimer);
+  previewDebounceTimer = setTimeout(refreshBuilderPreview, 600);
+}
+
+async function refreshBuilderPreview() {
+  readAllBlockFields();
+  const frame = document.getElementById('builder-preview-frame');
+  try {
+    const body = {
+      subject: document.getElementById('b-subject').value,
+      heroSubtitle: document.getElementById('b-hero-subtitle').value,
+      blocks: builderBlocks.map(b => {
+        const c = Object.assign({}, b);
+        delete c._id; delete c._open;
+        return c;
+      }),
+      footerTagline: document.getElementById('b-footer-tagline').value,
+      lang: document.getElementById('b-lang').value
+    };
+    const res = await authFetch('/api/email-custom/preview-blocks', {
+      method: 'POST', body: JSON.stringify(body)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      frame.srcdoc = data.html || '';
+    }
+  } catch (e) {}
+}
+
+async function saveCustomTemplate() {
+  readAllBlockFields();
+  const btn = document.getElementById('builder-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const body = {
+    name: document.getElementById('b-name').value.trim(),
+    category: document.getElementById('b-category').value.trim() || 'Custom',
+    subject: document.getElementById('b-subject').value.trim(),
+    heroSubtitle: document.getElementById('b-hero-subtitle').value.trim(),
+    lang: document.getElementById('b-lang').value,
+    blocks: builderBlocks.map(b => { const c = Object.assign({}, b); delete c._id; delete c._open; return c; }),
+    footerTagline: document.getElementById('b-footer-tagline').value.trim(),
+    showSignoff: document.getElementById('b-signoff').checked
+  };
+
+  if (!body.name) {
+    showToast('Template name is required.', 'error');
+    btn.disabled = false; btn.textContent = 'Save template';
+    return;
+  }
+
+  try {
+    let res;
+    if (builderMode === 'edit' && builderEditId) {
+      res = await authFetch('/api/email-custom/' + builderEditId, { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      res = await authFetch('/api/email-custom', { method: 'POST', body: JSON.stringify(body) });
+    }
+    if (res.ok) {
+      const saved = await res.json();
+      closeBuilder();
+      // Refresh custom list
+      const listRes = await authFetch('/api/email-custom');
+      customTemplates = listRes.ok ? await listRes.json() : customTemplates;
+      renderTemplateList();
+      showToast('Template saved.', 'success');
+      // Select it
+      selectTemplate(saved.id, saved.name, saved.category || 'Custom', saved.icon || '✉️', 'custom', []);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast('Save failed: ' + (err.message || res.status), 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save template';
+  }
+}
+
+// ── Delete ────────────────────────────────────────────────────────────────────
+function confirmDelete() {
+  document.getElementById('delete-overlay').classList.remove('hidden');
+}
+
+function closeDelete() {
+  document.getElementById('delete-overlay').classList.add('hidden');
+}
+
+async function doDelete() {
+  if (!activeTpl || activeTpl.type !== 'custom') return;
+  const btn = document.getElementById('delete-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    const res = await authFetch('/api/email-custom/' + activeTpl.id, { method: 'DELETE' });
+    if (res.ok) {
+      closeDelete();
+      // Go back to welcome
+      activeTpl = null;
+      document.getElementById('ec-tpl-view').style.display = 'none';
+      document.getElementById('ec-welcome').style.display = 'flex';
+      document.querySelectorAll('.ec-tpl-row.active').forEach(r => r.classList.remove('active'));
+      // Refresh list
+      const listRes = await authFetch('/api/email-custom');
+      customTemplates = listRes.ok ? await listRes.json() : [];
+      renderTemplateList();
+      showToast('Template deleted.', 'success');
+    } else {
+      showToast('Delete failed.', 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg> Delete';
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(message, type = 'info') {
+  const wrap = document.getElementById('toast-wrap');
+  const toast = document.createElement('div');
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  toast.className = 'toast ' + type;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span>${esc(message)}</span>`;
+  wrap.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 3000);
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
