@@ -2694,16 +2694,16 @@ app.post('/api/email/all-verified', authenticateToken, requireAdmin, async (req,
 const _txOtpStore = {};
 
 // POST /api/tx/otp/send — authenticated. Generates a 6-digit OTP and emails it to the user.
-// Body: { email, firstName, tx: { recipientName, sendAmount, sendCurrency } }
+// Body: { firstName, tx: { recipientName, sendAmount, sendCurrency } }
+// Always sends to the authenticated user's email (from JWT) — never trusts req.body.email.
 app.post('/api/tx/otp/send', authenticateToken, async (req, res) => {
-  const { email, firstName, tx } = req.body || {};
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ error: 'Valid email is required' });
-  }
+  const { firstName, tx } = req.body || {};
+  const email = req.user.email;
+  if (!email) return res.status(400).json({ error: 'No email on account' });
 
   const code = String(Math.floor(100000 + Math.random() * 900000));
-  _txOtpStore[email.toLowerCase()] = { code, expiresAt: Date.now() + 10 * 60 * 1000 };
-  console.log(`[tx-otp] generated for ${email} (expires in 10 min)`);
+  _txOtpStore[email.toLowerCase()] = { code, expiresAt: Date.now() + 3 * 60 * 1000 };
+  console.log(`[tx-otp] generated for ${email} (expires in 3 min)`);
 
   if (!mailer || !mailer.renderTxOtpEmail) {
     console.log('[tx-otp] mailer not available, code:', code);
@@ -2724,10 +2724,11 @@ app.post('/api/tx/otp/send', authenticateToken, async (req, res) => {
 });
 
 // POST /api/tx/otp/verify — authenticated. Verifies the OTP.
-// Body: { email, code }
+// Body: { code }
 app.post('/api/tx/otp/verify', authenticateToken, (req, res) => {
-  const { email, code } = req.body || {};
-  if (!email || !code) return res.status(400).json({ error: 'email and code required' });
+  const { code } = req.body || {};
+  const email = req.user.email;
+  if (!code) return res.status(400).json({ error: 'code required' });
 
   const entry = _txOtpStore[email.toLowerCase()];
   if (!entry) return res.json({ valid: false, reason: 'no_code' });

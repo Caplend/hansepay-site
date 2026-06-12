@@ -373,7 +373,7 @@
         var inp = document.getElementById('hp2fa-otp');
         if (inp) inp.focus();
       }
-      startTimer(600);
+      startTimer(180);
     }
 
     function doSendCode() {
@@ -382,7 +382,7 @@
       fetch(BASE + '/api/tx/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ email: email, firstName: firstName, tx: {
+        body: JSON.stringify({ firstName: firstName, tx: {
           recipientName: recip, sendAmount: amt, sendCurrency: curr,
         }}),
       }).then(function(r) { return r.json(); }).then(function(d) {
@@ -400,7 +400,7 @@
       fetch(BASE + '/api/tx/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ email: email, code: code }),
+        body: JSON.stringify({ code: code }),
       }).then(function(r) { return r.json(); }).then(function(d) {
         if (d.valid) {
           clearInterval(timerIv);
