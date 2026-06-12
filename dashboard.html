@@ -293,6 +293,17 @@
             date: new Date().toISOString().split('T')[0],
           });
           onConfirmed(enriched);
+          // Save recipient from this transaction
+          var _rn = enriched.recipientName || enriched.recipient || enriched.toName || enriched.beneficiary || enriched.name || enriched.to || '';
+          var _ri = enriched.recipientId   || enriched.toId      || null;
+          var _rb = enriched.iban          || enriched.toIban    || enriched.recipientIban || enriched.accountNumber || null;
+          var _rs = enriched.bic           || enriched.swift     || enriched.swiftCode || null;
+          var _rk = enriched.bankName      || enriched.bank      || null;
+          var _rc = enriched.toCurrency    || enriched.receiveCurrency || enriched.currency || null;
+          var _ry = enriched.toCountry     || enriched.recipientCountry || enriched.country || null;
+          if (_rn || _rb) {
+            _saveRec({ id: _ri, name: _rn, iban: _rb, bic: _rs, bank: _rk, currency: _rc, country: _ry, addedAt: enriched.timestamp });
+          }
           fetch(BASE + '/api/tx/submit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
