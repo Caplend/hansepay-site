@@ -4097,34 +4097,42 @@ function handleSubmit(){
       filtered.push(reg);
       localStorage.setItem('hp_regs',JSON.stringify(filtered));
     } catch(e){}
-    // ── Send confirmation email via backend ──────────────────────────
-    try {
-      const fn=S.firstName||''; const ln=S.lastName||'';
-      const emailAddr=S.email||S.coEmail||'';
-      fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/confirm',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          firstName:fn, lastName:ln,
-          email:emailAddr,
-          company:S.coName||((fn+' '+ln).trim())||emailAddr,
-          accountType:S.accountType||'business',
-          applicationRef:S.applicationRef||'HP-?',
-          lang:document.documentElement.lang||'en',
-          phone:(S.phoneCountry||'')+' '+(S.phone||''),
-          country:S.coAddrCountry||S.country||'',
-          city:S.coCity||'',
-          regNum:S.coRegNum||'',
-          vat:S.coVAT||'',
-        }),
-      }).then(r=>r.json()).then(r=>{
-        if(!r.sent) console.warn('[onboarding] email not sent:',r.transport,r.reason||'');
-      }).catch(e=>console.warn('[onboarding] email fetch error:',e));
-    } catch(e){}
+    _sendConfirmEmail();
     const steps=getActiveSteps();
     CI=steps.indexOf(14);
     showStep('forward');
   },2000);
+}
+
+// ── Send "application received" confirmation email (deduped) ──────────────
+var _confirmEmailSent=false;
+function _sendConfirmEmail(){
+  if(_confirmEmailSent)return;
+  _confirmEmailSent=true;
+  try{
+    var fn=S.firstName||'',ln=S.lastName||'';
+    var emailAddr=S.email||S.coEmail||'';
+    if(!emailAddr)return;
+    fetch('https://hansepay-deploy-production-328c.up.railway.app/api/registration/confirm',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        firstName:fn,lastName:ln,
+        email:emailAddr,
+        company:S.coName||((fn+' '+ln).trim())||emailAddr,
+        accountType:S.accountType||'business',
+        applicationRef:S.applicationRef||('HP-'+rand8()),
+        lang:document.documentElement.lang||'en',
+        phone:(S.phoneCountry||'')+' '+(S.phone||''),
+        country:S.coAddrCountry||S.country||'',
+        city:S.coCity||'',
+        regNum:S.coRegNum||'',
+        vat:S.coVAT||'',
+      }),
+    }).then(function(r){return r.json();}).then(function(r){
+      if(!r.sent)console.warn('[onboarding] confirmation email not sent:',r.transport,r.reason||'');
+    }).catch(function(e){console.warn('[onboarding] confirmation email error:',e);});
+  }catch(e){}
 }
 
 // =============================================================
@@ -4519,6 +4527,9 @@ function showSuccessPage(type){
   S.applicationRef=S.applicationRef||'HP-'+rand8();
   const ref=document.getElementById('successRef');
   if(ref)ref.textContent='Reference: '+S.applicationRef;
+
+  // Ensure confirmation email fires for all account types (deduped by flag)
+  _sendConfirmEmail();
 
   if(type==='business'){
     // Heading

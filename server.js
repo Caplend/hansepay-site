@@ -2436,7 +2436,7 @@ app.post('/api/registration/confirm', async (req, res) => {
     const mail = renderRegistrationEmail({ firstName, lastName, email, company, accountType, applicationRef, lang });
     const result = await mailer.sendMail(mail);
     console.log(`[registration] confirmation → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'skipped (' + result.reason + ')'}`);
-    res.json({ sent: result.sent, transport: result.transport });
+    res.json({ sent: result.sent, transport: result.transport, reason: result.reason || null });
   } catch (err) {
     console.error('[registration] email error:', err.message);
     res.status(500).json({ error: 'Failed to send confirmation email' });
