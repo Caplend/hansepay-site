@@ -920,6 +920,23 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
       lang,
       loginUrl: siteBase + '/hansepay/dashboard-login.html',
     });
+  } else if (type === 'kyc-invite') {
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    sample = mailer.renderKycInviteEmail({
+      recipientName: firstName, recipientEmail: to,
+      companyName: 'Sample Company GmbH', inviterName: firstName,
+      kycUrl: siteBase + '/hansepay/kyc-verify.html', lang,
+    });
+  } else if (type === 'kyc-invite-individual') {
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    sample = mailer.renderKycInviteEmail({
+      recipientName: firstName, recipientEmail: to,
+      kycUrl: siteBase + '/hansepay/kyc-verify.html', lang, isIndividual: true,
+    });
+  } else if (type === 'kyc-verified') {
+    sample = mailer.renderKycVerifiedEmail({ firstName, email: to, lang });
+  } else if (type === 'all-verified') {
+    sample = mailer.renderAllVerificationsEmail({ firstName, email: to, lang, accountType: 'company', company: 'Sample Company GmbH' });
   } else {
     const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
     sample = mailer.renderBookingEmail({
@@ -2471,16 +2488,16 @@ app.post('/api/registration/approve', authenticateToken, requireAdmin, async (re
   res.json({ ok: true, status: 'approved', email: regs[idx].email, emailSent: emailResult.sent });
 });
 
-// POST /api/email/kyc-invite — send KYC identity verification invite to a director/UBO
+// POST /api/email/kyc-invite — send KYC identity verification invite to a director/UBO or individual
+// Body: { recipientName, recipientEmail, companyName?, inviterName?, lang?, isIndividual? }
 app.post('/api/email/kyc-invite', async (req, res) => {
-  const { recipientName, recipientEmail, companyName, inviterName, lang } = req.body || {};
+  const { recipientName, recipientEmail, companyName, inviterName, lang, isIndividual } = req.body || {};
 
   if (!recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
     return res.status(400).json({ error: 'Valid recipientEmail is required' });
   }
 
   const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
-  // In production this would be a unique Signicat KYC link; for now use a placeholder
   const kycUrl = siteBase + '/hansepay/kyc-verify.html';
 
   if (!mailer || !mailer.renderKycInviteEmail) {
@@ -2488,13 +2505,51 @@ app.post('/api/email/kyc-invite', async (req, res) => {
   }
 
   try {
-    const mail = mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang });
+    const mail = mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang, isIndividual: !!isIndividual });
     const result = await mailer.sendMail(mail);
     console.log(`[kyc-invite] → ${recipientEmail}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
     res.json({ sent: result.sent, transport: result.transport });
   } catch (err) {
     console.error('[kyc-invite] error:', err.message);
     res.status(500).json({ error: 'Failed to send KYC invite' });
+  }
+});
+
+// POST /api/email/kyc-verified — notify a user that their identity has been verified
+// Body: { firstName, email, lang? }
+app.post('/api/email/kyc-verified', authenticateToken, requireAdmin, async (req, res) => {
+  const { firstName, email, lang } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'email is required' });
+  if (!mailer || !mailer.renderKycVerifiedEmail) {
+    return res.json({ sent: false, reason: 'mailer not loaded' });
+  }
+  try {
+    const mail = mailer.renderKycVerifiedEmail({ firstName, email, lang });
+    const result = await mailer.sendMail(mail);
+    console.log(`[kyc-verified] → ${email}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[kyc-verified] error:', err.message);
+    res.status(500).json({ error: 'Failed to send KYC verified email' });
+  }
+});
+
+// POST /api/email/all-verified — notify a user that all verifications are complete
+// Body: { firstName, email, lang?, accountType?, company? }
+app.post('/api/email/all-verified', authenticateToken, requireAdmin, async (req, res) => {
+  const { firstName, email, lang, accountType, company } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'email is required' });
+  if (!mailer || !mailer.renderAllVerificationsEmail) {
+    return res.json({ sent: false, reason: 'mailer not loaded' });
+  }
+  try {
+    const mail = mailer.renderAllVerificationsEmail({ firstName, email, lang, accountType, company });
+    const result = await mailer.sendMail(mail);
+    console.log(`[all-verified] → ${email}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
+    res.json({ sent: result.sent, transport: result.transport });
+  } catch (err) {
+    console.error('[all-verified] error:', err.message);
+    res.status(500).json({ error: 'Failed to send all-verified email' });
   }
 });
 
