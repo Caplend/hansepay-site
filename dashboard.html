@@ -71,60 +71,38 @@
     } catch(e) {}
   }
 
-  // ── Intercept HPDTransactions ────────────────────────────────────────────────
-  var _hpdTxVal;
+  // ── Intercept HPDTransactions ────────────────────────────────────────────
+  var _hpdTxVal, _hpOrigAdd;
   Object.defineProperty(window, 'HPDTransactions', {
     configurable: true, enumerable: true,
     set: function(val) {
       _hpdTxVal = val;
-      var _origAdd = val && val.addTransaction;
-      if (typeof _origAdd === 'function') {
-        val.addTransaction = function(tx) {
-          hp2fa_show(tx, function() {
-            _origAdd.call(val, tx);
-            var u = window.__HP_USER || {};
-            _saveTx(Object.assign({}, tx, {
-              userEmail: u.email || '', firstName: u.firstName || '',
-              _savedAt: new Date().toISOString(),
-            }));
-          });
-        };
-        // Replay persisted transactions on load (bypasses 2FA)
+      var orig = val && val.addTransaction;
+      if (typeof orig !== 'function') return;
+      _hpOrigAdd = orig;
+      val.addTransaction = function(tx) {
+        console.log('[hp2fa] addTransaction called. Keys:', Object.keys(tx).join(','));
+        // Call orig immediately so the React UI shows the transaction right away
+        var r;
+        try { r = orig.call(val, tx); } catch(e) { console.warn('[hp2fa] orig.call err:', e); }
+        // Show 2FA modal for our backend confirmation + persistence
+        hp2fa_show(tx, function() { _saveTx(tx); });
+        return r;
+      };
+      // Replay stored transactions (bypass 2FA for history)
+      var stored;
+      try { stored = JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e) { stored = []; }
+      if (stored.length) {
         setTimeout(function() {
-          var stored = JSON.parse(localStorage.getItem('hp_txlog') || '[]');
           stored.slice().reverse().forEach(function(t) {
-            try { _origAdd.call(val, t); } catch(e) {}
+            var clean = {}, k;
+            for (k in t) { if (k !== 'userEmail' && k !== 'firstName' && k !== '_savedAt') clean[k] = t[k]; }
+            try { orig.call(val, clean); } catch(e) { console.warn('[hp2fa] replay err', e); }
           });
-        }, 1500);
+        }, 2500);
       }
     },
     get: function() { return _hpdTxVal; }
-  });
-
-  // ── Intercept HPDRecipients / HPDContacts / HPDPayees ────────────────────────
-  function _wrapRecModule(val) {
-    var methods = ['addRecipient', 'add', 'create', 'set'];
-    var k, fn;
-    for (var i = 0; i < methods.length; i++) {
-      if (typeof val[methods[i]] === 'function') { k = methods[i]; fn = val[methods[i]]; break; }
-    }
-    if (!fn) return val;
-    val[k] = function(r) {
-      var res = fn.apply(val, arguments);
-      _saveRec(r || arguments[0]);
-      return res;
-    };
-    var stored = JSON.parse(localStorage.getItem('hp_recipients') || '[]');
-    stored.forEach(function(r) { try { fn.call(val, r); } catch(e) {} });
-    return val;
-  }
-  var _hpdRecVal;
-  ['HPDRecipients', 'HPDContacts', 'HPDPayees'].forEach(function(name) {
-    Object.defineProperty(window, name, {
-      configurable: true, enumerable: true,
-      set: function(v) { _hpdRecVal = _wrapRecModule(v); },
-      get: function() { return _hpdRecVal; }
-    });
   });
 
   // ── 2FA modal ────────────────────────────────────────────────────────
@@ -132,6 +110,13 @@
     var user = window.__HP_USER || {};
     var email = user.email || '';
     var firstName = user.firstName || '';
+    // Fallback: decode email from JWT if not in __HP_USER
+    if (!email) {
+      try {
+        var tok = localStorage.getItem('hp_token');
+        if (tok) { var pl = JSON.parse(atob(tok.split('.')[1])); email = pl.email || ''; }
+      } catch(e) {}
+    }
     var masked = email ? email.replace(/(.{2})([^@]*)(@.+)/, function(m,a,b,c){
       return a + b.replace(/./g,'*') + c;
     }) : '—';
