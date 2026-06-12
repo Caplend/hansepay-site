@@ -90,6 +90,7 @@
     plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
     search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     settings: '<circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M21 12h-2M5 12H3M12 21v-2M12 5V3"/>',
+    email: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
     signout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
     sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
@@ -117,8 +118,9 @@
     { sec: 'Legal',    roles: ['admin','compliance'] },
     { key: 'legal',    label: 'Legal Centre',     href: '/hansepay/admin/legal.html',        icon: 'shield',   roles: ['admin','compliance'] },
     { sec: 'Admin',    roles: ['admin'] },
-    { key: 'users',    label: 'Users',            href: '/hansepay/admin/users.html',        icon: 'users',    roles: ['admin'] },
-    { key: 'settings', label: 'Settings',         href: '/hansepay/admin/settings.html',     icon: 'settings', roles: ['admin'] },
+    { key: 'users',        label: 'Users',         href: '/hansepay/admin/users.html',        icon: 'users',    roles: ['admin'] },
+    { key: 'email-center', label: 'Email Center', href: '/hansepay/admin/email-center.html', icon: 'email',    roles: ['admin'] },
+    { key: 'settings',     label: 'Settings',     href: '/hansepay/admin/settings.html',     icon: 'settings', roles: ['admin'] },
   ];
 
   function renderSidebar(active) {
