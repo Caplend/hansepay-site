@@ -297,8 +297,19 @@ function eur(n) { return '€'+Number(n).toLocaleString('en-GB'); }
 function eurK(n) { return n>=1e6?'€'+(n/1e6).toFixed(1)+'M':n>=1e3?'€'+Math.round(n/1000)+'k':'€'+n; }
 
 // ── Read all real transaction log entries ─────────────────────────────────
+// Server is the source of truth (localStorage is per-origin: transactions made
+// on the user dashboard's domain never reach this page's localStorage). Local
+// entries are merged in as a same-origin fallback, deduped by reference+timestamp.
+var _txCache = null;
 function getTxLog(){
-  try { return JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){ return []; }
+  var local;
+  try { local = JSON.parse(localStorage.getItem('hp_txlog') || '[]'); } catch(e){ local = []; }
+  if (!_txCache) return local;
+  var seen = {};
+  _txCache.forEach(function(t){ seen[(t.reference||'') + '|' + (t.timestamp||'')] = true; });
+  return _txCache.concat(local.filter(function(t){
+    return !seen[(t.reference||'') + '|' + (t.timestamp||'')];
+  }));
 }
 
 // ── Build account object from hp_onb state ────────────────────────────────
@@ -427,22 +438,23 @@ function allAccounts(){
   return _accountCache || [];
 }
 
-// Async loader — fetches registrations from API, merges localStorage, then re-renders
+// Async loader — fetches transactions + registrations from API, merges localStorage, then re-renders
 function loadAccountsAsync(){
   var BASE = 'https://hansepay-deploy-production-328c.up.railway.app';
   var token = localStorage.getItem('hp_token');
-  fetch(BASE+'/api/registrations', { headers:{ 'Authorization':'Bearer '+token } })
-  .then(function(r){ return r.ok ? r.json() : []; })
-  .then(function(serverRegs){
+  var auth = { 'Authorization':'Bearer '+token };
+  var txP = fetch(BASE+'/api/tx/all', { headers: auth })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .catch(function(){ return []; });
+  var regP = fetch(BASE+'/api/registrations', { headers: auth })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .catch(function(){ return []; });
+  Promise.all([txP, regP]).then(function(results){
+    // Transactions must land in the cache BEFORE accounts are built —
+    // buildAccountFromReg computes per-account volume from getTxLog().
+    _txCache = Array.isArray(results[0]) ? results[0] : [];
+    var serverRegs = results[1];
     var list = (Array.isArray(serverRegs) ? serverRegs : []).map(buildAccountFromReg);
-    mergeLocalAccounts(list);
-    _accountCache = list;
-    renderStats();
-    renderChart();
-    renderTable();
-  })
-  .catch(function(){
-    var list = [];
     mergeLocalAccounts(list);
     _accountCache = list;
     renderStats();

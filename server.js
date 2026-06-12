@@ -2606,6 +2606,14 @@ app.post('/api/tx/otp/verify', authenticateToken, (req, res) => {
   res.json({ valid: true });
 });
 
+// GET /api/tx/all — admin only. Returns every saved transaction, newest first.
+// The admin dashboard reads these (localStorage is per-origin, so the user
+// dashboard's hp_txlog is invisible to the admin domain).
+app.get('/api/tx/all', authenticateToken, requireAdmin, (req, res) => {
+  const txs = readData('transactions.json') || [];
+  res.json(txs.slice().reverse());
+});
+
 // POST /api/tx/submit — authenticated. Saves a completed transaction and sends confirmation email.
 // Body: tx object from the dashboard (userEmail, amount, currency, recipient, ...)
 app.post('/api/tx/submit', authenticateToken, async (req, res) => {
