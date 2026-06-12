@@ -978,6 +978,11 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
     sample = mailer.renderKycVerifiedEmail({ firstName, email: to, lang });
   } else if (type === 'all-verified') {
     sample = mailer.renderAllVerificationsEmail({ firstName, email: to, lang, accountType: 'company', company: 'Sample Company GmbH' });
+  } else if (type === 'tx-otp') {
+    sample = mailer.renderTxOtpEmail({
+      firstName, email: to, code: '123456',
+      tx: { recipientName: 'Test Recipient GmbH', sendAmount: '2,500.00', sendCurrency: 'EUR' },
+    });
   } else {
     const start = new Date(Date.now() + 3 * 86400000); start.setHours(11, 0, 0, 0);
     sample = mailer.renderBookingEmail({
@@ -2715,11 +2720,11 @@ app.post('/api/tx/otp/send', authenticateToken, async (req, res) => {
     const result = await mailer.sendMail(mail);
     console.log(`[tx-otp] email → ${email}: ${result.sent ? 'sent (' + result.transport + ')' : 'failed (' + result.reason + ')'}`);
     const resp = { sent: result.sent, transport: result.transport };
-    if (!result.sent) resp.devCode = code;
+    if (!result.sent) { resp.devCode = code; resp.reason = result.reason || 'unknown'; }
     res.json(resp);
   } catch (err) {
     console.error('[tx-otp] error:', err.message);
-    res.status(500).json({ error: 'Failed to send OTP', devCode: code });
+    res.status(500).json({ error: 'Failed to send OTP', devCode: code, reason: err.message });
   }
 });
 
