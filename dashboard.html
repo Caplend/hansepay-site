@@ -47,15 +47,23 @@ window._hpSplashStart = Date.now();
     };
   }catch(e){}
 })();
-// Fee multiplier helper — returns 1 + (varFee + mmFee)/100 for a given currency.
+// Fee helpers — read from window.__hpUserPricing once the async fetch resolves.
+// __hpFm(cur)      → multiplier (1 + totalVariableRate/100) for receive-amount calc
+// __hpFlatFee(cur) → fixed EUR flat fee for the currency (shown separately in UI)
 window.__hpFm = function(cur) {
   var p = window.__hpUserPricing;
   return (p && cur && p[cur] && p[cur].multiplier) || 1.01;
 };
+window.__hpFlatFee = function(cur) {
+  var p = window.__hpUserPricing;
+  return (p && cur && p[cur]) ? (parseFloat(p[cur].flatFee) || 0) : 0;
+};
 (function() {
   var tok = localStorage.getItem('hp_token');
   if (!tok) return;
-  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/pricing/my', {
+  // Use a relative URL so the dashboard always reads pricing from the server
+  // that's actually serving it (local dev or production Railway — both correct).
+  fetch('/api/pricing/my', {
     headers: { 'Authorization': 'Bearer ' + tok }
   }).then(function(r) { return r.ok ? r.json() : null; })
   .then(function(d) { if (d) window.__hpUserPricing = d; })
