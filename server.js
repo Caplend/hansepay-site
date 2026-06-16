@@ -74,6 +74,23 @@ console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SE
   }
 });
 
+// Ensure demo account always exists (survives redeployments to existing volumes)
+(function ensureDemoAccount() {
+  try {
+    const usersPath = path.join(DATA_DIR, 'users.json');
+    const users = fs.existsSync(usersPath) ? JSON.parse(fs.readFileSync(usersPath, 'utf8')) : [];
+    if (!users.find(u => u.email === 'demo@hansepay.de')) {
+      users.push({
+        id: 'usr_demo_001', name: 'Demo User', email: 'demo@hansepay.de',
+        passwordHash: '$2a$10$KZzf2V84/s1gPtXnPHaEj.g7m.SaDMwwlydSEC3FS28jAqGlNyGuW',
+        role: 'user', avatar: '', createdAt: '2026-06-16T08:00:00.000Z', lastLogin: null,
+      });
+      fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
+      console.log('[startup] demo account added');
+    }
+  } catch(e) { console.log('[startup] demo account check failed:', e.message); }
+})();
+
 // Multer — store uploads with original extension
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOADS_DIR),
