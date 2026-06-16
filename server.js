@@ -1041,10 +1041,13 @@ const EMAIL_TEMPLATE_CATALOG = [
   { id: 'tx-otp',               name: 'Transaction OTP',         category: 'Transactions', icon: '🔐', description: 'Sent to authorise a transfer (2FA)',                langs: ['en'] },
   { id: 'tx-confirmation',      name: 'Transaction Receipt',     category: 'Transactions', icon: '✅', description: 'Receipt sent after a transfer completes',           langs: ['en'] },
   { id: 'registration-received',name: 'Application Received',    category: 'Onboarding',   icon: '📋', description: 'Sent when a new account application is submitted',  langs: ['en', 'de'] },
-  { id: 'application-approved', name: 'Application Approved',    category: 'Onboarding',   icon: '🎉', description: 'Sent when an application is approved by the team',  langs: ['en', 'de'] },
-  { id: 'kyc-invite',           name: 'KYC Invite',              category: 'KYC',          icon: '📷', description: 'Invitation to complete identity verification',       langs: ['en', 'de'] },
-  { id: 'kyc-verified',         name: 'Identity Verified',       category: 'KYC',          icon: '✓',  description: 'Confirms successful identity verification',          langs: ['en', 'de'] },
-  { id: 'all-verified',         name: 'All Verifications Done',  category: 'KYC',          icon: '🎯', description: 'All KYC steps are complete — account is fully live', langs: ['en', 'de'] },
+  { id: 'application-approved',     name: 'Account Approved (Individual)', category: 'Onboarding', icon: '🎉', description: 'Sent when an individual account is approved',                langs: ['en', 'de'] },
+  { id: 'application-approved-biz', name: 'Account Approved (Business)',   category: 'Onboarding', icon: '🏢', description: 'Sent when a business account is approved',                   langs: ['en', 'de'] },
+  { id: 'onboarding-reminder',      name: 'Onboarding Reminder',           category: 'Onboarding', icon: '👋', description: 'Nudge for users who created login but didn\'t continue',     langs: ['en', 'de'] },
+  { id: 'kyc-invite',               name: 'KYC Invite',                    category: 'KYC',        icon: '📷', description: 'Invitation to complete identity verification',                langs: ['en', 'de'] },
+  { id: 'kyc-reminder',             name: 'Identity Check Reminder',       category: 'KYC',        icon: '⏳', description: 'Reminder for users who started but haven\'t finished KYC',  langs: ['en', 'de'] },
+  { id: 'kyc-verified',             name: 'Identity Verified',             category: 'KYC',        icon: '✓',  description: 'Confirms successful identity verification',                  langs: ['en', 'de'] },
+  { id: 'all-verified',             name: 'All Verifications Done',        category: 'KYC',        icon: '🎯', description: 'All KYC steps are complete — account is fully live',         langs: ['en', 'de'] },
 ];
 
 // GET /api/email/catalog — list all built-in template metadata
@@ -1123,6 +1126,15 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
         break;
       case 'all-verified':
         mail = mailer.renderAllVerificationsEmail({ firstName, email, lang, accountType: 'company', company });
+        break;
+      case 'application-approved-biz':
+        mail = mailer.renderApprovalEmail({ firstName, lastName, email, company, applicationRef: 'HP-2024-0042', lang, loginUrl: siteBase + '/hansepay/dashboard-login.html', accountType: 'business' });
+        break;
+      case 'kyc-reminder':
+        mail = mailer.renderKycReminderEmail({ firstName, email, lang, kycUrl: siteBase + '/hansepay/kyc-verify.html' });
+        break;
+      case 'onboarding-reminder':
+        mail = mailer.renderOnboardingReminderEmail({ firstName, email, lang, continueUrl: siteBase + '/hansepay/onboarding.html' });
         break;
       default:
         return res.status(404).json({ error: 'Unknown template: ' + id });
