@@ -2992,6 +2992,23 @@ function getCurrencies() {
   return DEFAULT_CURRENCIES;
 }
 
+// GET /api/pricing/my — returns per-currency fee multipliers for the current user
+app.get('/api/pricing/my', authenticateToken, (req, res) => {
+  const currencies = getCurrencies();
+  const users = readData('users.json');
+  const user = users.find(u => u.id === req.user.id) || {};
+  const userPricing = user.pricing || {};
+  const result = {};
+  for (const c of currencies) {
+    const ov = userPricing[c.code];
+    const varFee  = ov ? parseFloat(ov.varFee)  : parseFloat(c.varFee)  || 0;
+    const flatFee = ov ? parseFloat(ov.flatFee) : parseFloat(c.flatFee) || 0;
+    const totalRate = varFee + MM_FEE;
+    result[c.code] = { flatFee, varFee, totalRate, multiplier: 1 + totalRate / 100 };
+  }
+  res.json(result);
+});
+
 // GET /api/pricing/currencies
 app.get('/api/pricing/currencies', authenticateToken, requireAdmin, (req, res) => {
   res.json({ currencies: getCurrencies(), mmFee: MM_FEE });
