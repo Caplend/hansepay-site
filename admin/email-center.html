@@ -891,6 +891,10 @@ a { color: inherit; text-decoration: none; }
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
               Delete
             </button>
+            <button class="btn btn-ghost" id="btn-download-html" onclick="downloadHtml()" style="display:none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download HTML
+            </button>
             <button class="btn btn-primary" id="btn-send-test-top" onclick="focusTestInput()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               Send test
@@ -1286,9 +1290,10 @@ async function selectTemplate(id, name, category, icon, type, langs) {
   langToggle.style.display = hasDE ? 'flex' : 'none';
   updateLangButtons();
 
-  // Edit/delete buttons
+  // Edit/delete/download buttons
   document.getElementById('btn-edit-custom').style.display = type === 'custom' ? 'flex' : 'none';
   document.getElementById('btn-delete-custom').style.display = type === 'custom' ? 'flex' : 'none';
+  document.getElementById('btn-download-html').style.display = 'flex';
 
   // Reset test input
   document.getElementById('test-email-input').value = '';
@@ -1350,6 +1355,25 @@ function updateTestBtn() {
 
 function focusTestInput() {
   document.getElementById('test-email-input').focus();
+}
+
+function downloadHtml() {
+  if (!activeTpl) return;
+  const iframe = document.getElementById('preview-iframe');
+  const html = iframe.srcdoc;
+  if (!html || html.includes('No preview available') || html.includes('Preview failed')) {
+    showToast('No preview loaded — select an email first', 'error');
+    return;
+  }
+  const slug = (activeTpl.name || activeTpl.id).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const filename = 'hansepay-email-' + slug + (activeLang !== 'en' ? '-' + activeLang : '') + '.html';
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Downloaded ' + filename, 'success');
 }
 
 async function sendTest() {
