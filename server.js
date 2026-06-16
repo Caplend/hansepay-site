@@ -1119,7 +1119,7 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
         mail = mailer.renderApprovalEmail({ firstName, lastName, email, company, applicationRef: 'HP-2024-0042', lang, loginUrl: siteBase + '/hansepay/dashboard-login.html' });
         break;
       case 'kyc-invite':
-        mail = mailer.renderKycInviteEmail({ recipientName: firstName, recipientEmail: email, companyName: company, inviterName: 'HansePay Team', kycUrl: siteBase + '/hansepay/kyc-verify.html', lang });
+        mail = mailer.renderKycInviteEmail({ recipientName: firstName, firstName, lastName, recipientEmail: email, companyName: company, inviterName: 'HansePay Team', kycUrl: siteBase + '/hansepay/kyc-verify.html', lang, role: 'Managing Director' });
         break;
       case 'kyc-verified':
         mail = mailer.renderKycVerifiedEmail({ firstName, email, lang });
