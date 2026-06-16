@@ -95,6 +95,7 @@
     sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
     card: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+    pricing: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
   };
   function svg(p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
 
@@ -104,6 +105,7 @@
     { key: 'bookings', label: 'Bookings',         href: '/hansepay/admin/bookings.html',     icon: 'cal',      roles: ['admin','editor'] },
     { sec: 'Banking',   roles: ['admin','editor','compliance'] },
     { key: 'accounts', label: 'Accounts',          href: '/hansepay/admin/accounts.html',     icon: 'card',     roles: ['admin','editor','compliance'] },
+    { key: 'pricing',  label: 'Pricing',           href: '/hansepay/admin/pricing.html',      icon: 'pricing',  roles: ['admin'] },
     { sec: 'Growth',   roles: ['admin','editor'] },
     { key: 'sales',    label: 'Sales Pipeline',   href: '/hansepay/admin/sales.html',        icon: 'pipeline', roles: ['admin','editor'] },
     { key: 'crm',      label: 'Customers (CRM)',  href: '/hansepay/admin/crm.html',          icon: 'users',    roles: ['admin','editor'] },

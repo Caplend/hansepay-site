@@ -2966,6 +2966,97 @@ app.post('/api/tx/otp/verify', authenticateToken, (req, res) => {
   res.json({ valid: true });
 });
 
+// ── Pricing APIs ─────────────────────────────────────────────────────────────
+// Global currency fee table + per-user overrides.
+// Data lives in data/currencies.json  (array of currency objects)
+// Per-user pricing is stored on the user object as user.pricing: { [currencyCode]: { flatFee, varFee } }
+
+const DEFAULT_CURRENCIES = [
+  { code:'EUR', name:'Euro',             symbol:'€',  country:'EU', flatFee:0, varFee:0 },
+  { code:'USD', name:'US Dollar',        symbol:'$',  country:'US', flatFee:0, varFee:0.5 },
+  { code:'GBP', name:'British Pound',    symbol:'£',  country:'GB', flatFee:0, varFee:0.5 },
+  { code:'CHF', name:'Swiss Franc',      symbol:'Fr', country:'CH', flatFee:0, varFee:0.5 },
+  { code:'JPY', name:'Japanese Yen',     symbol:'¥',  country:'JP', flatFee:0, varFee:0.75 },
+  { code:'CNY', name:'Chinese Yuan',     symbol:'¥',  country:'CN', flatFee:0, varFee:0 },
+  { code:'ARS', name:'Argentine Peso',   symbol:'$',  country:'AR', flatFee:0, varFee:0.95 },
+  { code:'BDT', name:'Bangladeshi Taka', symbol:'৳',  country:'BD', flatFee:0, varFee:0 },
+  { code:'BRL', name:'Brazilian Real',   symbol:'R$', country:'BR', flatFee:0, varFee:0 },
+  { code:'EGP', name:'Egyptian Pound',   symbol:'£',  country:'EG', flatFee:0, varFee:0 },
+];
+const MM_FEE = 0.05; // global market-maker fee added on top
+
+function getCurrencies() {
+  const data = readData('currencies.json');
+  if (Array.isArray(data) && data.length > 0) return data;
+  writeData('currencies.json', DEFAULT_CURRENCIES);
+  return DEFAULT_CURRENCIES;
+}
+
+// GET /api/pricing/currencies
+app.get('/api/pricing/currencies', authenticateToken, requireAdmin, (req, res) => {
+  res.json({ currencies: getCurrencies(), mmFee: MM_FEE });
+});
+
+// POST /api/pricing/currencies  — add currency
+app.post('/api/pricing/currencies', authenticateToken, requireAdmin, (req, res) => {
+  const { code, name, symbol, country, flatFee, varFee } = req.body || {};
+  if (!code || !name) return res.status(400).json({ error: 'code and name required' });
+  const list = getCurrencies();
+  if (list.find(c => c.code === code.toUpperCase())) return res.status(409).json({ error: 'Currency already exists' });
+  const entry = { code: code.toUpperCase(), name, symbol: symbol||'', country: country||'', flatFee: parseFloat(flatFee)||0, varFee: parseFloat(varFee)||0 };
+  list.push(entry);
+  writeData('currencies.json', list);
+  res.json(entry);
+});
+
+// PUT /api/pricing/currencies/:code  — update fees
+app.put('/api/pricing/currencies/:code', authenticateToken, requireAdmin, (req, res) => {
+  const list = getCurrencies();
+  const idx = list.findIndex(c => c.code === req.params.code.toUpperCase());
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (req.body.flatFee !== undefined) list[idx].flatFee = parseFloat(req.body.flatFee) || 0;
+  if (req.body.varFee  !== undefined) list[idx].varFee  = parseFloat(req.body.varFee)  || 0;
+  writeData('currencies.json', list);
+  res.json(list[idx]);
+});
+
+// DELETE /api/pricing/currencies/:code
+app.delete('/api/pricing/currencies/:code', authenticateToken, requireAdmin, (req, res) => {
+  const list = getCurrencies();
+  const next = list.filter(c => c.code !== req.params.code.toUpperCase());
+  if (next.length === list.length) return res.status(404).json({ error: 'Not found' });
+  writeData('currencies.json', next);
+  res.json({ ok: true });
+});
+
+// GET /api/pricing/users  — list users with their pricing overrides
+app.get('/api/pricing/users', authenticateToken, requireAdmin, (req, res) => {
+  const users = readData('users.json');
+  res.json(users.map(({ passwordHash, ...u }) => u));
+});
+
+// PUT /api/pricing/users/:id  — set per-user pricing override for one currency
+// Body: { code, flatFee, varFee }  — pass null flatFee+varFee to clear override
+app.put('/api/pricing/users/:id', authenticateToken, requireAdmin, (req, res) => {
+  const users = readData('users.json');
+  const idx = users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+  const { code, flatFee, varFee } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'code required' });
+  if (!users[idx].pricing) users[idx].pricing = {};
+  if (flatFee === null && varFee === null) {
+    delete users[idx].pricing[code.toUpperCase()];
+  } else {
+    users[idx].pricing[code.toUpperCase()] = {
+      flatFee: flatFee !== undefined ? parseFloat(flatFee)||0 : (users[idx].pricing[code.toUpperCase()]||{}).flatFee||0,
+      varFee:  varFee  !== undefined ? parseFloat(varFee) ||0 : (users[idx].pricing[code.toUpperCase()]||{}).varFee ||0,
+    };
+  }
+  writeData('users.json', users);
+  const { passwordHash, ...safe } = users[idx];
+  res.json(safe);
+});
+
 // GET /api/tx/all — admin only. Returns every saved transaction, newest first.
 // The admin dashboard reads these (localStorage is per-origin, so the user
 // dashboard's hp_txlog is invisible to the admin domain).

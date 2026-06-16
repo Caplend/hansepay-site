@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Pricing — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --success:#16a34a;--warn:#d97706;--danger:#dc2626;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-pill:100px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#F4F6F9;color:var(--ink);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+.sidebar{width:240px;min-height:100vh;background:var(--n800);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:28px 20px 22px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sidebar-brand{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1}
+.sidebar-admin-badge{font-size:.625rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.35);display:block;margin-top:4px}
+.sidebar-nav{flex:1;padding:18px 12px}
+.nav-section{font-size:.6875rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.22);padding:12px 12px 6px;margin-top:4px;display:block}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-md);font-size:.8125rem;font-weight:500;color:rgba(255,255,255,.55);transition:all .15s;margin-bottom:2px;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--n600);color:#fff;font-weight:600;border-left-color:var(--gold)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,.07)}
+.sidebar-user{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:8px}
+.sidebar-avatar{width:30px;height:30px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:.6875rem;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-user-name{font-size:.75rem;font-weight:500;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-email{font-size:.6875rem;color:rgba(255,255,255,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.signout-link{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-md);font-size:.75rem;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;transition:all .15s;background:none;border:none;font-family:'Inter',sans-serif;width:100%;text-align:left}
+.signout-link:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.signout-link svg{width:14px;height:14px}
+
+.main{flex:1;margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid rgba(11,25,41,.08);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-family:'Playfair Display',serif;font-size:1.375rem;font-weight:600;color:var(--n800)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-avatar{display:flex;align-items:center;gap:9px;padding:5px 14px 5px 5px;border-radius:var(--r-pill);border:1px solid rgba(11,25,41,.09);background:var(--off)}
+.topbar-avatar-circle{width:28px;height:28px;border-radius:50%;background:var(--n500);display:flex;align-items:center;justify-content:center;font-size:.6875rem;font-weight:700;color:#fff}
+.topbar-avatar-name{font-size:.8125rem;font-weight:500;color:var(--ink2)}
+.content{padding:32px;flex:1;display:flex;flex-direction:column;gap:28px}
+
+/* ── Section cards ── */
+.section-card{background:#fff;border-radius:var(--r-lg);border:1px solid rgba(11,25,41,.08);box-shadow:0 1px 4px rgba(11,25,41,.04);overflow:hidden}
+.section-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid rgba(11,25,41,.06)}
+.section-title{font-size:.9375rem;font-weight:600;color:var(--n800)}
+.section-sub{font-size:.8125rem;color:var(--ink3);margin-top:2px}
+
+/* ── Table ── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding:11px 20px;text-align:left;border-bottom:1px solid rgba(11,25,41,.06);background:#fafbfc;white-space:nowrap}
+.data-table td{padding:13px 20px;font-size:.875rem;color:var(--ink2);border-bottom:1px solid rgba(11,25,41,.04);vertical-align:middle}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table th.right,.data-table td.right{text-align:right}
+.data-table th.center,.data-table td.center{text-align:center}
+
+/* ── Fee stepper ── */
+.stepper{display:inline-flex;align-items:center;gap:0;border:1px solid rgba(11,25,41,.14);border-radius:var(--r-sm);overflow:hidden}
+.stepper-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#fff;border:none;cursor:pointer;color:var(--ink3);font-size:16px;font-weight:500;transition:background .12s;flex-shrink:0}
+.stepper-btn:hover{background:var(--n050);color:var(--n500)}
+.stepper-val{min-width:52px;text-align:center;font-size:.8125rem;font-weight:600;color:var(--ink);background:#fff;border:none;border-left:1px solid rgba(11,25,41,.1);border-right:1px solid rgba(11,25,41,.1);padding:0 6px;height:28px;font-family:'Inter',sans-serif;outline:none}
+.stepper-val:focus{background:var(--n050)}
+
+.total-fee{font-size:.875rem;font-weight:600;color:var(--n800)}
+.total-fee-sub{font-size:.75rem;color:var(--ink3);margin-top:1px}
+
+.flag{font-size:1.1rem;margin-right:4px}
+.currency-code{font-weight:700;font-size:.875rem;color:var(--n800);font-variant-numeric:tabular-nums}
+.currency-name{font-size:.8125rem;color:var(--ink3);margin-top:1px}
+
+/* ── Buttons ── */
+.btn-primary{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-md);background:var(--n800);color:#fff;border:none;font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary:hover{background:var(--n700)}
+.btn-ghost{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r-md);background:#fff;color:var(--ink2);border:1px solid rgba(11,25,41,.12);font-family:'Inter',sans-serif;font-size:.8125rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{background:var(--n050);border-color:var(--n300)}
+.btn-danger{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-sm);background:transparent;color:var(--danger);border:1px solid rgba(220,38,38,.25);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-danger:hover{background:#fee2e2;border-color:var(--danger)}
+
+/* ── Override badge ── */
+.override-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-pill);background:rgba(30,78,128,.08);color:var(--n500);font-size:.6875rem;font-weight:700;white-space:nowrap}
+
+/* ── Customer pricing section ── */
+.user-search-wrap{position:relative;max-width:340px}
+.user-search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--ink3);pointer-events:none}
+.user-search{width:100%;padding:8px 12px 8px 34px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.user-search:focus{border-color:var(--n300)}
+
+.user-card{border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);overflow:hidden;margin-top:16px}
+.user-card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fafbfc;border-bottom:1px solid rgba(11,25,41,.06)}
+.user-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-weight:600;font-size:.875rem;color:var(--ink)}
+.user-email{font-size:.75rem;color:var(--ink3);margin-top:1px}
+
+.override-table{width:100%;border-collapse:collapse}
+.override-table th{font-size:.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:10px 20px;text-align:left;background:#fafbfc;border-bottom:1px solid rgba(11,25,41,.05)}
+.override-table td{padding:11px 20px;font-size:.8125rem;color:var(--ink2);border-bottom:1px solid rgba(11,25,41,.04)}
+.override-table tbody tr:last-child td{border-bottom:none}
+
+.empty-state{padding:48px 24px;text-align:center;color:var(--ink3);font-size:.875rem}
+.empty-state svg{margin:0 auto 12px;display:block;width:32px;height:32px;color:rgba(11,25,41,.15)}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(11,25,41,.4);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal-box{background:#fff;border-radius:var(--r-lg);padding:28px;width:100%;max-width:440px;transform:scale(.96);transition:transform .18s;box-shadow:0 20px 60px rgba(11,25,41,.18)}
+.modal-overlay.open .modal-box{transform:scale(1)}
+.modal-title{font-size:1rem;font-weight:600;color:var(--n800);margin-bottom:18px}
+.field-group{margin-bottom:14px}
+.field-label{font-size:.75rem;font-weight:600;color:var(--ink3);margin-bottom:5px;display:block;letter-spacing:.02em}
+.field-input{width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);background:#fff;outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--n300)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--n800);color:#fff;padding:11px 18px;border-radius:var(--r-md);font-size:.875rem;font-weight:500;box-shadow:0 8px 24px rgba(11,25,41,.25);transform:translateY(8px);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="hp-sidebar"></div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">Pricing</div>
+    <div class="topbar-right">
+      <div class="topbar-avatar">
+        <div class="topbar-avatar-circle" id="hp-topbar-avatar"></div>
+        <span class="topbar-avatar-name" id="hp-topbar-name"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── Global Currency Fees ── -->
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Currencies</div>
+          <div class="section-sub">Global market maker fee: <strong id="mmFeeLabel">0.05%</strong> — included in total variable fee.</div>
+        </div>
+        <button class="btn-primary" onclick="openAddModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Currency
+        </button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Currency</th>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Country</th>
+            <th class="right">Flat fee (€)</th>
+            <th class="right">Variable fee</th>
+            <th class="right">Total variable fee</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="currencyBody"></tbody>
+      </table>
+    </div>
+
+    <!-- ── Individual Customer Pricing ── -->
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Individual Customer Pricing</div>
+          <div class="section-sub">Per-user fee overrides — take precedence over global rates for that customer.</div>
+        </div>
+      </div>
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(11,25,41,.06)">
+        <div class="user-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="user-search" id="userSearch" placeholder="Search by name or email…" oninput="filterUsers()">
+        </div>
+      </div>
+      <div id="userList" style="padding:0 24px 24px"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Add Currency Modal ── -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <div class="modal-title">Add Currency</div>
+    <div class="field-group">
+      <label class="field-label">Currency Code (ISO 4217)</label>
+      <input class="field-input" id="newCode" placeholder="e.g. HKD" maxlength="4" style="text-transform:uppercase">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Name</label>
+      <input class="field-input" id="newName" placeholder="e.g. Hong Kong Dollar">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field-group">
+        <label class="field-label">Symbol</label>
+        <input class="field-input" id="newSymbol" placeholder="HK$">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Country Code</label>
+        <input class="field-input" id="newCountry" placeholder="HK" maxlength="4" style="text-transform:uppercase">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field-group">
+        <label class="field-label">Flat Fee (€)</label>
+        <input class="field-input" id="newFlatFee" type="number" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Variable Fee (%)</label>
+        <input class="field-input" id="newVarFee" type="number" min="0" step="0.05" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-primary" onclick="addCurrency()">Add Currency</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Override Modal ── -->
+<div class="modal-overlay" id="overrideModal">
+  <div class="modal-box">
+    <div class="modal-title" id="overrideModalTitle">Set Override</div>
+    <input type="hidden" id="overrideUserId">
+    <input type="hidden" id="overrideCurrencyCode">
+    <div class="field-group">
+      <label class="field-label">Currency</label>
+      <select class="field-input" id="overrideCurrencySelect" onchange="updateOverrideDefaults()">
+        <option value="">— select —</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field-group">
+        <label class="field-label">Flat Fee (€)</label>
+        <input class="field-input" id="overrideFlatFee" type="number" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Variable Fee (%)</label>
+        <input class="field-input" id="overrideVarFee" type="number" min="0" step="0.05" placeholder="0.00">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeOverrideModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveOverride()">Save Override</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="components.js"></script>
+<script>
+HPAdmin.renderSidebar('pricing');
+
+var authFetch = HPAdmin.authFetch;
+
+var MM_FEE = 0.05;
+var currencies = [];
+var users = [];
+
+// ── Load ─────────────────────────────────────────────────────────────────────
+function load() {
+  authFetch('/api/pricing/currencies').then(function(r){return r.json();}).then(function(d){
+    currencies = d.currencies || [];
+    MM_FEE = d.mmFee || 0.05;
+    document.getElementById('mmFeeLabel').textContent = MM_FEE.toFixed(2) + '%';
+    renderCurrencies();
+    populateOverrideSelect();
+  });
+  authFetch('/api/pricing/users').then(function(r){return r.json();}).then(function(d){
+    users = (Array.isArray(d) ? d : []).filter(function(u){ return u.role !== 'admin'; });
+    renderUsers();
+  });
+}
+
+// ── Currency table ────────────────────────────────────────────────────────────
+var COUNTRY_FLAGS = {
+  EU:'🇪🇺',US:'🇺🇸',GB:'🇬🇧',CH:'🇨🇭',JP:'🇯🇵',CN:'🇨🇳',AR:'🇦🇷',BD:'🇧🇩',BR:'🇧🇷',EG:'🇪🇬',
+  AU:'🇦🇺',CA:'🇨🇦',IN:'🇮🇳',MX:'🇲🇽',NG:'🇳🇬',PH:'🇵🇭',SG:'🇸🇬',ZA:'🇿🇦',AE:'🇦🇪',HK:'🇭🇰',
+  KR:'🇰🇷',SE:'🇸🇪',NO:'🇳🇴',DK:'🇩🇰',PL:'🇵🇱',CZ:'🇨🇿',HU:'🇭🇺',RO:'🇷🇴',TR:'🇹🇷',ID:'🇮🇩',
+  TH:'🇹🇭',VN:'🇻🇳',MA:'🇲🇦',GH:'🇬🇭',KE:'🇰🇪',TZ:'🇹🇿',ET:'🇪🇹',PK:'🇵🇰',LK:'🇱🇰',NP:'🇳🇵',
+};
+
+function flag(code) { return COUNTRY_FLAGS[code] || '🏳️'; }
+
+function renderCurrencies() {
+  var tbody = document.getElementById('currencyBody');
+  if (!currencies.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No currencies configured.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = currencies.map(function(c) {
+    var total = (c.varFee || 0) + MM_FEE;
+    return '<tr>' +
+      '<td><span class="flag">' + flag(c.country) + '</span><span class="currency-code">' + esc(c.code) + '</span></td>' +
+      '<td>' + esc(c.name) + '</td>' +
+      '<td style="font-size:.8125rem;color:var(--ink3)">' + esc(c.symbol) + '</td>' +
+      '<td style="font-size:.8125rem;color:var(--ink3)">' + esc(c.country) + '</td>' +
+      '<td class="right">' + stepperHtml(c.code, 'flat', c.flatFee) + '</td>' +
+      '<td class="right">' + stepperHtml(c.code, 'var', c.varFee) + '</td>' +
+      '<td class="right"><div class="total-fee">' + total.toFixed(2) + '%</div><div class="total-fee-sub">incl. ' + MM_FEE.toFixed(2) + '% MM</div></td>' +
+      '<td class="right"><button class="btn-danger" onclick="deleteCurrency(\'' + esc(c.code) + '\')">Delete</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function stepperHtml(code, type, val) {
+  var isFlat = type === 'flat';
+  var step = isFlat ? 1 : 0.05;
+  var unit = isFlat ? '' : '%';
+  var id = 'sv_' + code + '_' + type;
+  var display = isFlat ? (val || 0).toFixed(0) : (val || 0).toFixed(2) + '%';
+  return '<div class="stepper">' +
+    '<button class="stepper-btn" onclick="stepFee(\'' + code + '\',\'' + type + '\',-' + step + ')">−</button>' +
+    '<span class="stepper-val" id="' + id + '">' + display + '</span>' +
+    '<button class="stepper-btn" onclick="stepFee(\'' + code + '\',\'' + type + '\',' + step + ')">+</button>' +
+    '</div>';
+}
+
+function stepFee(code, type, delta) {
+  var cur = currencies.find(function(c){ return c.code === code; });
+  if (!cur) return;
+  var key = type === 'flat' ? 'flatFee' : 'varFee';
+  var next = Math.max(0, Math.round(((cur[key] || 0) + delta) * 1000) / 1000);
+  cur[key] = next;
+  var id = 'sv_' + code + '_' + type;
+  var el = document.getElementById(id);
+  if (el) el.textContent = type === 'flat' ? next.toFixed(0) : next.toFixed(2) + '%';
+  // update total
+  var row = el && el.closest('tr');
+  if (row) {
+    var totalEl = row.querySelector('.total-fee');
+    if (totalEl) totalEl.textContent = ((cur.varFee || 0) + MM_FEE).toFixed(2) + '%';
+  }
+  authFetch('/api/pricing/currencies/' + code, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ flatFee: cur.flatFee, varFee: cur.varFee }),
+  }).then(function(r){ return r.json(); }).then(function(){
+    showToast('Saved');
+  });
+}
+
+function deleteCurrency(code) {
+  if (!confirm('Delete ' + code + '?')) return;
+  authFetch('/api/pricing/currencies/' + code, { method: 'DELETE' })
+    .then(function(){ currencies = currencies.filter(function(c){ return c.code !== code; }); renderCurrencies(); showToast('Deleted'); });
+}
+
+// ── Add currency modal ────────────────────────────────────────────────────────
+function openAddModal() { document.getElementById('addModal').classList.add('open'); document.getElementById('newCode').focus(); }
+function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+
+function addCurrency() {
+  var code    = document.getElementById('newCode').value.trim().toUpperCase();
+  var name    = document.getElementById('newName').value.trim();
+  var symbol  = document.getElementById('newSymbol').value.trim();
+  var country = document.getElementById('newCountry').value.trim().toUpperCase();
+  var flatFee = parseFloat(document.getElementById('newFlatFee').value) || 0;
+  var varFee  = parseFloat(document.getElementById('newVarFee').value) || 0;
+  if (!code || !name) { alert('Code and name are required.'); return; }
+  authFetch('/api/pricing/currencies', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ code, name, symbol, country, flatFee, varFee }),
+  }).then(function(r){ return r.json(); }).then(function(c){
+    if (c.error) { alert(c.error); return; }
+    currencies.push(c);
+    renderCurrencies();
+    populateOverrideSelect();
+    closeAddModal();
+    showToast('Currency added');
+    ['newCode','newName','newSymbol','newCountry','newFlatFee','newVarFee'].forEach(function(id){ document.getElementById(id).value=''; });
+  });
+}
+
+// ── User list ─────────────────────────────────────────────────────────────────
+var PALETTE = ['#1E4E80','#163659','#2E6BAD','#0F2540','#3B7BC4'];
+function avatarColor(n) { var h=0; for(var i=0;i<n.length;i++)h=n.charCodeAt(i)+((h<<5)-h); return PALETTE[Math.abs(h)%PALETTE.length]; }
+function initials(n) { return (n||'?').split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase(); }
+
+function filterUsers() {
+  renderUsers(document.getElementById('userSearch').value.trim().toLowerCase());
+}
+
+function renderUsers(q) {
+  var container = document.getElementById('userList');
+  var filtered = q ? users.filter(function(u){
+    return (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
+  }) : users;
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' + (q ? 'No users match your search.' : 'No customer accounts yet.') + '</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(function(u) {
+    var pricing = u.pricing || {};
+    var overrides = Object.keys(pricing);
+    var color = avatarColor(u.name || u.email);
+    var ini = initials(u.name || u.email);
+
+    var overrideRows = overrides.length ? overrides.map(function(code) {
+      var ov = pricing[code];
+      var global = currencies.find(function(c){ return c.code === code; }) || {};
+      return '<tr>' +
+        '<td><span class="flag">' + flag(global.country||'') + '</span><strong>' + esc(code) + '</strong></td>' +
+        '<td>' + (ov.flatFee !== undefined ? '€' + ov.flatFee.toFixed(2) : '—') + '</td>' +
+        '<td>' + (ov.varFee !== undefined ? ov.varFee.toFixed(2) + '%' : '—') + '</td>' +
+        '<td style="color:var(--n500);font-weight:600">' + ((ov.varFee||0) + MM_FEE).toFixed(2) + '%</td>' +
+        '<td>' +
+          '<div style="display:flex;gap:8px;align-items:center">' +
+          '<button class="btn-ghost" style="padding:4px 10px;font-size:.75rem" onclick="openEditOverride(\'' + esc(u.id) + '\',\'' + esc(code) + '\')">Edit</button>' +
+          '<button class="btn-danger" onclick="removeOverride(\'' + esc(u.id) + '\',\'' + esc(code) + '\')">Remove</button>' +
+          '</div>' +
+        '</td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="5" style="padding:14px 20px;font-size:.8125rem;color:var(--ink3)">No overrides — using global rates.</td></tr>';
+
+    return '<div class="user-card" style="margin-top:16px">' +
+      '<div class="user-card-head">' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div class="user-avatar" style="background:' + color + '">' + ini + '</div>' +
+          '<div>' +
+            '<div class="user-name">' + esc(u.name || '—') + '</div>' +
+            '<div class="user-email">' + esc(u.email) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn-ghost" style="gap:6px" onclick="openAddOverride(\'' + esc(u.id) + '\')">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+          'Add override' +
+        '</button>' +
+      '</div>' +
+      '<table class="override-table">' +
+        '<thead><tr><th>Currency</th><th>Flat fee (€)</th><th>Variable fee</th><th>Total incl. MM</th><th></th></tr></thead>' +
+        '<tbody>' + overrideRows + '</tbody>' +
+      '</table>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Override modal ────────────────────────────────────────────────────────────
+function populateOverrideSelect() {
+  var sel = document.getElementById('overrideCurrencySelect');
+  sel.innerHTML = '<option value="">— select currency —</option>' +
+    currencies.map(function(c){ return '<option value="' + esc(c.code) + '">' + esc(c.code) + ' — ' + esc(c.name) + '</option>'; }).join('');
+}
+
+function openAddOverride(userId) {
+  document.getElementById('overrideUserId').value = userId;
+  document.getElementById('overrideCurrencyCode').value = '';
+  document.getElementById('overrideCurrencySelect').value = '';
+  document.getElementById('overrideCurrencySelect').disabled = false;
+  document.getElementById('overrideFlatFee').value = '';
+  document.getElementById('overrideVarFee').value = '';
+  document.getElementById('overrideModalTitle').textContent = 'Add Fee Override';
+  document.getElementById('overrideModal').classList.add('open');
+}
+
+function openEditOverride(userId, code) {
+  var user = users.find(function(u){ return u.id === userId; });
+  var pricing = (user && user.pricing && user.pricing[code]) || {};
+  document.getElementById('overrideUserId').value = userId;
+  document.getElementById('overrideCurrencyCode').value = code;
+  document.getElementById('overrideCurrencySelect').value = code;
+  document.getElementById('overrideCurrencySelect').disabled = true;
+  document.getElementById('overrideFlatFee').value = pricing.flatFee !== undefined ? pricing.flatFee : '';
+  document.getElementById('overrideVarFee').value  = pricing.varFee  !== undefined ? pricing.varFee  : '';
+  document.getElementById('overrideModalTitle').textContent = 'Edit Override — ' + code;
+  document.getElementById('overrideModal').classList.add('open');
+}
+
+function closeOverrideModal() { document.getElementById('overrideModal').classList.remove('open'); }
+
+function updateOverrideDefaults() {
+  var code = document.getElementById('overrideCurrencySelect').value;
+  var cur = currencies.find(function(c){ return c.code === code; });
+  if (cur) {
+    document.getElementById('overrideFlatFee').value = cur.flatFee || 0;
+    document.getElementById('overrideVarFee').value  = cur.varFee  || 0;
+  }
+}
+
+function saveOverride() {
+  var userId = document.getElementById('overrideUserId').value;
+  var code   = document.getElementById('overrideCurrencySelect').value;
+  var flat   = parseFloat(document.getElementById('overrideFlatFee').value) || 0;
+  var varF   = parseFloat(document.getElementById('overrideVarFee').value)  || 0;
+  if (!userId || !code) { alert('Please select a currency.'); return; }
+
+  authFetch('/api/pricing/users/' + userId, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ code, flatFee: flat, varFee: varF }),
+  }).then(function(r){ return r.json(); }).then(function(updated){
+    if (updated.error) { alert(updated.error); return; }
+    var idx = users.findIndex(function(u){ return u.id === userId; });
+    if (idx !== -1) users[idx] = updated;
+    renderUsers(document.getElementById('userSearch').value.trim().toLowerCase());
+    closeOverrideModal();
+    showToast('Override saved');
+  });
+}
+
+function removeOverride(userId, code) {
+  if (!confirm('Remove override for ' + code + '?')) return;
+  authFetch('/api/pricing/users/' + userId, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ code, flatFee: null, varFee: null }),
+  }).then(function(r){ return r.json(); }).then(function(updated){
+    var idx = users.findIndex(function(u){ return u.id === userId; });
+    if (idx !== -1) users[idx] = updated;
+    renderUsers(document.getElementById('userSearch').value.trim().toLowerCase());
+    showToast('Override removed');
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);}); }
+
+var _toastTimer;
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+
+document.getElementById('addModal').addEventListener('click', function(e){ if(e.target===this) closeAddModal(); });
+document.getElementById('overrideModal').addEventListener('click', function(e){ if(e.target===this) closeOverrideModal(); });
+
+load();
+</script>
+</body>
+</html>
