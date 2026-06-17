@@ -1044,6 +1044,7 @@ const EMAIL_TEMPLATE_CATALOG = [
   { id: 'application-approved',     name: 'Account Approved (Individual)', category: 'Onboarding', icon: '🎉', description: 'Sent when an individual account is approved',                langs: ['en', 'de'] },
   { id: 'application-approved-biz', name: 'Account Approved (Business)',   category: 'Onboarding', icon: '🏢', description: 'Sent when a business account is approved',                   langs: ['en', 'de'] },
   { id: 'onboarding-reminder',      name: 'Onboarding Reminder',           category: 'Onboarding', icon: '👋', description: 'Nudge for users who created login but didn\'t continue',     langs: ['en', 'de'] },
+  { id: 'monthly-savings',          name: 'Monthly Savings Report',        category: 'Lifecycle',  icon: '📈', description: 'Monthly email showing the customer how much they saved vs. bank rates', langs: ['en', 'de'] },
   { id: 'kyc-invite',               name: 'KYC Invite',                    category: 'KYC',        icon: '📷', description: 'Invitation to complete identity verification',                langs: ['en', 'de'] },
   { id: 'kyc-reminder',             name: 'Identity Check Reminder',       category: 'KYC',        icon: '⏳', description: 'Reminder for users who started but haven\'t finished KYC',  langs: ['en', 'de'] },
   { id: 'kyc-verified',             name: 'Identity Verified',             category: 'KYC',        icon: '✓',  description: 'Confirms successful identity verification',                  langs: ['en', 'de'] },
@@ -1135,6 +1136,20 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
         break;
       case 'onboarding-reminder':
         mail = mailer.renderOnboardingReminderEmail({ firstName, email, lang, continueUrl: siteBase + '/hansepay/onboarding.html' });
+        break;
+      case 'monthly-savings':
+        mail = mailer.renderMonthlySavingsEmail({
+          firstName, email, lang,
+          month: new Date().toLocaleString(lang === 'de' ? 'de-DE' : 'en-GB', { month: 'long', year: 'numeric' }),
+          savedAmount: 1284.50,
+          hpFeesPaid: 137.50,
+          bankEquivalent: 1422.00,
+          transferCount: 8,
+          totalVolume: 25000,
+          avgRate: 0.55,
+          currencies: ['USD', 'GBP', 'CHF'],
+          loginUrl: siteBase + '/hansepay/dashboard.html',
+        });
         break;
       default:
         return res.status(404).json({ error: 'Unknown template: ' + id });
