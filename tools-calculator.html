@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>HansePay, FX Savings Calculator</title>
+<title>HansePay — FX Savings Calculator</title>
 <meta name="description" content="Estimate how much your business could save on FX vs. your current bank or provider. Set volume, currency, and provider type. Free, no signup." />
 <link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,11 +32,10 @@ a{color:inherit;text-decoration:none}
 .eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:5px 12px;border-radius:var(--r-pill);background:rgba(30,78,128,.08);color:var(--n500)}
 
 /* Hero */
-.hero{background:radial-gradient(ellipse at 18% 40%,#0F2540 0%,transparent 55%),radial-gradient(ellipse at 82% 25%,#2E6BAD 0%,transparent 50%),#060D1A;padding:160px 0 96px}
-.hero h1{font-family:var(--font-display);font-size:clamp(44px,5.5vw,76px);font-weight:400;line-height:1.05;letter-spacing:-.03em;color:#fff;margin-bottom:24px}
-.hero h1 em{font-style:italic;font-weight:300;color:var(--n200)}
-.hero-sub{font-size:17px;color:rgba(255,255,255,.7);line-height:1.72;max-width:640px}
-.hero .eyebrow{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.9)}
+.hero{background:#fff;padding:100px 0 40px}
+.hero h1{font-family:var(--font-display);font-size:clamp(44px,5.5vw,76px);font-weight:400;line-height:1.05;letter-spacing:-.03em;color:var(--ink);margin-bottom:24px}
+.hero h1 em{font-style:italic;font-weight:300;color:var(--n500)}
+.hero-sub{font-size:17px;color:var(--ink2);line-height:1.72;max-width:640px}
 
 /* Section */
 .section{padding:96px 0}
@@ -137,18 +136,18 @@ a{color:inherit;text-decoration:none}
     <div style="max-width:820px">
       <span class="eyebrow">FX Savings Calculator</span>
       <h1 style="margin-top:24px">See what you could save on FX, <em>in under 30 seconds.</em></h1>
-      <p class="hero-sub">Set your annual volume, your current provider, and your destination currency. We'll show you the estimated annual saving with HansePay, then get an exact figure with a free FX audit.</p>
+      <p class="hero-sub">Set your annual volume, your current provider, and your destination currency. We'll show you the estimated annual saving with HansePay — then get an exact figure with a free FX audit.</p>
     </div>
   </div>
 </section>
 
 <!-- CALCULATOR -->
-<section class="section section-border" style="padding-top:64px">
+<section class="section section-border" style="padding-top:36px">
   <div class="container">
     <div class="calc-card" id="calc-root">
       <div class="calc-header">
-        <h3 data-i18n="calc.card.h3">Estimate your FX savings</h3>
-        <p data-i18n="calc.card.sub">Set your volume, currency, and provider below. These are estimates based on industry-standard margins.</p>
+        <h3>Estimate your FX savings</h3>
+        <p>Set your volume, currency, and provider below. These are estimates based on industry-standard margins.</p>
       </div>
       <div class="calc-grid">
 
@@ -158,7 +157,7 @@ a{color:inherit;text-decoration:none}
           <!-- Volume -->
           <div class="calc-row">
             <div class="calc-lbl">
-              <span data-i18n="calc.lbl.volume">Annual cross-border payment volume</span>
+              <span>Annual cross-border payment volume</span>
               <span class="calc-lbl-val" id="vol-display">1.000.000 €</span>
             </div>
             <input type="range" class="hp-range" id="vol-slider" min="100000" max="50000000" step="50000" value="1000000" style="--pct:1.8%">
@@ -168,7 +167,7 @@ a{color:inherit;text-decoration:none}
           <!-- Currency picker -->
           <div class="calc-row" style="position:relative">
             <div class="calc-lbl">
-              <span data-i18n="calc.lbl.currency">Currency pair</span>
+              <span>Currency pair</span>
               <span id="cat-badge" class="cat-badge-inline">Major</span>
             </div>
             <button class="ccy-btn" id="ccy-btn" type="button">
@@ -180,29 +179,29 @@ a{color:inherit;text-decoration:none}
 
           <!-- Current FX cost -->
           <div class="calc-row">
-            <div class="calc-lbl"><span data-i18n="calc.lbl.fxcost">Your current FX cost</span></div>
+            <div class="calc-lbl"><span>Your current FX cost</span></div>
             <div class="mode-toggle">
-              <button class="mode-btn active" id="mode-provider" type="button" data-i18n="calc.mode.provider">By provider</button>
-              <button class="mode-btn" id="mode-custom" type="button" data-i18n="calc.mode.custom">By exact margin</button>
+              <button class="mode-btn active" id="mode-provider" type="button">By provider</button>
+              <button class="mode-btn" id="mode-custom" type="button">By exact margin</button>
             </div>
             <!-- Provider view -->
             <div id="prov-view">
               <div class="calc-select-wrap">
                 <select class="calc-select" id="prov-select">
-                  <option value="major_de" data-i18n="calc.prov.major-de">Major German bank (Deutsche Bank, Commerzbank)</option>
-                  <option value="sparkasse" data-i18n="calc.prov.sparkasse">Sparkasse / Volksbank</option>
-                  <option value="international" data-i18n="calc.prov.international">International bank (HSBC, BNP Paribas)</option>
-                  <option value="broker" data-i18n="calc.prov.broker">FX broker / specialist</option>
-                  <option value="other" data-i18n="calc.prov.other">Other / custom</option>
+                  <option value="major_de">Major German bank (Deutsche Bank, Commerzbank)</option>
+                  <option value="sparkasse">Sparkasse / Volksbank</option>
+                  <option value="international">International bank (HSBC, BNP Paribas)</option>
+                  <option value="broker">FX broker / specialist</option>
+                  <option value="other">Other / custom</option>
                 </select>
                 <svg class="calc-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
-              <p class="calc-hint"><span data-i18n="calc.hint.margin">Estimated margin at your volume:</span> <strong id="prov-margin-val">2.50%</strong></p>
+              <p class="calc-hint">Estimated margin at your volume: <strong id="prov-margin-val">2.50%</strong></p>
             </div>
             <!-- Custom view -->
             <div id="custom-view" style="display:none">
               <div class="calc-lbl" style="margin-bottom:8px">
-                <span style="font-size:12px;font-weight:400;color:var(--ink2)" data-i18n="calc.lbl.markup">Current provider markup</span>
+                <span style="font-size:12px;font-weight:400;color:var(--ink2)">Current provider markup</span>
                 <span class="calc-lbl-val" id="custom-val-display">2.50%</span>
               </div>
               <input type="range" class="hp-range" id="custom-slider" min="0.5" max="6" step="0.05" value="2.5" style="--pct:36%">
@@ -213,12 +212,12 @@ a{color:inherit;text-decoration:none}
           <!-- Payments per month -->
           <div class="calc-row">
             <div class="calc-lbl">
-              <span data-i18n="calc.lbl.payments">Cross-border payments per month</span>
+              <span>Cross-border payments per month</span>
               <span class="calc-lbl-val" id="pay-display">25</span>
             </div>
             <input type="range" class="hp-range" id="pay-slider" min="1" max="500" step="1" value="25" style="--pct:4.8%">
             <div class="hp-range-labels"><span>1</span><span>500</span></div>
-            <p class="calc-hint" data-i18n="calc.hint.payments">Used to estimate per-payment fee savings (SWIFT, lifting, beneficiary fees).</p>
+            <p class="calc-hint">Used to estimate per-payment fee savings (SWIFT, lifting, beneficiary fees).</p>
           </div>
 
         </div>
@@ -229,32 +228,32 @@ a{color:inherit;text-decoration:none}
           <!-- Result panel -->
           <div class="calc-result">
             <div class="calc-result-row">
-              <span class="calc-result-lbl" data-i18n="calc.result.margins">Saved on FX margins</span>
+              <span class="calc-result-lbl">Saved on FX margins</span>
               <span class="calc-result-val" id="br-margin">22.000 €</span>
             </div>
             <div class="calc-result-row">
-              <span class="calc-result-lbl" data-i18n="calc.result.fees">Saved on per-payment fees</span>
+              <span class="calc-result-lbl">Saved on per-payment fees</span>
               <span class="calc-result-val" id="br-fees">8.400 €</span>
             </div>
             <div class="calc-saving">
-              <span class="calc-saving-lbl" data-i18n="calc.result.total">Total annual saving</span>
+              <span class="calc-saving-lbl">Total annual saving</span>
               <span style="line-height:1"><span class="calc-saving-val" id="saving-big">30.400</span><span class="calc-saving-ccy"> €</span></span>
             </div>
           </div>
 
           <!-- Bar chart -->
           <div class="bar-section">
-            <div class="bar-section-lbl" data-i18n="calc.bar.heading">Annual cost comparison</div>
+            <div class="bar-section-lbl">Annual cost comparison</div>
             <div class="bar-row">
               <div class="bar-row-header">
-                <span data-i18n="calc.bar.current">Your current annual cost</span>
+                <span>Your current annual cost</span>
                 <span class="bar-row-val" id="bar-current-amt">62.500 €</span>
               </div>
               <div class="bar-track"><div class="bar-fill" id="bar-current" style="width:100%;background:var(--n100)"></div></div>
             </div>
             <div class="bar-row">
               <div class="bar-row-header">
-                <span data-i18n="calc.bar.hansepay">With HansePay</span>
+                <span>With HansePay</span>
                 <span class="bar-row-val" id="bar-hp-amt">25.000 €</span>
               </div>
               <div class="bar-track"><div class="bar-fill" id="bar-hp" style="width:40%;background:var(--n500)"></div></div>
@@ -262,8 +261,8 @@ a{color:inherit;text-decoration:none}
           </div>
 
           <div class="calc-divider"></div>
-          <a href="#fx-audit" class="calc-cta" data-i18n="calc.cta.audit">Get an exact figure: request a free FX audit</a>
-          <p class="calc-footnote" data-i18n="calc.footnote">Estimates based on industry-standard margins. Your actual saving depends on your transaction history.</p>
+          <a href="#fx-audit" class="calc-cta">Get an exact figure: request a free FX audit</a>
+          <p class="calc-footnote">Estimates based on industry-standard margins. Your actual saving depends on your transaction history.</p>
 
         </div>
       </div>
@@ -274,11 +273,11 @@ a{color:inherit;text-decoration:none}
 <!-- CTA STRIP -->
 <section class="cta-strip" id="fx-audit">
   <div class="container">
-    <h2 data-i18n-html="gs.h2">Get an exact figure with a <em>free FX audit.</em></h2>
-    <p data-i18n="gs.sub">We'll analyse your actual transaction data and show you the precise annual saving.</p>
+    <h2>Get an exact figure with a <em>free FX audit.</em></h2>
+    <p>We'll analyse your actual transaction data and show you the precise annual saving.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <a href="index.html#contact" class="btn btn-primary" data-i18n="calc.cta.request-audit">Request a free FX audit</a>
-      <a href="index.html#contact" class="btn" style="background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)" data-i18n="cta.open-account">Open your account</a>
+      <a href="index.html#contact" class="btn btn-primary">Request a free FX audit</a>
+      <a href="index.html#contact" class="btn" style="background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.25)">Open your account</a>
     </div>
   </div>
 </section>
