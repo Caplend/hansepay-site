@@ -101,6 +101,18 @@ a{color:inherit;text-decoration:none}
 .empty-state h3{font-family:var(--font-display);font-size:26px;font-weight:400;color:var(--ink);margin-bottom:10px}
 .empty-state p{font-size:15px;color:var(--ink2)}
 
+/* ── CTA STRIP ── */
+.cta-strip{background:var(--n800);padding:64px 0}
+.cta-strip-inner{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,80px);display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.cta-strip-eyebrow{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.cta-strip-heading{font-family:var(--font-display);font-size:clamp(24px,2.8vw,38px);font-weight:400;line-height:1.12;letter-spacing:-.02em;color:#fff}
+.cta-strip-actions{display:flex;gap:14px;flex-shrink:0;flex-wrap:wrap}
+.cta-btn-primary{display:inline-flex;align-items:center;padding:13px 28px;border-radius:var(--r-pill);background:var(--gold);color:var(--n900);font-size:14px;font-weight:600;transition:opacity .18s}
+.cta-btn-primary:hover{opacity:.88}
+.cta-btn-ghost{display:inline-flex;align-items:center;padding:13px 28px;border-radius:var(--r-pill);background:transparent;color:#fff;font-size:14px;font-weight:600;border:1.5px solid rgba(255,255,255,.28);transition:border-color .18s,background .18s}
+.cta-btn-ghost:hover{border-color:rgba(255,255,255,.6);background:rgba(255,255,255,.06)}
+@media(max-width:700px){.cta-strip-inner{flex-direction:column;align-items:flex-start}.cta-strip-actions{width:100%}.cta-btn-primary,.cta-btn-ghost{flex:1;justify-content:center}}
+
 /* ── FOOTER, see assets/footer.js ── */
 
 /* ── GRADIENT HELPERS ── */
@@ -120,7 +132,7 @@ a{color:inherit;text-decoration:none}
 <section class="blog-hero">
   <div class="blog-hero-inner">
     <span class="eyebrow" data-i18n="blog.chip">HansePay Insights</span>
-    <h1>FX knowledge that moves your business.</h1>
+    <h1 data-i18n="blog.hero.h1">FX knowledge that moves your business.</h1>
     <p data-i18n="blog.sub">Market analysis, treasury best practices, and FX education for European finance teams.</p>
   </div>
 </section>
@@ -128,31 +140,45 @@ a{color:inherit;text-decoration:none}
 <!-- FILTER BAR -->
 <div class="filter-bar">
   <div class="filter-bar-inner" id="filterBar">
-    <button class="filter-pill active" data-category="all">All</button>
-    <button class="filter-pill" data-category="FX Education">FX Education</button>
-    <button class="filter-pill" data-category="Treasury">Treasury</button>
-    <button class="filter-pill" data-category="Compliance">Compliance</button>
-    <button class="filter-pill" data-category="Market Analysis">Market Analysis</button>
+    <button class="filter-pill active" data-category="all" data-i18n="blog.filter.all">All</button>
+    <button class="filter-pill" data-category="FX Education" data-i18n="blog.filter.edu">FX Education</button>
+    <button class="filter-pill" data-category="Treasury" data-i18n="blog.filter.treasury">Treasury</button>
+    <button class="filter-pill" data-category="Compliance" data-i18n="blog.filter.compliance">Compliance</button>
+    <button class="filter-pill" data-category="Market Analysis" data-i18n="blog.filter.market">Market Analysis</button>
   </div>
 </div>
 
 <!-- MAIN -->
 <main class="blog-main">
   <div id="blogContent">
-    <div class="empty-state"><p style="color:var(--ink3)">Loading posts&hellip;</p></div>
+    <div class="empty-state"><p style="color:var(--ink3)" data-i18n="blog.loading">Loading posts&hellip;</p></div>
   </div>
   <div id="pagination" class="pagination" style="display:none">
-    <button class="pag-btn" id="pagPrev">
+    <button class="pag-btn" id="pagPrev" data-i18n="blog.pag.prev">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8.5 3L5 7l3.5 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Previous
     </button>
     <span class="pag-info" id="pagInfo"></span>
-    <button class="pag-btn" id="pagNext">
+    <button class="pag-btn" id="pagNext" data-i18n="blog.pag.next">
       Next
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 3L9 7l-3.5 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
 </main>
+
+<!-- CTA STRIP -->
+<section class="cta-strip">
+  <div class="cta-strip-inner">
+    <div class="cta-strip-text">
+      <p class="cta-strip-eyebrow" data-i18n="blog.cta.eyebrow">Ready to act on what you've read?</p>
+      <h2 class="cta-strip-heading" data-i18n="blog.cta.heading">Move money at the rate that matters.</h2>
+    </div>
+    <div class="cta-strip-actions">
+      <a href="/hansepay/tools-calculator.html" class="cta-btn-primary" data-i18n="blog.cta.primary">Calculate your savings</a>
+      <a href="/hansepay/booking.html" class="cta-btn-ghost" data-i18n="blog.cta.secondary">Talk to a specialist</a>
+    </div>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <script src="assets/footer.js"></script>
@@ -289,7 +315,7 @@ a{color:inherit;text-decoration:none}
       const [first, ...rest] = slice;
       html += featuredCardHTML(first);
       if (rest.length) {
-        html += `<p class="posts-section-label">Latest articles</p><div class="post-grid">${rest.map(postCardHTML).join('')}</div>`;
+        html += `<p class="posts-section-label" data-i18n="blog.latest">Latest articles</p><div class="post-grid">${rest.map(postCardHTML).join('')}</div>`;
       }
     } else {
       html += `<div class="post-grid">${slice.map(postCardHTML).join('')}</div>`;
@@ -320,7 +346,7 @@ a{color:inherit;text-decoration:none}
       document.getElementById('blogContent').innerHTML = `
         <div class="empty-state">
           <h3>Unable to load posts</h3>
-          <p>Please try refreshing the page.</p>
+          <p data-i18n="blog.error">Please try refreshing the page.</p>
         </div>`;
     }
   }
