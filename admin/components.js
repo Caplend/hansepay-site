@@ -98,6 +98,7 @@
     pricing: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     check: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   };
   function svg(p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
 
@@ -105,6 +106,7 @@
     { sec: 'Main',     roles: ['admin','editor'] },
     { key: 'dash',     label: 'Dashboard',       href: '/hansepay/admin/',                  icon: 'dash',     roles: ['admin','editor'] },
     { key: 'bookings', label: 'Bookings',         href: '/hansepay/admin/bookings.html',     icon: 'cal',      roles: ['admin','editor'] },
+    { key: 'calendar', label: 'Calendar',          href: '/hansepay/admin/calendar.html',     icon: 'clock',    roles: ['admin','editor'] },
     { sec: 'Banking',   roles: ['admin','editor','compliance'] },
     { key: 'accounts', label: 'Accounts',          href: '/hansepay/admin/accounts.html',     icon: 'card',     roles: ['admin','editor','compliance'] },
     { key: 'pricing',  label: 'Pricing',           href: '/hansepay/admin/pricing.html',      icon: 'pricing',  roles: ['admin'] },
