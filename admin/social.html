@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Planner — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .banner{display:flex;gap:12px;align-items:flex-start;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-lg);padding:14px 16px;margin-bottom:20px;font-size:.8125rem;color:#92400e}
+  .banner svg{flex-shrink:0;width:18px;height:18px;color:#b45309;margin-top:1px}
+
+  .sec-label{font-size:.6875rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin:0 0 12px}
+
+  /* Ready-to-publish */
+  .pub-card{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid rgba(11,25,41,.1);border-left:3px solid var(--n500);border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px}
+  .pub-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;background:var(--n050);flex-shrink:0}
+  .pub-main{flex:1;min-width:0}
+  .pub-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+  /* Calendar */
+  .cal-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+  .cal-nav{width:30px;height:30px;border-radius:8px;border:1px solid rgba(11,25,41,.14);background:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--ink2)}
+  .cal-nav:hover{background:var(--n050)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-dow{font-size:.625rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);text-align:center;padding-bottom:4px}
+  .cal-cell{min-height:84px;border:1px solid rgba(11,25,41,.08);border-radius:8px;padding:6px;background:#fff;cursor:pointer;transition:.12s;overflow:hidden}
+  .cal-cell:hover{border-color:var(--n300);background:#fafbfc}
+  .cal-cell.muted-cell{background:#f8f9fc;opacity:.55}
+  .cal-cell.today{border-color:var(--n400);box-shadow:inset 0 0 0 1px var(--n400)}
+  .cal-daynum{font-size:.6875rem;font-weight:600;color:var(--ink2)}
+  .cal-pill{display:block;font-size:.625rem;font-weight:600;border-radius:5px;padding:2px 5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cal-pill .dots{margin-right:4px}
+
+  /* List */
+  .list-row{display:flex;gap:12px;align-items:center;padding:11px 12px;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-md);margin-bottom:8px;background:#fff;cursor:pointer}
+  .list-row:hover{border-color:var(--n300)}
+  .list-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--n050);flex-shrink:0}
+  .chdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+  .st{display:inline-block;font-size:.625rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r-pill)}
+  .st-draft{background:#eef2f7;color:#475569}
+  .st-scheduled{background:rgba(29,78,216,.10);color:#1d4ed8}
+  .st-posted{background:#e6f4ee;color:#1a7f5a}
+
+  /* Composer modal */
+  .ov{display:none;position:fixed;inset:0;background:rgba(6,13,26,.55);z-index:700;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
+  .composer{background:#fff;border-radius:18px;width:100%;max-width:1020px;box-shadow:0 24px 70px rgba(6,13,26,.3);overflow:hidden;margin:auto}
+  .comp-head{background:linear-gradient(135deg,#060D1A,#163659);padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+  .comp-head .t{font-family:'Playfair Display',serif;font-size:1.15rem;color:#fff}
+  .comp-x{background:rgba(255,255,255,.12);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px}
+  .comp-body{display:grid;grid-template-columns:1fr 380px;gap:0}
+  @media(max-width:880px){.comp-body{grid-template-columns:1fr}}
+  .comp-left{padding:20px 24px;border-right:1px solid rgba(11,25,41,.08)}
+  .comp-right{padding:20px 22px;background:#f6f8fb;overflow-y:auto}
+  .fld{margin-bottom:14px}
+  .fld label{display:block;font-size:.6875rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+  .fld input[type=text],.fld textarea,.fld input[type=datetime-local]{width:100%;padding:9px 11px;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink)}
+  .fld textarea{resize:vertical;line-height:1.5}
+  .chan-toggle{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-pill);cursor:pointer;font-size:.8125rem;font-weight:600;color:var(--ink2);user-select:none;margin-right:8px}
+  .chan-toggle.on{border-color:var(--n400);background:var(--n050);color:var(--n600)}
+  .charcount{font-size:.6875rem;color:var(--ink3);margin-top:4px}
+  .charcount.over{color:var(--bad);font-weight:600}
+  .ai-box{background:var(--n050);border:1px solid rgba(30,78,128,.14);border-radius:var(--r-md);padding:12px;margin-bottom:16px}
+  .linklike{background:none;border:none;color:var(--n500);font-weight:600;font-size:.75rem;cursor:pointer;padding:0}
+  .img-drop{border:1.5px dashed rgba(11,25,41,.2);border-radius:var(--r-md);padding:16px;text-align:center;font-size:.8125rem;color:var(--ink3);cursor:pointer}
+  .img-drop:hover{background:#fafbfc}
+  .img-prev{position:relative;border-radius:var(--r-md);overflow:hidden}
+  .img-prev img{width:100%;display:block}
+  .img-rm{position:absolute;top:8px;right:8px;background:rgba(6,13,26,.6);color:#fff;border:none;width:26px;height:26px;border-radius:50%;cursor:pointer}
+
+  /* Network previews */
+  .pv{background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:12px;overflow:hidden;margin-bottom:16px}
+  .pv-top{display:flex;align-items:center;gap:8px;padding:10px 12px}
+  .pv-av{width:30px;height:30px;border-radius:50%;background:var(--n500);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.6875rem;font-weight:700}
+  .pv-name{font-size:.8125rem;font-weight:600;color:var(--ink)}
+  .pv-sub{font-size:.6875rem;color:var(--ink3)}
+  .pv-img{width:100%;aspect-ratio:1/1;object-fit:cover;background:var(--n050)}
+  .pv-img.li{aspect-ratio:1.91/1}
+  .pv-cap{padding:10px 12px;font-size:.8125rem;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word}
+  .pv-cap .tags{color:var(--n500)}
+  .pv-badge{font-size:.625rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);padding:8px 12px 0}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Social Planner</div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" id="new-post">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New post
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div><strong>Instagram &amp; LinkedIn aren’t connected yet.</strong> Plan and prepare posts here, then publish with one click using the copy &amp; deep-link helpers in “Ready to publish”. When channel APIs are added, the same posts publish automatically — no rework.</div>
+    </div>
+
+    <!-- Ready to publish -->
+    <div id="pub-wrap" style="margin-bottom:28px;display:none">
+      <div class="sec-label">Ready to publish — scheduled time reached</div>
+      <div id="pub-list"></div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="card card-pad" style="margin-bottom:24px">
+      <div class="cal-head">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <div class="card-title" id="cal-title" style="margin:0;min-width:170px">—</div>
+        <button class="cal-nav" id="cal-next">›</button>
+        <button class="linklike" id="cal-today" style="font-size:.8125rem">Today</button>
+      </div>
+      <div class="cal-grid" id="cal-dows"></div>
+      <div class="cal-grid" id="cal-grid" style="margin-top:6px"></div>
+    </div>
+
+    <!-- All posts -->
+    <div class="toolbar" style="margin-bottom:14px">
+      <select class="select" id="f-status"><option value="">All statuses</option><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="posted">Posted</option></select>
+      <select class="select" id="f-channel"><option value="">All channels</option><option value="instagram">Instagram</option><option value="linkedin">LinkedIn</option></select>
+    </div>
+    <div id="list"></div>
+  </div>
+</main>
+
+<!-- Composer -->
+<div class="ov" id="composer-ov">
+  <div class="composer">
+    <div class="comp-head">
+      <div class="t" id="comp-title">New social post</div>
+      <button class="comp-x" id="comp-close">×</button>
+    </div>
+    <div class="comp-body">
+      <!-- LEFT -->
+      <div class="comp-left">
+        <div class="fld">
+          <label>Internal title</label>
+          <input type="text" id="c-title" placeholder="e.g. MiCAR licence announcement">
+        </div>
+
+        <div class="fld">
+          <label>Channels</label>
+          <div>
+            <span class="chan-toggle" data-ch="instagram"><span class="chdot" style="background:#E1306C"></span>Instagram</span>
+            <span class="chan-toggle" data-ch="linkedin"><span class="chdot" style="background:#0A66C2"></span>LinkedIn</span>
+          </div>
+        </div>
+
+        <div class="ai-box">
+          <label style="display:block;font-size:.6875rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--n600);margin-bottom:6px">✨ Generate with AI</label>
+          <textarea id="c-brief" rows="2" placeholder="What’s the post about? e.g. ‘We’re now MiCAR-authorised and BaFin-supervised — what it means for clients’" style="width:100%;padding:8px 10px;border:1.5px solid rgba(30,78,128,.18);border-radius:8px;font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);resize:vertical"></textarea>
+          <button class="btn btn-primary btn-sm" id="c-generate" style="margin-top:8px">Generate caption + hashtags</button>
+          <span id="c-gen-status" class="muted" style="font-size:.6875rem;margin-left:8px"></span>
+        </div>
+
+        <div class="fld">
+          <label>Caption <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">(shared)</span></label>
+          <textarea id="c-caption" rows="5" placeholder="Write the post…"></textarea>
+          <div class="charcount" id="cc-shared"></div>
+        </div>
+
+        <button class="linklike" id="toggle-overrides" style="margin-bottom:10px">＋ Per-channel overrides</button>
+        <div id="overrides" style="display:none">
+          <div class="fld"><label><span class="chdot" style="background:#E1306C"></span>Instagram override</label>
+            <textarea id="c-cap-instagram" rows="3" placeholder="Leave empty to use the shared caption"></textarea>
+            <div class="charcount" id="cc-instagram"></div></div>
+          <div class="fld"><label><span class="chdot" style="background:#0A66C2"></span>LinkedIn override</label>
+            <textarea id="c-cap-linkedin" rows="3" placeholder="Leave empty to use the shared caption"></textarea>
+            <div class="charcount" id="cc-linkedin"></div></div>
+        </div>
+
+        <div class="fld">
+          <label>Hashtags</label>
+          <input type="text" id="c-hashtags" placeholder="#crossborderpayments #FX #fintech">
+        </div>
+
+        <div class="fld">
+          <label>Image</label>
+          <div id="img-area">
+            <div class="img-drop" id="img-drop">Click to upload an image (max 8 MB)</div>
+            <input type="file" id="img-file" accept="image/*" style="display:none">
+          </div>
+        </div>
+
+        <div class="fld">
+          <label>Schedule for</label>
+          <input type="datetime-local" id="c-schedule">
+          <div class="muted" style="font-size:.6875rem;margin-top:4px">Leave empty to keep as a draft.</div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:18px">
+          <button class="btn btn-primary" id="c-save">Save</button>
+          <button class="btn btn-ghost" id="c-draft">Save as draft</button>
+          <span style="flex:1"></span>
+          <button class="btn btn-ghost" id="c-delete" style="color:var(--bad);display:none">Delete</button>
+        </div>
+        <div id="c-err" style="color:var(--bad);font-size:.8125rem;margin-top:10px;display:none"></div>
+      </div>
+
+      <!-- RIGHT: previews -->
+      <div class="comp-right">
+        <div class="sec-label">Live preview</div>
+        <div id="pv-instagram" class="pv" style="display:none">
+          <div class="pv-top"><div class="pv-av">HP</div><div><div class="pv-name">hansepay</div><div class="pv-sub">Instagram</div></div></div>
+          <img class="pv-img" id="pvi-img" alt="">
+          <div class="pv-cap" id="pvi-cap"></div>
+        </div>
+        <div id="pv-linkedin" class="pv" style="display:none">
+          <div class="pv-top"><div class="pv-av">HP</div><div><div class="pv-name">HansePay</div><div class="pv-sub">Promoted · now</div></div></div>
+          <div class="pv-cap" id="pvl-cap"></div>
+          <img class="pv-img li" id="pvl-img" alt="">
+        </div>
+        <div class="muted" id="pv-empty" style="font-size:.8125rem">Select a channel to see how the post will look.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="components.js"></script>
+<script>
+var H = window.HPAdmin;
+H.renderSidebar('social');
+var A = H.authFetch, esc = H.escapeHtml;
+
+var CH = {
+  instagram: { name:'Instagram', limit:2200, color:'#E1306C', open:'https://www.instagram.com/' },
+  linkedin:  { name:'LinkedIn',  limit:3000, color:'#0A66C2', open:'https://www.linkedin.com/feed/?shareActive=true' }
+};
+function imgSrc(u){ if(!u) return ''; return /^https?:/.test(u) ? u : (H.API + u); }
+
+var posts = [];
+var current = null;          // post being edited (null = new)
+var draft = {};              // working copy in composer
+var calCursor = new Date(); calCursor.setDate(1);
+
+// ── Load ──
+function load(){
+  A('/api/social').then(function(r){return r.json();}).then(function(list){
+    posts = Array.isArray(list)?list:[]; renderAll();
+  }).catch(function(){ posts=[]; renderAll(); H.toast('Could not load posts','error'); });
+}
+
+function effCaption(p, ch){ return (p.channelCaptions && p.channelCaptions[ch]) || p.caption || ''; }
+function fullText(p, ch){ var c=effCaption(p,ch); var h=(p.hashtags||'').trim(); return h ? (c+'\n\n'+h) : c; }
+function chDots(p){ return (p.channels||[]).map(function(ch){ return '<span class="chdot" style="background:'+CH[ch].color+'"></span>'; }).join(''); }
+function statusChip(s){ return '<span class="st st-'+s+'">'+s+'</span>'; }
+
+function renderAll(){ renderPublishQueue(); renderCalendar(); renderList(); }
+
+// ── Ready to publish ──
+function renderPublishQueue(){
+  var now = Date.now();
+  var due = posts.filter(function(p){ return p.status==='scheduled' && p.scheduledAt && new Date(p.scheduledAt).getTime() <= now; });
+  var wrap = document.getElementById('pub-wrap');
+  if(!due.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  document.getElementById('pub-list').innerHTML = due.map(function(p){
+    var acts = (p.channels||[]).map(function(ch){
+      return '<button class="btn btn-ghost btn-sm" onclick="copyFor(\''+p.id+'\',\''+ch+'\')">Copy '+CH[ch].name+'</button>'+
+        '<a class="btn btn-ghost btn-sm" href="'+CH[ch].open+'" target="_blank" rel="noopener">Open '+CH[ch].name+'</a>';
+    }).join('');
+    return '<div class="pub-card">'+
+      (p.image?'<img class="pub-thumb" src="'+imgSrc(p.image)+'" alt="">':'<div class="pub-thumb"></div>')+
+      '<div class="pub-main"><div class="t-strong">'+esc(p.title||'Untitled')+'</div>'+
+        '<div class="muted" style="font-size:.6875rem">'+chDots(p)+' scheduled '+H.fmtDateTime(p.scheduledAt)+'</div></div>'+
+      '<div class="pub-acts">'+acts+
+        (p.image?'<a class="btn btn-ghost btn-sm" href="'+imgSrc(p.image)+'" download target="_blank" rel="noopener">Image</a>':'')+
+        '<button class="btn btn-primary btn-sm" onclick="markPosted(\''+p.id+'\')">Mark posted</button>'+
+      '</div></div>';
+  }).join('');
+}
+
+window.copyFor = function(id, ch){
+  var p = posts.find(function(x){return x.id===id;}); if(!p) return;
+  var txt = fullText(p, ch);
+  navigator.clipboard.writeText(txt).then(function(){ H.toast(CH[ch].name+' caption copied ✓'); },
+    function(){ H.toast('Copy failed','error'); });
+};
+window.markPosted = function(id){
+  A('/api/social/'+id,{method:'PUT',body:JSON.stringify({status:'posted',postedAt:new Date().toISOString()})})
+    .then(function(r){return r.json();}).then(function(){ H.toast('Marked as posted ✓'); load(); });
+};
+
+// ── Calendar ──
+var DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function renderCalendar(){
+  document.getElementById('cal-dows').innerHTML = DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
+  var y=calCursor.getFullYear(), m=calCursor.getMonth();
+  document.getElementById('cal-title').textContent = calCursor.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  var first=new Date(y,m,1); var startDow=(first.getDay()+6)%7; // Mon=0
+  var daysIn=new Date(y,m+1,0).getDate();
+  var todayStr=new Date().toDateString();
+  // bucket posts by yyyy-m-d
+  var byDay={};
+  posts.forEach(function(p){ if(!p.scheduledAt) return; var d=new Date(p.scheduledAt); if(d.getFullYear()===y&&d.getMonth()===m){ (byDay[d.getDate()]=byDay[d.getDate()]||[]).push(p); } });
+  var cells='';
+  for(var i=0;i<startDow;i++) cells+='<div class="cal-cell muted-cell"></div>';
+  for(var day=1; day<=daysIn; day++){
+    var dObj=new Date(y,m,day);
+    var isToday = dObj.toDateString()===todayStr;
+    var items=(byDay[day]||[]).sort(function(a,b){return new Date(a.scheduledAt)-new Date(b.scheduledAt);});
+    var pills=items.slice(0,3).map(function(p){
+      var bg = p.status==='posted' ? '#e6f4ee' : 'rgba(29,78,216,.10)';
+      var fg = p.status==='posted' ? '#1a7f5a' : '#1d4ed8';
+      return '<span class="cal-pill" style="background:'+bg+';color:'+fg+'" onclick="event.stopPropagation();editPost(\''+p.id+'\')"><span class="dots">'+chDots(p)+'</span>'+esc(p.title||'Post')+'</span>';
+    }).join('');
+    var more = items.length>3 ? '<span class="cal-pill" style="background:#eef2f7;color:#475569">+'+(items.length-3)+' more</span>' : '';
+    cells += '<div class="cal-cell'+(isToday?' today':'')+'" onclick="newOn('+y+','+m+','+day+')"><div class="cal-daynum">'+day+'</div>'+pills+more+'</div>';
+  }
+  document.getElementById('cal-grid').innerHTML=cells;
+}
+window.newOn=function(y,m,day){ var d=new Date(y,m,day,10,0); openComposer(null, d); };
+document.getElementById('cal-prev').onclick=function(){ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); };
+document.getElementById('cal-next').onclick=function(){ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); };
+document.getElementById('cal-today').onclick=function(){ calCursor=new Date(); calCursor.setDate(1); renderCalendar(); };
+
+// ── List ──
+function renderList(){
+  var st=document.getElementById('f-status').value, ch=document.getElementById('f-channel').value;
+  var list=posts.filter(function(p){ return (!st||p.status===st) && (!ch||(p.channels||[]).indexOf(ch)!==-1); });
+  var el=document.getElementById('list');
+  if(!list.length){ el.innerHTML='<div class="empty">No posts yet. Click <b>New post</b> to plan your first one.</div>'; return; }
+  el.innerHTML=list.map(function(p){
+    var when = p.status==='posted' ? ('Posted '+H.fmtDate(p.postedAt)) : (p.scheduledAt?('Scheduled '+H.fmtDateTime(p.scheduledAt)):'Draft');
+    return '<div class="list-row" onclick="editPost(\''+p.id+'\')">'+
+      (p.image?'<img class="list-thumb" src="'+imgSrc(p.image)+'" alt="">':'<div class="list-thumb"></div>')+
+      '<div style="flex:1;min-width:0"><div class="t-strong">'+esc(p.title||'Untitled')+'</div>'+
+        '<div class="muted" style="font-size:.6875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc((p.caption||'').slice(0,90))+'</div></div>'+
+      '<div style="text-align:right;flex-shrink:0">'+chDots(p)+'<div class="muted" style="font-size:.6875rem;margin-top:3px">'+when+'</div></div>'+
+      '<div style="flex-shrink:0">'+statusChip(p.status)+'</div>'+
+    '</div>';
+  }).join('');
+}
+document.getElementById('f-status').onchange=renderList;
+document.getElementById('f-channel').onchange=renderList;
+
+// ── Composer ──
+function blankDraft(){ return { title:'', channels:['instagram','linkedin'], caption:'', channelCaptions:{}, hashtags:'', image:null, scheduledAt:null }; }
+function openComposer(post, presetDate){
+  current = post;
+  draft = post ? JSON.parse(JSON.stringify(post)) : blankDraft();
+  if(!draft.channelCaptions) draft.channelCaptions={};
+  if(presetDate && !draft.scheduledAt) draft.scheduledAt = toLocalIso(presetDate);
+  document.getElementById('comp-title').textContent = post ? 'Edit social post' : 'New social post';
+  document.getElementById('c-title').value = draft.title||'';
+  document.getElementById('c-caption').value = draft.caption||'';
+  document.getElementById('c-cap-instagram').value = (draft.channelCaptions&&draft.channelCaptions.instagram)||'';
+  document.getElementById('c-cap-linkedin').value = (draft.channelCaptions&&draft.channelCaptions.linkedin)||'';
+  document.getElementById('c-hashtags').value = draft.hashtags||'';
+  document.getElementById('c-brief').value = '';
+  document.getElementById('c-gen-status').textContent='';
+  document.getElementById('c-err').style.display='none';
+  document.getElementById('c-schedule').value = draft.scheduledAt ? toLocalInput(draft.scheduledAt) : '';
+  document.getElementById('c-delete').style.display = post ? 'inline-flex' : 'none';
+  document.getElementById('overrides').style.display='none';
+  renderImageArea(); syncChannelToggles(); refreshComposer();
+  document.getElementById('composer-ov').style.display='flex';
+}
+window.editPost=function(id){ var p=posts.find(function(x){return x.id===id;}); if(p) openComposer(p); };
+function closeComposer(){ document.getElementById('composer-ov').style.display='none'; current=null; }
+document.getElementById('comp-close').onclick=closeComposer;
+document.getElementById('composer-ov').addEventListener('click',function(e){ if(e.target===this) closeComposer(); });
+document.getElementById('new-post').onclick=function(){ openComposer(null); };
+
+function syncChannelToggles(){
+  document.querySelectorAll('.chan-toggle').forEach(function(el){
+    var ch=el.getAttribute('data-ch');
+    el.classList.toggle('on', draft.channels.indexOf(ch)!==-1);
+  });
+}
+document.querySelectorAll('.chan-toggle').forEach(function(el){
+  el.onclick=function(){
+    var ch=el.getAttribute('data-ch'); var i=draft.channels.indexOf(ch);
+    if(i===-1) draft.channels.push(ch); else draft.channels.splice(i,1);
+    syncChannelToggles(); refreshComposer();
+  };
+});
+document.getElementById('toggle-overrides').onclick=function(){
+  var o=document.getElementById('overrides'); o.style.display = o.style.display==='none'?'block':'none';
+};
+
+// keep draft in sync + previews
+['c-title','c-caption','c-cap-instagram','c-cap-linkedin','c-hashtags'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', function(){
+    draft.title=document.getElementById('c-title').value;
+    draft.caption=document.getElementById('c-caption').value;
+    draft.channelCaptions.instagram=document.getElementById('c-cap-instagram').value;
+    draft.channelCaptions.linkedin=document.getElementById('c-cap-linkedin').value;
+    draft.hashtags=document.getElementById('c-hashtags').value;
+    refreshComposer();
+  });
+});
+
+function charCount(elId, text, limit){
+  var n=text.length;
+  var el=document.getElementById(elId);
+  el.textContent = n+' / '+limit;
+  el.classList.toggle('over', n>limit);
+}
+function refreshComposer(){
+  var on=draft.channels;
+  // char counts — shared shows the strictest active limit
+  var limits=on.map(function(c){return CH[c].limit;});
+  var minLimit=limits.length?Math.min.apply(null,limits):2200;
+  charCount('cc-shared', document.getElementById('c-caption').value, minLimit);
+  charCount('cc-instagram', document.getElementById('c-cap-instagram').value, CH.instagram.limit);
+  charCount('cc-linkedin', document.getElementById('c-cap-linkedin').value, CH.linkedin.limit);
+  renderPreviews();
+}
+
+function capHtml(text, tags){
+  var h = esc(text||'');
+  if(tags && tags.trim()) h += (text?'\n\n':'')+'<span class="tags">'+esc(tags.trim())+'</span>';
+  return h || '<span class="muted">Your caption preview…</span>';
+}
+function renderPreviews(){
+  var on=draft.channels, any=false;
+  ['instagram','linkedin'].forEach(function(ch){
+    var box=document.getElementById('pv-'+ch);
+    if(on.indexOf(ch)===-1){ box.style.display='none'; return; }
+    any=true; box.style.display='block';
+    var cap=(draft.channelCaptions&&draft.channelCaptions[ch])||draft.caption||'';
+    var imgEl=document.getElementById(ch==='instagram'?'pvi-img':'pvl-img');
+    var capEl=document.getElementById(ch==='instagram'?'pvi-cap':'pvl-cap');
+    if(draft.image){ imgEl.style.display='block'; imgEl.src=imgSrc(draft.image); } else { imgEl.style.display='none'; }
+    capEl.innerHTML=capHtml(cap, draft.hashtags);
+  });
+  document.getElementById('pv-empty').style.display = any?'none':'block';
+}
+
+// ── Image upload ──
+function renderImageArea(){
+  var area=document.getElementById('img-area');
+  if(draft.image){
+    area.innerHTML='<div class="img-prev"><img src="'+imgSrc(draft.image)+'" alt=""><button class="img-rm" onclick="removeImage()">×</button></div>';
+  } else {
+    area.innerHTML='<div class="img-drop" id="img-drop">Click to upload an image (max 8 MB)</div><input type="file" id="img-file" accept="image/*" style="display:none">';
+    document.getElementById('img-drop').onclick=function(){ document.getElementById('img-file').click(); };
+    document.getElementById('img-file').onchange=function(){ uploadImage(this.files[0]); };
+  }
+}
+window.removeImage=function(){ draft.image=null; renderImageArea(); refreshComposer(); };
+function uploadImage(file){
+  if(!file) return;
+  var area=document.getElementById('img-area');
+  area.innerHTML='<div class="img-drop">Uploading…</div>';
+  var fd=new FormData(); fd.append('image', file);
+  fetch(H.API+'/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+H.token},body:fd})
+    .then(function(r){return r.json();}).then(function(d){
+      if(d&&d.url){ draft.image=d.url; renderImageArea(); refreshComposer(); }
+      else { H.toast('Upload failed','error'); renderImageArea(); }
+    }).catch(function(){ H.toast('Upload failed','error'); renderImageArea(); });
+}
+
+// ── AI generate ──
+document.getElementById('c-generate').onclick=function(){
+  var brief=document.getElementById('c-brief').value.trim();
+  if(!brief){ document.getElementById('c-brief').focus(); return; }
+  if(!draft.channels.length){ H.toast('Pick at least one channel.','error'); return; }
+  var btn=this, status=document.getElementById('c-gen-status');
+  btn.disabled=true; status.textContent='Writing…';
+  A('/api/social/generate',{method:'POST',body:JSON.stringify({brief:brief, channels:draft.channels})})
+    .then(function(r){return r.json();}).then(function(d){
+      if(d&&d.caption!==undefined){
+        draft.caption=d.caption||'';
+        draft.channelCaptions=Object.assign(draft.channelCaptions||{}, d.channelCaptions||{});
+        draft.hashtags=d.hashtags||'';
+        document.getElementById('c-caption').value=draft.caption;
+        document.getElementById('c-cap-instagram').value=(draft.channelCaptions.instagram)||'';
+        document.getElementById('c-cap-linkedin').value=(draft.channelCaptions.linkedin)||'';
+        document.getElementById('c-hashtags').value=draft.hashtags;
+        if((draft.channelCaptions.instagram||draft.channelCaptions.linkedin)) document.getElementById('overrides').style.display='block';
+        status.textContent='Done ✓'; refreshComposer();
+      } else { status.textContent=''; H.toast((d&&d.error)||'Generation failed','error'); }
+    }).catch(function(){ status.textContent=''; H.toast('Generation failed','error'); })
+    .finally(function(){ btn.disabled=false; });
+};
+
+// ── Save ──
+function collect(){
+  return {
+    title: document.getElementById('c-title').value.trim() || 'Untitled post',
+    channels: draft.channels,
+    caption: document.getElementById('c-caption').value,
+    channelCaptions: {
+      instagram: document.getElementById('c-cap-instagram').value || undefined,
+      linkedin:  document.getElementById('c-cap-linkedin').value || undefined,
+    },
+    hashtags: document.getElementById('c-hashtags').value,
+    image: draft.image || null,
+  };
+}
+function localInputToIso(v){ if(!v) return null; var d=new Date(v); return isNaN(d)?null:d.toISOString(); }
+function toLocalInput(iso){ var d=new Date(iso); var off=d.getTimezoneOffset(); var l=new Date(d.getTime()-off*60000); return l.toISOString().slice(0,16); }
+function toLocalIso(dateObj){ return dateObj.toISOString(); }
+
+function save(asDraft){
+  var body=collect();
+  if(!body.channels.length){ showErr('Pick at least one channel.'); return; }
+  var schedVal=document.getElementById('c-schedule').value;
+  var iso=localInputToIso(schedVal);
+  if(asDraft){ body.status='draft'; body.scheduledAt=iso; }
+  else {
+    if(!iso){ showErr('Set a date & time to schedule, or use “Save as draft”.'); return; }
+    if(!body.caption && !(body.channelCaptions.instagram||body.channelCaptions.linkedin)){ showErr('Write a caption first.'); return; }
+    body.status='scheduled'; body.scheduledAt=iso;
+  }
+  var url = current ? '/api/social/'+current.id : '/api/social';
+  var method = current ? 'PUT' : 'POST';
+  A(url,{method:method,body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(p){
+    if(p&&p.id){ H.toast(asDraft?'Draft saved ✓':'Scheduled ✓'); closeComposer(); load(); }
+    else { showErr((p&&p.error)||'Save failed'); }
+  }).catch(function(){ showErr('Save failed'); });
+}
+function showErr(m){ var e=document.getElementById('c-err'); e.textContent=m; e.style.display='block'; }
+document.getElementById('c-save').onclick=function(){ save(false); };
+document.getElementById('c-draft').onclick=function(){ save(true); };
+document.getElementById('c-delete').onclick=function(){
+  if(!current) return;
+  if(!confirm('Delete this post? This cannot be undone.')) return;
+  A('/api/social/'+current.id,{method:'DELETE'}).then(function(r){return r.json();}).then(function(){ H.toast('Deleted'); closeComposer(); load(); });
+};
+
+load();
+</script>
+</body>
+</html>

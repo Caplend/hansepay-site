@@ -47,7 +47,7 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal'].forEach(name => {
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal', 'social'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -173,7 +173,7 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 
 function readData(filename) {
   const fp = path.join(DATA_DIR, filename);
-  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json', 'transactions.json'];
+  const arrayFiles = ['users.json', 'analytics.json', 'bookings.json', 'customers.json', 'activities.json', 'registrations.json', 'transactions.json', 'social.json'];
   const defaultVal = arrayFiles.includes(filename) ? [] : {};
   if (!fs.existsSync(fp)) return defaultVal;
   try {
@@ -563,6 +563,136 @@ app.delete('/api/posts/:id', authenticateToken, requireAdmin, (req, res) => {
   posts.splice(idx, 1);
   writeData('posts.json', posts);
   res.json({ success: true });
+});
+
+// ─── Social media planner (Instagram + LinkedIn) ──────────────────────────────
+// No channel APIs yet — these store planned posts; publishing is assisted-manual.
+const SOCIAL_CHANNELS = ['instagram', 'linkedin'];
+const SOCIAL_STATUSES = ['draft', 'scheduled', 'posted'];
+
+function sanitizeSocial(body, base) {
+  const out = Object.assign({}, base);
+  if (body.title !== undefined)    out.title = String(body.title).slice(0, 200);
+  if (body.caption !== undefined)  out.caption = String(body.caption);
+  if (body.hashtags !== undefined) out.hashtags = String(body.hashtags);
+  if (body.image !== undefined)    out.image = body.image || null;
+  if (Array.isArray(body.channels)) out.channels = body.channels.filter(c => SOCIAL_CHANNELS.includes(c));
+  if (body.channelCaptions && typeof body.channelCaptions === 'object') {
+    out.channelCaptions = {};
+    SOCIAL_CHANNELS.forEach(c => { if (typeof body.channelCaptions[c] === 'string') out.channelCaptions[c] = body.channelCaptions[c]; });
+  }
+  if (body.status !== undefined && SOCIAL_STATUSES.includes(body.status)) out.status = body.status;
+  if (body.scheduledAt !== undefined) out.scheduledAt = body.scheduledAt || null;
+  if (body.postedAt !== undefined)    out.postedAt = body.postedAt || null;
+  return out;
+}
+
+app.get('/api/social', authenticateToken, (req, res) => {
+  let list = readData('social.json');
+  list = Array.isArray(list) ? list : [];
+  if (req.query.status && SOCIAL_STATUSES.includes(req.query.status)) {
+    list = list.filter(p => p.status === req.query.status);
+  }
+  list.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+  res.json(list);
+});
+
+app.post('/api/social', authenticateToken, (req, res) => {
+  const list = readData('social.json');
+  const arr = Array.isArray(list) ? list : [];
+  const now = new Date().toISOString();
+  const post = sanitizeSocial(req.body, {
+    id: 'soc_' + uuidv4().replace(/-/g, '').substring(0, 10),
+    title: 'Untitled post',
+    channels: ['instagram', 'linkedin'],
+    caption: '',
+    channelCaptions: {},
+    hashtags: '',
+    image: null,
+    status: 'draft',
+    scheduledAt: null,
+    postedAt: null,
+    createdBy: req.user.name || req.user.id,
+    createdAt: now,
+    updatedAt: now,
+  });
+  if (post.status === 'scheduled' && !post.scheduledAt) post.status = 'draft';
+  arr.push(post);
+  writeData('social.json', arr);
+  res.status(201).json(post);
+});
+
+app.put('/api/social/:id', authenticateToken, (req, res) => {
+  const list = readData('social.json');
+  const arr = Array.isArray(list) ? list : [];
+  const idx = arr.findIndex(p => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
+  arr[idx] = sanitizeSocial(req.body, arr[idx]);
+  if (arr[idx].status === 'scheduled' && !arr[idx].scheduledAt) arr[idx].status = 'draft';
+  if (arr[idx].status === 'posted' && !arr[idx].postedAt) arr[idx].postedAt = new Date().toISOString();
+  arr[idx].updatedAt = new Date().toISOString();
+  writeData('social.json', arr);
+  res.json(arr[idx]);
+});
+
+app.delete('/api/social/:id', authenticateToken, (req, res) => {
+  const list = readData('social.json');
+  const arr = Array.isArray(list) ? list : [];
+  const idx = arr.findIndex(p => p.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
+  arr.splice(idx, 1);
+  writeData('social.json', arr);
+  res.json({ success: true });
+});
+
+// AI caption + hashtag generation (reuses callClaude). Honest fallback if no key.
+app.post('/api/social/generate', authenticateToken, async (req, res) => {
+  const users  = readData('users.json');
+  const user   = users.find(u => u.id === req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const brief = String(req.body.brief || '').trim();
+  if (!brief) return res.status(400).json({ error: 'Describe what the post is about first.' });
+  const channels = (Array.isArray(req.body.channels) ? req.body.channels : SOCIAL_CHANNELS).filter(c => SOCIAL_CHANNELS.includes(c));
+  const tone = String(req.body.tone || '').trim();
+
+  const prompt = `You are the social media voice of HansePay, a European FX / cross-border payments company (a brand of Caplend Technologies GmbH, Hamburg; MiCAR-authorised, BaFin-supervised).
+
+Brand voice: precise, authoritative, considered, institutional, understated, continental. No hype words ("revolutionary", "game-changing", "disrupt"), no startup-cute tone, no exclamation-heavy copy. Use exact numbers where relevant. Confident, not loud.
+
+Write social copy for this post brief:
+"${brief}"
+${tone ? `Desired tone/angle: ${tone}` : ''}
+
+Produce:
+- A shared base caption (works for both networks).
+- A LinkedIn version — slightly longer, professional, B2B, may use line breaks; no hashtag spam (0–3 tasteful hashtags inline or none).
+- An Instagram version — punchier, scannable, a little warmer; can use tasteful line breaks.
+- 5–8 relevant hashtags (no '#fyi' filler; mix branded + topical, e.g. #crossborderpayments #FX #fintech). No leading '#' duplication issues.
+
+Return ONLY valid JSON (no markdown):
+{
+  "caption": "shared base caption",
+  "channelCaptions": { "linkedin": "linkedin version", "instagram": "instagram version" },
+  "hashtags": "#tag1 #tag2 #tag3"
+}`;
+
+  try {
+    const out = await callClaude(apiKey, prompt, 1200);
+    if (!out || typeof out !== 'object') throw new Error('Unexpected AI response');
+    // Normalise + keep only requested channels
+    const cc = {};
+    channels.forEach(c => { if (out.channelCaptions && typeof out.channelCaptions[c] === 'string') cc[c] = out.channelCaptions[c]; });
+    res.json({
+      caption: String(out.caption || ''),
+      channelCaptions: cc,
+      hashtags: Array.isArray(out.hashtags) ? out.hashtags.join(' ') : String(out.hashtags || ''),
+    });
+  } catch (err) {
+    console.error('[social/generate] error:', err.message);
+    res.status(500).json({ error: 'Generation failed: ' + err.message });
+  }
 });
 
 // ─── Users routes ─────────────────────────────────────────────────────────────
