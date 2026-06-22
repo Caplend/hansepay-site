@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Readiness — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .ready-hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .ring{--p:0;width:96px;height:96px;border-radius:50%;flex-shrink:0;
+    background:conic-gradient(var(--n500) calc(var(--p)*1%), var(--n050) 0);display:flex;align-items:center;justify-content:center}
+  .ring-inner{width:74px;height:74px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-num{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--n600);line-height:1}
+  .ring-lbl{font-size:.5625rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-top:2px}
+  .count-chips{display:flex;gap:8px;flex-wrap:wrap}
+  .count-chip{display:inline-flex;align-items:center;gap:6px;font-size:.8125rem;font-weight:600;color:var(--ink2);background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-pill);padding:6px 12px}
+  .count-chip b{font-variant-numeric:tabular-nums}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+  .cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:4px}
+  .cfg{display:flex;align-items:center;gap:10px;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-md);padding:10px 12px;background:#fff}
+  .cfg .led{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .cfg .on{background:var(--ok);box-shadow:0 0 0 3px rgba(22,163,74,.15)}
+  .cfg .off{background:var(--ink3);box-shadow:0 0 0 3px rgba(122,154,176,.15)}
+  .cfg-name{font-size:.8125rem;font-weight:600;color:var(--ink)}
+  .cfg-state{font-size:.6875rem;color:var(--ink3)}
+
+  .area-h{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--n800);margin:22px 0 10px}
+  .item{border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;background:#fff}
+  .item.done{opacity:.62}
+  .item-top{display:flex;align-items:flex-start;gap:12px}
+  .st{display:inline-flex;align-items:center;gap:5px;font-size:.625rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:var(--r-pill);white-space:nowrap}
+  .item-title{font-size:.95rem;font-weight:600;color:var(--ink)}
+  .pri{font-size:.625rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:var(--r-pill)}
+  .pri-high{background:var(--badbg);color:var(--bad)}
+  .pri-med{background:var(--warnbg);color:var(--warn)}
+  .pri-low{background:#eef2f7;color:#475569}
+  .item-does{font-size:.8125rem;color:var(--ink2);margin:7px 0 10px;line-height:1.5}
+  .needs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .need{font-size:.6875rem;font-weight:600;color:var(--ink2);background:var(--n050);border:1px solid rgba(30,78,128,.12);border-radius:6px;padding:3px 8px}
+  .need code{font-family:ui-monospace,Menlo,monospace;font-size:.65rem;color:var(--n600)}
+  .value{font-size:.75rem;color:var(--ink3);border-left:2px solid var(--n100);padding-left:9px;margin-bottom:12px}
+  .overlay-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px dashed rgba(11,25,41,.1);padding-top:11px}
+  .overlay-row input[type=text]{padding:6px 9px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-family:'Inter',sans-serif;font-size:.75rem;color:var(--ink)}
+  .ow-owner{width:140px}
+  .ow-notes{flex:1;min-width:160px}
+  .ow-check{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;color:var(--ink2);cursor:pointer;user-select:none}
+  .ow-check input{width:15px;height:15px;accent-color:var(--n500)}
+  .ow-sel{padding:6px 8px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;font-family:'Inter',sans-serif;font-size:.7rem;color:var(--ink2)}
+  .ow-meta{font-size:.625rem;color:var(--ink3)}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Readiness</div>
+    <div class="topbar-actions"><span class="muted" id="updated-note" style="font-size:.75rem"></span></div>
+  </div>
+
+  <div class="content">
+    <p class="muted" style="margin:-4px 0 18px;font-size:.875rem;max-width:820px">
+      What works, what each feature still needs (a key, an integration, real data), how valuable it is,
+      and who owns it. Status is auto-detected live where possible. Assign owners and tick items off —
+      it’s shared across the team.
+    </p>
+
+    <!-- Summary -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="ready-hero">
+        <div class="ring" id="ring"><div class="ring-inner"><div class="ring-num" id="ring-num">—</div><div class="ring-lbl">Ready</div></div></div>
+        <div style="flex:1;min-width:220px">
+          <div class="count-chips" id="count-chips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configuration -->
+    <div class="card card-pad" style="margin-bottom:20px">
+      <div class="card-title">Live configuration <span class="muted" style="font-weight:400;font-size:.75rem">— set in Railway → Variables</span></div>
+      <div class="cfg-grid" id="cfg-grid"><div class="muted" style="font-size:.8125rem">Checking…</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="toolbar" style="margin-bottom:8px">
+      <select class="select" id="f-area"><option value="">All areas</option></select>
+      <select class="select" id="f-status">
+        <option value="">All statuses</option>
+        <option value="working">Working</option>
+        <option value="partial">Partial</option>
+        <option value="needs-config">Needs config</option>
+        <option value="needs-data">Needs data</option>
+        <option value="needs-integration">Needs integration</option>
+        <option value="not-started">Not started</option>
+      </select>
+      <label class="ow-check"><input type="checkbox" id="f-attn"> Needs attention</label>
+    </div>
+
+    <div id="items"></div>
+  </div>
+</main>
+
+<script src="components.js"></script>
+<script>
+var H = window.HPAdmin;
+H.renderSidebar('readiness');
+var A = H.authFetch, esc = H.escapeHtml;
+
+// ── Status presentation ──
+var STATUS = {
+  'working':           { label:'Working',           bg:'var(--okbg)',          fg:'var(--ok)',     dot:'#16a34a', score:1 },
+  'partial':           { label:'Partial',            bg:'rgba(29,78,216,.10)',  fg:'#1d4ed8',       dot:'#1d4ed8', score:0.5 },
+  'needs-config':      { label:'Needs config',       bg:'var(--warnbg)',        fg:'var(--warn)',   dot:'#d97706', score:0 },
+  'needs-data':        { label:'Needs data',         bg:'var(--purplebg)',      fg:'var(--purple)', dot:'#6d28d9', score:0 },
+  'needs-integration': { label:'Needs integration',  bg:'var(--badbg)',         fg:'var(--bad)',    dot:'#b91c1c', score:0 },
+  'not-started':       { label:'Not started',        bg:'#eef2f7',              fg:'#475569',       dot:'#94a3b8', score:0 }
+};
+var STATUS_ORDER = ['working','partial','needs-config','needs-data','needs-integration','not-started'];
+
+// ── Feature catalog (source of truth; detect() computes live status from ctx) ──
+var CATALOG = [
+  // AI & Enrichment
+  { id:'ai-core', area:'AI & Enrichment', title:'AI engine (Claude)', priority:'high',
+    does:'Powers blog drafting, social captions, lead generation, and CRM enrichment.',
+    requires:[{label:'Claude API key', env:'CLAUDE_API_KEY'},{label:'or per-user key in Settings → AI'}],
+    value:'Unlocks every AI feature across the admin.',
+    detect:function(c){ return (c.health.aiConfigured || (c.me && c.me.hasClaudeKey)) ? 'working' : 'needs-config'; } },
+  { id:'web-search', area:'AI & Enrichment', title:'Live web research (Tavily)', priority:'high',
+    does:'Domain-anchored web search that grounds enrichment and lead-gen in current data.',
+    requires:[{label:'Tavily API key', env:'TAVILY_API_KEY'}],
+    value:'Without it, AI answers rely on training knowledge only — less current, less accurate.',
+    detect:function(c){ return c.health.webSearchConfigured ? 'working' : 'needs-config'; } },
+  { id:'enrichment', area:'AI & Enrichment', title:'Enrichment (Clay-style)', priority:'med',
+    does:'Bulk-analyse customers against criteria columns, fit-score and prioritise.',
+    requires:[{label:'AI engine'},{label:'Web search (recommended)', env:'TAVILY_API_KEY'},{label:'Customer records'}],
+    value:'Turns a raw lead list into a prioritised call sheet.',
+    detect:function(c){ if(!(c.health.aiConfigured||(c.me&&c.me.hasClaudeKey))) return 'needs-config'; return c.health.webSearchConfigured ? 'working' : 'partial'; } },
+  { id:'lead-gen', area:'AI & Enrichment', title:'AI lead generation', priority:'med',
+    does:'Generates prospect companies matching ICP criteria from the CRM.',
+    requires:[{label:'AI engine'},{label:'Web search (recommended)', env:'TAVILY_API_KEY'}],
+    value:'Fills the top of the funnel without manual prospecting.',
+    detect:function(c){ if(!(c.health.aiConfigured||(c.me&&c.me.hasClaudeKey))) return 'needs-config'; return c.health.webSearchConfigured ? 'working' : 'partial'; } },
+
+  // Communications
+  { id:'email', area:'Communications', title:'Transactional email', priority:'high',
+    does:'Sends booking confirmations, account approvals, OTPs and KYC emails.',
+    requires:[{label:'Gmail OAuth', env:'GOOGLE_CLIENT_ID / SECRET / REFRESH_TOKEN'},{label:'Sender', env:'CALENDAR_OWNER_EMAIL'}],
+    value:'Core trust touchpoint — without it, customers get no confirmations.',
+    detect:function(c){ return c.health.emailConfigured ? 'working' : 'needs-integration'; } },
+  { id:'email-center', area:'Communications', title:'Email Center & templates', priority:'low',
+    does:'Build, preview and test transactional templates; SPF/DKIM/DMARC diagnostics.',
+    requires:[{label:'Email sending configured'}],
+    value:'Lets non-engineers manage on-brand emails.',
+    detect:function(c){ return c.health.emailConfigured ? 'working' : 'partial'; } },
+  { id:'social-publish', area:'Communications', title:'Social auto-publish', priority:'med',
+    does:'One-click publishing of planned posts to Instagram & LinkedIn.',
+    requires:[{label:'Instagram Graph API (Meta app + business IG)'},{label:'LinkedIn Marketing API (OAuth + app review)'}],
+    value:'Removes manual posting. Planning + assisted manual publish already work today.',
+    detect:function(c){ return 'needs-integration'; } },
+
+  // Banking & Onboarding
+  { id:'payments', area:'Banking & Onboarding', title:'Live payments / FX execution', priority:'high',
+    does:'The actual money movement: multi-currency accounts, FX conversion, settlement.',
+    requires:[{label:'Banking / PSP / FX-liquidity partner integration'},{label:'Ledger + reconciliation backend'}],
+    value:'The core product. Everything else supports this; it is not yet wired to real rails.',
+    detect:function(c){ return 'needs-integration'; } },
+  { id:'accounts', area:'Banking & Onboarding', title:'Accounts & onboarding', priority:'high',
+    does:'Customer account list, KYC document state, registration approvals.',
+    requires:[{label:'Real onboarding/registration submissions'},{label:'KYC/AML provider integration'}],
+    value:'Currently merges sample registrations + local onboarding sessions; needs real KYC flow.',
+    detect:function(c){ return 'needs-data'; } },
+  { id:'bookings', area:'Banking & Onboarding', title:'Bookings / discovery calls', priority:'med',
+    does:'Captures discovery-call bookings into the CRM with status + notes.',
+    requires:[{label:'Real bookings'},{label:'Calendar sync (optional)'}],
+    value:'Lead capture works; needs real booking traffic to be useful.',
+    detect:function(c){ return c.counts.bookings>0 ? 'working' : 'needs-data'; } },
+  { id:'calendar', area:'Banking & Onboarding', title:'Calendar sync (Google)', priority:'med',
+    does:'Creates real calendar events + Google Meet links for bookings.',
+    requires:[{label:'Google OAuth', env:'GOOGLE_CLIENT_ID / SECRET / REFRESH_TOKEN'}],
+    value:'Without it, bookings still save but no event/Meet link is created.',
+    detect:function(c){ return c.health.calendarConfigured ? 'working' : 'needs-integration'; } },
+  { id:'pricing', area:'Banking & Onboarding', title:'Pricing & fees', priority:'low',
+    does:'Per-currency fees and per-customer overrides.',
+    requires:[],
+    value:'Configurable today; will feed live FX pricing once payments are wired.',
+    detect:function(c){ return 'working'; } },
+
+  // Growth & CRM
+  { id:'crm', area:'Growth & CRM', title:'CRM', priority:'high',
+    does:'Customer records, stages, health, churn risk, activities, import/export.',
+    requires:[{label:'Real customer data (replace sample records)'}],
+    value:'Fully functional; currently populated with seed/sample customers.',
+    detect:function(c){ return c.counts.customersReal ? 'working' : 'needs-data'; } },
+  { id:'sales', area:'Growth & CRM', title:'Sales pipeline', priority:'low',
+    does:'Kanban pipeline, drag-to-stage, churn watchlist, health distribution.',
+    requires:[{label:'CRM data'}],
+    value:'Works on whatever is in the CRM.',
+    detect:function(c){ return c.counts.customersReal ? 'working' : 'partial'; } },
+  { id:'social-planner', area:'Growth & CRM', title:'Social planner', priority:'med',
+    does:'Plan, AI-draft and schedule Instagram/LinkedIn posts on a calendar.',
+    requires:[{label:'AI engine (captions)'},{label:'Social auto-publish (to go fully hands-off)'}],
+    value:'Planning + assisted manual publish work now; auto-publish needs channel APIs.',
+    detect:function(c){ return 'partial'; } },
+  { id:'marketing', area:'Growth & CRM', title:'Marketing dashboard', priority:'low',
+    does:'Traffic, channels, funnel, lead sources, SEO coverage.',
+    requires:[{label:'Live analytics data'}],
+    value:'Reads from analytics; cold until there is traffic.',
+    detect:function(c){ return c.counts.views>0 ? 'working' : 'needs-data'; } },
+
+  // Content & SEO
+  { id:'blog', area:'Content & SEO', title:'Blog / Posts CMS', priority:'low',
+    does:'Create, edit, publish posts with image upload and AI assist.',
+    requires:[],
+    value:'Fully working; AI drafting needs the Claude key.',
+    detect:function(c){ return 'working'; } },
+  { id:'analytics', area:'Content & SEO', title:'Analytics', priority:'med',
+    does:'Pageviews, events, conversion funnel and goals.',
+    requires:[{label:'Live site traffic / event tracking'}],
+    value:'Engine works; all numbers are zero until real visitors arrive.',
+    detect:function(c){ return c.counts.views>0 ? 'working' : 'needs-data'; } },
+  { id:'seo', area:'Content & SEO', title:'SEO Manager', priority:'low',
+    does:'Per-page title/description/keyword coverage and audit.',
+    requires:[{label:'SEO metadata populated per page'}],
+    value:'Config store is empty; fill it to drive the coverage report.',
+    detect:function(c){ return c.counts.seoConfigured ? 'working' : 'needs-data'; } },
+
+  // Platform & Security
+  { id:'auth-secret', area:'Platform & Security', title:'Auth secret hardening', priority:'high',
+    does:'JWT signing secret for admin sessions.',
+    requires:[{label:'Move secret to env var', env:'JWT_SECRET'}],
+    value:'Currently hard-coded in source — anyone with the code can mint admin tokens. Set it in Railway.',
+    detect:function(c){ return 'needs-config'; } },
+  { id:'prod-data', area:'Platform & Security', title:'Replace seed data with real data', priority:'high',
+    does:'Customers, posts, activities, legal still hold demo/sample records.',
+    requires:[{label:'Import real customers/content'},{label:'Review legal docs (reg no., VAT ID)'}],
+    value:'Demo data makes dashboards misleading; real data makes them trustworthy.',
+    detect:function(c){ return c.counts.customersReal ? 'working' : 'needs-data'; } },
+  { id:'crm-api', area:'Platform & Security', title:'Public CRM API', priority:'low',
+    does:'API-key access to the customer feed for webhooks/integrations.',
+    requires:[{label:'API key', env:'INTERNAL_API_KEY'}],
+    value:'Enables external tools to read the CRM. Optional.',
+    detect:function(c){ return c.health.crmApiConfigured ? 'working' : 'needs-config'; } }
+];
+
+// ── Live config panel definition ──
+var CONFIG_SWITCHES = [
+  { key:'aiConfigured',        name:'AI (Claude)',     env:'CLAUDE_API_KEY' },
+  { key:'webSearchConfigured', name:'Web search',      env:'TAVILY_API_KEY' },
+  { key:'emailConfigured',     name:'Email (Gmail)',   env:'GOOGLE_* OAuth' },
+  { key:'calendarConfigured',  name:'Calendar',        env:'GOOGLE_* OAuth' },
+  { key:'crmApiConfigured',    name:'Public CRM API',  env:'INTERNAL_API_KEY' }
+];
+
+// ── State ──
+var ctx = { health:{}, me:{}, counts:{} };
+var overlay = {};        // saved team state keyed by item id
+var saveTimers = {};
+
+function num(v){ return Array.isArray(v) ? v.length : 0; }
+
+function loadAll(){
+  Promise.all([
+    A('/api/health').then(function(r){return r.json();}).catch(function(){return {};}),
+    A('/api/auth/me').then(function(r){return r.json();}).catch(function(){return {};}),
+    A('/api/readiness').then(function(r){return r.json();}).catch(function(){return {};}),
+    A('/api/social').then(function(r){return r.json();}).catch(function(){return [];}),
+    A('/api/bookings').then(function(r){return r.json();}).catch(function(){return [];}),
+    A('/api/customers').then(function(r){return r.json();}).catch(function(){return [];}),
+    A('/api/analytics/summary').then(function(r){return r.json();}).catch(function(){return {};}),
+    A('/api/seo').then(function(r){return r.json();}).catch(function(){return {};})
+  ]).then(function(res){
+    ctx.health = res[0]||{};
+    ctx.me = res[1]||{};
+    overlay = (res[2] && typeof res[2]==='object') ? res[2] : {};
+    var customers = Array.isArray(res[5])?res[5]:[];
+    // "real" customers = any not seeded (seed ids start with cust_seed)
+    var realCust = customers.filter(function(c){ return c.id && c.id.indexOf('cust_seed')!==0; }).length;
+    var seoObj = res[7]||{};
+    ctx.counts = {
+      social: num(res[3]),
+      bookings: num(res[4]),
+      customers: customers.length,
+      customersReal: realCust,
+      views: (res[6] && res[6].totals && res[6].totals.totalViews) || 0,
+      seoConfigured: seoObj && Object.keys(seoObj).length>0
+    };
+    renderConfig(); renderAreaFilter(); render();
+  });
+}
+
+function effStatus(item){
+  var ov = overlay[item.id];
+  if(ov && ov.statusOverride && STATUS[ov.statusOverride]) return ov.statusOverride;
+  try { return item.detect(ctx) || 'not-started'; } catch(e){ return 'not-started'; }
+}
+
+function renderConfig(){
+  document.getElementById('cfg-grid').innerHTML = CONFIG_SWITCHES.map(function(s){
+    var on = !!ctx.health[s.key];
+    return '<div class="cfg"><span class="led '+(on?'on':'off')+'"></span>'+
+      '<div><div class="cfg-name">'+esc(s.name)+'</div>'+
+      '<div class="cfg-state">'+(on?'Connected':'Not set · '+esc(s.env))+'</div></div></div>';
+  }).join('');
+}
+
+function renderAreaFilter(){
+  var areas = [];
+  CATALOG.forEach(function(i){ if(areas.indexOf(i.area)===-1) areas.push(i.area); });
+  var sel=document.getElementById('f-area');
+  sel.innerHTML = '<option value="">All areas</option>'+areas.map(function(a){return '<option value="'+esc(a)+'">'+esc(a)+'</option>';}).join('');
+}
+
+function statusPill(s){ var m=STATUS[s]; return '<span class="st" style="background:'+m.bg+';color:'+m.fg+'"><span class="dot" style="background:'+m.dot+'"></span>'+m.label+'</span>'; }
+
+function render(){
+  // summary
+  var counts={}; STATUS_ORDER.forEach(function(s){counts[s]=0;});
+  var totalScore=0;
+  CATALOG.forEach(function(i){ var s=effStatus(i); counts[s]++; totalScore+=STATUS[s].score; });
+  var pct=Math.round(totalScore/CATALOG.length*100);
+  document.getElementById('ring').style.setProperty('--p', pct);
+  document.getElementById('ring-num').textContent = pct+'%';
+  document.getElementById('count-chips').innerHTML = STATUS_ORDER.filter(function(s){return counts[s];}).map(function(s){
+    return '<span class="count-chip"><span class="dot" style="background:'+STATUS[s].dot+'"></span><b>'+counts[s]+'</b> '+STATUS[s].label+'</span>';
+  }).join('');
+
+  // filters
+  var fa=document.getElementById('f-area').value, fs=document.getElementById('f-status').value, attn=document.getElementById('f-attn').checked;
+  var list=CATALOG.filter(function(i){
+    var s=effStatus(i), ov=overlay[i.id]||{};
+    if(fa && i.area!==fa) return false;
+    if(fs && s!==fs) return false;
+    if(attn && !(i.priority==='high' && s!=='working' && !ov.done)) return false;
+    return true;
+  });
+
+  // group by area, preserving catalog order
+  var areas=[]; list.forEach(function(i){ if(areas.indexOf(i.area)===-1) areas.push(i.area); });
+  var el=document.getElementById('items');
+  if(!list.length){ el.innerHTML='<div class="empty">No items match the filter.</div>'; return; }
+  el.innerHTML = areas.map(function(area){
+    var items=list.filter(function(i){return i.area===area;});
+    return '<div class="area-h">'+esc(area)+'</div>'+items.map(itemHtml).join('');
+  }).join('');
+}
+
+function itemHtml(i){
+  var s=effStatus(i); var ov=overlay[i.id]||{};
+  var needs=(i.requires||[]).map(function(r){ return '<span class="need">'+esc(r.label)+(r.env?' <code>'+esc(r.env)+'</code>':'')+'</span>'; }).join('');
+  var ovOpts=['<option value="">Auto-detected</option>'].concat(STATUS_ORDER.map(function(st){
+    return '<option value="'+st+'"'+(ov.statusOverride===st?' selected':'')+'>'+STATUS[st].label+'</option>';
+  })).join('');
+  var meta = ov.updatedBy ? ('Updated by '+esc(ov.updatedBy)) : '';
+  return '<div class="item'+(ov.done?' done':'')+'" data-id="'+i.id+'">'+
+    '<div class="item-top">'+statusPill(s)+
+      '<div style="flex:1"><span class="item-title">'+esc(i.title)+'</span> <span class="pri pri-'+i.priority+'">'+i.priority+'</span>'+
+      '<div class="item-does">'+esc(i.does)+'</div>'+
+      (needs?'<div class="needs">'+needs+'</div>':'')+
+      '<div class="value">'+esc(i.value)+'</div>'+
+      '<div class="overlay-row">'+
+        '<input type="text" class="ow-owner" data-f="owner" placeholder="Owner" value="'+esc(ov.owner||'')+'">'+
+        '<input type="text" class="ow-notes" data-f="notes" placeholder="Notes / next step" value="'+esc(ov.notes||'')+'">'+
+        '<select class="ow-sel" data-f="statusOverride">'+ovOpts+'</select>'+
+        '<label class="ow-check"><input type="checkbox" data-f="done"'+(ov.done?' checked':'')+'> Done</label>'+
+        (meta?'<span class="ow-meta">'+meta+'</span>':'')+
+      '</div></div>'+
+    '</div></div>';
+}
+
+// ── Save overlay (debounced) ──
+function patchItem(id, patch){
+  overlay[id]=Object.assign({}, overlay[id], patch);
+  clearTimeout(saveTimers[id]);
+  saveTimers[id]=setTimeout(function(){
+    A('/api/readiness/'+id,{method:'PUT',body:JSON.stringify(patch)})
+      .then(function(r){return r.json();}).then(function(d){
+        if(d&&d.item){ overlay[id]=d.item; H.toast('Saved ✓'); }
+      }).catch(function(){ H.toast('Save failed','error'); });
+  },500);
+}
+
+// event delegation
+document.getElementById('items').addEventListener('input', function(e){
+  var f=e.target.getAttribute('data-f'); if(!f) return;
+  var id=e.target.closest('.item').getAttribute('data-id');
+  if(f==='done'){ patchItem(id,{done:e.target.checked}); e.target.closest('.item').classList.toggle('done',e.target.checked); }
+  else if(f==='statusOverride'){ patchItem(id,{statusOverride:e.target.value||null}); render(); }
+  else { patchItem(id, (function(){var o={};o[f]=e.target.value;return o;})()); }
+});
+document.getElementById('items').addEventListener('change', function(e){
+  if(e.target.getAttribute('data-f')==='statusOverride'){ /* handled by input on some browsers */ }
+});
+
+['f-area','f-status','f-attn'].forEach(function(id){ document.getElementById(id).addEventListener('change', render); });
+
+loadAll();
+</script>
+</body>
+</html>

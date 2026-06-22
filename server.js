@@ -47,7 +47,7 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal', 'social'].forEach(name => {
+['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal', 'social', 'readiness'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -348,6 +348,9 @@ app.get('/api/health', (req, res) => {
     volumeMounted: files.length > 0,
     emailConfigured: mailer ? mailer.gmailConfigured() : false,
     webSearchConfigured: !!process.env.TAVILY_API_KEY,
+    aiConfigured: !!process.env.CLAUDE_API_KEY,
+    calendarConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+    crmApiConfigured: !!process.env.INTERNAL_API_KEY,
     uptime: process.uptime(),
   });
 });
@@ -693,6 +696,30 @@ Return ONLY valid JSON (no markdown):
     console.error('[social/generate] error:', err.message);
     res.status(500).json({ error: 'Generation failed: ' + err.message });
   }
+});
+
+// ─── Readiness Center (team-shared feature-readiness overlay) ─────────────────
+// The feature catalog lives in admin/readiness.html (versioned with code). This
+// stores only the mutable team overlay, keyed by catalog item id:
+//   { <itemId>: { owner, notes, done, statusOverride, updatedAt, updatedBy } }
+app.get('/api/readiness', authenticateToken, (req, res) => {
+  const data = readData('readiness.json');
+  res.json(data && typeof data === 'object' && !Array.isArray(data) ? data : {});
+});
+
+app.put('/api/readiness/:id', authenticateToken, requireAdmin, (req, res) => {
+  const raw = readData('readiness.json');
+  const store = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const cur = store[req.params.id] || {};
+  if (req.body.owner !== undefined)          cur.owner = String(req.body.owner).slice(0, 120);
+  if (req.body.notes !== undefined)          cur.notes = String(req.body.notes).slice(0, 2000);
+  if (req.body.done !== undefined)           cur.done = !!req.body.done;
+  if (req.body.statusOverride !== undefined) cur.statusOverride = req.body.statusOverride || null;
+  cur.updatedAt = new Date().toISOString();
+  cur.updatedBy = req.user.name || req.user.id;
+  store[req.params.id] = cur;
+  writeData('readiness.json', store);
+  res.json({ id: req.params.id, item: cur });
 });
 
 // ─── Users routes ─────────────────────────────────────────────────────────────
