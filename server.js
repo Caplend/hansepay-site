@@ -162,6 +162,12 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'coming-soon.html'));
 });
 
+// Google Search Console verification — served before any middleware that could intercept
+app.get('/google3b985f4905aea611.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send('google-site-verification: google3b985f4905aea611.html');
+});
+
 // Static files — files live at repo root in hansepay-deploy
 app.use(express.static(__dirname));
 // Also serve under /hansepay/ prefix for compatibility with landing page links
