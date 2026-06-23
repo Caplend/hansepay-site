@@ -115,6 +115,13 @@ app.set('trust proxy', 1);
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+// Google Search Console verification — must be before the coming-soon gate so
+// Google's crawler (which has no preview cookie) always gets the right response.
+app.get('/google3b985f4905aea611.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send('google-site-verification: google3b985f4905aea611.html');
+});
+
 // ── Coming Soon gate ─────────────────────────────────────────────────────────
 // Set PREVIEW_TOKEN env var in Railway (e.g. "hansepay2026").
 // Visiting /?preview=TOKEN grants a 30-day cookie to browse the full site.
