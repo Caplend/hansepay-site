@@ -1142,7 +1142,7 @@ img.hp-cine,.hp-cine>img{
       'index.cred.1.title':'BaFin Licensed','index.cred.1.desc':'EU-regulated E-Money Institution under MiCAR. Direct German supervisory oversight by BaFin.',
       'index.cred.2.title':'Made in Hamburg','index.cred.2.desc':'Headquartered in Germany\'s gateway to the world, since 2023. Backed by Innovationsstarter Fonds Hamburg.',
       'index.cred.3.title':'Institutional Expertise','index.cred.3.desc':'Founded and advised by experienced FX and finance professionals with backgrounds at leading institutional firms.',
-      'index.insights.eyebrow':'HANSEPAY INSIGHTS',
+      'index.insights.eyebrow':'HansePay Insights',
       'index.insights.h2':'FX knowledge that moves<br><em>your business forward.</em>',
       'index.insights.cta':'All articles →',
       'index.ins.1.tag':'FX Education','index.ins.1.title':'The Hidden Cost of Bank FX Fees, What Every CFO Should Know','index.ins.1.meta':'HansePay Team · 5 min read',
@@ -1404,7 +1404,7 @@ img.hp-cine,.hp-cine>img{
       'index.cred.3.title':'Institutionelle Expertise',
       'index.cred.3.desc':'Gegründet und beraten von erfahrenen FX- und Finanzprofis mit Hintergrund bei führenden institutionellen Unternehmen.',
       // index insights
-      'index.insights.eyebrow':'HANSEPAY INSIGHTS',
+      'index.insights.eyebrow':'HansePay Insights',
       'index.insights.h2':'FX-Wissen, das Ihr Unternehmen voranbringt.',
       'index.insights.cta':'Alle Artikel →',
       'index.ins.1.tag':'FX-Grundlagen',
