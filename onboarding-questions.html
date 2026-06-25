@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HansePay — Onboarding Questions Reference</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;color:#111;background:#fff;line-height:1.5}
+  .page{max-width:840px;margin:0 auto;padding:48px 48px 64px}
+
+  /* Cover */
+  .cover{border-bottom:2px solid #0f2540;margin-bottom:36px;padding-bottom:28px}
+  .cover-logo{font-size:22px;font-weight:700;color:#0f2540;letter-spacing:-.02em;margin-bottom:6px}
+  .cover-title{font-size:28px;font-weight:700;color:#0f2540;margin-bottom:4px}
+  .cover-sub{font-size:13px;color:#555;margin-bottom:12px}
+  .cover-meta{display:flex;gap:24px;font-size:11.5px;color:#777}
+
+  /* Table of contents */
+  .toc{margin-bottom:40px}
+  .toc-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#0f2540;margin-bottom:12px}
+  .toc-item{display:flex;align-items:baseline;gap:6px;padding:3px 0;font-size:12.5px;color:#333;border-bottom:1px dotted #ddd}
+  .toc-item .toc-num{color:#888;width:36px;flex-shrink:0;font-size:11px}
+  .toc-item .toc-dot{flex:1;border-bottom:1px dotted #ccc;margin:0 6px;align-self:center}
+
+  /* Section dividers */
+  .part{background:#0f2540;color:#fff;padding:12px 20px;border-radius:6px;margin:36px 0 24px;font-size:15px;font-weight:700;letter-spacing:-.01em;page-break-before:always}
+  .part:first-of-type{page-break-before:avoid}
+  .part-sub{font-size:11px;font-weight:400;opacity:.7;margin-top:2px}
+
+  /* Step cards */
+  .step{border:1px solid #dde4ee;border-radius:8px;margin-bottom:18px;overflow:hidden;page-break-inside:avoid}
+  .step-header{background:#f5f8fc;padding:11px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dde4ee}
+  .step-num{background:#0f2540;color:#fff;font-size:10px;font-weight:700;padding:3px 7px;border-radius:3px;letter-spacing:.04em;flex-shrink:0}
+  .step-title{font-size:13.5px;font-weight:700;color:#0f2540}
+  .step-phase{font-size:10.5px;color:#789;margin-left:auto;text-transform:uppercase;letter-spacing:.08em}
+  .step-body{padding:14px 16px}
+
+  /* Question groups */
+  .q-group{margin-bottom:14px}
+  .q-group:last-child{margin-bottom:0}
+  .q-label{font-weight:600;color:#0f2540;font-size:12.5px;margin-bottom:5px}
+  .q-note{font-size:11.5px;color:#666;margin-top:3px;font-style:italic}
+  .q-type{font-size:10.5px;color:#0f2540;background:#e8f0ff;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:500}
+  .q-required{color:#c0392b;font-size:11px;margin-left:4px}
+
+  /* Answer options */
+  .options{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+  .opt{border:1px solid #c8d9e8;border-radius:4px;padding:4px 10px;font-size:11.5px;color:#1e4e80;background:#f0f5fa}
+  .opt.default{border-color:#0f2540;background:#e0eaf5;font-weight:600}
+
+  /* Sections within a step */
+  .sub-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#789;margin:12px 0 6px;padding-top:12px;border-top:1px solid #eef3f8}
+  .sub-section:first-child{margin-top:0;padding-top:0;border-top:none}
+
+  /* Conditional blocks */
+  .conditional{background:#fef9e7;border:1px solid #f0c040;border-radius:5px;padding:10px 12px;margin-top:6px;font-size:11.5px;color:#5a4000}
+  .conditional strong{font-weight:600}
+
+  /* Document list */
+  .doc-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #eef3f8}
+  .doc-item:last-child{border-bottom:none}
+  .doc-icon{width:28px;height:28px;background:#e8f0ff;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+  .doc-body{flex:1}
+  .doc-title{font-weight:600;font-size:12.5px;color:#0f2540}
+  .doc-desc{font-size:11.5px;color:#555;margin-top:2px;line-height:1.45}
+
+  /* Upload */
+  .upload-note{font-size:11.5px;color:#555;background:#f5f8fc;border:1px solid #dde4ee;border-radius:4px;padding:7px 10px;margin-top:6px}
+
+  /* Review table */
+  .review-row{display:flex;gap:12px;padding:5px 0;border-bottom:1px solid #f0f4f8;font-size:12px}
+  .review-row:last-child{border-bottom:none}
+  .review-key{width:180px;color:#555;flex-shrink:0}
+  .review-val{color:#0f2540;font-weight:500}
+
+  /* Notes */
+  .note-box{background:#f5f8fc;border-left:3px solid #2e6bad;padding:9px 12px;font-size:12px;color:#333;margin-top:12px;border-radius:0 4px 4px 0}
+
+  /* Footer */
+  .doc-footer{margin-top:48px;padding-top:18px;border-top:1px solid #dde4ee;display:flex;justify-content:space-between;font-size:11px;color:#aaa}
+
+  /* Print */
+  @media print{
+    body{font-size:12px}
+    .page{padding:24px 32px 40px;max-width:100%}
+    .part{page-break-before:always}
+    .step{page-break-inside:avoid}
+    @page{margin:16mm 14mm}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ─── COVER ─────────────────────────────────────────────────── -->
+  <div class="cover">
+    <div class="cover-logo">HansePay</div>
+    <div class="cover-title">Onboarding Questions — Reference Document</div>
+    <div class="cover-sub">All questions and answer options for Individual and Company account applications</div>
+    <div class="cover-meta">
+      <span>Version 1.0</span>
+      <span>Generated: June 2026</span>
+      <span>For internal use only</span>
+    </div>
+  </div>
+
+  <!-- ─── TABLE OF CONTENTS ─────────────────────────────────────── -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <div class="toc-item"><span class="toc-num">Part 1</span><span>Individual Account Application</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.1</span><span>Account Setup (Step 1–3b)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.2</span><span>Account Type &amp; Personal Details (Step 4–5)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.3</span><span>Financial Profile (Step 6–7)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.4</span><span>Compliance Declarations (Step 8)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.5</span><span>Identity Verification (Step 9)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">1.6</span><span>Terms &amp; Review (Step 10–12)</span></div>
+    <div class="toc-item"><span class="toc-num">Part 2</span><span>Company Account Application</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.1</span><span>Account Setup — shared with Individual (Step 1–3b)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.2</span><span>Company Registration (Step B1–B3)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.3</span><span>Documents (Step B4)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.4</span><span>Management &amp; Owners (Step B5, B8, B8_POA)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.5</span><span>Business Activity &amp; Risk (Step B6–B7)</span></div>
+    <div class="toc-item" style="padding-left:16px"><span class="toc-num">2.6</span><span>Terms &amp; Verification (Step B9–B11)</span></div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  PART 1 — INDIVIDUAL                                       -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="part">Part 1 — Individual Account Application
+    <div class="part-sub">Steps 1 → 12 · ~10 minutes</div>
+  </div>
+
+
+  <!-- STEP 1 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 1</span>
+      <span class="step-title">Account Setup</span>
+      <span class="step-phase">Account</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">First name <span class="q-required">*</span></div>
+        <div class="q-note">Free text</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Last name <span class="q-required">*</span></div>
+        <div class="q-note">Free text</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Email address <span class="q-required">*</span></div>
+        <div class="q-note">Must be a valid email — a verification code/link is sent</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Password <span class="q-required">*</span></div>
+        <div class="q-note">Minimum 8 characters. Strength meter shown.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Confirm password <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Agreement checkbox <span class="q-required">*</span></div>
+        <div class="options"><span class="opt">☐ I agree to the Terms of Service and Privacy Policy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 2</span>
+      <span class="step-title">Email Verification</span>
+      <span class="step-phase">Account</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">6-digit verification code <span class="q-required">*</span></div>
+        <div class="q-note">Sent to the email entered in Step 1. Alternatively the user can click the magic link in the email. Resend available after 30 s.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3a -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 3a</span>
+      <span class="step-title">Phone Number</span>
+      <span class="step-phase">Account</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">Country code <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">🇩🇪 +49 Germany</span><span class="opt">🇦🇹 +43 Austria</span><span class="opt">🇨🇭 +41 Switzerland</span>
+          <span class="opt">🇬🇧 +44 UK</span><span class="opt">🇫🇷 +33 France</span><span class="opt">🇳🇱 +31 Netherlands</span>
+          <span class="opt">🇧🇪 +32 Belgium</span><span class="opt">🇪🇸 +34 Spain</span><span class="opt">🇮🇹 +39 Italy</span>
+          <span class="opt">🇵🇹 +351 Portugal</span><span class="opt">🇵🇱 +48 Poland</span><span class="opt">🇸🇪 +46 Sweden</span>
+          <span class="opt">🇩🇰 +45 Denmark</span><span class="opt">🇳🇴 +47 Norway</span><span class="opt">🇫🇮 +358 Finland</span>
+          <span class="opt">🇱🇹 +370 Lithuania</span><span class="opt">🇱🇻 +371 Latvia</span><span class="opt">🇪🇪 +372 Estonia</span>
+          <span class="opt">🇨🇿 +420 Czech Republic</span><span class="opt">🇸🇰 +421 Slovakia</span><span class="opt">🇭🇺 +36 Hungary</span>
+          <span class="opt">🇷🇴 +40 Romania</span><span class="opt">🇧🇬 +359 Bulgaria</span><span class="opt">🇭🇷 +385 Croatia</span>
+          <span class="opt">🇮🇪 +353 Ireland</span><span class="opt">🇱🇺 +352 Luxembourg</span><span class="opt">🇲🇹 +356 Malta</span>
+          <span class="opt">🇨🇾 +357 Cyprus</span><span class="opt">🇬🇷 +30 Greece</span><span class="opt">🇺🇸 +1 USA</span>
+          <span class="opt">🇦🇺 +61 Australia</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Phone number <span class="q-required">*</span></div>
+        <div class="q-note">Local number without country code</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3b -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 3b</span>
+      <span class="step-title">Phone Verification</span>
+      <span class="step-phase">Account</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">6-digit SMS code <span class="q-required">*</span></div>
+        <div class="q-note">Sent to the phone number from Step 3a. Resend available after 30 s.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 4</span>
+      <span class="step-title">Account Type</span>
+      <span class="step-phase">About you</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">What kind of account are you opening? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Individual — for personal use and transfers</span>
+          <span class="opt">Company — for businesses and organisations</span>
+        </div>
+        <div class="q-note">Selecting "Company" routes to the Company flow (Part 2 of this document).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 5</span>
+      <span class="step-title">Your Details</span>
+      <span class="step-phase">About you</span>
+    </div>
+    <div class="step-body">
+      <div class="sub-section">Personal information</div>
+      <div class="q-group">
+        <div class="q-label">First name <span class="q-required">*</span></div>
+        <div class="q-note">Pre-filled from Step 1</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Last name <span class="q-required">*</span></div>
+        <div class="q-note">Pre-filled from Step 1</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Middle name <span class="q-type">Optional / collapsible</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Date of birth <span class="q-required">*</span></div>
+        <div class="q-note">Must be 18+ years. Format: YYYY-MM-DD</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Email</div>
+        <div class="q-note">Read-only — verified from Step 2</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Phone</div>
+        <div class="q-note">Read-only — verified from Step 3</div>
+      </div>
+
+      <div class="sub-section">Address</div>
+      <div class="q-group">
+        <div class="q-label">Address search <span class="q-type">Autocomplete</span></div>
+        <div class="q-note">OpenStreetMap / Nominatim — auto-fills the fields below</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Street address <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Address line 2 <span class="q-type">Optional / collapsible</span></div>
+        <div class="q-note">Floor, suite, etc.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">City <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Postcode <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">State / Province <span class="q-type">Optional</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Country of residence <span class="q-required">*</span> <span class="q-type">Searchable dropdown</span></div>
+        <div class="q-note">Full list of countries. Auto-detected by IP.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 6</span>
+      <span class="step-title">How You'll Use HansePay</span>
+      <span class="step-phase">Financial</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">What will you mainly use your account for? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Personal payments — transfers and payments for personal use</span>
+          <span class="opt">Business payments — supplier, employee or client payments</span>
+          <span class="opt">Both — personal and business use</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">What types of payments do you expect to make? <span class="q-required">*</span> <span class="q-type">Multi-select chips</span></div>
+        <div class="options">
+          <span class="opt">Everyday purchases</span>
+          <span class="opt">Transfers to family or friends</span>
+          <span class="opt">Transfers between my own accounts</span>
+          <span class="opt">Payments to suppliers or employees</span>
+          <span class="opt">International transfers</span>
+          <span class="opt">Other</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please describe — free text field</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Expected monthly payment volume <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Under 1.000 €</span>
+          <span class="opt">1.000 € – 10.000 €</span>
+          <span class="opt">10.000 € – 50.000 €</span>
+          <span class="opt">Over 50.000 €</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Which countries will you usually send payments to? <span class="q-required">*</span> <span class="q-type">Multi-select, searchable</span></div>
+        <div class="q-note">At least one country required. Full country list, searchable by name or 2-letter code.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 7</span>
+      <span class="step-title">Your Income &amp; Work</span>
+      <span class="step-phase">Financial</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">Main source of income <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">Salary</span><span class="opt">Self-employment</span><span class="opt">Business ownership</span>
+          <span class="opt">Investments</span><span class="opt">Pension</span><span class="opt">Student support</span>
+          <span class="opt">Family support</span><span class="opt">Savings</span><span class="opt">Other</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please specify — free text</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Work situation <span class="q-required">*</span> <span class="q-type">Single-select chips</span></div>
+        <div class="options">
+          <span class="opt">Employed</span><span class="opt">Self-employed</span><span class="opt">Business owner</span>
+          <span class="opt">Unemployed</span><span class="opt">Student</span><span class="opt">Retired</span>
+          <span class="opt">Homemaker</span><span class="opt">Other</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please describe — free text (e.g. freelancer, part-time)</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Industry <span class="q-required">*</span> <span class="q-type">Single-select tile grid</span></div>
+        <div class="q-note">Shown when employment is Employed, Self-employed, or Business owner</div>
+        <div class="options">
+          <span class="opt">Manufacturing</span><span class="opt">Retail &amp; E-commerce</span><span class="opt">Logistics &amp; Transport</span>
+          <span class="opt">Technology &amp; Software</span><span class="opt">Finance &amp; Banking</span>
+          <span class="opt">Healthcare &amp; Pharmaceuticals</span><span class="opt">Real Estate</span>
+          <span class="opt">Consulting &amp; Advisory</span><span class="opt">Construction</span>
+          <span class="opt">Agriculture &amp; Food</span><span class="opt">Energy &amp; Utilities</span><span class="opt">Other</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please specify your industry — free text</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Approximate annual income before tax <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Under 15.000 €</span><span class="opt">15.000 € – 30.000 €</span>
+          <span class="opt">30.001 € – 60.000 €</span><span class="opt">60.001 € – 100.000 €</span>
+          <span class="opt">Over 100.000 €</span><span class="opt">Prefer not to say</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Are your funds or transactions connected to any regulated, cash-intensive, high-value, crypto, gambling, defence, charity, import/export, or other higher-risk activity? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="q-note">Answering "Yes" triggers enhanced compliance review.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 8</span>
+      <span class="step-title">Compliance Declarations</span>
+      <span class="step-phase">Compliance</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:12px">Required by EU Anti-Money Laundering regulations (AML6).</div>
+
+      <div class="sub-section">Politically Exposed Person (PEP)</div>
+      <div class="q-group">
+        <div class="q-label">Are you, or have you been in the last 12 months, a politically exposed person — or an immediate family member or close associate of one? <span class="q-required">*</span></div>
+        <div class="q-note">A PEP holds or has held a senior public function — head of state, government minister, senior judge, military officer, or director of a state-owned enterprise. Includes their immediate family and close associates.</div>
+        <div class="options">
+          <span class="opt default">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="conditional"><strong>If Yes — additional fields required:</strong><br>
+          · Position or role held <em>(required)</em><br>
+          · Institution or organisation <em>(required)</em><br>
+          · Country <em>(dropdown)</em><br>
+          · Dates held <em>(e.g. 2018–2023)</em>
+        </div>
+      </div>
+
+      <div class="sub-section">International Sanctions</div>
+      <div class="q-group">
+        <div class="q-label">Are you subject to any international sanctions? <span class="q-required">*</span></div>
+        <div class="q-note">Sanctions imposed by the EU, UN, US (OFAC), or UK — including asset freezes or travel bans linked to terrorism, proliferation, or serious human rights violations.</div>
+        <div class="options">
+          <span class="opt default">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="conditional"><strong>If Yes:</strong> Please provide details — textarea (which sanctions list, country, date)</div>
+      </div>
+
+      <div class="sub-section">Criminal Convictions</div>
+      <div class="q-group">
+        <div class="q-label">Have you ever been convicted of a serious financial crime? <span class="q-required">*</span></div>
+        <div class="q-note">Includes fraud, money laundering, tax evasion, insider trading, or similar offences. Required under EU AML regulations.</div>
+        <div class="options">
+          <span class="opt default">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="conditional"><strong>If Yes:</strong> Please provide details — textarea (nature of offence, jurisdiction, date)</div>
+      </div>
+
+      <div class="sub-section">Citizenships (shown if any compliance flag is Yes)</div>
+      <div class="q-group">
+        <div class="q-label">Please list all citizenships you hold <span class="q-type">Conditional multi-input</span></div>
+        <div class="q-note">Appears when PEP, high-risk, criminal conviction, or sanctions is answered "Yes". Minimum 2 entries.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 9</span>
+      <span class="step-title">Identity Verification</span>
+      <span class="step-phase">Verify</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:12px">Automated identity verification via <strong>Signicat</strong>. No calls or video interviews required. Takes 2–3 minutes.</div>
+      <div class="doc-item">
+        <div class="doc-icon">🪪</div>
+        <div class="doc-body">
+          <div class="doc-title">Document photo</div>
+          <div class="doc-desc">Passport, national ID card, or driving licence. Photographed via smartphone camera.</div>
+        </div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-icon">🤳</div>
+        <div class="doc-body">
+          <div class="doc-title">Liveness check</div>
+          <div class="doc-desc">Brief selfie / facial movement to confirm the person is live and matches the document.</div>
+        </div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-icon">✅</div>
+        <div class="doc-body">
+          <div class="doc-title">Instant automated review</div>
+          <div class="doc-desc">Completed in seconds. Result passed back to HansePay automatically.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 10</span>
+      <span class="step-title">Terms &amp; Conditions</span>
+      <span class="step-phase">Review</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">HansePay Terms &amp; Conditions <span class="q-required">*</span></div>
+        <div class="q-note">Scrollable text box covering Payment Services Agreement (PSD2), Acceptable Use Policy, and GDPR Data Processing.</div>
+        <div class="options"><span class="opt">☐ I have read and agree to the Terms and Conditions and Privacy Policy</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">BlindPay Payment Services <span class="q-required">*</span></div>
+        <div class="q-note">Separate acceptance required. User opens a modal to read BlindPay terms before accepting.</div>
+        <div class="options"><span class="opt">☐ Accept BlindPay terms (via modal)</span></div>
+      </div>
+      <div class="note-box">Both checkboxes must be accepted before the "Accept &amp; continue" button is enabled.</div>
+    </div>
+  </div>
+
+  <!-- STEP 11 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 11</span>
+      <span class="step-title">Final Review</span>
+      <span class="step-phase">Review</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:10px">Read-only summary. Each section has an "Edit" link to jump back and correct. Sections displayed:</div>
+      <div class="review-row"><div class="review-key">Account</div><div class="review-val">Email, Phone</div></div>
+      <div class="review-row"><div class="review-key">Personal details</div><div class="review-val">Full name, Date of birth</div></div>
+      <div class="review-row"><div class="review-key">Address</div><div class="review-val">Street, City, Postcode, Country</div></div>
+      <div class="review-row"><div class="review-key">Account usage</div><div class="review-val">Purpose, Monthly volume, Destination countries</div></div>
+      <div class="review-row"><div class="review-key">Income &amp; employment</div><div class="review-val">Income source, Employment, Industry, Annual income</div></div>
+      <div class="review-row"><div class="review-key">Compliance</div><div class="review-val">PEP status, Sanctions confirmed</div></div>
+    </div>
+  </div>
+
+  <!-- STEP 12 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP 12</span>
+      <span class="step-title">Application Submitted</span>
+      <span class="step-phase">Review</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note">Confirmation screen. Application reviewed by HansePay within 1–2 business days. No further input required.</div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  PART 2 — COMPANY                                          -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <div class="part">Part 2 — Company Account Application
+    <div class="part-sub">Steps 1–3b shared with Individual · Company-specific steps B1 → B11</div>
+  </div>
+
+  <div class="note-box" style="margin-bottom:20px">Steps 1–3b (Account Setup, Email Verification, Phone) are identical to the Individual flow. Step 4 is where the user selects "Company" — after which the Company flow begins at B1.</div>
+
+  <!-- STEP B1 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B1</span>
+      <span class="step-title">Company Lookup</span>
+      <span class="step-phase">Company</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">Company name <span class="q-required">*</span></div>
+        <div class="q-note">Used to search the commercial registry</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Country of registration <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="q-note">Full country list. Default: Germany.</div>
+      </div>
+      <div class="q-note" style="margin-top:10px">System performs a registry search and shows the result. User confirms the correct company → auto-fills the fields in Step B2. If not found, they can enter details manually.</div>
+    </div>
+  </div>
+
+  <!-- STEP B2 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B2</span>
+      <span class="step-title">Company Information</span>
+      <span class="step-phase">Company</span>
+    </div>
+    <div class="step-body">
+      <div class="note-box" style="margin-bottom:14px">Based on the registered name entered in Step B1, the system searches the <strong>Legla</strong> database and auto-fills the registration number and NACE code. All fields can also be entered or corrected manually.</div>
+      <div class="sub-section">Company details</div>
+      <div class="q-group">
+        <div class="q-label">Registered name <span class="q-required">*</span></div>
+        <div class="q-note">Legal name as registered. Pre-filled from registry search.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Trade name <span class="q-type">Optional</span></div>
+        <div class="q-note">If different from registered name</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Legal form <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">GmbH</span><span class="opt">AG</span><span class="opt">UG</span><span class="opt">OHG</span>
+          <span class="opt">KG</span><span class="opt">GbR</span><span class="opt">Sole trader / Einzelunternehmer</span>
+          <span class="opt">SE</span><span class="opt">Ltd (UK)</span><span class="opt">SIA (Latvia)</span>
+          <span class="opt">UAB (Lithuania)</span><span class="opt">OÜ (Estonia)</span><span class="opt">SRL / SARL</span>
+          <span class="opt">SAS / SASU</span><span class="opt">BV (Netherlands)</span><span class="opt">Sp. z o.o. (Poland)</span>
+          <span class="opt">Other</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Registration number <span class="q-required">*</span></div>
+        <div class="q-note">e.g. HRB 239847 B</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Registration date <span class="q-type">Date picker</span></div>
+      </div>
+
+      <div class="sub-section">Industry &amp; activity</div>
+      <div class="q-group">
+        <div class="q-label">Industry NACE codes <span class="q-required">*</span> <span class="q-type">Multi-select, searchable</span></div>
+        <div class="q-note">EU standard NACE Rev. 2 codes (200+ options). At least one required. Examples: 62.01 Computer programming, 47.9 E-commerce, 64.9 Financial services.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Business description <span class="q-required">*</span></div>
+        <div class="q-note">Minimum 50 characters. Describe what the company does, what it sells, and who its customers are.</div>
+      </div>
+
+      <div class="sub-section">Contact</div>
+      <div class="q-group">
+        <div class="q-label">Company email <span class="q-required">*</span></div>
+        <div class="q-note">e.g. info@company.com</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Phone number <span class="q-required">*</span></div>
+        <div class="q-note">Country code dropdown + local number</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Website <span class="q-required">*</span></div>
+        <div class="q-note">e.g. https://yourcompany.com</div>
+      </div>
+
+      <div class="sub-section">Account &amp; funds</div>
+      <div class="q-group">
+        <div class="q-label">Account purpose <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">Paying suppliers</span>
+          <span class="opt">Paying employees or contractors</span>
+          <span class="opt">Paying taxes, rent, utilities, or other operating costs</span>
+          <span class="opt">International business payments</span>
+          <span class="opt">Group company transfers</span>
+          <span class="opt">Other — please explain</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please explain the account purpose — free text</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Main source of funds <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">Revenue from sale of goods / services</span>
+          <span class="opt">Owner / shareholder capital contribution</span>
+          <span class="opt">Business loan or financing</span>
+          <span class="opt">Investment / funding round</span>
+          <span class="opt">Marketplace or platform payouts</span>
+          <span class="opt">Intercompany / group transfers</span>
+          <span class="opt">Sale of business assets</span>
+          <span class="opt">Grants or public funding</span>
+          <span class="opt">Other — please explain</span>
+        </div>
+        <div class="conditional"><strong>If Other:</strong> Please explain the source of funds — free text</div>
+      </div>
+
+      <div class="sub-section">Registered address</div>
+      <div class="q-group">
+        <div class="q-label">Address line 1 <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Address line 2 <span class="q-type">Optional</span></div>
+        <div class="q-note">Floor, suite, etc.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">City <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">State / Region <span class="q-type">Optional</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Post code <span class="q-required">*</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Country <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="q-note">Default: Germany</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">The operating address differs from the registered address <span class="q-type">Checkbox</span></div>
+      </div>
+      <div class="conditional"><strong>If checked:</strong> Operating address section appears with the same fields (Address 1, 2, City, State, Postcode, Country)</div>
+    </div>
+  </div>
+
+  <!-- STEP B3 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B3</span>
+      <span class="step-title">Review Company Details</span>
+      <span class="step-phase">Documents</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note">Read-only review of all data entered in B2. Sections: Company, Industry, Contact &amp; account, Address. Each section has an "Edit" link to return to B2.</div>
+    </div>
+  </div>
+
+  <!-- STEP B4 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B4</span>
+      <span class="step-title">Company Documents</span>
+      <span class="step-phase">Documents</span>
+    </div>
+    <div class="step-body">
+      <div class="doc-item">
+        <div class="doc-icon">📄</div>
+        <div class="doc-body">
+          <div class="doc-title">Incorporation document <span style="color:#c0392b;font-size:11px">Required</span></div>
+          <div class="doc-desc">Articles of incorporation or certificate of incorporation. Must include company name, business purpose, registered address, share structure, governance framework, and list of current directors.</div>
+        </div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-icon">📋</div>
+        <div class="doc-body">
+          <div class="doc-title">Proof of ownership <span style="color:#c0392b;font-size:11px">Required</span></div>
+          <div class="doc-desc">Shows names of all shareholders and their respective ownership percentages (shareholder register, share certificate, or equivalent).</div>
+        </div>
+      </div>
+      <div class="upload-note">Accepted formats: PDF, JPG, JPEG, PNG · Max 10 MB per file · Stored encrypted in compliance with GDPR</div>
+    </div>
+  </div>
+
+  <!-- STEP B5 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B5</span>
+      <span class="step-title">Company Management</span>
+      <span class="step-phase">Management &amp; Owners</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:10px">Add all directors and authorised signatories. At least one director required. Each person will be subject to identity verification. Multiple persons can be added.</div>
+      <div class="q-group">
+        <div class="q-label">For each person:</div>
+      </div>
+      <div class="review-row"><div class="review-key">First name</div><div class="review-val">Required</div></div>
+      <div class="review-row"><div class="review-key">Middle name</div><div class="review-val">Optional</div></div>
+      <div class="review-row"><div class="review-key">Last name</div><div class="review-val">Required</div></div>
+      <div class="review-row"><div class="review-key">Email</div><div class="review-val">Required — KYC invite sent here</div></div>
+      <div class="review-row"><div class="review-key">Phone number</div><div class="review-val">Country code + number</div></div>
+      <div class="review-row"><div class="review-key">Date of birth</div><div class="review-val">Required · Must be 18+</div></div>
+      <div class="review-row"><div class="review-key">Address</div><div class="review-val">Search or manual: Street, City, Postcode, Country of residence</div></div>
+      <div class="review-row"><div class="review-key">Role</div><div class="review-val">Free text (e.g. CEO, Managing Director, CFO)</div></div>
+      <div class="review-row"><div class="review-key">Is a company director?</div><div class="review-val">Checkbox</div></div>
+    </div>
+  </div>
+
+  <!-- STEP B8 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B8</span>
+      <span class="step-title">Company Owners (UBOs)</span>
+      <span class="step-phase">Management &amp; Owners</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:10px">Capture all Ultimate Beneficial Owners (individuals who own ≥25% or otherwise control the company). Regulatory requirement under EU AML Directive.</div>
+      <div class="q-group">
+        <div class="q-label">From management list — checkboxes</div>
+        <div class="q-note">Select which management persons added in B5 are also owners. If checked, enter their ownership percentage (25–100%).</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Additional owners (not in management)</div>
+        <div class="q-note">For each additional owner, the following fields apply:</div>
+      </div>
+      <div class="review-row"><div class="review-key">First name</div><div class="review-val">Required</div></div>
+      <div class="review-row"><div class="review-key">Middle name</div><div class="review-val">Optional</div></div>
+      <div class="review-row"><div class="review-key">Last name</div><div class="review-val">Required</div></div>
+      <div class="review-row"><div class="review-key">Email</div><div class="review-val">Required</div></div>
+      <div class="review-row"><div class="review-key">Phone number</div><div class="review-val">Country code + number</div></div>
+      <div class="review-row"><div class="review-key">Date of birth</div><div class="review-val">Required · Must be 18+</div></div>
+      <div class="review-row"><div class="review-key">Address</div><div class="review-val">Street, City, Postcode, Country of residence</div></div>
+      <div class="review-row"><div class="review-key">Ownership %</div><div class="review-val">Required · 25–100%</div></div>
+    </div>
+  </div>
+
+  <!-- STEP B8_POA -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B8_POA</span>
+      <span class="step-title">Proof of Address — Largest Owner</span>
+      <span class="step-phase">Management &amp; Owners — Conditional</span>
+    </div>
+    <div class="step-body">
+      <div class="note-box">Shown when at least one UBO has been added in B8. Applies to the owner with the largest ownership stake.</div>
+      <div class="q-group" style="margin-top:12px">
+        <div class="q-label">Document type <span class="q-required">*</span> <span class="q-type">Dropdown</span></div>
+        <div class="options">
+          <span class="opt">Utility bill</span><span class="opt">Bank statement</span>
+          <span class="opt">Rental agreement</span><span class="opt">Tax document</span>
+          <span class="opt">Government correspondence</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Upload proof of address <span class="q-required">*</span></div>
+        <div class="upload-note">PDF, JPG or PNG · Max 10 MB · Stored encrypted (GDPR)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP B6 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B6</span>
+      <span class="step-title">Business Activity &amp; Payments</span>
+      <span class="step-phase">Activity</span>
+    </div>
+    <div class="step-body">
+      <div class="sub-section">Business activity</div>
+      <div class="q-group">
+        <div class="q-label">Who are your customers? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Consumers (B2C — individuals)</span>
+          <span class="opt">Businesses (B2B — companies)</span>
+          <span class="opt">Both (consumers &amp; businesses)</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">In which countries does your business operate and serve customers? <span class="q-required">*</span> <span class="q-type">Multi-select, searchable</span></div>
+        <div class="q-note">Full country list. At least one required.</div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">What is the size of your company? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Only me</span><span class="opt">2–10 employees</span><span class="opt">11–50 employees</span>
+          <span class="opt">51–200 employees</span><span class="opt">200+ employees</span>
+        </div>
+      </div>
+
+      <div class="sub-section">Payment volumes</div>
+      <div class="q-group">
+        <div class="q-label">How much money will you send each month? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Under 5.000 €</span><span class="opt">5.000 € – 25.000 €</span>
+          <span class="opt">25.000 € – 100.000 €</span><span class="opt">100.000 € – 500.000 €</span>
+          <span class="opt">Over 500.000 €</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">How many payments will you send each month? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">1–10 payments</span><span class="opt">11–50 payments</span>
+          <span class="opt">51–200 payments</span><span class="opt">200+ payments</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">What is your highest single transfer amount? <span class="q-required">*</span></div>
+        <div class="options">
+          <span class="opt">Under 1.000 €</span><span class="opt">1.000 € – 10.000 €</span>
+          <span class="opt">10.000 € – 50.000 €</span><span class="opt">Over 50.000 €</span>
+        </div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">Which countries will you mainly send payments to? <span class="q-required">*</span> <span class="q-type">Multi-select, searchable</span></div>
+        <div class="q-note">Full country list. At least one required.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP B7 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B7</span>
+      <span class="step-title">Risk Declarations</span>
+      <span class="step-phase">Activity</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:12px">Required by EU AML regulations. Answers are confidential.</div>
+
+      <div class="sub-section">Sanctions exposure</div>
+      <div class="q-group">
+        <div class="q-label">Does your company, including its directors, UBOs, shareholders, business partners, accounts, source of funds, or planned transactions, have any connection to sanctioned, embargoed, or high-risk countries, persons, or entities? <span class="q-required">*</span></div>
+        <div class="q-note">Covers any direct or indirect link to parties or territories on the EU, UN, US (OFAC), or UK sanctions lists — including Russia, Iran, North Korea, Belarus, and Syria.</div>
+        <div class="options">
+          <span class="opt default">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="conditional"><strong>If Yes:</strong> Please describe the connection — textarea (country, person/entity involved, nature of relationship, and whether funds, goods, services, or transactions are involved)</div>
+      </div>
+
+      <div class="sub-section">Previous account closure</div>
+      <div class="q-group">
+        <div class="q-label">Has your company ever had its account restricted or terminated by a bank or financial service provider? <span class="q-required">*</span></div>
+        <div class="q-note">Includes any situation where the company, a group company, director, UBO, or related account had services restricted, frozen, terminated, placed on reserve, or subjected to enhanced monitoring by a bank, acquirer, PSP, EMI, or payment or MICA partner.</div>
+        <div class="options">
+          <span class="opt default">No</span>
+          <span class="opt">Yes</span>
+        </div>
+        <div class="conditional"><strong>If Yes:</strong> Please provide details — textarea (provider name, reason given, date, current status)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP B9 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B9</span>
+      <span class="step-title">Terms &amp; Conditions</span>
+      <span class="step-phase">Terms</span>
+    </div>
+    <div class="step-body">
+      <div class="q-group">
+        <div class="q-label">HansePay Business Payment Services Agreement <span class="q-required">*</span></div>
+        <div class="q-note">Scrollable text covering: PSD2 payment services agreement, Acceptable Use Policy, GDPR data processing for company and personal data of directors/UBOs/authorised persons.</div>
+        <div class="options"><span class="opt">☐ I have read and agree to the Terms and Conditions and Privacy Policy on behalf of the company</span></div>
+      </div>
+      <div class="q-group">
+        <div class="q-label">BlindPay Payment Services <span class="q-required">*</span></div>
+        <div class="q-note">Separate acceptance via modal. Covers: payment processing as a regulated institution, segregated client accounts, AML checks, fee schedule, GDPR data processing.</div>
+        <div class="options"><span class="opt">☐ Accept BlindPay terms (via modal)</span></div>
+      </div>
+      <div class="note-box">Both checkboxes must be accepted before the "Accept &amp; continue" button is enabled.</div>
+    </div>
+  </div>
+
+  <!-- STEP B10 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B10</span>
+      <span class="step-title">Identity Verification — Company Management</span>
+      <span class="step-phase">Verify</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note" style="margin-bottom:12px">Each member of company management must complete identity verification. Automated — no calls required. Powered by <strong>Signicat</strong>.</div>
+      <div class="doc-item">
+        <div class="doc-icon">📧</div>
+        <div class="doc-body">
+          <div class="doc-title">Send KYC invite emails</div>
+          <div class="doc-desc">For each management person (except the applicant), an email is sent with a secure KYC link. The applicant completes verification inline via the "Start" button. Resend is available for any person.</div>
+        </div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-icon">🪪</div>
+        <div class="doc-body">
+          <div class="doc-title">Each person completes:</div>
+          <div class="doc-desc">Document photo (passport, national ID, or driving licence) + liveness check selfie. Automated review, usually seconds.</div>
+        </div>
+      </div>
+      <div class="note-box" style="margin-top:10px">The "Continue without verifying" button is available — applicant can proceed and let others complete verification asynchronously.</div>
+    </div>
+  </div>
+
+  <!-- STEP B11 -->
+  <div class="step">
+    <div class="step-header">
+      <span class="step-num">STEP B11</span>
+      <span class="step-title">Application Submitted</span>
+      <span class="step-phase">Verify</span>
+    </div>
+    <div class="step-body">
+      <div class="q-note">Confirmation screen. Application reviewed by HansePay within 1–2 business days. No further input required.</div>
+    </div>
+  </div>
+
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+  <div class="doc-footer">
+    <span>HansePay GmbH · Hamburg, Germany · Regulated by BaFin</span>
+    <span>Onboarding Questions v1.0 · June 2026 · Internal use only</span>
+  </div>
+
+</div>
+</body>
+</html>
