@@ -1293,6 +1293,9 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
       case 'kyc-invite':
         mail = mailer.renderKycInviteEmail({ recipientName: firstName, firstName, lastName, recipientEmail: email, companyName: company, inviterName: 'HansePay Team', kycUrl: siteBase + '/hansepay/kyc-verify.html', lang, role: 'Managing Director' });
         break;
+      case 'kyc-invite-individual':
+        mail = mailer.renderKycInviteIndividualEmail({ recipientName: firstName, firstName, recipientEmail: email, kycUrl: siteBase + '/hansepay/kyc-verify.html', lang });
+        break;
       case 'kyc-verified':
         mail = mailer.renderKycVerifiedEmail({ firstName, email, lang });
         break;
