@@ -1157,9 +1157,9 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
     });
   } else if (type === 'kyc-invite-individual') {
     const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
-    sample = mailer.renderKycInviteEmail({
-      recipientName: firstName, recipientEmail: to,
-      kycUrl: siteBase + '/hansepay/kyc-verify.html', lang, isIndividual: true,
+    sample = mailer.renderKycInviteIndividualEmail({
+      recipientName: firstName, firstName, recipientEmail: to,
+      kycUrl: siteBase + '/hansepay/kyc-verify.html', lang,
     });
   } else if (type === 'kyc-verified') {
     sample = mailer.renderKycVerifiedEmail({ firstName, email: to, lang });
@@ -1215,7 +1215,8 @@ const EMAIL_TEMPLATE_CATALOG = [
   { id: 'application-approved-biz', name: 'Account Approved (Business)',   category: 'Onboarding', icon: '🏢', description: 'Sent when a business account is approved',                   langs: ['en', 'de'] },
   { id: 'onboarding-reminder',      name: 'Onboarding Reminder',           category: 'Onboarding', icon: '👋', description: 'Nudge for users who created login but didn\'t continue',     langs: ['en', 'de'] },
   { id: 'monthly-savings',          name: 'Monthly Savings Report',        category: 'Lifecycle',  icon: '📈', description: 'Monthly email showing the customer how much they saved vs. bank rates', langs: ['en', 'de'] },
-  { id: 'kyc-invite',               name: 'KYC Invite',                    category: 'KYC',        icon: '📷', description: 'Invitation to complete identity verification',                langs: ['en', 'de'] },
+  { id: 'kyc-invite',               name: 'KYC Invite (Business)',         category: 'KYC',        icon: '📷', description: 'Invitation for company representatives to complete identity verification', langs: ['en', 'de'] },
+  { id: 'kyc-invite-individual',    name: 'KYC Invite (Individual)',       category: 'KYC',        icon: '🪪', description: 'Invitation for individual account holders to verify their identity',       langs: ['en', 'de'] },
   { id: 'kyc-reminder',             name: 'Identity Check Reminder',       category: 'KYC',        icon: '⏳', description: 'Reminder for users who started but haven\'t finished KYC',  langs: ['en', 'de'] },
   { id: 'kyc-verified',             name: 'Identity Verified',             category: 'KYC',        icon: '✓',  description: 'Confirms successful identity verification',                  langs: ['en', 'de'] },
   { id: 'all-verified',             name: 'All Verifications Done',        category: 'KYC',        icon: '🎯', description: 'All KYC steps are complete — account is fully live',         langs: ['en', 'de'] },
@@ -3069,7 +3070,9 @@ app.post('/api/email/kyc-invite', async (req, res) => {
   }
 
   try {
-    const mail = mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang, isIndividual: !!isIndividual });
+    const mail = isIndividual
+      ? mailer.renderKycInviteIndividualEmail({ recipientName, firstName: recipientName, recipientEmail, kycUrl, lang })
+      : mailer.renderKycInviteEmail({ recipientName, recipientEmail, companyName, inviterName, kycUrl, lang });
     const result = await mailer.sendMail(mail);
     console.log(`[kyc-invite] → ${recipientEmail}: ${result.sent ? 'sent' : 'skipped ('+result.reason+')'}`);
     res.json({ sent: result.sent, transport: result.transport });
