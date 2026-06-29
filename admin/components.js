@@ -104,32 +104,44 @@
 
   var NAV = [
     { sec: 'Main',     roles: ['admin','editor'] },
-    { key: 'dash',     label: 'Dashboard',       href: '/hansepay/admin/',                  icon: 'dash',     roles: ['admin','editor'] },
-    { key: 'bookings', label: 'Bookings',         href: '/hansepay/admin/bookings.html',     icon: 'cal',      roles: ['admin','editor'] },
-    { key: 'calendar', label: 'Calendar',          href: '/hansepay/admin/calendar.html',     icon: 'clock',    roles: ['admin','editor'] },
-    { sec: 'Banking',   roles: ['admin','editor','compliance'] },
-    { key: 'accounts', label: 'Accounts',          href: '/hansepay/admin/accounts.html',     icon: 'card',     roles: ['admin','editor','compliance'] },
-    { key: 'pricing',  label: 'Pricing',           href: '/hansepay/admin/pricing.html',      icon: 'pricing',  roles: ['admin'] },
-    { sec: 'Growth',   roles: ['admin','editor'] },
-    { key: 'sales',    label: 'Sales Pipeline',   href: '/hansepay/admin/sales.html',        icon: 'pipeline', roles: ['admin','editor'] },
-    { key: 'crm',      label: 'Customers (CRM)',  href: '/hansepay/admin/crm.html',          icon: 'users',    roles: ['admin','editor'] },
-    { key: 'enrich',   label: 'Enrichment',       href: '/hansepay/admin/enrich.html',       icon: 'sparkle',  roles: ['admin','editor'] },
-    { key: 'marketing',label: 'Marketing',        href: '/hansepay/admin/marketing.html',    icon: 'mega',     roles: ['admin','editor'] },
-    { key: 'social',   label: 'Social Planner',   href: '/hansepay/admin/social.html',       icon: 'share',    roles: ['admin','editor'] },
+    { key: 'dash',     label: 'Dashboard',  href: '/hansepay/admin/',                  icon: 'dash',  roles: ['admin','editor'] },
+    { key: 'bookings', label: 'Bookings',   href: '/hansepay/admin/bookings.html',     icon: 'cal',   roles: ['admin','editor'] },
+    { key: 'calendar', label: 'Calendar',   href: '/hansepay/admin/calendar.html',     icon: 'clock', roles: ['admin','editor'] },
+    { sec: 'Banking',  roles: ['admin','editor','compliance'] },
+    { key: 'accounts', label: 'Accounts',   href: '/hansepay/admin/accounts.html',     icon: 'card',    roles: ['admin','editor','compliance'] },
+    { key: 'pricing',  label: 'Pricing',    href: '/hansepay/admin/pricing.html',      icon: 'pricing', roles: ['admin'] },
+    { sec: 'Customers', roles: ['admin','editor'] },
+    { key: 'crm', label: 'CRM', href: '/hansepay/admin/crm.html', icon: 'users', roles: ['admin','editor'],
+      children: [
+        { key: 'sales',   label: 'Sales Pipeline', href: '/hansepay/admin/sales.html',   icon: 'pipeline', roles: ['admin','editor'] },
+        { key: 'enrich',  label: 'Enrichment',     href: '/hansepay/admin/enrich.html',  icon: 'sparkle',  roles: ['admin','editor'] },
+      ]
+    },
+    { sec: 'Marketing', roles: ['admin','editor'] },
+    { key: 'marketing', label: 'Campaigns', href: '/hansepay/admin/marketing.html', icon: 'mega', roles: ['admin','editor'],
+      children: [
+        { key: 'social', label: 'Social Planner', href: '/hansepay/admin/social.html', icon: 'share', roles: ['admin','editor'] },
+      ]
+    },
     { sec: 'Content',  roles: ['admin','editor'] },
-    { key: 'posts',    label: 'Posts',            href: '/hansepay/admin/posts.html',        icon: 'doc',      roles: ['admin','editor'] },
-    { key: 'new-post', label: 'New Post',         href: '/hansepay/admin/new-post.html',     icon: 'plus',     roles: ['admin','editor'] },
+    { key: 'posts', label: 'Posts', href: '/hansepay/admin/posts.html', icon: 'doc', roles: ['admin','editor'],
+      children: [
+        { key: 'new-post', label: 'New Post', href: '/hansepay/admin/new-post.html', icon: 'plus', roles: ['admin','editor'] },
+      ]
+    },
+    { key: 'email-center', label: 'Email Center', href: '/hansepay/admin/email-center.html', icon: 'email', roles: ['admin'] },
     { sec: 'Optimise', roles: ['admin','editor'] },
-    { key: 'seo',      label: 'SEO Manager',      href: '/hansepay/admin/seo.html',          icon: 'search',   roles: ['admin','editor'] },
-    { key: 'analytics',label: 'Analytics',        href: '/hansepay/admin/analytics.html',    icon: 'pipeline', roles: ['admin','editor'] },
+    { key: 'analytics', label: 'Analytics',   href: '/hansepay/admin/analytics.html', icon: 'pipeline', roles: ['admin','editor'] },
+    { key: 'seo',       label: 'SEO Manager', href: '/hansepay/admin/seo.html',       icon: 'search',   roles: ['admin','editor'] },
     { sec: 'Legal',    roles: ['admin','compliance'] },
-    { key: 'legal',    label: 'Legal Centre',     href: '/hansepay/admin/legal.html',        icon: 'shield',   roles: ['admin','compliance'] },
+    { key: 'legal',    label: 'Legal Centre', href: '/hansepay/admin/legal.html',        icon: 'shield',   roles: ['admin','compliance'] },
     { sec: 'Admin',    roles: ['admin'] },
-    { key: 'readiness',    label: 'Readiness',    href: '/hansepay/admin/readiness.html',    icon: 'check',    roles: ['admin'] },
-    { key: 'users',        label: 'Users',         href: '/hansepay/admin/users.html',        icon: 'users',    roles: ['admin'] },
-    { key: 'email-center', label: 'Email Center', href: '/hansepay/admin/email-center.html', icon: 'email',    roles: ['admin'] },
-    { key: 'settings',     label: 'Settings',     href: '/hansepay/admin/settings.html',     icon: 'settings', roles: ['admin'] },
+    { key: 'readiness', label: 'Readiness',   href: '/hansepay/admin/readiness.html', icon: 'check',    roles: ['admin'] },
+    { key: 'users',     label: 'Users',        href: '/hansepay/admin/users.html',     icon: 'users',    roles: ['admin'] },
+    { key: 'settings',  label: 'Settings',     href: '/hansepay/admin/settings.html',  icon: 'settings', roles: ['admin'] },
   ];
+
+  var CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
   function renderSidebar(active) {
     var role = (user && user.role) || 'editor';
@@ -141,11 +153,28 @@
       return;
     }
 
+    function hasActiveChild(item) {
+      return item.children && item.children.some(function(c) { return c.key === active; });
+    }
+
     var nav = NAV.filter(function(n) {
       if (!n.roles || n.roles.length === 0) return true;
       return n.roles.indexOf(role) !== -1;
-    }).map(function (n) {
+    }).map(function(n) {
       if (n.sec) return '<span class="nav-section">' + n.sec + '</span>';
+
+      if (n.children && n.children.length) {
+        var expanded = n.key === active || hasActiveChild(n);
+        var cls = 'nav-item' + (n.key === active ? ' active' : '') + (expanded ? ' expanded' : '');
+        var parentHtml = '<a href="' + n.href + '" class="' + cls + '">' + svg(ICONS[n.icon]) + n.label + '<span class="nav-chevron">' + CHEVRON + '</span></a>';
+        var childrenHtml = expanded ? n.children.filter(function(c) {
+          return !c.roles || c.roles.indexOf(role) !== -1;
+        }).map(function(c) {
+          return '<a href="' + c.href + '" class="nav-item nav-sub' + (c.key === active ? ' active' : '') + '">' + svg(ICONS[c.icon]) + c.label + '</a>';
+        }).join('') : '';
+        return parentHtml + childrenHtml;
+      }
+
       return '<a href="' + n.href + '" class="nav-item' + (n.key === active ? ' active' : '') + '">' + svg(ICONS[n.icon]) + n.label + '</a>';
     }).join('');
 
