@@ -17,7 +17,10 @@ const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 4200;
-const JWT_SECRET = 'hansepay-cms-secret-2024';
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  console.warn('[security] JWT_SECRET env var not set — sessions will not persist across restarts. Set it in Railway variables.');
+  return crypto.randomBytes(32).toString('hex');
+})();
 const DATA_DIR = path.join(__dirname, 'data');
 // Uploads must live INSIDE the Railway volume mount so they survive deployments.
 // The volume is mounted at /app/data — keeping uploads as a subdirectory there.
@@ -110,6 +113,36 @@ const upload = multer({
 
 // Trust Railway's reverse proxy so req.protocol returns 'https'
 app.set('trust proxy', 1);
+
+// ── Security headers ──────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// ── Login rate limiter ────────────────────────────────────────────────────────
+// 5 failures per IP in a 15-minute window, then lock out for the remainder.
+const _loginAttempts = new Map();
+function _checkLoginRateLimit(ip) {
+  const now = Date.now();
+  const window = 15 * 60 * 1000;
+  const max = 5;
+  const prev = (_loginAttempts.get(ip) || []).filter(t => now - t < window);
+  _loginAttempts.set(ip, prev);
+  if (prev.length >= max) {
+    const retryAfterMin = Math.ceil((Math.min(...prev) + window - now) / 60000);
+    return { blocked: true, retryAfterMin };
+  }
+  return { blocked: false };
+}
+function _recordLoginFail(ip) {
+  const list = _loginAttempts.get(ip) || [];
+  list.push(Date.now());
+  _loginAttempts.set(ip, list);
+}
 
 // Middleware
 app.use(cors({ origin: '*' }));
@@ -408,15 +441,24 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 app.post('/api/auth/login', (req, res) => {
+  const ip = req.ip || 'unknown';
+  const limit = _checkLoginRateLimit(ip);
+  if (limit.blocked) {
+    return res.status(429).json({ error: `Too many failed attempts. Try again in ${limit.retryAfterMin} minute(s).` });
+  }
+
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
   const users = readData('users.json');
   const user = users.find(u => u.email === email);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!user) { _recordLoginFail(ip); return res.status(401).json({ error: 'Invalid credentials' }); }
 
   const valid = bcrypt.compareSync(password, user.passwordHash);
-  if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!valid) { _recordLoginFail(ip); return res.status(401).json({ error: 'Invalid credentials' }); }
+
+  // Clear failed attempts on successful login
+  _loginAttempts.delete(ip);
 
   const token = jwt.sign(
     { id: user.id, name: user.name, email: user.email, role: user.role },

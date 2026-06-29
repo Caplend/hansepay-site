@@ -6,6 +6,7 @@
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
 <title>HansePay Admin — Sign In</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -133,14 +134,14 @@ body {
 
   <div class="error-msg" id="error-msg"></div>
 
-  <form id="login-form">
+  <form id="login-form" autocomplete="off">
     <div class="field">
-      <label for="email">Email address</label>
-      <input type="email" id="email" name="email" placeholder="admin@hansepay.com" autocomplete="email" required />
+      <label for="hp-email">Email address</label>
+      <input type="email" id="hp-email" name="hp-email" autocomplete="off" spellcheck="false" required />
     </div>
     <div class="field">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+      <label for="hp-password">Password</label>
+      <input type="password" id="hp-password" name="hp-password" placeholder="••••••••" autocomplete="current-password" required />
     </div>
     <button class="btn-signin" type="submit" id="signin-btn">Sign in</button>
   </form>
@@ -151,7 +152,7 @@ body {
 (function() {
   var t = localStorage.getItem('hp_token');
   if (t) {
-    fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { headers: { 'Authorization': 'Bearer ' + t } })
+    fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + t } })
       .then(function(r) { if (r.ok) window.location.href = '/hansepay/admin/'; })
       .catch(function() {});
   }
@@ -161,8 +162,8 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   e.preventDefault();
   var btn = document.getElementById('signin-btn');
   var errEl = document.getElementById('error-msg');
-  var email = document.getElementById('email').value.trim();
-  var password = document.getElementById('password').value;
+  var email = document.getElementById('hp-email').value.trim();
+  var password = document.getElementById('hp-password').value;
 
   errEl.classList.remove('show');
 
@@ -175,17 +176,20 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   btn.disabled = true;
   btn.textContent = 'Signing in…';
 
-  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/login', {
+  fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email, password: password })
   })
   .then(function(r) {
-    return r.json().then(function(d) { return { ok: r.ok, data: d }; });
+    return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; });
   })
   .then(function(res) {
+    if (res.status === 429) {
+      throw new Error(res.data.error || 'Too many attempts. Please wait before trying again.');
+    }
     if (!res.ok) {
-      throw new Error(res.data.message || res.data.error || 'Invalid email or password.');
+      throw new Error('Invalid credentials.');
     }
     var token = res.data.token || res.data.access_token || res.data.accessToken;
     if (!token) throw new Error('Unexpected server response.');
