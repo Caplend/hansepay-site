@@ -8,6 +8,9 @@ const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return nu
 const crm     = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
 const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { console.error('[legal-pdf] load failed:', e.message); return null; } })();
 const db = require('./lib/db');
+const currenciesRepo = require('./lib/repositories/currencies');
+const legalRepo = require('./lib/repositories/legalDocuments');
+const seoRepo = require('./lib/repositories/pageSeo');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -2259,10 +2262,10 @@ function classifyChannel(referrer, data) {
   return 'referral';
 }
 
-app.get('/api/marketing/summary', authenticateToken, (req, res) => {
+app.get('/api/marketing/summary', authenticateToken, async (req, res) => {
   const analytics = readData('analytics.json') || [];
   const posts = readData('posts.json') || [];
-  const seo = readData('seo.json') || {};
+  const seo = await seoRepo.getAll();
   const customers = readData('customers.json') || [];
   const bookings = readData('bookings.json') || [];
 
@@ -2341,28 +2344,22 @@ app.get('/api/marketing/summary', authenticateToken, (req, res) => {
 
 // ─── SEO routes ───────────────────────────────────────────────────────────────
 
-app.get('/api/seo', (req, res) => {
-  res.json(readData('seo.json'));
+app.get('/api/seo', async (req, res) => {
+  res.json(await seoRepo.getAll());
 });
 
-app.get('/api/seo/:slug', (req, res) => {
-  const seo = readData('seo.json');
-  res.json(seo[req.params.slug] || {});
+app.get('/api/seo/:slug', async (req, res) => {
+  res.json(await seoRepo.getBySlug(req.params.slug));
 });
 
-app.put('/api/seo/:slug', authenticateToken, requireAdmin, (req, res) => {
-  const seo = readData('seo.json');
-  seo[req.params.slug] = Object.assign({}, seo[req.params.slug] || {}, req.body, {
-    updatedAt: new Date().toISOString(),
-  });
-  writeData('seo.json', seo);
-  res.json(seo[req.params.slug]);
+app.put('/api/seo/:slug', authenticateToken, requireAdmin, async (req, res) => {
+  res.json(await seoRepo.upsert(req.params.slug, req.body));
 });
 
 // ─── Sitemap ──────────────────────────────────────────────────────────────────
 
-app.get('/sitemap.xml', (req, res) => {
-  const seo   = readData('seo.json');
+app.get('/sitemap.xml', async (req, res) => {
+  const seo   = await seoRepo.getAll();
   const posts = readData('posts.json');
   const base  = 'https://hansepay-deploy-production-328c.up.railway.app';
 
@@ -2822,41 +2819,30 @@ app.patch('/api/bookings/:id/assign', authenticateToken, (req, res) => {
 // ─── Legal document routes ────────────────────────────────────────────────────
 
 // GET /api/legal — public, returns all docs (slug, title, badge, effectiveLine, updatedAt only — no body)
-app.get('/api/legal', (req, res) => {
-  const docs = readData('legal.json');
-  res.json(Array.isArray(docs) ? docs.map(({ body, ...rest }) => rest) : []);
+app.get('/api/legal', async (req, res) => {
+  const docs = await legalRepo.list();
+  res.json(docs.map(({ body, ...rest }) => rest));
 });
 
 // GET /api/legal/:slug — public, returns single doc including body
-app.get('/api/legal/:slug', (req, res) => {
-  const docs = readData('legal.json');
-  const doc = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+app.get('/api/legal/:slug', async (req, res) => {
+  const doc = await legalRepo.findBySlug(req.params.slug);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
   res.json(doc);
 });
 
 // PUT /api/legal/:slug — requires admin or compliance role
-app.put('/api/legal/:slug', authenticateToken, requireLegal, (req, res) => {
-  const docs = readData('legal.json');
-  const list = Array.isArray(docs) ? docs : [];
-  const idx = list.findIndex(d => d.slug === req.params.slug);
-  if (idx === -1) return res.status(404).json({ error: 'Document not found' });
+app.put('/api/legal/:slug', authenticateToken, requireLegal, async (req, res) => {
   const { title, badge, effectiveLine, body } = req.body;
-  if (title !== undefined) list[idx].title = title;
-  if (badge !== undefined) list[idx].badge = badge;
-  if (effectiveLine !== undefined) list[idx].effectiveLine = effectiveLine;
-  if (body !== undefined) list[idx].body = body;
-  list[idx].updatedAt = new Date().toISOString();
-  list[idx].updatedBy = req.user.name || req.user.email;
-  writeData('legal.json', list);
-  res.json(list[idx]);
+  const updated = await legalRepo.update(req.params.slug, { title, badge, effectiveLine, body }, req.user.name || req.user.email);
+  if (!updated) return res.status(404).json({ error: 'Document not found' });
+  res.json(updated);
 });
 
 // GET /api/legal/:slug/pdf — public, streams a branded PDF of the document
-app.get('/api/legal/:slug/pdf', (req, res) => {
+app.get('/api/legal/:slug/pdf', async (req, res) => {
   if (!legalPdf) return res.status(503).json({ error: 'PDF service unavailable' });
-  const docs = readData('legal.json');
-  const doc  = (Array.isArray(docs) ? docs : []).find(d => d.slug === req.params.slug);
+  const doc = await legalRepo.findBySlug(req.params.slug);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
   try {
     legalPdf.generateLegalPdf(doc, res);
@@ -3217,30 +3203,11 @@ app.post('/api/tx/otp/verify', authenticateToken, (req, res) => {
 // Data lives in data/currencies.json  (array of currency objects)
 // Per-user pricing is stored on the user object as user.pricing: { [currencyCode]: { flatFee, varFee } }
 
-const DEFAULT_CURRENCIES = [
-  { code:'EUR', name:'Euro',             symbol:'€',  country:'EU', flatFee:0, varFee:0 },
-  { code:'USD', name:'US Dollar',        symbol:'$',  country:'US', flatFee:0, varFee:0.5 },
-  { code:'GBP', name:'British Pound',    symbol:'£',  country:'GB', flatFee:0, varFee:0.5 },
-  { code:'CHF', name:'Swiss Franc',      symbol:'Fr', country:'CH', flatFee:0, varFee:0.5 },
-  { code:'JPY', name:'Japanese Yen',     symbol:'¥',  country:'JP', flatFee:0, varFee:0.75 },
-  { code:'CNY', name:'Chinese Yuan',     symbol:'¥',  country:'CN', flatFee:0, varFee:0 },
-  { code:'ARS', name:'Argentine Peso',   symbol:'$',  country:'AR', flatFee:0, varFee:0.95 },
-  { code:'BDT', name:'Bangladeshi Taka', symbol:'৳',  country:'BD', flatFee:0, varFee:0 },
-  { code:'BRL', name:'Brazilian Real',   symbol:'R$', country:'BR', flatFee:0, varFee:0 },
-  { code:'EGP', name:'Egyptian Pound',   symbol:'£',  country:'EG', flatFee:0, varFee:0 },
-];
 const MM_FEE = 0.05; // global market-maker fee added on top
 
-function getCurrencies() {
-  const data = readData('currencies.json');
-  if (Array.isArray(data) && data.length > 0) return data;
-  writeData('currencies.json', DEFAULT_CURRENCIES);
-  return DEFAULT_CURRENCIES;
-}
-
 // GET /api/pricing/my — returns per-currency fee multipliers for the current user
-app.get('/api/pricing/my', authenticateToken, (req, res) => {
-  const currencies = getCurrencies();
+app.get('/api/pricing/my', authenticateToken, async (req, res) => {
+  const currencies = await currenciesRepo.list();
   const users = readData('users.json');
   const user = users.find(u => u.id === req.user.id) || {};
   const userPricing = user.pricing || {};
@@ -3256,39 +3223,30 @@ app.get('/api/pricing/my', authenticateToken, (req, res) => {
 });
 
 // GET /api/pricing/currencies
-app.get('/api/pricing/currencies', authenticateToken, requireAdmin, (req, res) => {
-  res.json({ currencies: getCurrencies(), mmFee: MM_FEE });
+app.get('/api/pricing/currencies', authenticateToken, requireAdmin, async (req, res) => {
+  res.json({ currencies: await currenciesRepo.list(), mmFee: MM_FEE });
 });
 
 // POST /api/pricing/currencies  — add currency
-app.post('/api/pricing/currencies', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/pricing/currencies', authenticateToken, requireAdmin, async (req, res) => {
   const { code, name, symbol, country, flatFee, varFee } = req.body || {};
   if (!code || !name) return res.status(400).json({ error: 'code and name required' });
-  const list = getCurrencies();
-  if (list.find(c => c.code === code.toUpperCase())) return res.status(409).json({ error: 'Currency already exists' });
-  const entry = { code: code.toUpperCase(), name, symbol: symbol||'', country: country||'', flatFee: parseFloat(flatFee)||0, varFee: parseFloat(varFee)||0 };
-  list.push(entry);
-  writeData('currencies.json', list);
+  if (await currenciesRepo.findByCode(code)) return res.status(409).json({ error: 'Currency already exists' });
+  const entry = await currenciesRepo.create({ code, name, symbol, country, flatFee, varFee });
   res.json(entry);
 });
 
 // PUT /api/pricing/currencies/:code  — update fees
-app.put('/api/pricing/currencies/:code', authenticateToken, requireAdmin, (req, res) => {
-  const list = getCurrencies();
-  const idx = list.findIndex(c => c.code === req.params.code.toUpperCase());
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  if (req.body.flatFee !== undefined) list[idx].flatFee = parseFloat(req.body.flatFee) || 0;
-  if (req.body.varFee  !== undefined) list[idx].varFee  = parseFloat(req.body.varFee)  || 0;
-  writeData('currencies.json', list);
-  res.json(list[idx]);
+app.put('/api/pricing/currencies/:code', authenticateToken, requireAdmin, async (req, res) => {
+  if (!(await currenciesRepo.findByCode(req.params.code))) return res.status(404).json({ error: 'Not found' });
+  const updated = await currenciesRepo.updateFees(req.params.code, req.body);
+  res.json(updated);
 });
 
 // DELETE /api/pricing/currencies/:code
-app.delete('/api/pricing/currencies/:code', authenticateToken, requireAdmin, (req, res) => {
-  const list = getCurrencies();
-  const next = list.filter(c => c.code !== req.params.code.toUpperCase());
-  if (next.length === list.length) return res.status(404).json({ error: 'Not found' });
-  writeData('currencies.json', next);
+app.delete('/api/pricing/currencies/:code', authenticateToken, requireAdmin, async (req, res) => {
+  const ok = await currenciesRepo.remove(req.params.code);
+  if (!ok) return res.status(404).json({ error: 'Not found' });
   res.json({ ok: true });
 });
 
