@@ -15,6 +15,8 @@ const settingsRepo = require('./lib/repositories/settings');
 const emailSettingsRepo = require('./lib/repositories/emailSettings');
 const emailTemplatesRepo = require('./lib/repositories/emailTemplates');
 const socialPostsRepo = require('./lib/repositories/socialPosts');
+const usersRepo = require('./lib/repositories/users');
+const postsRepo = require('./lib/repositories/posts');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -58,7 +60,11 @@ try {
 // Seeds live in /seeds/ which is NOT inside the volume mount.
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
-['users', 'posts', 'settings', 'seo', 'bookings', 'analytics', 'customers', 'activities', 'legal', 'social', 'readiness'].forEach(name => {
+// Entities already migrated to MySQL (currencies, legal_documents, page_seo,
+// app_settings, email_settings, email_templates, social_posts, users, posts)
+// are intentionally excluded here — this seed-merge is file-storage-only and
+// only covers entities still pending migration.
+['bookings', 'analytics', 'customers', 'activities', 'readiness'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -85,22 +91,10 @@ console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SE
   }
 });
 
-// Ensure demo account always exists (survives redeployments to existing volumes)
-(function ensureDemoAccount() {
-  try {
-    const usersPath = path.join(DATA_DIR, 'users.json');
-    const users = fs.existsSync(usersPath) ? JSON.parse(fs.readFileSync(usersPath, 'utf8')) : [];
-    if (!users.find(u => u.email === 'demo@hansepay.de')) {
-      users.push({
-        id: 'usr_demo_001', name: 'Demo User', email: 'demo@hansepay.de',
-        passwordHash: '$2a$10$KZzf2V84/s1gPtXnPHaEj.g7m.SaDMwwlydSEC3FS28jAqGlNyGuW',
-        role: 'user', avatar: '', createdAt: '2026-06-16T08:00:00.000Z', lastLogin: null,
-      });
-      fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
-      console.log('[startup] demo account added');
-    }
-  } catch(e) { console.log('[startup] demo account check failed:', e.message); }
-})();
+// Ensure demo account always exists (survives redeployments/restarts) — now backed by MySQL.
+usersRepo.ensureDemoAccount()
+  .then(added => { if (added) console.log('[startup] demo account added'); })
+  .catch(e => console.log('[startup] demo account check failed:', e.message));
 
 // Multer — store uploads with original extension
 const storage = multer.diskStorage({
@@ -419,7 +413,7 @@ app.get('/api/health', (req, res) => {
 
 // POST /api/auth/register — public, called from onboarding step 1.
 // Creates or updates a user record so logins work from any device.
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { email, password, firstName, lastName } = req.body || {};
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email is required' });
@@ -428,33 +422,21 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
   }
 
-  const users = readData('users.json');
-  const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  const existing = await usersRepo.findByEmail(email);
   const passwordHash = bcrypt.hashSync(password, 10);
   const name = ((firstName || '') + ' ' + (lastName || '')).trim() || email;
 
-  if (idx >= 0) {
+  if (existing) {
     // Update credentials for returning user (re-registration / password change)
-    users[idx].passwordHash = passwordHash;
-    users[idx].name = name || users[idx].name;
+    await usersRepo.update(existing.id, { passwordHash, name: name || existing.name });
   } else {
-    users.push({
-      id:           'usr_' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 10),
-      name,
-      email,
-      passwordHash,
-      role:         'user',
-      avatar:       '',
-      createdAt:    new Date().toISOString(),
-      lastLogin:    null,
-    });
+    await usersRepo.create({ name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null });
   }
-  writeData('users.json', users);
-  console.log(`[auth] register: ${email} (${idx >= 0 ? 'updated' : 'created'})`);
+  console.log(`[auth] register: ${email} (${existing ? 'updated' : 'created'})`);
   res.json({ ok: true });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const ip = req.ip || 'unknown';
   const limit = _checkLoginRateLimit(ip);
   if (limit.blocked) {
@@ -464,8 +446,7 @@ app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
-  const users = readData('users.json');
-  const user = users.find(u => u.email === email);
+  const user = await usersRepo.findByEmail(email);
   if (!user) { _recordLoginFail(ip); return res.status(401).json({ error: 'Invalid credentials' }); }
 
   const valid = bcrypt.compareSync(password, user.passwordHash);
@@ -483,9 +464,8 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
 
-app.get('/api/auth/me', authenticateToken, (req, res) => {
-  const users = readData('users.json');
-  const user = users.find(u => u.id === req.user.id);
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  const user = await usersRepo.findById(req.user.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
   const { passwordHash, claudeApiKey, ...userSafe } = user;
   // Tell the frontend whether a key is saved without exposing it
@@ -494,23 +474,21 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 });
 
 // PUT /api/users/profile — let any authenticated user update their own profile
-app.put('/api/users/profile', authenticateToken, (req, res) => {
-  const users = readData('users.json');
-  const idx = users.findIndex(u => u.id === req.user.id);
-  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+app.put('/api/users/profile', authenticateToken, async (req, res) => {
+  const existing = await usersRepo.findById(req.user.id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
 
   const profileFields = ['name', 'role', 'bio', 'avatarUrl', 'linkedin', 'aiModel', 'aiSystemPrompt'];
-  profileFields.forEach(k => {
-    if (req.body[k] !== undefined) users[idx][k] = req.body[k];
-  });
+  const patch = {};
+  profileFields.forEach(k => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
   // Only overwrite API key if a non-empty value was sent
   if (req.body.claudeApiKey && req.body.claudeApiKey.trim()) {
-    users[idx].claudeApiKey = req.body.claudeApiKey.trim();
+    patch.claudeApiKey = req.body.claudeApiKey.trim();
   }
 
-  writeData('users.json', users);
-  const { passwordHash, claudeApiKey, ...userSafe } = users[idx];
-  userSafe.hasClaudeKey = !!users[idx].claudeApiKey;
+  const updated = await usersRepo.update(req.user.id, patch);
+  const { passwordHash, claudeApiKey, ...userSafe } = updated;
+  userSafe.hasClaudeKey = !!updated.claudeApiKey;
   res.json(userSafe);
 });
 
@@ -530,7 +508,7 @@ app.delete('/api/upload/:filename', authenticateToken, (req, res) => {
 
 // ─── Posts routes ─────────────────────────────────────────────────────────────
 
-app.get('/api/posts', (req, res) => {
+app.get('/api/posts', async (req, res) => {
   const all = req.query.status === 'all';
   if (all) {
     // Requires auth
@@ -542,98 +520,43 @@ app.get('/api/posts', (req, res) => {
     } catch (e) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    const posts = readData('posts.json');
-    return res.json(posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    return res.json(await postsRepo.listAll());
   }
 
-  const posts = readData('posts.json');
-  const published = posts
-    .filter(p => p.status === 'published' && p.showInListing !== false)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json(published);
+  res.json(await postsRepo.listPublished());
 });
 
-app.get('/api/posts/:slug', (req, res) => {
-  const posts = readData('posts.json');
-  const idx = posts.findIndex(p => p.slug === req.params.slug || p.id === req.params.slug);
-  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
-
-  // Increment view count (support both 'viewCount' and 'views' field names)
-  if ('viewCount' in posts[idx]) {
-    posts[idx].viewCount = (posts[idx].viewCount || 0) + 1;
-  } else {
-    posts[idx].views = (posts[idx].views || 0) + 1;
-  }
-  writeData('posts.json', posts);
-
-  res.json(posts[idx]);
+app.get('/api/posts/:slug', async (req, res) => {
+  const post = await postsRepo.findBySlugOrId(req.params.slug);
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  res.json(await postsRepo.incrementViews(post.id));
 });
 
-app.post('/api/posts', authenticateToken, (req, res) => {
-  const { title, slug, excerpt, content, category, tags, status, featuredImage } = req.body;
+app.post('/api/posts', authenticateToken, async (req, res) => {
+  const { title } = req.body;
   if (!title) return res.status(400).json({ error: 'Title required' });
 
-  const users = readData('users.json');
-  const author = users.find(u => u.id === req.user.id);
-
-  const posts = readData('posts.json');
-  const { featured, readTime, showInListing,
-          authorRole, authorBio, authorAvatar, authorLinkedin, publishedAt } = req.body;
-  const newPost = {
-    id: 'post_' + uuidv4().replace(/-/g, '').substring(0, 8),
-    title,
-    slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-    excerpt: excerpt || '',
-    content: content || '',
-    category: category || 'Uncategorised',
-    tags: tags || [],
-    status: status || 'draft',
-    featured: !!featured,
-    showInListing: showInListing !== false,
-    featuredImage: featuredImage || null,
-    readTime: readTime || null,
-    authorId: req.user.id,
-    author: req.body.author || (author ? author.name : req.user.name),
-    authorRole: authorRole || (author ? author.role : '') || '',
-    authorBio: authorBio || (author ? author.bio : '') || '',
-    authorAvatar: authorAvatar || (author ? author.avatarUrl : '') || '',
-    authorLinkedin: authorLinkedin || (author ? author.linkedin : '') || '',
-    publishedAt: publishedAt || new Date().toISOString(),
-    viewCount: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-
-  posts.push(newPost);
-  writeData('posts.json', posts);
+  const author = (await usersRepo.findById(req.user.id)) || { name: req.user.name };
+  const newPost = await postsRepo.create(req.body, author);
   res.status(201).json(newPost);
 });
 
-app.put('/api/posts/:id', authenticateToken, (req, res) => {
-  const posts = readData('posts.json');
-  const idx = posts.findIndex(p => p.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
-
+app.put('/api/posts/:id', authenticateToken, async (req, res) => {
   const allowed = [
     'title', 'slug', 'excerpt', 'content', 'category', 'tags', 'status',
     'featuredImage', 'featured', 'showInListing', 'readTime',
     'author', 'authorRole', 'authorBio', 'authorAvatar', 'authorLinkedin', 'publishedAt',
   ];
-  allowed.forEach(k => {
-    if (req.body[k] !== undefined) posts[idx][k] = req.body[k];
-  });
-  posts[idx].updatedAt = new Date().toISOString();
-
-  writeData('posts.json', posts);
-  res.json(posts[idx]);
+  const patch = {};
+  allowed.forEach(k => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
+  const updated = await postsRepo.update(req.params.id, patch);
+  if (!updated) return res.status(404).json({ error: 'Post not found' });
+  res.json(updated);
 });
 
-app.delete('/api/posts/:id', authenticateToken, requireAdmin, (req, res) => {
-  let posts = readData('posts.json');
-  const idx = posts.findIndex(p => p.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
-  posts.splice(idx, 1);
-  writeData('posts.json', posts);
+app.delete('/api/posts/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const ok = await postsRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Post not found' });
   res.json({ success: true });
 });
 
@@ -705,8 +628,7 @@ app.delete('/api/social/:id', authenticateToken, async (req, res) => {
 
 // AI caption + hashtag generation (reuses callClaude). Honest fallback if no key.
 app.post('/api/social/generate', authenticateToken, async (req, res) => {
-  const users  = readData('users.json');
-  const user   = users.find(u => u.id === req.user.id);
+  const user   = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
@@ -779,77 +701,62 @@ app.put('/api/readiness/:id', authenticateToken, requireAdmin, (req, res) => {
 
 // ─── Users routes ─────────────────────────────────────────────────────────────
 
-app.get('/api/users', authenticateToken, requireAdmin, (req, res) => {
-  const users = readData('users.json');
+app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+  const users = await usersRepo.list();
   res.json(users.map(({ passwordHash, ...u }) => u));
 });
 
-app.post('/api/users', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   const { name, email, password, role } = req.body;
   if (!name || !email || !password) return res.status(400).json({ error: 'Name, email and password required' });
 
-  const users = readData('users.json');
-  if (users.find(u => u.email === email)) return res.status(409).json({ error: 'Email already in use' });
+  if (await usersRepo.findByEmail(email)) return res.status(409).json({ error: 'Email already in use' });
 
-  const newUser = {
+  const newUser = await usersRepo.create({
     id: 'usr_' + uuidv4().replace(/-/g, '').substring(0, 8),
-    name,
-    email,
-    passwordHash: bcrypt.hashSync(password, 10),
-    role: role || 'editor',
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-  writeData('users.json', users);
+    name, email, passwordHash: bcrypt.hashSync(password, 10), role: role || 'editor',
+    createdAt: new Date().toISOString(),
+  });
   const { passwordHash, ...userSafe } = newUser;
   res.status(201).json(userSafe);
 });
 
-app.put('/api/users/:id', authenticateToken, requireAdmin, (req, res) => {
-  const users = readData('users.json');
-  const idx = users.findIndex(u => u.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+app.put('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const existing = await usersRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
 
   const allowed = ['name', 'email', 'role'];
-  allowed.forEach(k => {
-    if (req.body[k] !== undefined) users[idx][k] = req.body[k];
-  });
+  const patch = {};
+  allowed.forEach(k => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
   if (req.body.password) {
-    users[idx].passwordHash = bcrypt.hashSync(req.body.password, 10);
+    patch.passwordHash = bcrypt.hashSync(req.body.password, 10);
   }
 
-  writeData('users.json', users);
-  const { passwordHash, ...userSafe } = users[idx];
+  const updated = await usersRepo.update(req.params.id, patch);
+  const { passwordHash, ...userSafe } = updated;
   res.json(userSafe);
 });
 
-app.put('/api/users/:id/password', authenticateToken, requireAdmin, (req, res) => {
+app.put('/api/users/:id/password', authenticateToken, requireAdmin, async (req, res) => {
   const { password } = req.body;
   if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
-  const users = readData('users.json');
-  const idx = users.findIndex(u => u.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'User not found' });
-  users[idx].passwordHash = bcrypt.hashSync(password, 10);
-  writeData('users.json', users);
+  const existing = await usersRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
+  await usersRepo.update(req.params.id, { passwordHash: bcrypt.hashSync(password, 10) });
   res.json({ success: true });
 });
 
-app.delete('/api/users/:id', authenticateToken, requireAdmin, (req, res) => {
+app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'Cannot delete yourself' });
-  let users = readData('users.json');
-  const idx = users.findIndex(u => u.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'User not found' });
-  users.splice(idx, 1);
-  writeData('users.json', users);
+  const ok = await usersRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'User not found' });
   res.json({ success: true });
 });
 
 // ─── AI content generation ───────────────────────────────────────────────────
 
 app.post('/api/ai/generate-post', authenticateToken, async (req, res) => {
-  const users = readData('users.json');
-  const user  = users.find(u => u.id === req.user.id);
+  const user  = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
 
   if (!apiKey) {
@@ -1007,10 +914,10 @@ app.post('/api/analytics/event', (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/analytics/summary', authenticateToken, (req, res) => {
+app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
   const analytics  = readData('analytics.json');
-  const posts      = readData('posts.json');
-  const users      = readData('users.json');
+  const posts      = await postsRepo.listAll();
+  const users      = await usersRepo.list();
   const bookings   = readData('bookings.json');
 
   // Normalise: old records may not have a `type` field — treat them as pageviews
@@ -1769,8 +1676,7 @@ async function callClaude(apiKey, prompt, maxTokens = 1500) {
 // Takes criteria, searches the web (if Tavily configured), asks Claude to
 // extract/identify matching companies, returns a preview list.
 app.post('/api/customers/generate-leads', authenticateToken, async (req, res) => {
-  const users  = readData('users.json');
-  const user   = users.find(u => u.id === req.user.id);
+  const user   = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured.' });
 
@@ -1855,8 +1761,7 @@ Return ONLY a valid JSON array (no markdown):
 
 // POST /api/customers/:id/research — enhanced with live web search when Tavily configured
 app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
-  const users  = readData('users.json');
-  const user   = users.find(u => u.id === req.user.id);
+  const user   = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
@@ -2009,8 +1914,7 @@ function buildAnalyzeQueries(company, website, columns, maxQueries) {
 }
 
 app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
-  const users  = readData('users.json');
-  const user   = users.find(u => u.id === req.user.id);
+  const user   = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
@@ -2236,7 +2140,7 @@ function classifyChannel(referrer, data) {
 
 app.get('/api/marketing/summary', authenticateToken, async (req, res) => {
   const analytics = readData('analytics.json') || [];
-  const posts = readData('posts.json') || [];
+  const posts = await postsRepo.listAll();
   const seo = await seoRepo.getAll();
   const customers = readData('customers.json') || [];
   const bookings = readData('bookings.json') || [];
@@ -2332,7 +2236,7 @@ app.put('/api/seo/:slug', authenticateToken, requireAdmin, async (req, res) => {
 
 app.get('/sitemap.xml', async (req, res) => {
   const seo   = await seoRepo.getAll();
-  const posts = readData('posts.json');
+  const posts = await postsRepo.listAll();
   const base  = 'https://hansepay-deploy-production-328c.up.railway.app';
 
   const staticPages = [
@@ -3177,8 +3081,7 @@ const MM_FEE = 0.05; // global market-maker fee added on top
 // GET /api/pricing/my — returns per-currency fee multipliers for the current user
 app.get('/api/pricing/my', authenticateToken, async (req, res) => {
   const currencies = await currenciesRepo.list();
-  const users = readData('users.json');
-  const user = users.find(u => u.id === req.user.id) || {};
+  const user = (await usersRepo.findById(req.user.id)) || {};
   const userPricing = user.pricing || {};
   const result = {};
   for (const c of currencies) {
@@ -3220,30 +3123,29 @@ app.delete('/api/pricing/currencies/:code', authenticateToken, requireAdmin, asy
 });
 
 // GET /api/pricing/users  — list users with their pricing overrides
-app.get('/api/pricing/users', authenticateToken, requireAdmin, (req, res) => {
-  const users = readData('users.json');
+app.get('/api/pricing/users', authenticateToken, requireAdmin, async (req, res) => {
+  const users = await usersRepo.list();
   res.json(users.map(({ passwordHash, ...u }) => u));
 });
 
 // PUT /api/pricing/users/:id  — set per-user pricing override for one currency
 // Body: { code, flatFee, varFee }  — pass null flatFee+varFee to clear override
-app.put('/api/pricing/users/:id', authenticateToken, requireAdmin, (req, res) => {
-  const users = readData('users.json');
-  const idx = users.findIndex(u => u.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+app.put('/api/pricing/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const existing = await usersRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'User not found' });
   const { code, flatFee, varFee } = req.body || {};
   if (!code) return res.status(400).json({ error: 'code required' });
-  if (!users[idx].pricing) users[idx].pricing = {};
+  const pricing = Object.assign({}, existing.pricing);
   if (flatFee === null && varFee === null) {
-    delete users[idx].pricing[code.toUpperCase()];
+    delete pricing[code.toUpperCase()];
   } else {
-    users[idx].pricing[code.toUpperCase()] = {
-      flatFee: flatFee !== undefined ? parseFloat(flatFee)||0 : (users[idx].pricing[code.toUpperCase()]||{}).flatFee||0,
-      varFee:  varFee  !== undefined ? parseFloat(varFee) ||0 : (users[idx].pricing[code.toUpperCase()]||{}).varFee ||0,
+    pricing[code.toUpperCase()] = {
+      flatFee: flatFee !== undefined ? parseFloat(flatFee)||0 : (pricing[code.toUpperCase()]||{}).flatFee||0,
+      varFee:  varFee  !== undefined ? parseFloat(varFee) ||0 : (pricing[code.toUpperCase()]||{}).varFee ||0,
     };
   }
-  writeData('users.json', users);
-  const { passwordHash, ...safe } = users[idx];
+  const updated = await usersRepo.update(req.params.id, { pricing });
+  const { passwordHash, ...safe } = updated;
   res.json(safe);
 });
 
@@ -3297,9 +3199,8 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     return res.status(400).json({ error: 'Valid email required' });
   }
 
-  // Find account — users.json first, then registrations.json fallback
-  const users = readData('users.json');
-  let user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  // Find account — users table first, then registrations.json fallback
+  let user = await usersRepo.findByEmail(email);
 
   if (!user) {
     const regs = readData('registrations.json');
@@ -3342,7 +3243,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 
 // POST /api/auth/reset-password — public.
 // Verifies OTP and replaces the user's password hash.
-app.post('/api/auth/reset-password', (req, res) => {
+app.post('/api/auth/reset-password', async (req, res) => {
   const { email, code, password } = req.body || {};
   if (!email || !code || !password) {
     return res.status(400).json({ error: 'email, code and password are required' });
@@ -3359,31 +3260,29 @@ app.post('/api/auth/reset-password', (req, res) => {
   }
   delete _pwResetStore[email.toLowerCase()];
 
-  const users = readData('users.json');
-  let idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  let user = await usersRepo.findByEmail(email);
 
-  if (idx === -1) {
-    // Auto-create from registrations if not yet in users.json
+  if (!user) {
+    // Auto-create from registrations if not yet a user
     const regs = readData('registrations.json');
     const reg  = (Array.isArray(regs) ? regs : [])
       .find(r => r.email && r.email.toLowerCase() === email.toLowerCase());
     const name = reg ? ((reg.firstName||'') + ' ' + (reg.lastName||'')).trim() : email;
-    users.push({
-      id:           'usr_' + Buffer.from(email).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 10),
-      name:         name || email,
-      email,
-      passwordHash: '',
-      role:         'user',
-      avatar:       '',
-      createdAt:    new Date().toISOString(),
-      lastLogin:    null,
-    });
-    idx = users.length - 1;
+    try {
+      user = await usersRepo.create({
+        id: usersRepo.idFromEmail(email), name: name || email, email, passwordHash: '',
+        role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null,
+      });
+    } catch (e) {
+      // The base64-prefix id scheme can collide for similar emails — fall back to a fresh id.
+      user = await usersRepo.create({
+        id: 'usr_' + uuidv4().replace(/-/g, '').substring(0, 8), name: name || email, email,
+        passwordHash: '', role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null,
+      });
+    }
   }
 
-  users[idx].passwordHash = bcrypt.hashSync(password, 10);
-  users[idx].updatedAt    = new Date().toISOString();
-  writeData('users.json', users);
+  await usersRepo.update(user.id, { passwordHash: bcrypt.hashSync(password, 10) });
   console.log(`[pw-reset] password updated for ${email}`);
   res.json({ ok: true });
 });
