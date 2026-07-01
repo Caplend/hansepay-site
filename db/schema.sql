@@ -291,3 +291,17 @@ CREATE TABLE IF NOT EXISTS email_templates (
   created_at      DATETIME(3)  NOT NULL,
   updated_at      DATETIME(3)  NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 16. waitlist — public "join the waitlist" capture on the coming-soon page.
+-- Emailed in bulk once the product launches; notified_at tracks whether that's happened.
+CREATE TABLE IF NOT EXISTS waitlist (
+  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
+  email        VARCHAR(255)  NOT NULL,
+  name         VARCHAR(255)  NULL,
+  lang         VARCHAR(8)    NOT NULL DEFAULT 'en',
+  source       VARCHAR(64)   NOT NULL DEFAULT 'coming-soon',
+  created_at   DATETIME(3)   NOT NULL,
+  notified_at  DATETIME(3)   NULL,
+  UNIQUE KEY uq_waitlist_email (email),
+  KEY idx_waitlist_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

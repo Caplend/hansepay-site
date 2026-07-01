@@ -23,6 +23,7 @@ const activitiesRepo = require('./lib/repositories/activities');
 const bookingsRepo = require('./lib/repositories/bookings');
 const transactionsRepo = require('./lib/repositories/transactions');
 const analyticsRepo = require('./lib/repositories/analyticsEvents');
+const waitlistRepo = require('./lib/repositories/waitlist');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -2671,6 +2672,40 @@ app.get('/api/email/otp/verify', (req, res) => {
   if (!email || !code) return res.status(400).json({ error: 'email and code required' });
   delete _otpStore[email.toLowerCase()];
   res.json({ valid: true });
+});
+
+// ─── Waitlist — public capture on the coming-soon page ───────────────────────
+
+// POST /api/waitlist — public. Body: { email, name?, lang? }. Idempotent by email.
+app.post('/api/waitlist', async (req, res) => {
+  const { email, name, lang } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  try {
+    await waitlistRepo.upsert({ email, name, lang, source: 'coming-soon' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[waitlist] save error:', err.message);
+    res.status(500).json({ error: 'Could not save. Please try again.' });
+  }
+});
+
+// GET /api/waitlist — admin only, list all entries
+app.get('/api/waitlist', authenticateToken, requireAdmin, async (req, res) => {
+  res.json(await waitlistRepo.list());
+});
+
+// GET /api/waitlist/export — admin only, CSV for import into an email tool at launch
+app.get('/api/waitlist/export', authenticateToken, requireAdmin, async (req, res) => {
+  const list = await waitlistRepo.list();
+  const rows = [['Email', 'Name', 'Language', 'Source', 'Joined', 'Notified']];
+  list.forEach(w => rows.push([w.email, w.name || '', w.lang, w.source, w.createdAt, w.notifiedAt || '']));
+  const stamp = new Date().toISOString().slice(0, 10);
+  const csv = xlsx ? xlsx.toCSV(rows) : rows.map(r => r.join(',')).join('\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="hansepay-waitlist-${stamp}.csv"`);
+  res.send(csv);
 });
 
 // ─── Registrations — persist + email ─────────────────────────────────────────
