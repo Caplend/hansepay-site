@@ -11,6 +11,10 @@ const db = require('./lib/db');
 const currenciesRepo = require('./lib/repositories/currencies');
 const legalRepo = require('./lib/repositories/legalDocuments');
 const seoRepo = require('./lib/repositories/pageSeo');
+const settingsRepo = require('./lib/repositories/settings');
+const emailSettingsRepo = require('./lib/repositories/emailSettings');
+const emailTemplatesRepo = require('./lib/repositories/emailTemplates');
+const socialPostsRepo = require('./lib/repositories/socialPosts');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -163,7 +167,7 @@ app.get('/google3b985f4905aea611.html', (req, res) => {
 // Set PREVIEW_TOKEN env var in Railway (e.g. "hansepay2026").
 // Visiting /?preview=TOKEN grants a 30-day cookie to browse the full site.
 // Toggle comingSoonMode in Admin → Settings to go live instantly.
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   // Skip: API, admin panel, static assets, uploads, and legal pages
   const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
@@ -176,7 +180,13 @@ app.use((req, res, next) => {
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
   if (skipExact.includes(req.path)) return next();
 
-  const settings = readData('settings.json');
+  let settings;
+  try {
+    settings = await settingsRepo.get();
+  } catch (err) {
+    console.error('[coming-soon-gate] settings lookup failed, failing open:', err.message);
+    return next(); // Don't let a transient DB hiccup take the whole site down
+  }
   if (!settings.comingSoonMode) return next(); // Site is live — pass through
 
   const previewToken = process.env.PREVIEW_TOKEN;
@@ -649,19 +659,12 @@ function sanitizeSocial(body, base) {
   return out;
 }
 
-app.get('/api/social', authenticateToken, (req, res) => {
-  let list = readData('social.json');
-  list = Array.isArray(list) ? list : [];
-  if (req.query.status && SOCIAL_STATUSES.includes(req.query.status)) {
-    list = list.filter(p => p.status === req.query.status);
-  }
-  list.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
-  res.json(list);
+app.get('/api/social', authenticateToken, async (req, res) => {
+  const status = req.query.status && SOCIAL_STATUSES.includes(req.query.status) ? req.query.status : undefined;
+  res.json(await socialPostsRepo.list({ status }));
 });
 
-app.post('/api/social', authenticateToken, (req, res) => {
-  const list = readData('social.json');
-  const arr = Array.isArray(list) ? list : [];
+app.post('/api/social', authenticateToken, async (req, res) => {
   const now = new Date().toISOString();
   const post = sanitizeSocial(req.body, {
     id: 'soc_' + uuidv4().replace(/-/g, '').substring(0, 10),
@@ -679,31 +682,24 @@ app.post('/api/social', authenticateToken, (req, res) => {
     updatedAt: now,
   });
   if (post.status === 'scheduled' && !post.scheduledAt) post.status = 'draft';
-  arr.push(post);
-  writeData('social.json', arr);
-  res.status(201).json(post);
+  const created = await socialPostsRepo.create(post);
+  res.status(201).json(created);
 });
 
-app.put('/api/social/:id', authenticateToken, (req, res) => {
-  const list = readData('social.json');
-  const arr = Array.isArray(list) ? list : [];
-  const idx = arr.findIndex(p => p.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
-  arr[idx] = sanitizeSocial(req.body, arr[idx]);
-  if (arr[idx].status === 'scheduled' && !arr[idx].scheduledAt) arr[idx].status = 'draft';
-  if (arr[idx].status === 'posted' && !arr[idx].postedAt) arr[idx].postedAt = new Date().toISOString();
-  arr[idx].updatedAt = new Date().toISOString();
-  writeData('social.json', arr);
-  res.json(arr[idx]);
+app.put('/api/social/:id', authenticateToken, async (req, res) => {
+  const existing = await socialPostsRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Post not found' });
+  const updated = sanitizeSocial(req.body, existing);
+  if (updated.status === 'scheduled' && !updated.scheduledAt) updated.status = 'draft';
+  if (updated.status === 'posted' && !updated.postedAt) updated.postedAt = new Date().toISOString();
+  updated.updatedAt = new Date().toISOString();
+  const saved = await socialPostsRepo.update(req.params.id, updated);
+  res.json(saved);
 });
 
-app.delete('/api/social/:id', authenticateToken, (req, res) => {
-  const list = readData('social.json');
-  const arr = Array.isArray(list) ? list : [];
-  const idx = arr.findIndex(p => p.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Post not found' });
-  arr.splice(idx, 1);
-  writeData('social.json', arr);
+app.delete('/api/social/:id', authenticateToken, async (req, res) => {
+  const ok = await socialPostsRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Post not found' });
   res.json({ success: true });
 });
 
@@ -1104,13 +1100,13 @@ app.get('/api/bookings/latest', requireApiKey, (req, res) => {
 // side effects of /api/booking (no calendar event, no confirmation email — the
 // lead emails point at real companies, so we must never mail them).
 // Body: { bookings: [{ slot, lead, createdAt?, status? }] }
-app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, async (req, res) => {
   const incoming = Array.isArray(req.body && req.body.bookings) ? req.body.bookings : [];
   if (!incoming.length) return res.status(400).json({ error: 'bookings array required' });
 
   const bookings = readData('bookings.json');
   const list = Array.isArray(bookings) ? bookings : [];
-  const settings = readData('settings.json');
+  const settings = await settingsRepo.get();
   const reps = Array.isArray(settings.salesReps) ? settings.salesReps.filter(r => r.active !== false) : [];
 
   const added = incoming.map((b, i) => {
@@ -1382,8 +1378,8 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
 });
 
 // GET /api/email-settings — get persistent email UI settings (non-secret)
-app.get('/api/email-settings', authenticateToken, requireAdmin, (req, res) => {
-  const saved = readData('email-settings.json') || {};
+app.get('/api/email-settings', authenticateToken, requireAdmin, async (req, res) => {
+  const saved = await emailSettingsRepo.get();
   res.json(Object.assign({
     gmailConfigured: mailer ? mailer.gmailConfigured() : false,
     fromAddress:  process.env.EMAIL_FROM || (process.env.CALENDAR_OWNER_EMAIL ? 'HansePay <' + process.env.CALENDAR_OWNER_EMAIL + '>' : null),
@@ -1394,32 +1390,19 @@ app.get('/api/email-settings', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // PUT /api/email-settings — save non-secret display settings
-app.put('/api/email-settings', authenticateToken, requireAdmin, (req, res) => {
-  const current = readData('email-settings.json') || {};
-  const allowed = ['footerTagline', 'fromDisplayName', 'defaultLang'];
-  const update  = {};
-  allowed.forEach(k => { if (req.body[k] !== undefined) update[k] = req.body[k]; });
-  const next = Object.assign({}, current, update, { updatedAt: new Date().toISOString() });
-  writeData('email-settings.json', next);
+app.put('/api/email-settings', authenticateToken, requireAdmin, async (req, res) => {
+  const next = await emailSettingsRepo.update(req.body);
   res.json(next);
 });
 
 // GET /api/email-custom — list custom templates
-app.get('/api/email-custom', authenticateToken, requireAdmin, (req, res) => {
-  const list = readData('custom-templates.json') || [];
-  res.json(Array.isArray(list) ? list : []);
+app.get('/api/email-custom', authenticateToken, requireAdmin, async (req, res) => {
+  res.json(await emailTemplatesRepo.list());
 });
 
 // POST /api/email-custom — create custom template
-app.post('/api/email-custom', authenticateToken, requireAdmin, (req, res) => {
-  const list = readData('custom-templates.json') || [];
-  const arr  = Array.isArray(list) ? list : [];
-  const id   = 'custom-' + Date.now();
-  const t    = Object.assign({ blocks: [], footerTagline: 'EU-regulated cross-border payments · Hamburg' }, req.body, {
-    id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-  });
-  arr.push(t);
-  writeData('custom-templates.json', arr);
+app.post('/api/email-custom', authenticateToken, requireAdmin, async (req, res) => {
+  const t = await emailTemplatesRepo.create(req.body);
   res.json(t);
 });
 
@@ -1435,40 +1418,30 @@ app.post('/api/email-custom/preview-blocks', authenticateToken, requireAdmin, (r
 });
 
 // GET /api/email-custom/:id — get single custom template
-app.get('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
-  const list = readData('custom-templates.json') || [];
-  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+app.get('/api/email-custom/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const t = await emailTemplatesRepo.findById(req.params.id);
   if (!t) return res.status(404).json({ error: 'Not found' });
   res.json(t);
 });
 
 // PUT /api/email-custom/:id — update custom template
-app.put('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
-  const list = readData('custom-templates.json') || [];
-  const arr  = Array.isArray(list) ? list : [];
-  const idx  = arr.findIndex(x => x.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  arr[idx] = Object.assign({}, arr[idx], req.body, { id: req.params.id, updatedAt: new Date().toISOString() });
-  writeData('custom-templates.json', arr);
-  res.json(arr[idx]);
+app.put('/api/email-custom/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const t = await emailTemplatesRepo.update(req.params.id, req.body);
+  if (!t) return res.status(404).json({ error: 'Not found' });
+  res.json(t);
 });
 
 // DELETE /api/email-custom/:id — delete custom template
-app.delete('/api/email-custom/:id', authenticateToken, requireAdmin, (req, res) => {
-  const list = readData('custom-templates.json') || [];
-  const arr  = Array.isArray(list) ? list : [];
-  const idx  = arr.findIndex(x => x.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  arr.splice(idx, 1);
-  writeData('custom-templates.json', arr);
+app.delete('/api/email-custom/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const ok = await emailTemplatesRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Not found' });
   res.json({ success: true });
 });
 
 // POST /api/email-custom/:id/preview — render custom template to HTML
-app.post('/api/email-custom/:id/preview', authenticateToken, requireAdmin, (req, res) => {
+app.post('/api/email-custom/:id/preview', authenticateToken, requireAdmin, async (req, res) => {
   if (!mailer || !mailer.renderCustomTemplate) return res.status(503).json({ error: 'renderer not available' });
-  const list = readData('custom-templates.json') || [];
-  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+  const t = await emailTemplatesRepo.findById(req.params.id);
   if (!t) return res.status(404).json({ error: 'Not found' });
   try {
     const mail = mailer.renderCustomTemplate(t, req.body || {});
@@ -1481,8 +1454,7 @@ app.post('/api/email-custom/:id/preview', authenticateToken, requireAdmin, (req,
 // POST /api/email-custom/:id/test — send test for custom template
 app.post('/api/email-custom/:id/test', authenticateToken, requireAdmin, async (req, res) => {
   if (!mailer) return res.status(503).json({ error: 'mailer not loaded' });
-  const list = readData('custom-templates.json') || [];
-  const t = (Array.isArray(list) ? list : []).find(x => x.id === req.params.id);
+  const t = await emailTemplatesRepo.findById(req.params.id);
   if (!t) return res.status(404).json({ error: 'Not found' });
   const to = (req.body && req.body.to) || req.user.email;
   try {
@@ -2393,15 +2365,12 @@ app.get('/sitemap.xml', async (req, res) => {
 
 // ─── Settings routes ──────────────────────────────────────────────────────────
 
-app.get('/api/settings', authenticateToken, (req, res) => {
-  res.json(readData('settings.json'));
+app.get('/api/settings', authenticateToken, async (req, res) => {
+  res.json(await settingsRepo.get());
 });
 
-app.put('/api/settings', authenticateToken, requireAdmin, (req, res) => {
-  const current = readData('settings.json');
-  const updated = Object.assign({}, current, req.body);
-  writeData('settings.json', updated);
-  res.json(updated);
+app.put('/api/settings', authenticateToken, requireAdmin, async (req, res) => {
+  res.json(await settingsRepo.update(req.body));
 });
 
 // Returns the shareable preview URL (uses the request host so it works on any domain)
@@ -2550,7 +2519,7 @@ app.post('/api/booking', async (req, res) => {
       const bookings = readData('bookings.json');
       const list = Array.isArray(bookings) ? bookings : [];
       // Auto-assign to first active rep by priority
-      const settings = readData('settings.json');
+      const settings = await settingsRepo.get();
       const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
       const assignedRep = reps.find(r => r.active !== false) || null;
       list.push({
