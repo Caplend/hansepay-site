@@ -17,6 +17,7 @@ const emailTemplatesRepo = require('./lib/repositories/emailTemplates');
 const socialPostsRepo = require('./lib/repositories/socialPosts');
 const usersRepo = require('./lib/repositories/users');
 const postsRepo = require('./lib/repositories/posts');
+const registrationsRepo = require('./lib/repositories/registrations');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -2777,40 +2778,22 @@ app.get('/api/email/otp/verify', (req, res) => {
 // ─── Registrations — persist + email ─────────────────────────────────────────
 
 // GET /api/registrations — admin only, returns all persisted registrations
-app.get('/api/registrations', authenticateToken, (req, res) => {
-  const list = readData('registrations.json');
-  res.json(Array.isArray(list) ? list : []);
+app.get('/api/registrations', authenticateToken, async (req, res) => {
+  res.json(await registrationsRepo.list());
 });
 
 // POST /api/registration/start — public, called from onboarding after step 1 (email captured).
 // Creates a lightweight 'started' record so the admin can see in-progress signups immediately.
 // Never downgrades a record that has already reached 'review' or 'approved'.
-app.post('/api/registration/start', (req, res) => {
+app.post('/api/registration/start', async (req, res) => {
   const { firstName, lastName, email, lang } = req.body || {};
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email is required' });
   }
   try {
-    const regs = readData('registrations.json');
-    const idx  = regs.findIndex(r => r.email === email);
-    // Don't overwrite a record already in review or approved
-    if (idx >= 0 && ['review', 'approved'].includes(regs[idx].status)) {
-      return res.json({ ok: true, status: regs[idx].status });
-    }
-    const existing = idx >= 0 ? regs[idx] : null;
-    const record = Object.assign(existing || {}, {
-      id:         existing ? existing.id : ('start-' + Buffer.from(email).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, 10)),
-      firstName:  firstName || existing && existing.firstName || '',
-      lastName:   lastName  || existing && existing.lastName  || '',
-      email,
-      status:     'started',
-      startedAt:  existing ? (existing.startedAt || new Date().toISOString()) : new Date().toISOString(),
-      lang:       lang || 'en',
-    });
-    if (idx >= 0) regs[idx] = record; else regs.push(record);
-    writeData('registrations.json', regs);
+    const { record } = await registrationsRepo.upsertStarted({ firstName, lastName, email, lang });
     console.log(`[registration] started: ${email}`);
-    res.json({ ok: true });
+    res.json({ ok: true, status: record.status });
   } catch (err) {
     console.error('[registration] start error:', err.message);
     res.status(500).json({ error: 'Failed to save' });
@@ -2830,29 +2813,12 @@ app.post('/api/registration/confirm', async (req, res) => {
     return res.status(400).json({ error: 'applicationRef is required' });
   }
 
-  // ── 1. Persist to registrations.json ──────────────────────────────────────
+  // ── 1. Persist to registrations table ─────────────────────────────────────
   try {
-    const regs = readData('registrations.json');
-    const existing = regs.findIndex(r => r.email === email);
-    const record = {
-      id:             applicationRef,
-      applicationRef,
-      firstName:      firstName || '',
-      lastName:       lastName  || '',
-      email,
-      company:        company   || '',
-      accountType:    accountType || 'business',
-      phone:          phone  || '',
-      country:        country || '',
-      city:           city   || '',
-      regNum:         regNum || '',
-      vat:            vat    || '',
-      status:         'review',
-      submittedAt:    new Date().toISOString(),
-      lang:           lang || 'en',
-    };
-    if (existing >= 0) regs[existing] = record; else regs.push(record);
-    writeData('registrations.json', regs);
+    await registrationsRepo.upsertConfirmed({
+      applicationRef, firstName, lastName, email, company, accountType,
+      phone, country, city, regNum, vat, lang,
+    });
     console.log(`[registration] saved: ${email} (${applicationRef})`);
   } catch (err) {
     console.error('[registration] persist error:', err.message);
@@ -2877,11 +2843,10 @@ app.post('/api/registration/confirm', async (req, res) => {
 });
 
 // GET /api/registration/status — public, check a registration's status by ref
-app.get('/api/registration/status', (req, res) => {
+app.get('/api/registration/status', async (req, res) => {
   const { ref } = req.query;
   if (!ref) return res.status(400).json({ error: 'ref is required' });
-  const regs = readData('registrations.json');
-  const reg = regs.find(r => r.applicationRef === ref || r.id === ref);
+  const reg = await registrationsRepo.findByRefOrId(ref);
   if (!reg) return res.status(404).json({ error: 'Not found' });
   res.json({ status: reg.status, submittedAt: reg.submittedAt, approvedAt: reg.approvedAt || null, email: reg.email, company: reg.company });
 });
@@ -2896,66 +2861,30 @@ app.post('/api/registration/approve', authenticateToken, requireAdmin, async (re
     return res.status(400).json({ error: 'applicationRef or email is required' });
   }
 
-  const regs = readData('registrations.json');
-  let idx = applicationRef
-    ? regs.findIndex(r => r.applicationRef === applicationRef || r.id === applicationRef)
-    : -1;
-
-  // Fallback: look up by email
-  if (idx === -1 && emailFallback) {
-    idx = regs.findIndex(r => r.email === emailFallback);
-  }
-
-  // Still not found — upsert from data the admin already has
-  if (idx === -1) {
-    const data = accountData || {};
-    const email = data.email || emailFallback;
-    if (!email) return res.status(404).json({ error: 'Registration not found' });
-    const ref = applicationRef || data.applicationRef || ('admin-' + Buffer.from(email).toString('base64').slice(0, 10));
-    regs.push({
-      id:          ref,
-      applicationRef: ref,
-      firstName:   data.firstName || '',
-      lastName:    data.lastName  || '',
-      email:       email,
-      company:     data.company   || '',
-      accountType: data.accountType || 'individual',
-      country:     data.country   || '',
-      city:        data.city      || '',
-      status:      'review',
-      submittedAt: new Date().toISOString(),
-      lang:        'en',
-      _restoredByAdmin: true,
-    });
-    idx = regs.length - 1;
-    console.log(`[registration] upserted missing record for ${email} during admin approve`);
-  }
-
-  regs[idx].status     = 'approved';
-  regs[idx].approvedAt = new Date().toISOString();
-  writeData('registrations.json', regs);
-  console.log(`[registration] approved: ${regs[idx].email} (${applicationRef})`);
+  const reg = await registrationsRepo.approve({ applicationRef, emailFallback, accountData });
+  if (!reg) return res.status(404).json({ error: 'Registration not found' });
+  console.log(`[registration] approved: ${reg.email} (${applicationRef})`);
 
   // Send approval email
   let emailResult = { sent: false, transport: 'none' };
   if (mailer && mailer.renderApprovalEmail) {
     try {
       const mail = mailer.renderApprovalEmail({
-        firstName:      regs[idx].firstName,
-        lastName:       regs[idx].lastName,
-        email:          regs[idx].email,
-        company:        regs[idx].company,
-        applicationRef: regs[idx].applicationRef,
-        lang:           regs[idx].lang || 'en',
+        firstName:      reg.firstName,
+        lastName:       reg.lastName,
+        email:          reg.email,
+        company:        reg.company,
+        applicationRef: reg.applicationRef,
+        lang:           reg.lang || 'en',
       });
       emailResult = await mailer.sendMail(mail);
-      console.log(`[registration] approval email → ${regs[idx].email}: ${emailResult.sent ? 'sent' : 'skipped'}`);
+      console.log(`[registration] approval email → ${reg.email}: ${emailResult.sent ? 'sent' : 'skipped'}`);
     } catch (err) {
       console.error('[registration] approval email error:', err.message);
     }
   }
 
-  res.json({ ok: true, status: 'approved', email: regs[idx].email, emailSent: emailResult.sent });
+  res.json({ ok: true, status: 'approved', email: reg.email, emailSent: emailResult.sent });
 });
 
 // POST /api/email/kyc-invite — send KYC identity verification invite to a director/UBO or individual
@@ -3203,9 +3132,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   let user = await usersRepo.findByEmail(email);
 
   if (!user) {
-    const regs = readData('registrations.json');
-    const reg  = (Array.isArray(regs) ? regs : [])
-      .find(r => r.email && r.email.toLowerCase() === email.toLowerCase());
+    const reg = await registrationsRepo.findByEmail(email);
     if (reg) {
       // Treat the registration as a valid account — auto-create user record after reset
       user = { _fromReg: true, email: reg.email, name: ((reg.firstName||'') + ' ' + (reg.lastName||'')).trim() || reg.email };
@@ -3264,9 +3191,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
   if (!user) {
     // Auto-create from registrations if not yet a user
-    const regs = readData('registrations.json');
-    const reg  = (Array.isArray(regs) ? regs : [])
-      .find(r => r.email && r.email.toLowerCase() === email.toLowerCase());
+    const reg = await registrationsRepo.findByEmail(email);
     const name = reg ? ((reg.firstName||'') + ' ' + (reg.lastName||'')).trim() : email;
     try {
       user = await usersRepo.create({

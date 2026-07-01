@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   application_ref    VARCHAR(64)   NULL,
   started_at         DATETIME(3)   NULL,
   company            VARCHAR(255)  NOT NULL DEFAULT '',
-  account_type       ENUM('business','individual') NOT NULL DEFAULT 'business',
+  account_type       ENUM('business','individual','company') NOT NULL DEFAULT 'business',
   phone              VARCHAR(64)   NOT NULL DEFAULT '',
   country            VARCHAR(128)  NOT NULL DEFAULT '',
   city               VARCHAR(128)  NOT NULL DEFAULT '',
