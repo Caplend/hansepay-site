@@ -7,6 +7,7 @@ const mailer = (() => { try { return require('./lib/email'); } catch(e) { consol
 const xlsx = (() => { try { return require('./lib/xlsx'); } catch(e) { return null; } })();
 const crm     = (() => { try { return require('./lib/crm'); } catch(e) { return null; } })();
 const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { console.error('[legal-pdf] load failed:', e.message); return null; } })();
+const db = require('./lib/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -3467,3 +3468,9 @@ app.listen(PORT, () => {
   console.log(`Admin dashboard: http://localhost:${PORT}/hansepay/admin/`);
   console.log(`Blog: http://localhost:${PORT}/hansepay/blog.html`);
 });
+
+// Log-only MySQL connectivity check — does not block startup or affect any
+// request handling yet (no route reads from MySQL until later migration phases).
+db.assertConnected()
+  .then(() => console.log('[startup] MySQL: connected'))
+  .catch(err => console.error('[startup] MySQL: connection check failed —', err.message));
