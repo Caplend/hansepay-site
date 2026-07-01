@@ -20,6 +20,7 @@ const postsRepo = require('./lib/repositories/posts');
 const registrationsRepo = require('./lib/repositories/registrations');
 const customersRepo = require('./lib/repositories/customers');
 const activitiesRepo = require('./lib/repositories/activities');
+const bookingsRepo = require('./lib/repositories/bookings');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -65,9 +66,9 @@ const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
 // Entities already migrated to MySQL (currencies, legal_documents, page_seo,
 // app_settings, email_settings, email_templates, social_posts, users, posts,
-// registrations, customers, activities) are intentionally excluded here —
-// this seed-merge is file-storage-only and only covers pending entities.
-['bookings', 'analytics', 'readiness'].forEach(name => {
+// registrations, customers, activities, bookings) are intentionally excluded
+// here — this seed-merge is file-storage-only and only covers pending entities.
+['analytics', 'readiness'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -884,7 +885,7 @@ app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
   const analytics  = readData('analytics.json');
   const posts      = await postsRepo.listAll();
   const users      = await usersRepo.list();
-  const bookings   = readData('bookings.json');
+  const bookings   = await bookingsRepo.list();
 
   // Normalise: old records may not have a `type` field — treat them as pageviews
   const pageviews = analytics.filter(a => !a.type || a.type === 'pageview');
@@ -952,20 +953,16 @@ app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
 
 // ─── Bookings CRM routes ──────────────────────────────────────────────────────
 
-app.get('/api/bookings', authenticateToken, (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  res.json(list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+app.get('/api/bookings', authenticateToken, async (req, res) => {
+  res.json(await bookingsRepo.list());
 });
 
 // GET /api/bookings/latest — most recent inbound booking (API-key protected, no JWT login needed)
 // Use in Postman: GET https://hansepay-deploy-production-328c.up.railway.app/api/bookings/latest
 // Header: x-api-key: <INTERNAL_API_KEY>
-app.get('/api/bookings/latest', requireApiKey, (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  if (!list.length) return res.status(404).json({ error: 'No bookings found' });
-  const latest = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+app.get('/api/bookings/latest', requireApiKey, async (req, res) => {
+  const latest = await bookingsRepo.latest();
+  if (!latest) return res.status(404).json({ error: 'No bookings found' });
   res.json(latest);
 });
 
@@ -977,8 +974,6 @@ app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, async (req,
   const incoming = Array.isArray(req.body && req.body.bookings) ? req.body.bookings : [];
   if (!incoming.length) return res.status(400).json({ error: 'bookings array required' });
 
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
   const settings = await settingsRepo.get();
   const reps = Array.isArray(settings.salesReps) ? settings.salesReps.filter(r => r.active !== false) : [];
 
@@ -997,28 +992,24 @@ app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, async (req,
       meetLink:   null,
       eventId:    id,
       rebookToken: makeRebookToken(id),
+      cancelToken: makeCancelToken(id),
       assignedTo: rep ? { id: rep.id, name: rep.name, color: rep.color || '#1E4E80' } : null,
     };
-    list.push(rec);
+    await bookingsRepo.create(rec);
     try { await upsertCustomerFromLead(b.lead, { bookingId: id, slot: b.slot, source: 'booking' }); } catch (e) {}
     added.push(rec.id);
   }
-  writeData('bookings.json', list);
   console.log(`[booking] seeded ${added.length} mock bookings`);
   res.json({ ok: true, added });
 });
 
-app.patch('/api/bookings/:id', authenticateToken, (req, res) => {
-  const bookings = readData('bookings.json');
-  if (!Array.isArray(bookings)) return res.status(404).json({ error: 'Booking not found' });
-  const idx = bookings.findIndex(b => b.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Booking not found' });
-  ['status', 'notes'].forEach(k => {
-    if (req.body[k] !== undefined) bookings[idx][k] = req.body[k];
-  });
-  bookings[idx].updatedAt = new Date().toISOString();
-  writeData('bookings.json', bookings);
-  res.json(bookings[idx]);
+app.patch('/api/bookings/:id', authenticateToken, async (req, res) => {
+  const existing = await bookingsRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Booking not found' });
+  const patch = {};
+  ['status', 'notes'].forEach(k => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
+  const updated = await bookingsRepo.update(req.params.id, patch);
+  res.json(updated);
 });
 
 // ─── Email diagnostics ────────────────────────────────────────────────────────
@@ -1493,8 +1484,7 @@ app.get('/api/customers/:id', authenticateToken, async (req, res) => {
   if (!c) return res.status(404).json({ error: 'Customer not found' });
   const enriched = await enrichCustomer(c);
   enriched.activities = await activitiesFor(c.id);
-  const allBookings = readData('bookings.json');
-  enriched.bookings = (Array.isArray(allBookings) ? allBookings : []).filter(b => (c.bookingIds || []).includes(b.id));
+  enriched.bookings = await bookingsRepo.forCustomer(c.id);
   res.json(enriched);
 });
 
@@ -2099,7 +2089,7 @@ app.get('/api/marketing/summary', authenticateToken, async (req, res) => {
   const posts = await postsRepo.listAll();
   const seo = await seoRepo.getAll();
   const customers = await customersRepo.list();
-  const bookings = readData('bookings.json') || [];
+  const bookings = await bookingsRepo.list();
 
   const pageviews = analytics.filter(a => !a.type || a.type === 'pageview');
 
@@ -2374,37 +2364,31 @@ app.post('/api/booking', async (req, res) => {
     const rebookToken = makeRebookToken(bookingId);
     const host = `${req.protocol}://${req.get('host')}`;
 
-    // Persist to bookings CRM
+    // Persist the booking, upsert the customer, and log the activity — all in
+    // one transaction (previously three independent, non-atomic file writes).
     try {
-      const bookings = readData('bookings.json');
-      const list = Array.isArray(bookings) ? bookings : [];
-      // Auto-assign to first active rep by priority
       const settings = await settingsRepo.get();
       const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
       const assignedRep = reps.find(r => r.active !== false) || null;
-      list.push({
-        id:           bookingId,
-        createdAt:    new Date().toISOString(),
-        slot,
+      await bookingsRepo.createWithCustomerUpsert({
+        booking: {
+          id:           bookingId,
+          createdAt:    new Date().toISOString(),
+          slot,
+          lead,
+          status:       'new',
+          notes:        '',
+          meetLink:     event.hangoutLink || null,
+          eventId:      event.id,
+          rebookToken,
+          cancelToken:  makeCancelToken(bookingId),
+          assignedTo:   assignedRep ? { id: assignedRep.id, name: assignedRep.name, color: assignedRep.color || '#1E4E80' } : null,
+        },
         lead,
-        status:       'new',
-        notes:        '',
-        meetLink:     event.hangoutLink || null,
-        eventId:      event.id,
-        rebookToken,
-        cancelToken:  makeCancelToken(bookingId),
-        assignedTo:   assignedRep ? { id: assignedRep.id, name: assignedRep.name, color: assignedRep.color || '#1E4E80' } : null,
+        opts: { source: 'booking', slot },
       });
-      writeData('bookings.json', list);
     } catch (e) {
       console.error('[booking] CRM save error:', e.message);
-    }
-
-    // Upsert a customer profile + log the booking as an activity
-    try {
-      await upsertCustomerFromLead(lead, { bookingId, slot, source: 'booking' });
-    } catch (e) {
-      console.error('[booking] customer upsert error:', e.message);
     }
 
     // Send the branded confirmation email (fire-and-forget)
@@ -2446,10 +2430,8 @@ app.post('/api/booking', async (req, res) => {
 // ─── Rebooking routes (public — authenticated by rebookToken) ─────────────────
 
 // GET /api/booking/rebook/:token — fetch booking details for the rebook page (no login)
-app.get('/api/booking/rebook/:token', (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const b = list.find(b => b.rebookToken === req.params.token);
+app.get('/api/booking/rebook/:token', async (req, res) => {
+  const b = await bookingsRepo.findByRebookToken(req.params.token);
   if (!b) return res.status(404).json({ error: 'Booking not found. This link may have expired.' });
   // Return only what the rebook page needs — no internal fields
   res.json({
@@ -2467,12 +2449,9 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
   if (!slot?.startISO || !slot?.endISO) return res.status(400).json({ error: 'New slot required' });
   if (new Date(slot.startISO) < new Date()) return res.status(400).json({ error: 'That slot is in the past. Please pick another time.' });
 
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const idx = list.findIndex(b => b.rebookToken === req.params.token);
-  if (idx === -1) return res.status(404).json({ error: 'Booking not found.' });
+  const old = await bookingsRepo.findByRebookToken(req.params.token);
+  if (!old) return res.status(404).json({ error: 'Booking not found.' });
 
-  const old = list[idx];
   const lead = old.lead;
 
   try {
@@ -2484,7 +2463,7 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
     // Create new event
     const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'rebook_' + uuidv4().slice(0,8), htmlLink: '#', hangoutLink: null };
 
-    list[idx] = Object.assign({}, old, {
+    await bookingsRepo.update(old.id, {
       slot,
       status:      'new',
       meetLink:    event.hangoutLink || null,
@@ -2493,7 +2472,6 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
       rebookedAt:  new Date().toISOString(),
       updatedAt:   new Date().toISOString(),
     });
-    writeData('bookings.json', list);
 
     // Send rebook confirmation email
     if (mailer) {
@@ -2517,10 +2495,8 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
 });
 
 // GET /api/booking/cancel/:token — public, fetch booking details for cancel page
-app.get('/api/booking/cancel/:token', (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const b = list.find(b => (b.cancelToken || makeCancelToken(b.id)) === req.params.token);
+app.get('/api/booking/cancel/:token', async (req, res) => {
+  const b = await bookingsRepo.findByCancelToken(req.params.token);
   if (!b) return res.status(404).json({ error: 'Booking not found. This link may have expired.' });
   if (b.status === 'cancelled') return res.json({ id: b.id, cancelled: true, slot: b.slot, lead: { firstName: b.lead.firstName, lang: b.lead && b.lead.lang } });
   res.json({
@@ -2534,25 +2510,20 @@ app.get('/api/booking/cancel/:token', (req, res) => {
 
 // POST /api/booking/cancel/:token — public, customer cancels their booking
 app.post('/api/booking/cancel/:token', async (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const idx = list.findIndex(b => (b.cancelToken || makeCancelToken(b.id)) === req.params.token);
-  if (idx === -1) return res.status(404).json({ error: 'Booking not found.' });
-
-  const b = list[idx];
+  const b = await bookingsRepo.findByCancelToken(req.params.token);
+  if (!b) return res.status(404).json({ error: 'Booking not found.' });
   if (b.status === 'cancelled') return res.json({ success: true, alreadyCancelled: true });
 
   if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
     try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel] calendar:', e.message); }
   }
 
-  list[idx] = Object.assign({}, b, {
+  await bookingsRepo.update(b.id, {
     status:      'cancelled',
     cancelledAt: new Date().toISOString(),
     cancelledBy: 'customer',
     updatedAt:   new Date().toISOString(),
   });
-  writeData('bookings.json', list);
 
   if (mailer && b.lead && b.lead.email) {
     try {
@@ -2572,25 +2543,20 @@ app.post('/api/booking/cancel/:token', async (req, res) => {
 
 // DELETE /api/bookings/:id — admin-only cancel with customer notification email
 app.delete('/api/bookings/:id', authenticateToken, requireAdmin, async (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const idx = list.findIndex(b => b.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Booking not found' });
-
-  const b = list[idx];
+  const b = await bookingsRepo.findById(req.params.id);
+  if (!b) return res.status(404).json({ error: 'Booking not found' });
 
   if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
     try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel/admin] calendar:', e.message); }
   }
 
-  list[idx] = Object.assign({}, b, {
+  const updated = await bookingsRepo.update(b.id, {
     status:          'cancelled',
     cancelledAt:     new Date().toISOString(),
     cancelledBy:     'admin',
     cancelledByName: req.user.name || req.user.email,
     updatedAt:       new Date().toISOString(),
   });
-  writeData('bookings.json', list);
 
   if (mailer && b.lead && b.lead.email) {
     try {
@@ -2605,25 +2571,16 @@ app.delete('/api/bookings/:id', authenticateToken, requireAdmin, async (req, res
   }
 
   console.log(`[booking] cancelled by admin (${req.user.email}): ${b.lead && b.lead.email} @ ${b.slot && b.slot.startISO}`);
-  res.json({ success: true, booking: list[idx] });
+  res.json({ success: true, booking: updated });
 });
 
 // ─── Bookings: calendar feed + assignment ─────────────────────────────────────
 
 // GET /api/bookings/calendar?start=ISO&end=ISO — for admin calendar view
-app.get('/api/bookings/calendar', authenticateToken, (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
+app.get('/api/bookings/calendar', authenticateToken, async (req, res) => {
   const { start, end } = req.query;
-  const from = start ? new Date(start) : null;
-  const to   = end   ? new Date(end)   : null;
-  const filtered = list.filter(b => {
-    if (!b.slot?.startISO) return false;
-    const d = new Date(b.slot.startISO);
-    if (from && d < from) return false;
-    if (to   && d > to)   return false;
-    return true;
-  }).map(b => ({
+  const list = await bookingsRepo.calendarRange({ start, end });
+  const filtered = list.map(b => ({
     id: b.id, status: b.status, meetLink: b.meetLink,
     slot: b.slot, notes: b.notes || '',
     assignedTo: b.assignedTo || null, rebooked: b.rebooked || false,
@@ -2634,15 +2591,14 @@ app.get('/api/bookings/calendar', authenticateToken, (req, res) => {
 });
 
 // PATCH /api/bookings/:id/assign — assign booking to a rep
-app.patch('/api/bookings/:id/assign', authenticateToken, (req, res) => {
-  const bookings = readData('bookings.json');
-  const list = Array.isArray(bookings) ? bookings : [];
-  const idx = list.findIndex(b => b.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Booking not found' });
-  list[idx].assignedTo = req.body.rep || null; // { id, name, color } or null
-  list[idx].updatedAt  = new Date().toISOString();
-  writeData('bookings.json', list);
-  res.json(list[idx]);
+app.patch('/api/bookings/:id/assign', authenticateToken, async (req, res) => {
+  const existing = await bookingsRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Booking not found' });
+  const updated = await bookingsRepo.update(req.params.id, {
+    assignedTo: req.body.rep || null, // { id, name, color } or null
+    updatedAt: new Date().toISOString(),
+  });
+  res.json(updated);
 });
 
 // ─── Legal document routes ────────────────────────────────────────────────────
