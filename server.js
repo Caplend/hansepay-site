@@ -21,6 +21,7 @@ const registrationsRepo = require('./lib/repositories/registrations');
 const customersRepo = require('./lib/repositories/customers');
 const activitiesRepo = require('./lib/repositories/activities');
 const bookingsRepo = require('./lib/repositories/bookings');
+const transactionsRepo = require('./lib/repositories/transactions');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -2992,9 +2993,8 @@ app.put('/api/pricing/users/:id', authenticateToken, requireAdmin, async (req, r
 // GET /api/tx/all — admin only. Returns every saved transaction, newest first.
 // The admin dashboard reads these (localStorage is per-origin, so the user
 // dashboard's hp_txlog is invisible to the admin domain).
-app.get('/api/tx/all', authenticateToken, requireAdmin, (req, res) => {
-  const txs = readData('transactions.json') || [];
-  res.json(txs.slice().reverse());
+app.get('/api/tx/all', authenticateToken, requireAdmin, async (req, res) => {
+  res.json(await transactionsRepo.listAll());
 });
 
 // POST /api/tx/submit — authenticated. Saves a completed transaction and sends confirmation email.
@@ -3003,11 +3003,7 @@ app.post('/api/tx/submit', authenticateToken, async (req, res) => {
   const tx = req.body || {};
   if (!tx.userEmail) return res.status(400).json({ error: 'userEmail is required' });
 
-  // Append to transactions.json
-  const txs = readData('transactions.json') || [];
-  const record = { ...tx, savedAt: new Date().toISOString() };
-  txs.push(record);
-  writeData('transactions.json', txs);
+  const record = await transactionsRepo.create(tx);
   console.log(`[tx] saved transaction for ${tx.userEmail}: ${tx.sendAmount || tx.amount} ${tx.sendCurrency || tx.currency || 'EUR'} → ${tx.recipientName || tx.recipient || '?'}`);
 
   // Send confirmation email

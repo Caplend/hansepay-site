@@ -143,18 +143,17 @@ CREATE TABLE IF NOT EXISTS registrations (
   KEY idx_registrations_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 6. transactions (new surrogate PK — no existing external ID to preserve)
+-- 6. transactions (new surrogate PK — no existing external ID to preserve).
+-- Real data has inconsistent field naming across records (amt vs amount,
+-- sendAmount/receiveAmount vs dir/direction, etc.) and the app only ever
+-- reads/writes the whole object — never queries by an individual finance
+-- field — so everything rides in `extra` rather than named columns that could
+-- silently miss a differently-named field and drop data.
 CREATE TABLE IF NOT EXISTS transactions (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_email      VARCHAR(255)    NOT NULL,
-  amount          DECIMAL(18,2)   NULL,
-  currency        VARCHAR(8)      NULL,
-  send_amount     DECIMAL(18,2)   NULL,
-  send_currency   VARCHAR(8)      NULL,
-  recipient_name  VARCHAR(255)    NULL,
-  recipient       VARCHAR(255)    NULL,
-  extra           JSON            NULL,
   saved_at        DATETIME(3)     NOT NULL,
+  extra           JSON            NOT NULL,
   KEY idx_transactions_user_email (user_email),
   KEY idx_transactions_saved_at (saved_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
