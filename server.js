@@ -22,6 +22,7 @@ const customersRepo = require('./lib/repositories/customers');
 const activitiesRepo = require('./lib/repositories/activities');
 const bookingsRepo = require('./lib/repositories/bookings');
 const transactionsRepo = require('./lib/repositories/transactions');
+const analyticsRepo = require('./lib/repositories/analyticsEvents');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -67,9 +68,10 @@ const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
 // Entities already migrated to MySQL (currencies, legal_documents, page_seo,
 // app_settings, email_settings, email_templates, social_posts, users, posts,
-// registrations, customers, activities, bookings) are intentionally excluded
-// here — this seed-merge is file-storage-only and only covers pending entities.
-['analytics', 'readiness'].forEach(name => {
+// registrations, customers, activities, bookings, transactions,
+// analytics_events) are intentionally excluded here. `readiness` remains
+// file-based — it was never part of this migration's scope.
+['readiness'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -853,37 +855,21 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
 // ─── Analytics routes ─────────────────────────────────────────────────────────
 
 // Legacy pageview endpoint (kept for backwards compat)
-app.post('/api/analytics/pageview', (req, res) => {
+app.post('/api/analytics/pageview', async (req, res) => {
   const { page, referrer } = req.body;
-  const analytics = readData('analytics.json');
-  analytics.push({
-    id: uuidv4(),
-    type: 'pageview',
-    page: page || '/',
-    referrer: referrer || '',
-    timestamp: new Date().toISOString()
-  });
-  writeData('analytics.json', analytics);
+  await analyticsRepo.create({ type: 'pageview', page: page || '/', referrer: referrer || '' });
   res.json({ success: true });
 });
 
 // Generic event tracking (pageview, booking_modal_open, booking_submitted, etc.)
-app.post('/api/analytics/event', (req, res) => {
+app.post('/api/analytics/event', async (req, res) => {
   const { event, page, data } = req.body;
-  const analytics = readData('analytics.json');
-  analytics.push({
-    id: uuidv4(),
-    type: event || 'pageview',
-    page: page || '/',
-    data: data || {},
-    timestamp: new Date().toISOString()
-  });
-  writeData('analytics.json', analytics);
+  await analyticsRepo.create({ type: event || 'pageview', page: page || '/', data: data || {} });
   res.json({ success: true });
 });
 
 app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
-  const analytics  = readData('analytics.json');
+  const analytics  = await analyticsRepo.listAll();
   const posts      = await postsRepo.listAll();
   const users      = await usersRepo.list();
   const bookings   = await bookingsRepo.list();
@@ -2086,7 +2072,7 @@ function classifyChannel(referrer, data) {
 }
 
 app.get('/api/marketing/summary', authenticateToken, async (req, res) => {
-  const analytics = readData('analytics.json') || [];
+  const analytics = await analyticsRepo.listAll();
   const posts = await postsRepo.listAll();
   const seo = await seoRepo.getAll();
   const customers = await customersRepo.list();
