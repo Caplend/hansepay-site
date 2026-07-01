@@ -18,6 +18,8 @@ const socialPostsRepo = require('./lib/repositories/socialPosts');
 const usersRepo = require('./lib/repositories/users');
 const postsRepo = require('./lib/repositories/posts');
 const registrationsRepo = require('./lib/repositories/registrations');
+const customersRepo = require('./lib/repositories/customers');
+const activitiesRepo = require('./lib/repositories/activities');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -62,10 +64,10 @@ try {
 const SEEDS_DIR = path.join(__dirname, 'seeds');
 console.log('[startup] SEEDS_DIR  :', SEEDS_DIR, '— exists:', fs.existsSync(SEEDS_DIR));
 // Entities already migrated to MySQL (currencies, legal_documents, page_seo,
-// app_settings, email_settings, email_templates, social_posts, users, posts)
-// are intentionally excluded here — this seed-merge is file-storage-only and
-// only covers entities still pending migration.
-['bookings', 'analytics', 'customers', 'activities', 'readiness'].forEach(name => {
+// app_settings, email_settings, email_templates, social_posts, users, posts,
+// registrations, customers, activities) are intentionally excluded here —
+// this seed-merge is file-storage-only and only covers pending entities.
+['bookings', 'analytics', 'readiness'].forEach(name => {
   const live = path.join(DATA_DIR, `${name}.json`);
   const seed = path.join(SEEDS_DIR, `${name}.seed.json`);
   if (!fs.existsSync(live) && fs.existsSync(seed)) {
@@ -252,97 +254,60 @@ function makeCancelToken(bookingId) {
 
 // ─── CRM helpers ──────────────────────────────────────────────────────────────
 
-function logActivity({ customerId, type, title, body, by }) {
-  const activities = readData('activities.json');
-  const list = Array.isArray(activities) ? activities : [];
-  const entry = {
-    id:         'act_' + uuidv4().replace(/-/g, '').substring(0, 10),
-    customerId,
-    type:       type || 'note',
-    title:      title || '',
-    body:       body || '',
-    by:         by || 'system',
-    at:         new Date().toISOString(),
-  };
-  list.push(entry);
-  writeData('activities.json', list);
-  return entry;
+async function logActivity({ customerId, type, title, body, by }, conn) {
+  return activitiesRepo.create({ customerId, type, title, body, by }, conn);
 }
 
-function activitiesFor(customerId) {
-  const activities = readData('activities.json');
-  return (Array.isArray(activities) ? activities : [])
-    .filter(a => a.customerId === customerId)
-    .sort((a, b) => new Date(b.at) - new Date(a.at));
+async function activitiesFor(customerId, conn) {
+  return activitiesRepo.forCustomer(customerId, conn);
 }
 
-// Create or update a customer from an inbound lead (e.g. a booking).
-function upsertCustomerFromLead(lead, opts) {
+// Create or update a customer from an inbound lead (e.g. a booking). Wrapped in
+// a transaction so the customer upsert and its activity log never diverge.
+async function upsertCustomerFromLead(lead, opts) {
   opts = opts || {};
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
-  const email = (lead.email || '').toLowerCase().trim();
-  const now = new Date().toISOString();
+  return customersRepo.withTransaction(async (conn) => {
+    const email = (lead.email || '').toLowerCase().trim();
+    const now = new Date().toISOString();
 
-  let cust = email ? list.find(c => (c.email || '').toLowerCase() === email) : null;
-  let isNew = false;
+    let cust = email ? await customersRepo.findByEmail(email, conn) : null;
+    let isNew = false;
 
-  if (!cust) {
-    isNew = true;
-    cust = {
-      id:        'cust_' + uuidv4().replace(/-/g, '').substring(0, 10),
-      firstName: lead.firstName || '',
-      lastName:  lead.lastName || '',
-      email:     lead.email || '',
-      phone:     lead.phone || '',
-      website:   lead.website || '',
-      company:   lead.company || '',
-      industry:  lead.industry || '',
-      companySize: lead.companySize || '',
-      country:   lead.country || '',
-      city:      lead.city || '',
-      fxVolume:  lead.fxVolume || '',
-      currencyPairs: lead.currencyPairs || '',
-      stage:     'lead',
-      status:    'prospect',
-      owner:     '',
-      source:    opts.source || 'booking',
-      tags:      [],
-      notes:     lead.notes || '',
-      bookingIds: [],
-      lastContactAt:  now,
-      nextFollowUpAt: null,
-      lang:      lead.lang || 'de',
-      createdAt: now,
-      updatedAt: now,
-    };
-    list.push(cust);
-  } else {
-    // Fill blanks from the new lead, keep existing CRM edits
-    ['firstName', 'lastName', 'company', 'phone', 'website', 'industry', 'companySize', 'country', 'city', 'fxVolume'].forEach(k => {
-      if (!cust[k] && lead[k]) cust[k] = lead[k];
-    });
-    cust.lastContactAt = now;
-    cust.updatedAt = now;
-    if (cust.status === 'churned') cust.status = 'active'; // re-engaged
-  }
+    if (!cust) {
+      isNew = true;
+      cust = await customersRepo.create({
+        firstName: lead.firstName || '', lastName: lead.lastName || '', email: lead.email || '',
+        phone: lead.phone || '', website: lead.website || '', company: lead.company || '',
+        industry: lead.industry || '', companySize: lead.companySize || '', country: lead.country || '',
+        city: lead.city || '', fxVolume: lead.fxVolume || '', currencyPairs: lead.currencyPairs || '',
+        stage: 'lead', status: 'prospect', owner: '', source: opts.source || 'booking', tags: [],
+        notes: lead.notes || '', bookingIds: [], lastContactAt: now, nextFollowUpAt: null,
+        lang: lead.lang || 'de', createdAt: now, updatedAt: now,
+      }, conn);
+    } else {
+      // Fill blanks from the new lead, keep existing CRM edits
+      const patch = { lastContactAt: now, updatedAt: now };
+      ['firstName', 'lastName', 'company', 'phone', 'website', 'industry', 'companySize', 'country', 'city', 'fxVolume'].forEach(k => {
+        if (!cust[k] && lead[k]) patch[k] = lead[k];
+      });
+      if (cust.status === 'churned') patch.status = 'active'; // re-engaged
+      cust = await customersRepo.update(cust.id, patch, conn);
+    }
 
-  if (opts.bookingId) {
-    cust.bookingIds = cust.bookingIds || [];
-    if (!cust.bookingIds.includes(opts.bookingId)) cust.bookingIds.push(opts.bookingId);
-  }
+    if (opts.bookingId) {
+      cust = await customersRepo.appendBookingId(cust.id, opts.bookingId, conn);
+    }
 
-  writeData('customers.json', list);
+    await logActivity({
+      customerId: cust.id,
+      type:       'booking',
+      title:      isNew ? 'New lead from booking' : 'Repeat booking',
+      body:       opts.slot ? `Discovery call booked for ${opts.slot.label || opts.slot.startISO}` : 'Discovery call booked',
+      by:         'system',
+    }, conn);
 
-  logActivity({
-    customerId: cust.id,
-    type:       'booking',
-    title:      isNew ? 'New lead from booking' : 'Repeat booking',
-    body:       opts.slot ? `Discovery call booked for ${opts.slot.label || opts.slot.startISO}` : 'Discovery call booked',
-    by:         'system',
+    return cust;
   });
-
-  return cust;
 }
 
 // ─── Auth middleware ─────────────────────────────────────────────────────────
@@ -1017,7 +982,9 @@ app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, async (req,
   const settings = await settingsRepo.get();
   const reps = Array.isArray(settings.salesReps) ? settings.salesReps.filter(r => r.active !== false) : [];
 
-  const added = incoming.map((b, i) => {
+  const added = [];
+  for (let i = 0; i < incoming.length; i++) {
+    const b = incoming[i];
     const id = 'mock_' + Date.now() + '_' + i;
     const rep = reps.length ? reps[i % reps.length] : null;
     const rec = {
@@ -1033,9 +1000,9 @@ app.post('/api/bookings/seed-mock', authenticateToken, requireAdmin, async (req,
       assignedTo: rep ? { id: rep.id, name: rep.name, color: rep.color || '#1E4E80' } : null,
     };
     list.push(rec);
-    try { upsertCustomerFromLead(b.lead, { bookingId: id, slot: b.slot, source: 'booking' }); } catch (e) {}
-    return rec.id;
-  });
+    try { await upsertCustomerFromLead(b.lead, { bookingId: id, slot: b.slot, source: 'booking' }); } catch (e) {}
+    added.push(rec.id);
+  }
   writeData('bookings.json', list);
   console.log(`[booking] seeded ${added.length} mock bookings`);
   res.json({ ok: true, added });
@@ -1408,9 +1375,9 @@ function parseFxVolume(v) {
   return nums.length ? Math.max(...nums) : 0;
 }
 
-app.get('/api/crm/customers', requireApiKey, (req, res) => {
-  const raw = readData('customers.json');
-  let list = (Array.isArray(raw) ? raw : []).map(enrichCustomer);
+app.get('/api/crm/customers', requireApiKey, async (req, res) => {
+  const raw = await customersRepo.list();
+  let list = await Promise.all(raw.map(enrichCustomer));
 
   // ── Filters ──────────────────────────────────────────────────────────────
   const { sort, stage, status, source, country, q, limit, fields } = req.query;
@@ -1472,14 +1439,14 @@ app.get('/api/crm/customers', requireApiKey, (req, res) => {
 // ─── CRM: Customers ─────────────────────────────────────────────────────────
 
 // Enrich a customer with health/value using its activities
-function enrichCustomer(c) {
+async function enrichCustomer(c) {
   if (!crm) return c;
-  return crm.enrich(c, activitiesFor(c.id));
+  return crm.enrich(c, await activitiesFor(c.id));
 }
 
-app.get('/api/customers', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  let list = (Array.isArray(customers) ? customers : []).map(enrichCustomer);
+app.get('/api/customers', authenticateToken, async (req, res) => {
+  const customers = await customersRepo.list();
+  let list = await Promise.all(customers.map(enrichCustomer));
 
   const { stage, status, churn, source, owner, q } = req.query;
   if (stage)  list = list.filter(c => c.stage === stage);
@@ -1498,11 +1465,14 @@ app.get('/api/customers', authenticateToken, (req, res) => {
   res.json(list);
 });
 
-app.get('/api/customers/export', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
+app.get('/api/customers/export', authenticateToken, async (req, res) => {
+  const list = await customersRepo.list();
   if (!crm) return res.status(503).json({ error: 'CRM module unavailable' });
-  const aoa = crm.toExportRows(list, enrichCustomer);
+  // toExportRows() calls its enrich callback synchronously, so pre-enrich
+  // every customer up front and hand it a synchronous lookup function.
+  const enrichedById = new Map();
+  await Promise.all(list.map(async c => enrichedById.set(c.id, await enrichCustomer(c))));
+  const aoa = crm.toExportRows(list, c => enrichedById.get(c.id));
   const stamp = new Date().toISOString().slice(0, 10);
   const format = (req.query.format || 'csv').toLowerCase();
 
@@ -1518,12 +1488,11 @@ app.get('/api/customers/export', authenticateToken, (req, res) => {
   res.send(csv);
 });
 
-app.get('/api/customers/:id', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  const c = (Array.isArray(customers) ? customers : []).find(x => x.id === req.params.id);
+app.get('/api/customers/:id', authenticateToken, async (req, res) => {
+  const c = await customersRepo.findById(req.params.id);
   if (!c) return res.status(404).json({ error: 'Customer not found' });
-  const enriched = enrichCustomer(c);
-  enriched.activities = activitiesFor(c.id);
+  const enriched = await enrichCustomer(c);
+  enriched.activities = await activitiesFor(c.id);
   const allBookings = readData('bookings.json');
   enriched.bookings = (Array.isArray(allBookings) ? allBookings : []).filter(b => (c.bookingIds || []).includes(b.id));
   res.json(enriched);
@@ -1534,78 +1503,68 @@ const CUSTOMER_FIELDS = ['firstName', 'lastName', 'email', 'phone', 'website', '
   'stage', 'status', 'owner', 'source', 'tags', 'notes', 'estValueEur',
   'lastContactAt', 'nextFollowUpAt', 'lang'];
 
-app.post('/api/customers', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
+app.post('/api/customers', authenticateToken, async (req, res) => {
   if (!req.body.company && !req.body.email && !req.body.firstName) {
     return res.status(400).json({ error: 'At least a company, name or email is required' });
   }
   const now = new Date().toISOString();
-  const cust = {
-    id: 'cust_' + uuidv4().replace(/-/g, '').substring(0, 10),
-    stage: 'lead', status: 'prospect', source: 'manual', tags: [], bookingIds: [],
-    owner: req.user.name || '', lastContactAt: now, nextFollowUpAt: null,
-    createdAt: now, updatedAt: now,
-  };
-  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) cust[k] = req.body[k]; });
-  list.push(cust);
-  writeData('customers.json', list);
-  logActivity({ customerId: cust.id, type: 'note', title: 'Customer created', by: req.user.name });
-  res.status(201).json(enrichCustomer(cust));
+  const fields = { stage: 'lead', status: 'prospect', source: 'manual', tags: [], bookingIds: [],
+    owner: req.user.name || '', lastContactAt: now, nextFollowUpAt: null, createdAt: now, updatedAt: now };
+  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) fields[k] = req.body[k]; });
+
+  const cust = await customersRepo.withTransaction(async (conn) => {
+    const created = await customersRepo.create(fields, conn);
+    await logActivity({ customerId: created.id, type: 'note', title: 'Customer created', by: req.user.name }, conn);
+    return created;
+  });
+  res.status(201).json(await enrichCustomer(cust));
 });
 
-app.put('/api/customers/:id', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
-  const idx = list.findIndex(c => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+app.put('/api/customers/:id', authenticateToken, async (req, res) => {
+  const existing = await customersRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Customer not found' });
 
-  const prevStage = list[idx].stage;
-  const prevStatus = list[idx].status;
-  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) list[idx][k] = req.body[k]; });
-  list[idx].updatedAt = new Date().toISOString();
-  writeData('customers.json', list);
+  const prevStage = existing.stage;
+  const prevStatus = existing.status;
+  const patch = {};
+  CUSTOMER_FIELDS.forEach(k => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
 
-  if (req.body.stage && req.body.stage !== prevStage) {
-    logActivity({ customerId: list[idx].id, type: 'stage_change',
-      title: `Stage: ${crm ? (crm.STAGE_LABELS[prevStage] || prevStage) : prevStage} → ${crm ? (crm.STAGE_LABELS[req.body.stage] || req.body.stage) : req.body.stage}`,
-      by: req.user.name });
-  }
-  if (req.body.status && req.body.status !== prevStatus) {
-    logActivity({ customerId: list[idx].id, type: 'stage_change',
-      title: `Status: ${prevStatus} → ${req.body.status}`, by: req.user.name });
-  }
-  res.json(enrichCustomer(list[idx]));
+  const updated = await customersRepo.withTransaction(async (conn) => {
+    const saved = await customersRepo.update(req.params.id, patch, conn);
+    if (req.body.stage && req.body.stage !== prevStage) {
+      await logActivity({ customerId: saved.id, type: 'stage_change',
+        title: `Stage: ${crm ? (crm.STAGE_LABELS[prevStage] || prevStage) : prevStage} → ${crm ? (crm.STAGE_LABELS[req.body.stage] || req.body.stage) : req.body.stage}`,
+        by: req.user.name }, conn);
+    }
+    if (req.body.status && req.body.status !== prevStatus) {
+      await logActivity({ customerId: saved.id, type: 'stage_change',
+        title: `Status: ${prevStatus} → ${req.body.status}`, by: req.user.name }, conn);
+    }
+    return saved;
+  });
+  res.json(await enrichCustomer(updated));
 });
 
-app.delete('/api/customers/:id', authenticateToken, requireAdmin, (req, res) => {
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
-  const idx = list.findIndex(c => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
-  list.splice(idx, 1);
-  writeData('customers.json', list);
-  // Drop associated activities
-  const activities = readData('activities.json');
-  writeData('activities.json', (Array.isArray(activities) ? activities : []).filter(a => a.customerId !== req.params.id));
+app.delete('/api/customers/:id', authenticateToken, requireAdmin, async (req, res) => {
+  // activities.customer_id has ON DELETE CASCADE — no separate cleanup needed.
+  const ok = await customersRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Customer not found' });
   res.json({ success: true });
 });
 
 // Add an activity / interaction; contact-type activities advance lastContactAt
-app.post('/api/customers/:id/activities', authenticateToken, (req, res) => {
-  const customers = readData('customers.json');
-  const list = Array.isArray(customers) ? customers : [];
-  const idx = list.findIndex(c => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+app.post('/api/customers/:id/activities', authenticateToken, async (req, res) => {
+  const existing = await customersRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Customer not found' });
 
   const { type, title, body } = req.body;
-  const entry = logActivity({ customerId: req.params.id, type, title, body, by: req.user.name });
-
-  if (['call', 'email', 'meeting', 'note'].includes(type)) {
-    list[idx].lastContactAt = new Date().toISOString();
-    list[idx].updatedAt = new Date().toISOString();
-    writeData('customers.json', list);
-  }
+  const entry = await customersRepo.withTransaction(async (conn) => {
+    const created = await logActivity({ customerId: req.params.id, type, title, body, by: req.user.name }, conn);
+    if (['call', 'email', 'meeting', 'note'].includes(type)) {
+      await customersRepo.update(req.params.id, { lastContactAt: new Date().toISOString() }, conn);
+    }
+    return created;
+  });
   res.status(201).json(entry);
 });
 
@@ -1766,11 +1725,9 @@ app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
-  const customers = readData('customers.json');
-  const idx = customers.findIndex(c => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+  const c = await customersRepo.findById(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Customer not found' });
 
-  const c = customers[idx];
   const companyName = c.company || req.body.company || '';
   const website     = c.website || req.body.website || '';
   const industry    = c.industry || req.body.industry || '';
@@ -1825,19 +1782,15 @@ Return ONLY valid JSON (no markdown, no explanation):
   try {
     const brief = await callClaude(apiKey, prompt, 1200);
 
-    // Store on customer record
-    customers[idx].aiResearch    = brief;
-    customers[idx].researchedAt  = new Date().toISOString();
-    customers[idx].updatedAt     = new Date().toISOString();
-    writeData('customers.json', customers);
-
-    // Log as activity
-    logActivity({
-      customerId: c.id,
-      type: 'note',
-      title: 'AI research completed',
-      body: `Relevance score: ${brief.relevanceScore}/5. ${brief.fxAngle || ''}`,
-      by: req.user.name || 'system',
+    await customersRepo.withTransaction(async (conn) => {
+      await customersRepo.update(c.id, { aiResearch: brief, researchedAt: new Date().toISOString() }, conn);
+      await logActivity({
+        customerId: c.id,
+        type: 'note',
+        title: 'AI research completed',
+        body: `Relevance score: ${brief.relevanceScore}/5. ${brief.fxAngle || ''}`,
+        by: req.user.name || 'system',
+      }, conn);
     });
 
     res.json({ success: true, research: brief });
@@ -1919,9 +1872,8 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
   if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
 
-  const customers = readData('customers.json');
-  const idx = customers.findIndex(c => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Customer not found' });
+  const customer = await customersRepo.findById(req.params.id);
+  if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
   // Sanitise incoming column definitions
   const columns = (Array.isArray(req.body.columns) ? req.body.columns : [])
@@ -1937,7 +1889,7 @@ app.post('/api/customers/:id/analyze', authenticateToken, async (req, res) => {
   if (!columns.length) return res.status(400).json({ error: 'Provide at least one criterion column.' });
   if (columns.length > 20) return res.status(400).json({ error: 'Too many columns (max 20 per run).' });
 
-  const c           = customers[idx];
+  const c           = customer;
   const companyName = c.company || '';
   const website     = c.website || '';
   if (!companyName) return res.status(400).json({ error: 'Customer has no company name to analyse.' });
@@ -2045,19 +1997,22 @@ ${jsonShape}`;
       }
     });
 
-    customers[idx].analysis        = Object.assign({}, customers[idx].analysis, clean);
-    customers[idx].analysisConf    = Object.assign({}, customers[idx].analysisConf, conf);
-    if (webEnabled) customers[idx].analysisSources = sources.slice(0, 8);
-    customers[idx].analyzedAt  = new Date().toISOString();
-    customers[idx].updatedAt   = new Date().toISOString();
-    writeData('customers.json', customers);
+    const patch = {
+      analysis: Object.assign({}, c.analysis, clean),
+      analysisConf: Object.assign({}, c.analysisConf, conf),
+      analyzedAt: new Date().toISOString(),
+    };
+    if (webEnabled) patch.analysisSources = sources.slice(0, 8);
 
-    logActivity({
-      customerId: c.id,
-      type: 'note',
-      title: 'Bulk analysis',
-      body: `Enriched ${columns.length} ${columns.length === 1 ? 'criterion' : 'criteria'}${webEnabled ? ' (web search)' : ''}.`,
-      by: req.user.name || 'system',
+    await customersRepo.withTransaction(async (conn) => {
+      await customersRepo.update(c.id, patch, conn);
+      await logActivity({
+        customerId: c.id,
+        type: 'note',
+        title: 'Bulk analysis',
+        body: `Enriched ${columns.length} ${columns.length === 1 ? 'criterion' : 'criteria'}${webEnabled ? ' (web search)' : ''}.`,
+        by: req.user.name || 'system',
+      }, conn);
     });
 
     res.json({ success: true, values: clean, confidence: conf, web: webEnabled, sources: sources.slice(0, 8) });
@@ -2069,8 +2024,8 @@ ${jsonShape}`;
 
 // ─── Sales: pipeline + summary ────────────────────────────────────────────────
 
-app.get('/api/sales/summary', authenticateToken, (req, res) => {
-  const customers = (readData('customers.json') || []).map(enrichCustomer);
+app.get('/api/sales/summary', authenticateToken, async (req, res) => {
+  const customers = await Promise.all((await customersRepo.list()).map(enrichCustomer));
   const stages = crm ? crm.STAGES : ['lead', 'qualified', 'proposal', 'won', 'lost'];
 
   const byStage = {};
@@ -2143,7 +2098,7 @@ app.get('/api/marketing/summary', authenticateToken, async (req, res) => {
   const analytics = readData('analytics.json') || [];
   const posts = await postsRepo.listAll();
   const seo = await seoRepo.getAll();
-  const customers = readData('customers.json') || [];
+  const customers = await customersRepo.list();
   const bookings = readData('bookings.json') || [];
 
   const pageviews = analytics.filter(a => !a.type || a.type === 'pageview');
@@ -2447,7 +2402,7 @@ app.post('/api/booking', async (req, res) => {
 
     // Upsert a customer profile + log the booking as an activity
     try {
-      upsertCustomerFromLead(lead, { bookingId, slot, source: 'booking' });
+      await upsertCustomerFromLead(lead, { bookingId, slot, source: 'booking' });
     } catch (e) {
       console.error('[booking] customer upsert error:', e.message);
     }
