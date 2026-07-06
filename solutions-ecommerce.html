@@ -166,12 +166,13 @@ section{position:relative}
 .ic-select:focus{border-color:var(--n300)}
 .ic-arrow{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--ink3)}
 .ic-result{background:linear-gradient(135deg,var(--n700) 0%,var(--n500) 100%);border-radius:var(--r-md);padding:22px 24px;color:#fff}
-.ic-result-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.ic-result-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
 .ic-result-row:last-of-type{margin-bottom:0}
-.ic-result-lbl{font-size:11px;font-weight:500;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase}
-.ic-result-val{font-family:var(--font-display);font-size:18px;font-weight:400;color:#fff;font-variant-numeric:tabular-nums}
+.ic-result-lbl{font-size:11px;font-weight:500;color:rgba(255,255,255,.55);letter-spacing:.06em;text-transform:uppercase;min-width:0}
+.ic-result-val{font-family:var(--font-display);font-size:18px;font-weight:400;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap;flex-shrink:0}
 .ic-saving{margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .ic-saving-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;padding-top:4px}
+.ic-saving-figure{white-space:nowrap;flex-shrink:0;line-height:1}
 .ic-saving-num{font-family:var(--font-display);font-style:italic;font-weight:300;font-size:clamp(32px,4vw,48px);color:#fff;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
 .ic-saving-ccy{font-family:var(--font-display);font-weight:400;font-size:clamp(32px,4vw,48px);color:var(--n200);letter-spacing:-.02em;line-height:1}
 </style>
@@ -541,7 +542,7 @@ section{position:relative}
             </div>
             <div class="ic-saving">
               <span class="ic-saving-lbl" data-i18n="sol-ecom.calc.result.saving">Annual saving</span>
-              <span style="line-height:1"><span class="ic-saving-num" id="ic-save-big">22.000</span><span class="ic-saving-ccy"> €</span></span>
+              <span class="ic-saving-figure"><span class="ic-saving-num" id="ic-save-big">22.000</span><span class="ic-saving-ccy"> €</span></span>
             </div>
           </div>
           <a href="tools-calculator.html" class="btn btn-primary" style="margin-top:20px;width:100%;justify-content:center" data-i18n="sol-ecom.calc.cta">Full calculator with breakdown →</a>
