@@ -394,16 +394,14 @@ app.post('/api/auth/register', async (req, res) => {
   }
 
   const existing = await usersRepo.findByEmail(email);
+  if (existing) {
+    return res.status(409).json({ error: 'An account with this email already exists' });
+  }
+
   const passwordHash = bcrypt.hashSync(password, 10);
   const name = ((firstName || '') + ' ' + (lastName || '')).trim() || email;
-
-  if (existing) {
-    // Update credentials for returning user (re-registration / password change)
-    await usersRepo.update(existing.id, { passwordHash, name: name || existing.name });
-  } else {
-    await usersRepo.create({ name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null });
-  }
-  console.log(`[auth] register: ${email} (${existing ? 'updated' : 'created'})`);
+  await usersRepo.create({ name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null });
+  console.log(`[auth] register: ${email} (created)`);
   res.json({ ok: true });
 });
 
