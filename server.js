@@ -400,7 +400,18 @@ app.post('/api/auth/register', async (req, res) => {
 
   const passwordHash = bcrypt.hashSync(password, 10);
   const name = ((firstName || '') + ' ' + (lastName || '')).trim() || email;
-  await usersRepo.create({ name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null });
+  try {
+    await usersRepo.create({ name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null });
+  } catch (e) {
+    // The base64-prefix id scheme (usersRepo.idFromEmail) can collide for similar
+    // emails (e.g. "user+tag1@x.com" vs "user+tag2@x.com") — fall back to a fresh
+    // uuid-based id rather than letting the DB error crash the process. Same
+    // pattern as /api/auth/reset-password.
+    await usersRepo.create({
+      id: 'usr_' + uuidv4().replace(/-/g, '').substring(0, 8),
+      name, email, passwordHash, role: 'user', avatar: '', createdAt: new Date().toISOString(), lastLogin: null,
+    });
+  }
   console.log(`[auth] register: ${email} (created)`);
   res.json({ ok: true });
 });
