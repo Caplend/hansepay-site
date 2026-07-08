@@ -2213,7 +2213,11 @@ app.get('/sitemap.xml', async (req, res) => {
 // ─── Settings routes ──────────────────────────────────────────────────────────
 
 app.get('/api/settings', authenticateToken, async (req, res) => {
-  res.json(await settingsRepo.get());
+  const settings = await settingsRepo.get();
+  // Never let a raw OAuth refresh token leave the server. calendarId/connectedAt
+  // are fine to expose — that's what the "Connect calendar" UI checks.
+  const salesReps = (settings.salesReps || []).map(({ refreshToken, ...safe }) => safe);
+  res.json({ ...settings, salesReps });
 });
 
 app.put('/api/settings', authenticateToken, requireAdmin, async (req, res) => {
@@ -2231,19 +2235,31 @@ app.get('/api/settings/preview-link', authenticateToken, requireAdmin, (req, res
 // ─── Booking routes ───────────────────────────────────────────────────────────
 
 // GET /api/booking/auth — start one-time OAuth2 authorisation flow
-// Visit this URL in a browser while logged in as the calendar owner.
-// After consent you are redirected to /api/booking/auth/callback which prints
-// the refresh token — copy it into Railway as GOOGLE_REFRESH_TOKEN.
-app.get('/api/booking/auth', (req, res) => {
+//
+// GET /api/booking/auth?rep=<id>  — a sales rep connecting THEIR OWN calendar.
+//   The rep id round-trips through Google as `state`; the callback below
+//   auto-saves the refresh token + connected email onto that rep's record.
+//   Used by the "Connect calendar" link in Admin → Settings.
+//
+// GET /api/booking/auth            — legacy: re-authorise the single shared
+//   fallback calendar. After consent you're shown the refresh token to paste
+//   into Railway as GOOGLE_REFRESH_TOKEN, same as before.
+app.get('/api/booking/auth', async (req, res) => {
   if (!cal) return res.status(503).send('Calendar module not loaded.');
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     return res.status(503).send(
       'Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Railway env vars first.'
     );
   }
+  const repId = req.query.rep || null;
+  if (repId) {
+    const settings = await settingsRepo.get();
+    const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
+    if (!reps.some(r => r.id === repId)) return res.status(404).send('Unknown sales rep.');
+  }
   const redirectUri = `${req.protocol}://${req.get('host')}/api/booking/auth/callback`;
   try {
-    const url = cal.getOAuthUrl(redirectUri);
+    const url = cal.getOAuthUrl(redirectUri, repId);
     res.redirect(url);
   } catch (err) {
     res.status(500).send('Could not generate OAuth URL: ' + err.message);
@@ -2252,12 +2268,13 @@ app.get('/api/booking/auth', (req, res) => {
 
 // GET /api/booking/auth/callback — Google redirects here after consent
 app.get('/api/booking/auth/callback', async (req, res) => {
-  const { code, error } = req.query;
+  const { code, error, state } = req.query;
   if (error) return res.status(400).send('OAuth error: ' + error);
   if (!code)  return res.status(400).send('No code returned by Google.');
 
   if (!cal) return res.status(503).send('Calendar module not loaded.');
   const redirectUri = `${req.protocol}://${req.get('host')}/api/booking/auth/callback`;
+  const repId = state || null;
 
   try {
     const tokens = await cal.exchangeCodeForTokens(code, redirectUri);
@@ -2265,11 +2282,29 @@ app.get('/api/booking/auth/callback', async (req, res) => {
     if (!rt) {
       return res.status(400).send(
         'Google did not return a refresh token. ' +
-        'This usually means the app was already authorised without the "consent" prompt. ' +
-        'Go to https://myaccount.google.com/permissions, revoke HansePay, then visit /api/booking/auth again.'
+        'This usually means the account was already authorised without the "consent" prompt. ' +
+        `Go to https://myaccount.google.com/permissions, revoke HansePay, then try connecting again.`
       );
     }
-    // Display the token — user must copy it into Railway manually
+
+    if (repId) {
+      // Per-rep connect — save directly onto that rep's record via the one
+      // path allowed to write these fields, no manual copy-paste.
+      const settings = await settingsRepo.get();
+      const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
+      const rep = reps.find(r => r.id === repId);
+      if (!rep) return res.status(404).send('Unknown sales rep — the connection was not saved.');
+
+      const email = await cal.getConnectedEmail(tokens.access_token);
+      await settingsRepo.setRepCalendar(repId, {
+        refreshToken: rt, calendarId: email || rep.email, connectedAt: new Date().toISOString(),
+      });
+
+      console.log(`[calendar] ${rep.name} connected calendar (${email || 'unknown email'})`);
+      return res.redirect('/hansepay/admin/settings.html?calendar_connected=' + encodeURIComponent(rep.name));
+    }
+
+    // Legacy global fallback — display for manual copy-paste, unchanged.
     res.send(`
 <!DOCTYPE html>
 <html>
@@ -2307,10 +2342,29 @@ app.get('/api/booking/auth/callback', async (req, res) => {
   }
 });
 
+// Whoever a NEW booking would be assigned to — same "first active rep" rule
+// server.js uses at creation time, computed here too so availability/config
+// reflect the calendar that will actually receive the booking.
+async function pickActiveRep() {
+  const settings = await settingsRepo.get();
+  const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
+  return reps.find(r => r.active !== false) || null;
+}
+
+// The rep already assigned to an EXISTING booking, re-fetched fresh from
+// settings (not the {id,name,color} snapshot stored on the booking) so we
+// always use their current refreshToken/calendarId.
+async function findRepForBooking(booking) {
+  if (!booking || !booking.assignedTo) return null;
+  const settings = await settingsRepo.get();
+  const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
+  return reps.find(r => r.id === booking.assignedTo.id) || null;
+}
+
 // GET /api/booking/config — public config for the frontend
-app.get('/api/booking/config', (req, res) => {
+app.get('/api/booking/config', async (req, res) => {
   if (!cal) return res.json({ configured: false, timezone: 'Europe/Berlin', daysAhead: 30, hoursStart: 9, hoursEnd: 17, slotMinutes: 30 });
-  res.json(cal.getBookingConfig());
+  res.json(cal.getBookingConfig(await pickActiveRep()));
 });
 
 // GET /api/booking/availability?date=YYYY-MM-DD
@@ -2325,7 +2379,7 @@ app.get('/api/booking/availability', async (req, res) => {
   if (dow === 0 || dow === 6) return res.json({ slots: [] });
 
   try {
-    const slots = cal ? await cal.getAvailableSlots(date) : [];
+    const slots = cal ? await cal.getAvailableSlots(date, await pickActiveRep()) : [];
     res.json({ slots });
   } catch (err) {
     console.error('[booking] availability error:', err.message);
@@ -2354,7 +2408,12 @@ app.post('/api/booking', async (req, res) => {
   }
 
   try {
-    const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'unconfigured', htmlLink: '#', hangoutLink: null };
+    // Resolve the rep BEFORE creating the calendar event, so the event lands
+    // on their calendar (if connected) rather than always the shared one —
+    // and so the same rep drives the booking record and confirmation email.
+    const assignedRep = await pickActiveRep();
+
+    const event = cal ? await cal.createBookingEvent(slot, lead, assignedRep) : { id: 'unconfigured', htmlLink: '#', hangoutLink: null };
     console.log(`[booking] created: ${lead.email} @ ${slot.startISO} — event ${event.id}`);
 
     const bookingId = event.id || uuidv4();
@@ -2364,9 +2423,6 @@ app.post('/api/booking', async (req, res) => {
     // Persist the booking, upsert the customer, and log the activity — all in
     // one transaction (previously three independent, non-atomic file writes).
     try {
-      const settings = await settingsRepo.get();
-      const reps = Array.isArray(settings.salesReps) ? settings.salesReps : [];
-      const assignedRep = reps.find(r => r.active !== false) || null;
       await bookingsRepo.createWithCustomerUpsert({
         booking: {
           id:           bookingId,
@@ -2388,7 +2444,8 @@ app.post('/api/booking', async (req, res) => {
       console.error('[booking] CRM save error:', e.message);
     }
 
-    // Send the branded confirmation email (fire-and-forget)
+    // Send the confirmation email — from the rep's own Gmail if they've
+    // connected their calendar, otherwise the shared branded mailer.
     if (mailer) {
       try {
         const mail = mailer.renderBookingEmail({
@@ -2399,7 +2456,10 @@ app.post('/api/booking', async (req, res) => {
           cancelUrl:   `${host}/cancel-booking.html?token=${makeCancelToken(bookingId)}`,
         });
         if (mail.to) {
-          mailer.sendMail(mail).then(r => {
+          const sendAs = (cal && cal.isRepConfigured(assignedRep))
+            ? { ...mail, refreshToken: assignedRep.refreshToken, from: `${assignedRep.name} <${assignedRep.calendarId}>`, replyTo: assignedRep.calendarId }
+            : mail;
+          mailer.sendMail(sendAs).then(r => {
             console.log(`[email] booking confirmation → ${mail.to}: ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
           }).catch(err => console.error('[email] send error:', err.message));
         }
@@ -2452,13 +2512,16 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
   const lead = old.lead;
 
   try {
+    // Reuse whichever rep is already assigned — rebooking never reassigns.
+    const rep = await findRepForBooking(old);
+
     // Cancel old calendar event (silent fail if not configured)
     if (cal && old.eventId && !old.eventId.startsWith('mock_') && old.eventId !== 'unconfigured') {
-      try { await cal.cancelBookingEvent(old.eventId); } catch (e) { console.error('[rebook] cancel old event:', e.message); }
+      try { await cal.cancelBookingEvent(old.eventId, rep); } catch (e) { console.error('[rebook] cancel old event:', e.message); }
     }
 
     // Create new event
-    const event = cal ? await cal.createBookingEvent(slot, lead) : { id: 'rebook_' + uuidv4().slice(0,8), htmlLink: '#', hangoutLink: null };
+    const event = cal ? await cal.createBookingEvent(slot, lead, rep) : { id: 'rebook_' + uuidv4().slice(0,8), htmlLink: '#', hangoutLink: null };
 
     await bookingsRepo.update(old.id, {
       slot,
@@ -2470,7 +2533,7 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
       updatedAt:   new Date().toISOString(),
     });
 
-    // Send rebook confirmation email
+    // Send rebook confirmation email — from the rep's own Gmail if connected.
     if (mailer) {
       const host = `${req.protocol}://${req.get('host')}`;
       const mail = mailer.renderBookingEmail({
@@ -2480,7 +2543,12 @@ app.post('/api/booking/rebook/:token', async (req, res) => {
         rebookUrl:   `${host}/rebook.html?token=${old.rebookToken}`,
         isRebook:    true,
       });
-      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[email] rebook send:', err.message));
+      if (mail.to) {
+        const sendAs = (cal && cal.isRepConfigured(rep))
+          ? { ...mail, refreshToken: rep.refreshToken, from: `${rep.name} <${rep.calendarId}>`, replyTo: rep.calendarId }
+          : mail;
+        mailer.sendMail(sendAs).catch(err => console.error('[email] rebook send:', err.message));
+      }
     }
 
     res.json({ success: true, meetLink: event.hangoutLink || null });
@@ -2511,8 +2579,10 @@ app.post('/api/booking/cancel/:token', async (req, res) => {
   if (!b) return res.status(404).json({ error: 'Booking not found.' });
   if (b.status === 'cancelled') return res.json({ success: true, alreadyCancelled: true });
 
+  const rep = await findRepForBooking(b);
+
   if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
-    try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel] calendar:', e.message); }
+    try { await cal.cancelBookingEvent(b.eventId, rep); } catch (e) { console.error('[cancel] calendar:', e.message); }
   }
 
   await bookingsRepo.update(b.id, {
@@ -2530,7 +2600,12 @@ app.post('/api/booking/cancel/:token', async (req, res) => {
         rebookUrl: `${host}/rebook.html?token=${b.rebookToken}`,
         cancelledBy: 'customer',
       });
-      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[cancel] email:', err.message));
+      if (mail.to) {
+        const sendAs = (cal && cal.isRepConfigured(rep))
+          ? { ...mail, refreshToken: rep.refreshToken, from: `${rep.name} <${rep.calendarId}>`, replyTo: rep.calendarId }
+          : mail;
+        mailer.sendMail(sendAs).catch(err => console.error('[cancel] email:', err.message));
+      }
     } catch (e) { console.error('[cancel] email render:', e.message); }
   }
 
@@ -2543,8 +2618,10 @@ app.delete('/api/bookings/:id', authenticateToken, requireAdmin, async (req, res
   const b = await bookingsRepo.findById(req.params.id);
   if (!b) return res.status(404).json({ error: 'Booking not found' });
 
+  const rep = await findRepForBooking(b);
+
   if (cal && b.eventId && !b.eventId.startsWith('mock_') && b.eventId !== 'unconfigured') {
-    try { await cal.cancelBookingEvent(b.eventId); } catch (e) { console.error('[cancel/admin] calendar:', e.message); }
+    try { await cal.cancelBookingEvent(b.eventId, rep); } catch (e) { console.error('[cancel/admin] calendar:', e.message); }
   }
 
   const updated = await bookingsRepo.update(b.id, {
@@ -2563,7 +2640,12 @@ app.delete('/api/bookings/:id', authenticateToken, requireAdmin, async (req, res
         rebookUrl: `${host}/rebook.html?token=${b.rebookToken}`,
         cancelledBy: 'admin',
       });
-      if (mail.to) mailer.sendMail(mail).catch(err => console.error('[cancel/admin] email:', err.message));
+      if (mail.to) {
+        const sendAs = (cal && cal.isRepConfigured(rep))
+          ? { ...mail, refreshToken: rep.refreshToken, from: `${rep.name} <${rep.calendarId}>`, replyTo: rep.calendarId }
+          : mail;
+        mailer.sendMail(sendAs).catch(err => console.error('[cancel/admin] email:', err.message));
+      }
     } catch (e) { console.error('[cancel/admin] email render:', e.message); }
   }
 
@@ -2588,6 +2670,11 @@ app.get('/api/bookings/calendar', authenticateToken, async (req, res) => {
 });
 
 // PATCH /api/bookings/:id/assign — assign booking to a rep
+// NOTE: this is CRM bookkeeping only — it does not move the calendar event.
+// The event stays on whichever rep's calendar it was originally created on
+// (or the shared fallback); reassigning here does not recreate/transfer it,
+// send the new rep a calendar invite, or notify the customer. Out of scope
+// for the per-rep calendar rollout — flagging so it isn't assumed to work.
 app.patch('/api/bookings/:id/assign', authenticateToken, async (req, res) => {
   const existing = await bookingsRepo.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Booking not found' });

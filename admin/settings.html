@@ -396,9 +396,16 @@ function populateForm(s) {
   if (s.contactEmail !== undefined) document.getElementById('s-contact-email').value = s.contactEmail || '';
   if (s.postsPerPage !== undefined) document.getElementById('s-posts-per-page').value = s.postsPerPage || '';
   if (s.googleAnalyticsId !== undefined) document.getElementById('s-ga-id').value = s.googleAnalyticsId || '';
-  // Load sales reps
+  // Load sales reps. calendarId/connectedAt come from the server read-only
+  // (refreshToken itself is never sent to the client) — preserve them here
+  // so the "Connect calendar" badge reflects real state, not just the
+  // editable fields below.
   salesReps = Array.isArray(s.salesReps) ? s.salesReps.map(function(r,i) {
-    return { id:r.id||'rep_'+Date.now()+i, name:r.name||'', email:r.email||'', color:r.color||'#1E4E80', priority:r.priority||i+1, active:r.active!==false };
+    return {
+      id:r.id||'rep_'+Date.now()+i, name:r.name||'', email:r.email||'', color:r.color||'#1E4E80',
+      priority:r.priority||i+1, active:r.active!==false,
+      calendarId:r.calendarId||null, connectedAt:r.connectedAt||null,
+    };
   }) : [];
   renderReps();
 }
@@ -586,24 +593,36 @@ function renderReps() {
     return;
   }
   el.innerHTML = salesReps.map(function(r, i) {
-    return '<div class="rep-row" id="reprow-' + i + '" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(11,25,41,.06)">' +
-      // Color swatch
-      '<input type="color" value="' + r.color + '" oninput="salesReps[' + i + '].color=this.value;document.getElementById(\'rep-dot-' + i + '\').style.background=this.value" style="width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none">' +
-      // Name
-      '<input type="text" value="' + escapeHtml(r.name) + '" placeholder="Full name" oninput="salesReps[' + i + '].name=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
-      // Email
-      '<input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="Email (optional)" oninput="salesReps[' + i + '].email=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
-      // Priority arrows
-      '<div style="display:flex;flex-direction:column;gap:2px">' +
-        (i > 0 ? '<button onclick="moveRep(' + i + ',-1)" title="Move up" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▲</button>' : '<span style="width:22px"></span>') +
-        (i < salesReps.length-1 ? '<button onclick="moveRep(' + i + ',1)" title="Move down" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▼</button>' : '<span style="width:22px"></span>') +
+    var connected = !!r.calendarId;
+    var calStatus = connected
+      ? '<span style="display:inline-flex;align-items:center;gap:5px;color:#16a34a;font-weight:600">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+          'Calendar connected' +
+        '</span> · <span style="color:var(--ink3)">' + escapeHtml(r.calendarId) + '</span>' +
+        ' · <a href="/api/booking/auth?rep=' + encodeURIComponent(r.id) + '" style="color:var(--ink3);text-decoration:underline">Reconnect</a>'
+      : '<a href="/api/booking/auth?rep=' + encodeURIComponent(r.id) + '" style="color:var(--n500);font-weight:600;text-decoration:none">+ Connect calendar</a>';
+
+    return '<div style="padding:10px 0;border-bottom:1px solid rgba(11,25,41,.06)">' +
+      '<div class="rep-row" id="reprow-' + i + '" style="display:flex;align-items:center;gap:10px">' +
+        // Color swatch
+        '<input type="color" value="' + r.color + '" oninput="salesReps[' + i + '].color=this.value;document.getElementById(\'rep-dot-' + i + '\').style.background=this.value" style="width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0;background:none">' +
+        // Name
+        '<input type="text" value="' + escapeHtml(r.name) + '" placeholder="Full name" oninput="salesReps[' + i + '].name=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+        // Email
+        '<input type="email" value="' + escapeHtml(r.email || '') + '" placeholder="Email (optional)" oninput="salesReps[' + i + '].email=this.value" style="flex:1;padding:7px 10px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-family:\'Inter\',sans-serif;font-size:.8125rem;color:var(--ink)">' +
+        // Priority arrows
+        '<div style="display:flex;flex-direction:column;gap:2px">' +
+          (i > 0 ? '<button onclick="moveRep(' + i + ',-1)" title="Move up" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▲</button>' : '<span style="width:22px"></span>') +
+          (i < salesReps.length-1 ? '<button onclick="moveRep(' + i + ',1)" title="Move down" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:13px;line-height:1;padding:1px 4px">▼</button>' : '<span style="width:22px"></span>') +
+        '</div>' +
+        // Active toggle
+        '<label style="display:flex;align-items:center;gap:5px;font-size:.8125rem;color:var(--ink2);cursor:pointer;white-space:nowrap">' +
+          '<input type="checkbox" ' + (r.active !== false ? 'checked' : '') + ' onchange="salesReps[' + i + '].active=this.checked" style="accent-color:var(--n500)"> Active' +
+        '</label>' +
+        // Remove
+        '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>' +
       '</div>' +
-      // Active toggle
-      '<label style="display:flex;align-items:center;gap:5px;font-size:.8125rem;color:var(--ink2);cursor:pointer;white-space:nowrap">' +
-        '<input type="checkbox" ' + (r.active !== false ? 'checked' : '') + ' onchange="salesReps[' + i + '].active=this.checked" style="accent-color:var(--n500)"> Active' +
-      '</label>' +
-      // Remove
-      '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>' +
+      '<div style="margin-top:6px;margin-left:38px;font-size:.75rem">' + calStatus + '</div>' +
     '</div>';
   }).join('');
 }
@@ -729,6 +748,18 @@ authFetch('/api/settings')
   })
   .then(function(data) { populateForm(data); })
   .catch(function() {});
+
+// Land here after a rep connects their calendar (see /api/booking/auth/callback)
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var connectedName = params.get('calendar_connected');
+  if (connectedName) {
+    showToast(connectedName + '’s calendar is connected ✓', 'success');
+    params.delete('calendar_connected');
+    var qs = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+  }
+})();
 
 function saveSettings() {
   var btn = document.getElementById('save-btn');
