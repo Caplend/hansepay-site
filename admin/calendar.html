@@ -220,13 +220,12 @@ var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
 if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 var API = 'https://hansepay-deploy-production-328c.up.railway.app';
 
-// Init user display
+// Init user display. Sidebar itself is owned by components.js's
+// renderSidebar(), which refreshes its own #hp-side-* elements — only the
+// topbar is ours to update.
 if (user && user.name) {
   var ini = user.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-  document.getElementById('sidebarAvatar').textContent = ini;
   document.getElementById('topbarAvatar').textContent = ini;
-  document.getElementById('sidebarName').textContent = user.name;
-  document.getElementById('sidebarEmail').textContent = user.email || '';
 }
 
 function authFetch(url, opts) {
@@ -488,10 +487,7 @@ function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&l
 authFetch('/api/auth/me').then(r=>r.json()).then(me=>{
   if(me&&me.name){
     var ini=me.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    document.getElementById('sidebarAvatar').textContent=ini;
     document.getElementById('topbarAvatar').textContent=ini;
-    document.getElementById('sidebarName').textContent=me.name;
-    if(me.email) document.getElementById('sidebarEmail').textContent=me.email;
   }
 }).catch(()=>{});
 
