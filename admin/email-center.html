@@ -1056,10 +1056,9 @@ function loadSidebarUser() {
   try {
     const u = JSON.parse(raw);
     const name = u.name || u.email || 'Admin';
+    // Sidebar itself is now owned by components.js's renderSidebar(), which
+    // refreshes its own #hp-side-* elements — only the topbar is ours to update.
     const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
-    document.getElementById('sidebar-avatar').textContent = initials;
-    document.getElementById('sidebar-name').textContent = name;
-    document.getElementById('sidebar-email').textContent = u.email || '';
     document.getElementById('topbar-avatar').textContent = initials;
     document.getElementById('topbar-name').textContent = name.split(' ')[0];
   } catch (e) {}

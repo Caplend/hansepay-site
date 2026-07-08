@@ -672,12 +672,11 @@ function authFetch(url, opts) {
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
 if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 function setUserUI(name, email) {
+  // Sidebar itself is now owned by components.js's renderSidebar(), which
+  // refreshes its own #hp-side-* elements — only the topbar is ours to update.
   var initials = (name || 'A').split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
   document.getElementById('topbar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent = name || 'Admin';
   document.getElementById('topbar-name').textContent = name || 'Admin';
-  if (email) document.getElementById('sidebar-email').textContent = email;
 }
 if (user && user.name) { setUserUI(user.name, user.email); }
 

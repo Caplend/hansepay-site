@@ -840,12 +840,11 @@ fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', {
 var user = JSON.parse(localStorage.getItem('hp_user') || 'null');
 if (user && user.role === 'compliance') { window.location.href = '/hansepay/admin/legal.html'; }
 if (user && user.name) {
+  // Sidebar itself is now owned by components.js's renderSidebar(), which
+  // refreshes its own #hp-side-* elements — only the topbar is ours to update.
   var initials = user.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
   document.getElementById('topbar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent = user.name;
   document.getElementById('topbar-name').textContent = user.name;
-  if (user.email) document.getElementById('sidebar-email').textContent = user.email;
 }
 
 function authFetch(url, opts) {

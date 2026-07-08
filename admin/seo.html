@@ -755,12 +755,11 @@ fetch(BASE + '/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } }
   .catch(function() {});
 
 function setUserUI(u) {
+  // Sidebar itself is now owned by components.js's renderSidebar(), which
+  // refreshes its own #hp-side-* elements — only the topbar is ours to update.
   var initials = (u.name || 'A').split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
   document.getElementById('topbar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent = u.name;
   document.getElementById('topbar-name').textContent = u.name;
-  if (u.email) document.getElementById('sidebar-email').textContent = u.email;
 }
 
 function authFetch(url, opts) {

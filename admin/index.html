@@ -436,12 +436,11 @@ fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { he
   })
   .then(function(me) {
     if (me && me.name) {
+      // Sidebar itself is now owned by components.js's renderSidebar(), which
+      // refreshes its own #hp-side-* elements — only the topbar is ours to update.
       var initials = me.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
-      document.getElementById('sidebar-avatar').textContent = initials;
       document.getElementById('topbar-avatar').textContent = initials;
-      document.getElementById('sidebar-name').textContent = me.name;
       document.getElementById('topbar-name').textContent = me.name;
-      if (me.email) document.getElementById('sidebar-email').textContent = me.email;
     }
   })
   .catch(function() {});
@@ -449,11 +448,8 @@ fetch('https://hansepay-deploy-production-328c.up.railway.app/api/auth/me', { he
 // Populate from localStorage immediately
 if (user && user.name) {
   var initials = user.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0, 2).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
   document.getElementById('topbar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent = user.name;
   document.getElementById('topbar-name').textContent = user.name;
-  if (user.email) document.getElementById('sidebar-email').textContent = user.email;
 }
 
 function authFetch(url, opts) {

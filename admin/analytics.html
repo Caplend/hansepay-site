@@ -646,12 +646,11 @@ if (user && user.role === 'compliance') { window.location.href = '/hansepay/admi
 
 function setUserUI(u) {
   if (!u || !u.name) return;
+  // Sidebar itself is now owned by components.js's renderSidebar(), which
+  // refreshes its own #hp-side-* elements — only the topbar is ours to update.
   var initials = u.name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initials;
   document.getElementById('topbar-avatar').textContent = initials;
-  document.getElementById('sidebar-name').textContent = u.name;
   document.getElementById('topbar-name').textContent = u.name;
-  if (u.email) document.getElementById('sidebar-email').textContent = u.email;
 }
 
 if (user) setUserUI(user);
