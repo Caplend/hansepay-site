@@ -637,10 +637,21 @@ function addRep() {
 }
 
 function removeRep(i) {
-  if (!confirm('Remove ' + (salesReps[i].name || 'this rep') + '?')) return;
+  var rep = salesReps[i];
+  if (!confirm('Remove ' + (rep.name || 'this rep') + '?')) return;
   salesReps.splice(i, 1);
   salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
   renderReps();
+
+  // The × looks like an immediate delete, so persist it right away instead of
+  // silently deferring to the separate "Save reps" button — otherwise a
+  // reload before that click brings the "removed" rep right back.
+  authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
+    var updated = Object.assign({}, current, { salesReps: salesReps });
+    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
+  }).then(function(r) { return r.json(); }).then(function() {
+    showToast((rep.name || 'Rep') + ' removed ✓');
+  }).catch(function() { showToast('Failed to remove — try again.', 'error'); });
 }
 
 function moveRep(i, delta) {
