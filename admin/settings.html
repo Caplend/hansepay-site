@@ -585,6 +585,11 @@ function saveAiSettings() {
 
 var salesReps = [];
 var REP_COLORS = ['#1E4E80','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#c2410c','#4f46e5'];
+// Chrome silently suppresses repeated confirm()/alert() dialogs on a page after
+// one gets dismissed once — from then on confirm() just returns false with no
+// visible dialog at all, which read as "the delete button doesn't work." An
+// inline two-click confirm avoids the native dialog entirely.
+var pendingRemoveId = null;
 
 function renderReps() {
   var el = document.getElementById('reps-list');
@@ -620,7 +625,9 @@ function renderReps() {
           '<input type="checkbox" ' + (r.active !== false ? 'checked' : '') + ' onchange="salesReps[' + i + '].active=this.checked" style="accent-color:var(--n500)"> Active' +
         '</label>' +
         // Remove
-        '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>' +
+        (pendingRemoveId === r.id
+          ? '<button onclick="removeRep(' + i + ')" style="background:#dc2626;border:none;border-radius:5px;cursor:pointer;color:#fff;font-family:\'Inter\',sans-serif;font-size:.75rem;font-weight:600;line-height:1;padding:6px 10px;white-space:nowrap">Confirm remove</button>'
+          : '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>') +
       '</div>' +
       '<div style="margin-top:6px;margin-left:38px;font-size:.75rem">' + calStatus + '</div>' +
     '</div>';
@@ -638,14 +645,24 @@ function addRep() {
 
 function removeRep(i) {
   var rep = salesReps[i];
-  if (!confirm('Remove ' + (rep.name || 'this rep') + '?')) return;
+  if (pendingRemoveId !== rep.id) {
+    // First click — arm the confirm state, auto-disarm after a few seconds.
+    pendingRemoveId = rep.id;
+    renderReps();
+    setTimeout(function() {
+      if (pendingRemoveId === rep.id) { pendingRemoveId = null; renderReps(); }
+    }, 4000);
+    return;
+  }
+
+  pendingRemoveId = null;
   salesReps.splice(i, 1);
   salesReps.forEach(function(r, idx) { r.priority = idx + 1; });
   renderReps();
 
-  // The × looks like an immediate delete, so persist it right away instead of
-  // silently deferring to the separate "Save reps" button — otherwise a
-  // reload before that click brings the "removed" rep right back.
+  // The button looks like an immediate delete, so persist it right away
+  // instead of silently deferring to the separate "Save reps" button —
+  // otherwise a reload before that click brings the "removed" rep right back.
   authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
     var updated = Object.assign({}, current, { salesReps: salesReps });
     return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
