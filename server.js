@@ -1071,6 +1071,11 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
   } else if (type === 'kyc-rejected') {
     const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
     sample = mailer.renderKycRejectedEmail({ firstName, email: to, lang, dashboardUrl: siteBase + '/hansepay/dashboard-login.html' });
+  } else if (type === 'kyc-rejected-team-member') {
+    sample = mailer.renderKycRejectedTeamMemberEmail({ recipientName: firstName, recipientEmail: to, companyName: 'Sample Company GmbH', adminName: 'Alex Applicant', lang });
+  } else if (type === 'kyc-rejected-admin') {
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    sample = mailer.renderKycRejectedAdminEmail({ adminName: firstName, adminEmail: to, personName: 'Jordan UBO', personRole: 'Ultimate Beneficial Owner', companyName: 'Sample Company GmbH', lang, resendUrl: siteBase + '/hansepay/onboarding.html' });
   } else if (type === 'all-verified') {
     sample = mailer.renderAllVerificationsEmail({ firstName, email: to, lang, accountType: 'company', company: 'Sample Company GmbH' });
   } else if (type === 'tx-otp') {
@@ -1127,7 +1132,9 @@ const EMAIL_TEMPLATE_CATALOG = [
   { id: 'kyc-invite-individual',    name: 'KYC Invite (Individual)',       category: 'KYC',        icon: '🪪', description: 'Invitation for individual account holders to verify their identity',       langs: ['en', 'de'] },
   { id: 'kyc-reminder',             name: 'Identity Check Reminder',       category: 'KYC',        icon: '⏳', description: 'Reminder for users who started but haven\'t finished KYC',  langs: ['en', 'de'] },
   { id: 'kyc-verified',             name: 'Identity Verified',             category: 'KYC',        icon: '✓',  description: 'Confirms successful identity verification',                  langs: ['en', 'de'] },
-  { id: 'kyc-rejected',             name: 'Identity Verification Unsuccessful', category: 'KYC',   icon: '⚠️', description: 'Sent to individuals when identity verification fails — instructs them to request a new check from their dashboard', langs: ['en', 'de'] },
+  { id: 'kyc-rejected',             name: 'Identity Verification Unsuccessful (Individual)', category: 'KYC', icon: '⚠️', description: 'Sent to individuals when identity verification fails — instructs them to request a new check from their dashboard', langs: ['en', 'de'] },
+  { id: 'kyc-rejected-team-member',  name: 'Identity Verification Unsuccessful (Team Member)', category: 'KYC', icon: '⚠️', description: 'Sent to a UBO/manager whose verification failed as part of a company application — reassures them the applicant will resend', langs: ['en', 'de'] },
+  { id: 'kyc-rejected-admin',        name: 'Team Member Verification Failed (Notify Applicant)', category: 'KYC', icon: '📮', description: 'Sent to the company applicant when a UBO/manager they added fails verification — prompts them to resend the invite', langs: ['en', 'de'] },
   { id: 'all-verified',             name: 'All Verifications Done',        category: 'KYC',        icon: '🎯', description: 'All KYC steps are complete — account is fully live',         langs: ['en', 'de'] },
 ];
 
@@ -1210,6 +1217,12 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
         break;
       case 'kyc-rejected':
         mail = mailer.renderKycRejectedEmail({ firstName, email, lang, dashboardUrl: siteBase + '/hansepay/dashboard-login.html' });
+        break;
+      case 'kyc-rejected-team-member':
+        mail = mailer.renderKycRejectedTeamMemberEmail({ recipientName: firstName, recipientEmail: email, companyName: company, adminName: 'Alex Applicant', lang });
+        break;
+      case 'kyc-rejected-admin':
+        mail = mailer.renderKycRejectedAdminEmail({ adminName: firstName, adminEmail: email, personName: 'Jordan UBO', personRole: 'Ultimate Beneficial Owner', companyName: company, lang, resendUrl: siteBase + '/hansepay/onboarding.html' });
         break;
       case 'all-verified':
         mail = mailer.renderAllVerificationsEmail({ firstName, email, lang, accountType: 'company', company });
