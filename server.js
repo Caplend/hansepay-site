@@ -1068,6 +1068,9 @@ app.post('/api/email/test', authenticateToken, requireAdmin, async (req, res) =>
     });
   } else if (type === 'kyc-verified') {
     sample = mailer.renderKycVerifiedEmail({ firstName, email: to, lang });
+  } else if (type === 'kyc-rejected') {
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    sample = mailer.renderKycRejectedEmail({ firstName, email: to, lang, dashboardUrl: siteBase + '/hansepay/dashboard-login.html' });
   } else if (type === 'all-verified') {
     sample = mailer.renderAllVerificationsEmail({ firstName, email: to, lang, accountType: 'company', company: 'Sample Company GmbH' });
   } else if (type === 'tx-otp') {
@@ -1124,6 +1127,7 @@ const EMAIL_TEMPLATE_CATALOG = [
   { id: 'kyc-invite-individual',    name: 'KYC Invite (Individual)',       category: 'KYC',        icon: '🪪', description: 'Invitation for individual account holders to verify their identity',       langs: ['en', 'de'] },
   { id: 'kyc-reminder',             name: 'Identity Check Reminder',       category: 'KYC',        icon: '⏳', description: 'Reminder for users who started but haven\'t finished KYC',  langs: ['en', 'de'] },
   { id: 'kyc-verified',             name: 'Identity Verified',             category: 'KYC',        icon: '✓',  description: 'Confirms successful identity verification',                  langs: ['en', 'de'] },
+  { id: 'kyc-rejected',             name: 'Identity Verification Unsuccessful', category: 'KYC',   icon: '⚠️', description: 'Sent to individuals when identity verification fails — instructs them to request a new check from their dashboard', langs: ['en', 'de'] },
   { id: 'all-verified',             name: 'All Verifications Done',        category: 'KYC',        icon: '🎯', description: 'All KYC steps are complete — account is fully live',         langs: ['en', 'de'] },
 ];
 
@@ -1203,6 +1207,9 @@ app.post('/api/email/preview/:id', authenticateToken, requireAdmin, (req, res) =
         break;
       case 'kyc-verified':
         mail = mailer.renderKycVerifiedEmail({ firstName, email, lang });
+        break;
+      case 'kyc-rejected':
+        mail = mailer.renderKycRejectedEmail({ firstName, email, lang, dashboardUrl: siteBase + '/hansepay/dashboard-login.html' });
         break;
       case 'all-verified':
         mail = mailer.renderAllVerificationsEmail({ firstName, email, lang, accountType: 'company', company });

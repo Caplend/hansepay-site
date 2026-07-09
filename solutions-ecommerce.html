@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>HansePay, E-Commerce &amp; Online Retail</title>
-<meta name="description" content="FX and payments for online retailers. Pay suppliers in 45+ markets, bulk spreadsheet uploads, locked rates at execution. BaFin-licensed." />
+<meta name="description" content="FX and payments for online retailers. Pay suppliers in 50+ markets, bulk spreadsheet uploads, locked rates at execution. BaFin-licensed." />
 <link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,7 +26,7 @@ body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-sm
 img{display:block;max-width:100%}
 a{color:inherit;text-decoration:none}
 .container{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,80px)}
-.blob{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;will-change:transform;backface-visibility:hidden}
 section{position:relative}
 .section-pad{padding:96px 0}
 @media(max-width:768px){.section-pad{padding:64px 0}}
@@ -218,7 +218,7 @@ section{position:relative}
     <div class="trust-grid">
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span data-i18n="sol-ecom.trust.1">45+ markets worldwide</span>
+        <span data-i18n="sol-ecom.trust.1">50+ markets worldwide</span>
       </div>
       <div class="trust-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><line x1="12" y1="13" x2="12" y2="17"/></svg>
@@ -315,7 +315,7 @@ section{position:relative}
         <div class="ftile-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         </div>
-        <div class="ftile-title" data-i18n="sol-ecom.feat.2.title">45+ markets worldwide</div>
+        <div class="ftile-title" data-i18n="sol-ecom.feat.2.title">50+ markets worldwide</div>
         <div class="ftile-desc" data-i18n="sol-ecom.feat.2.desc">Pay suppliers in BRL, MXN, INR, VND, THB, IDR, ZAR, TRY, AED, and more. Reach the markets your bank treats as too complicated.</div>
       </div>
 
@@ -411,7 +411,7 @@ section{position:relative}
             <td><span class="comp-feat" data-i18n="sol-ecom.comp.row1.feat">FX margin</span></td>
             <td><span class="comp-bad" data-i18n="sol-ecom.comp.row1.bank.val">2.0% to 4.0%</span><br><span data-i18n="sol-ecom.comp.row1.bank.sub">Opaque / hidden</span></td>
             <td><span class="comp-mid" data-i18n="sol-ecom.comp.row1.fin.val">0.4% to 1.0%</span><br><span data-i18n="sol-ecom.comp.row1.fin.sub">Standard retail</span></td>
-            <td class="hp-col"><span class="comp-good" data-i18n="sol-ecom.comp.row1.hp.val">0.15% to 0.75%</span><br><span data-i18n="sol-ecom.comp.row1.hp.sub">Transparently locked, disclosed before trade*</span></td>
+            <td class="hp-col"><span class="comp-good" data-i18n="sol-ecom.comp.row1.hp.val">0.20% to 0.75%</span><br><span data-i18n="sol-ecom.comp.row1.hp.sub">Transparently locked, disclosed before trade*</span></td>
           </tr>
           <tr>
             <td><span class="comp-feat" data-i18n="sol-ecom.comp.row2.feat">Settlement</span></td>
@@ -423,7 +423,7 @@ section{position:relative}
             <td><span class="comp-feat" data-i18n="sol-ecom.comp.row3.feat">Coverage</span></td>
             <td><span class="comp-bad" data-i18n="sol-ecom.comp.row3.bank.val">Highly limited</span><br><span data-i18n="sol-ecom.comp.row3.bank.sub">Manual fees and delays</span></td>
             <td><span class="comp-mid" data-i18n="sol-ecom.comp.row3.fin.val">Restricted</span><br><span data-i18n="sol-ecom.comp.row3.fin.sub">Local volume limits</span></td>
-            <td class="hp-col"><span class="comp-good" data-i18n="sol-ecom.comp.row3.hp.val">45+ markets worldwide</span><br><span style="font-size:12px;font-weight:400;color:var(--ink2)" data-i18n="sol-ecom.comp.row3.hp.sub">Including markets your bank won't touch</span></td>
+            <td class="hp-col"><span class="comp-good" data-i18n="sol-ecom.comp.row3.hp.val">50+ markets worldwide</span><br><span style="font-size:12px;font-weight:400;color:var(--ink2)" data-i18n="sol-ecom.comp.row3.hp.sub">Including markets your bank won't touch</span></td>
           </tr>
           <tr>
             <td><span class="comp-feat" data-i18n="sol-ecom.comp.row4.feat">Payout certainty</span></td>
@@ -448,7 +448,7 @@ section{position:relative}
 <section style="background:#fff;border-top:1px solid rgba(11,25,41,.06);padding:96px 0">
   <div class="container">
     <span class="eyebrow">Global reach</span>
-    <h2 class="section-head" data-i18n-html="sol-ecom.cov.h2.html">45+ markets, <em>one platform.</em></h2>
+    <h2 class="section-head" data-i18n-html="sol-ecom.cov.h2.html">50+ markets, <em>one platform.</em></h2>
     <p class="section-sub">Reach the Americas, Africa, the Middle East, Asia &amp; Pacific, and Europe, including markets most banks refuse to quote on.</p>
     <div class="cov-pill-grid">
       <div class="cov-pill"><span class="cov-pill-flag">🇺🇸</span>USD</div>
@@ -594,7 +594,7 @@ section{position:relative}
           Can I pay suppliers in their local currency?
           <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </summary>
-        <div class="faq-body" data-i18n="sol-ecom.faq.1.a">Yes. Sending base currency is EUR. We pay out into the local currency (or USD where commonly used locally) across 45+ markets worldwide, including most emerging markets.</div>
+        <div class="faq-body" data-i18n="sol-ecom.faq.1.a">Yes. Sending base currency is EUR. We pay out into the local currency (or USD where commonly used locally) across 50+ markets worldwide, including most emerging markets.</div>
       </details>
 
       <details class="faq-item">
