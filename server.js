@@ -2221,6 +2221,20 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
 });
 
 app.put('/api/settings', authenticateToken, requireAdmin, async (req, res) => {
+  if (Array.isArray(req.body.salesReps)) {
+    const seenSlugs = new Map();
+    for (const rep of req.body.salesReps) {
+      for (const bt of (rep.bookingTypes || [])) {
+        if (!bt.slug || !/^[a-z0-9-]+$/.test(bt.slug)) {
+          return res.status(400).json({ error: `Booking link slug "${bt.slug || ''}" must be lowercase letters, numbers, and hyphens only.` });
+        }
+        if (seenSlugs.has(bt.slug)) {
+          return res.status(400).json({ error: `Booking link "/call-with-${bt.slug}" is used by more than one booking type — slugs must be unique.` });
+        }
+        seenSlugs.set(bt.slug, true);
+      }
+    }
+  }
   res.json(await settingsRepo.update(req.body));
 });
 
@@ -2480,6 +2494,144 @@ app.post('/api/booking', async (req, res) => {
     if (err.code === 409) return res.status(409).json({ error: 'That slot was just taken. Please choose another time.' });
     if (err.code === 404) return res.status(500).json({ error: 'Calendar not yet connected. Please contact us directly at hello@hansepay.com and we\'ll schedule your call manually.' });
     if (err.code === 403) return res.status(500).json({ error: 'Calendar access not authorised. Please contact us directly at hello@hansepay.com.' });
+    res.status(500).json({ error: 'Could not create booking. Please try again or contact us directly.', detail: err.message });
+  }
+});
+
+// ─── Personal booking-link routes (public) ─────────────────────────────────
+//
+// A separate, parallel booking surface from the general inbound flow above.
+// Each sales rep can define one or more "booking types" (custom duration +
+// custom subset of required/optional/hidden fields) under a unique slug,
+// shared as /call-with-<slug>. Targets that ONE rep directly — no
+// pickActiveRep() auto-assignment — and never touches the routes above.
+
+async function findBookingTypeBySlug(slug) {
+  const settings = await settingsRepo.get();
+  for (const rep of settings.salesReps || []) {
+    if (rep.active === false) continue;
+    const bt = (rep.bookingTypes || []).find(t => t.slug === slug && t.active !== false);
+    if (bt) return { rep, bookingType: bt };
+  }
+  return null;
+}
+
+const SCHEDULE_FIELD_KEYS = ['lastName', 'phone', 'company', 'role', 'notes'];
+
+// Clean shareable URL — the page itself resolves the slug from location.pathname.
+app.get('/call-with-:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'schedule.html'));
+});
+
+app.get('/api/schedule/config', async (req, res) => {
+  const found = await findBookingTypeBySlug(req.query.slug || '');
+  if (!found) return res.status(404).json({ error: 'This booking link is not active.' });
+  const { rep, bookingType } = found;
+  const cfg = cal ? cal.getBookingConfig(rep, bookingType) : { configured: false, timezone: 'Europe/Berlin', daysAhead: 30, hoursStart: 9, hoursEnd: 17, slotMinutes: bookingType.duration };
+  res.json({
+    ...cfg,
+    repName: rep.name,
+    type: {
+      id: bookingType.id, label: bookingType.label, duration: bookingType.duration,
+      description: bookingType.description || '', fields: bookingType.fields || {},
+    },
+  });
+});
+
+app.get('/api/schedule/availability', async (req, res) => {
+  const { slug, date } = req.query;
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return res.status(400).json({ error: 'date param required (YYYY-MM-DD)' });
+  }
+  const found = await findBookingTypeBySlug(slug || '');
+  if (!found) return res.status(404).json({ error: 'This booking link is not active.' });
+
+  const d = new Date(date + 'T12:00:00Z');
+  const dow = d.getUTCDay();
+  if (dow === 0 || dow === 6) return res.json({ slots: [] });
+
+  try {
+    const slots = cal ? await cal.getAvailableSlots(date, found.rep, found.bookingType.duration) : [];
+    res.json({ slots });
+  } catch (err) {
+    console.error('[schedule] availability error:', err.message);
+    res.status(500).json({ error: 'Could not fetch availability', detail: err.message });
+  }
+});
+
+app.post('/api/schedule/book', async (req, res) => {
+  const { slug, slot, lead: rawLead } = req.body;
+  const found = await findBookingTypeBySlug(slug || '');
+  if (!found) return res.status(404).json({ error: 'This booking link is not active.' });
+  const { rep, bookingType } = found;
+  const fields = bookingType.fields || {};
+
+  // Always required, regardless of type config. Anything the type marks
+  // 'hidden' is stripped rather than merely left unvalidated, so a tampered
+  // client request can't sneak fields the rep chose not to collect.
+  const lead = { firstName: rawLead?.firstName, email: rawLead?.email, lang: rawLead?.lang };
+  const missing = ['firstName', 'email'].filter(k => !lead[k]);
+  SCHEDULE_FIELD_KEYS.forEach(k => {
+    const mode = fields[k] || 'hidden';
+    if (mode === 'hidden') return;
+    lead[k] = rawLead?.[k];
+    if (mode === 'required' && !lead[k]) missing.push(k);
+  });
+  if (missing.length) return res.status(400).json({ error: `Missing fields: ${missing.join(', ')}` });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email)) return res.status(400).json({ error: 'Invalid email address' });
+  if (!slot?.startISO || !slot?.endISO) return res.status(400).json({ error: 'slot.startISO and slot.endISO required' });
+  if (new Date(slot.startISO) < new Date()) return res.status(400).json({ error: 'That slot is in the past. Please select another time.' });
+
+  try {
+    const event = cal ? await cal.createBookingEvent(slot, lead, rep, bookingType) : { id: 'unconfigured', htmlLink: '#', hangoutLink: null };
+    console.log(`[schedule] created: ${lead.email} @ ${slot.startISO} — event ${event.id} (${bookingType.slug})`);
+
+    const bookingId = event.id || uuidv4();
+    const rebookToken = makeRebookToken(bookingId);
+    const host = `${req.protocol}://${req.get('host')}`;
+    const bookingTypeSnapshot = { id: bookingType.id, slug: bookingType.slug, label: bookingType.label, duration: bookingType.duration };
+
+    try {
+      await bookingsRepo.createWithCustomerUpsert({
+        booking: {
+          id: bookingId, createdAt: new Date().toISOString(), slot, lead, status: 'new', notes: '',
+          meetLink: event.hangoutLink || null, eventId: event.id, rebookToken,
+          cancelToken: makeCancelToken(bookingId),
+          assignedTo: { id: rep.id, name: rep.name, color: rep.color || '#1E4E80' },
+          bookingType: bookingTypeSnapshot,
+        },
+        lead,
+        opts: { source: 'personal-link', slot, callLabel: bookingType.label },
+      });
+    } catch (e) {
+      console.error('[schedule] CRM save error:', e.message);
+    }
+
+    if (mailer) {
+      try {
+        const mail = mailer.renderPersonalBookingEmail({
+          slot, lead, meetLink: event.hangoutLink || null, calendarUrl: event.htmlLink || null,
+          cancelUrl: `${host}/cancel-booking.html?token=${makeCancelToken(bookingId)}`,
+        }, bookingType, rep);
+        if (mail.to) {
+          const sendAs = (cal && cal.isRepConfigured(rep))
+            ? { ...mail, refreshToken: rep.refreshToken, from: `${rep.name} <${rep.calendarId}>`, replyTo: rep.calendarId }
+            : mail;
+          mailer.sendMail(sendAs).then(r => {
+            console.log(`[email] personal booking confirmation → ${mail.to}: ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
+          }).catch(err => console.error('[email] send error:', err.message));
+        }
+      } catch (e) {
+        console.error('[email] render error:', e.message);
+      }
+    }
+
+    res.json({ success: true, eventId: event.id, meetLink: event.hangoutLink || null, calendarUrl: event.htmlLink || null });
+  } catch (err) {
+    console.error('[schedule] create error:', err.message);
+    if (err.code === 409) return res.status(409).json({ error: 'That slot was just taken. Please choose another time.' });
+    if (err.code === 404) return res.status(500).json({ error: 'Calendar not yet connected. Please contact us directly and we\'ll schedule your call manually.' });
+    if (err.code === 403) return res.status(500).json({ error: 'Calendar access not authorised. Please contact us directly.' });
     res.status(500).json({ error: 'Could not create booking. Please try again or contact us directly.', detail: err.message });
   }
 });

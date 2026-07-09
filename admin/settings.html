@@ -405,6 +405,7 @@ function populateForm(s) {
       id:r.id||'rep_'+Date.now()+i, name:r.name||'', email:r.email||'', color:r.color||'#1E4E80',
       priority:r.priority||i+1, active:r.active!==false,
       calendarId:r.calendarId||null, connectedAt:r.connectedAt||null,
+      bookingTypes: Array.isArray(r.bookingTypes) ? r.bookingTypes : [],
     };
   }) : [];
   renderReps();
@@ -591,6 +592,27 @@ var REP_COLORS = ['#1E4E80','#16a34a','#d97706','#9333ea','#dc2626','#0891b2','#
 // inline two-click confirm avoids the native dialog entirely.
 var pendingRemoveId = null;
 
+// ── Personal booking links (per rep) ───────────────────────────
+var bookingLinksExpanded = {};      // repId -> bool
+var editingBookingType = null;      // {repId, typeId} | null
+var pendingRemoveBookingTypeId = null; // "repId:typeId" | null
+var BOOKING_FIELD_KEYS = [['lastName','Last name'],['phone','Phone'],['company','Company'],['role','Role'],['notes','Notes']];
+
+function repById(id) { return salesReps.find(function(r) { return r.id === id; }); }
+function btById(rep, id) { return rep && (rep.bookingTypes || []).find(function(t) { return t.id === id; }); }
+
+function persistReps(successMsg) {
+  return authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
+    var updated = Object.assign({}, current, { salesReps: salesReps });
+    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
+  }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) { showToast(res.data.error || 'Failed to save — try again.', 'error'); return; }
+      if (successMsg) showToast(successMsg);
+    })
+    .catch(function() { showToast('Failed to save — try again.', 'error'); });
+}
+
 function renderReps() {
   var el = document.getElementById('reps-list');
   if (!salesReps.length) {
@@ -630,8 +652,173 @@ function renderReps() {
           : '<button onclick="removeRep(' + i + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:18px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>') +
       '</div>' +
       '<div style="margin-top:6px;margin-left:38px;font-size:.75rem">' + calStatus + '</div>' +
+      renderBookingLinksSection(r) +
     '</div>';
   }).join('');
+}
+
+function renderBookingLinksSection(rep) {
+  var types = rep.bookingTypes || [];
+  var expanded = !!bookingLinksExpanded[rep.id];
+  var html = '<div style="margin-top:8px;margin-left:38px">' +
+    '<a onclick="toggleBookingLinks(\'' + rep.id + '\')" style="cursor:pointer;color:var(--ink2);font-weight:600;font-size:.75rem;user-select:none">' +
+      'Booking links (' + types.length + ') ' + (expanded ? '▾' : '▸') +
+    '</a>';
+  if (expanded) {
+    html += '<div style="margin-top:8px">' +
+      types.map(function(bt) { return renderBookingTypeRow(rep, bt); }).join('') +
+      '<button onclick="addBookingType(\'' + rep.id + '\')" style="margin-top:2px;padding:6px 14px;border-radius:100px;border:1.5px dashed rgba(11,25,41,.18);background:transparent;font-family:\'Inter\',sans-serif;font-size:.75rem;font-weight:600;color:var(--ink2);cursor:pointer">+ Add link</button>' +
+    '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderBookingTypeRow(rep, bt) {
+  if (editingBookingType && editingBookingType.repId === rep.id && editingBookingType.typeId === bt.id) {
+    return renderBookingTypeEditor(rep, bt);
+  }
+  var removeKey = rep.id + ':' + bt.id;
+  var isPendingRemove = pendingRemoveBookingTypeId === removeKey;
+  return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid rgba(11,25,41,.05)">' +
+    '<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8125rem;color:var(--ink2)">' +
+      (bt.active === false ? '<span style="color:var(--ink3)">(inactive) </span>' : '') +
+      '<strong style="color:var(--ink)">' + escapeHtml(bt.label || '(untitled)') + '</strong>' +
+      ' · ' + (bt.duration || 30) + ' min' +
+      ' · <span style="font-family:monospace;font-size:.75rem">/call-with-' + escapeHtml(bt.slug || '') + '</span>' +
+    '</span>' +
+    '<button onclick="copyBookingLink(\'' + escapeHtml(bt.slug || '') + '\')" style="background:none;border:none;cursor:pointer;color:var(--n500);font-size:.75rem;font-weight:600;padding:2px 4px;white-space:nowrap">Copy</button>' +
+    '<button onclick="editBookingType(\'' + rep.id + '\',\'' + bt.id + '\')" style="background:none;border:none;cursor:pointer;color:var(--ink2);font-size:.75rem;font-weight:600;padding:2px 4px;white-space:nowrap">Edit</button>' +
+    (isPendingRemove
+      ? '<button onclick="removeBookingType(\'' + rep.id + '\',\'' + bt.id + '\')" style="background:#dc2626;border:none;border-radius:5px;cursor:pointer;color:#fff;font-family:\'Inter\',sans-serif;font-size:.7rem;font-weight:600;padding:4px 8px;white-space:nowrap">Confirm</button>'
+      : '<button onclick="removeBookingType(\'' + rep.id + '\',\'' + bt.id + '\')" title="Remove" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:16px;line-height:1;padding:2px 4px;opacity:.6" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=\'.6\'">×</button>') +
+  '</div>';
+}
+
+function renderBookingTypeEditor(rep, bt) {
+  var fields = bt.fields || {};
+  var fieldRows = BOOKING_FIELD_KEYS.map(function(f) {
+    var key = f[0], label = f[1];
+    var mode = fields[key] || 'hidden';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0">' +
+      '<span style="font-size:.75rem;color:var(--ink2)">' + label + '</span>' +
+      '<select onchange="setBookingTypeFieldMode(\'' + rep.id + '\',\'' + bt.id + '\',\'' + key + '\',this.value)" style="font-size:.75rem;padding:3px 6px;border:1px solid rgba(11,25,41,.15);border-radius:5px;font-family:\'Inter\',sans-serif">' +
+        ['hidden','optional','required'].map(function(m) {
+          return '<option value="' + m + '"' + (mode === m ? ' selected' : '') + '>' + m.charAt(0).toUpperCase() + m.slice(1) + '</option>';
+        }).join('') +
+      '</select>' +
+    '</div>';
+  }).join('');
+
+  return '<div style="background:var(--n050);border:1px solid rgba(11,25,41,.08);border-radius:8px;padding:12px;margin-bottom:8px">' +
+    '<div style="display:flex;gap:8px;margin-bottom:8px">' +
+      '<input type="text" value="' + escapeHtml(bt.label) + '" placeholder="Label, e.g. Quick call" oninput="setBookingTypeField(\'' + rep.id + '\',\'' + bt.id + '\',\'label\',this.value)" style="flex:2;padding:6px 9px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-size:.8125rem;font-family:\'Inter\',sans-serif">' +
+      '<input type="number" min="5" step="5" value="' + (bt.duration || 30) + '" oninput="setBookingTypeField(\'' + rep.id + '\',\'' + bt.id + '\',\'duration\',this.value)" title="Duration (minutes)" style="width:80px;padding:6px 9px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-size:.8125rem;font-family:\'Inter\',sans-serif">' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">' +
+      '<span style="font-size:.75rem;color:var(--ink3);white-space:nowrap">/call-with-</span>' +
+      '<input type="text" value="' + escapeHtml(bt.slug || '') + '" placeholder="phil-quick" oninput="setBookingTypeField(\'' + rep.id + '\',\'' + bt.id + '\',\'slug\',this.value)" style="flex:1;padding:6px 9px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-size:.8125rem;font-family:monospace">' +
+    '</div>' +
+    '<textarea placeholder="Shown on the booking page and in the confirmation email (optional)" oninput="setBookingTypeField(\'' + rep.id + '\',\'' + bt.id + '\',\'description\',this.value)" style="width:100%;min-height:50px;padding:6px 9px;border:1.5px solid rgba(11,25,41,.1);border-radius:6px;font-size:.8125rem;font-family:\'Inter\',sans-serif;margin-bottom:8px;resize:vertical">' + escapeHtml(bt.description || '') + '</textarea>' +
+    '<div style="margin-bottom:10px">' + fieldRows + '</div>' +
+    '<label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--ink2);cursor:pointer;margin-bottom:10px">' +
+      '<input type="checkbox" ' + (bt.active !== false ? 'checked' : '') + ' onchange="setBookingTypeField(\'' + rep.id + '\',\'' + bt.id + '\',\'active\',this.checked)" style="accent-color:var(--n500)"> Active' +
+    '</label>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+      '<button onclick="cancelEditBookingType(\'' + rep.id + '\',\'' + bt.id + '\')" style="padding:6px 14px;border-radius:100px;border:1.5px solid rgba(11,25,41,.15);background:transparent;font-size:.75rem;font-weight:600;color:var(--ink2);cursor:pointer">Cancel</button>' +
+      '<button onclick="doneEditingBookingType()" style="padding:6px 14px;border-radius:100px;border:none;background:var(--n500);color:#fff;font-size:.75rem;font-weight:600;cursor:pointer">Save</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleBookingLinks(repId) {
+  bookingLinksExpanded[repId] = !bookingLinksExpanded[repId];
+  renderReps();
+}
+
+function addBookingType(repId) {
+  var rep = repById(repId);
+  if (!rep) return;
+  if (!rep.bookingTypes) rep.bookingTypes = [];
+  var id = 'bt_' + Date.now();
+  rep.bookingTypes.push({ id: id, slug: '', label: '', duration: 30, description: '', active: true, fields: {} });
+  bookingLinksExpanded[repId] = true;
+  editingBookingType = { repId: repId, typeId: id };
+  renderReps();
+}
+
+function editBookingType(repId, typeId) {
+  editingBookingType = { repId: repId, typeId: typeId };
+  renderReps();
+}
+
+function cancelEditBookingType(repId, typeId) {
+  var rep = repById(repId);
+  var bt = btById(rep, typeId);
+  // Discard brand-new, never-filled-in types instead of leaving an empty row.
+  if (bt && !bt.label && !bt.slug) {
+    rep.bookingTypes = rep.bookingTypes.filter(function(t) { return t.id !== typeId; });
+  }
+  editingBookingType = null;
+  renderReps();
+}
+
+function setBookingTypeField(repId, typeId, field, value) {
+  var bt = btById(repById(repId), typeId);
+  if (bt) bt[field] = value;
+}
+
+function setBookingTypeFieldMode(repId, typeId, fieldKey, mode) {
+  var bt = btById(repById(repId), typeId);
+  if (!bt) return;
+  if (!bt.fields) bt.fields = {};
+  bt.fields[fieldKey] = mode;
+}
+
+function doneEditingBookingType() {
+  var repId = editingBookingType.repId, typeId = editingBookingType.typeId;
+  var rep = repById(repId);
+  var bt = btById(rep, typeId);
+  if (!bt) { editingBookingType = null; renderReps(); return; }
+  if (!(bt.label || '').trim()) { showToast('Give this booking link a label.', 'error'); return; }
+  bt.slug = (bt.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!bt.slug) { showToast('Give this link a slug — it\'s used in the URL.', 'error'); return; }
+  var dupe = salesReps.some(function(r) {
+    return (r.bookingTypes || []).some(function(t) { return t.id !== typeId && t.slug === bt.slug; });
+  });
+  if (dupe) { showToast('That link slug is already used by another booking link.', 'error'); return; }
+  bt.duration = parseInt(bt.duration, 10) || 30;
+  editingBookingType = null;
+  renderReps();
+  persistReps('Booking link saved ✓');
+}
+
+function removeBookingType(repId, typeId) {
+  var rep = repById(repId);
+  var bt = btById(rep, typeId);
+  if (!bt) return;
+  var key = repId + ':' + typeId;
+  if (pendingRemoveBookingTypeId !== key) {
+    pendingRemoveBookingTypeId = key;
+    renderReps();
+    setTimeout(function() {
+      if (pendingRemoveBookingTypeId === key) { pendingRemoveBookingTypeId = null; renderReps(); }
+    }, 4000);
+    return;
+  }
+  pendingRemoveBookingTypeId = null;
+  rep.bookingTypes = rep.bookingTypes.filter(function(t) { return t.id !== typeId; });
+  renderReps();
+  persistReps('Booking link removed ✓');
+}
+
+function copyBookingLink(slug) {
+  var url = window.location.origin + '/call-with-' + slug;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function() { showToast('Link copied ✓'); }).catch(function() { showToast(url); });
+  } else {
+    showToast(url);
+  }
 }
 
 function addRep() {
@@ -663,12 +850,7 @@ function removeRep(i) {
   // The button looks like an immediate delete, so persist it right away
   // instead of silently deferring to the separate "Save reps" button —
   // otherwise a reload before that click brings the "removed" rep right back.
-  authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
-    var updated = Object.assign({}, current, { salesReps: salesReps });
-    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
-  }).then(function(r) { return r.json(); }).then(function() {
-    showToast((rep.name || 'Rep') + ' removed ✓');
-  }).catch(function() { showToast('Failed to remove — try again.', 'error'); });
+  persistReps((rep.name || 'Rep') + ' removed ✓');
 }
 
 function moveRep(i, delta) {
@@ -683,13 +865,7 @@ function saveReps() {
   var invalid = salesReps.filter(function(r) { return !r.name.trim(); });
   if (invalid.length) { showToast('Each rep needs a name.', 'error'); return; }
   salesReps.forEach(function(r, i) { r.priority = i + 1; });
-
-  authFetch('/api/settings').then(function(r) { return r.json(); }).then(function(current) {
-    var updated = Object.assign({}, current, { salesReps: salesReps });
-    return authFetch('/api/settings', { method: 'PUT', body: JSON.stringify(updated) });
-  }).then(function(r) { return r.json(); }).then(function() {
-    showToast('Sales reps saved ✓');
-  }).catch(function() { showToast('Failed to save reps.', 'error'); });
+  persistReps('Sales reps saved ✓');
 }
 
 function escapeHtml(s) {

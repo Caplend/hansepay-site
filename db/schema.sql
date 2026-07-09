@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   rebook_token       CHAR(32)      NULL,
   cancel_token       CHAR(32)      NULL,
   assigned_to        JSON          NULL,
+  booking_type       JSON          NULL,
   rebooked           TINYINT(1)    NOT NULL DEFAULT 0,
   rebooked_at        DATETIME(3)   NULL,
   updated_at         DATETIME(3)   NULL,
