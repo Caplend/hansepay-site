@@ -109,6 +109,10 @@ a{color:inherit;text-decoration:none}
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 @media(max-width:480px){.hero-actions{flex-direction:column;align-items:flex-start}}
 
+.video-section { background: var(--n900); padding: 80px clamp(24px,5vw,88px); }
+.video-frame { max-width: 960px; margin: 0 auto; border-radius: var(--r-lg); overflow: hidden; box-shadow: 0 20px 60px rgba(6,13,26,.45); position: relative; padding-top: 56.25%; }
+.video-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 28px; border-radius: var(--r-pill);
@@ -251,6 +255,13 @@ footer {
         </button>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- LAUNCH VIDEO -->
+<section class="video-section">
+  <div class="video-frame">
+    <iframe src="https://player.mediadelivery.net/embed/700627/59830f3d-8561-4ab4-ae8b-a2a0c3feca3c?autoplay=false&loop=false&muted=false&preload=true&responsive=true" loading="lazy" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen;" allowfullscreen="true"></iframe>
   </div>
 </section>
 
