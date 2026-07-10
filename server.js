@@ -165,6 +165,25 @@ app.get('/google3b985f4905aea611.html', (req, res) => {
   res.send('google-site-verification: google3b985f4905aea611.html');
 });
 
+// ── Clean URLs: redirect "/page.html" -> "/page" ─────────────────────────────
+// Scoped to public marketing/content pages only — admin keeps its real .html
+// paths untouched (its nav-highlighting JS may depend on the exact filename).
+// The actual serving side lives in the express.static `extensions:['html']`
+// option below, which lets /page resolve to page.html on disk.
+app.use((req, res, next) => {
+  if (!req.path.endsWith('.html')) return next();
+  if (req.path === '/google3b985f4905aea611.html') return next(); // fixed Google requirement
+  const skip = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/'];
+  if (skip.some(p => req.path.startsWith(p))) return next();
+
+  let target = req.path.slice(0, -'.html'.length);
+  if (target === '/index') target = '/';
+  else if (target === '/hansepay/index') target = '/hansepay/'; // avoid a second static-mount redirect for the bare prefix
+  const qsIndex = req.originalUrl.indexOf('?');
+  const qs = qsIndex >= 0 ? req.originalUrl.slice(qsIndex) : '';
+  return res.redirect(301, target + qs);
+});
+
 // ── Coming Soon gate ─────────────────────────────────────────────────────────
 // Set PREVIEW_TOKEN env var in Railway (e.g. "hansepay2026").
 // Visiting /?preview=TOKEN grants a 30-day cookie to browse the full site.
@@ -180,7 +199,11 @@ app.use(async (req, res, next) => {
                      '/dashboard-login.html', '/hansepay/dashboard-login.html',
                      '/dashboard.html', '/hansepay/dashboard.html'];
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
-  if (skipExact.includes(req.path)) return next();
+  // Normalize both this request's path and the allowlist to extension-less
+  // form, so /booking and /booking.html are treated identically now that
+  // clean URLs are in play.
+  const stripHtml = p => p.replace(/\.html$/, '') || '/';
+  if (skipExact.some(p => stripHtml(p) === stripHtml(req.path))) return next();
 
   let settings;
   try {
@@ -225,9 +248,11 @@ app.get('/google3b985f4905aea611.html', (req, res) => {
 });
 
 // Static files — files live at repo root in hansepay-deploy
-app.use(express.static(__dirname));
+// extensions:['html'] lets /page resolve to page.html on disk, so clean URLs
+// (the redirect above) actually have something to land on.
+app.use(express.static(__dirname, { extensions: ['html'] }));
 // Also serve under /hansepay/ prefix for compatibility with landing page links
-app.use('/hansepay', express.static(__dirname));
+app.use('/hansepay', express.static(__dirname, { extensions: ['html'] }));
 // Serve uploads
 app.use('/uploads', express.static(UPLOADS_DIR));
 

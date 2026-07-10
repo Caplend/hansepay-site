@@ -598,7 +598,7 @@ a{color:inherit;text-decoration:none}
             <div><div class="showcase-feat-title" data-i18n="index.platform.f4.title">API &amp; bulk payments</div><div class="showcase-feat-desc" data-i18n="index.platform.f4.desc">Integrate with your ERP or TMS. Send hundreds of payments from one CSV upload.</div></div>
           </div>
         </div>
-        <a href="platform.html" class="btn btn-ghost-white" style="margin:36px auto 0;display:flex;width:fit-content" data-i18n="index.platform.cta">Explore the platform &rarr;</a>
+        <a href="platform.html" class="btn btn-ghost-white" style="margin-top:36px;display:flex;width:fit-content" data-i18n="index.platform.cta">Explore the platform &rarr;</a>
       </div>
       <!-- Right: App UI (premium glass frame) -->
       <div>
@@ -621,7 +621,7 @@ a{color:inherit;text-decoration:none}
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
                   <div>
                     <div class="app-ey" style="margin-bottom:4px"><span>FX RATE</span></div>
-                    <div style="font-size:17px;font-weight:700;color:#0B1929;letter-spacing:-.01em">1 EUR = <span style="color:#1E4E80;font-style:italic">1.0842</span> USD</div>
+                    <div id="hp-mock-rate" style="font-size:17px;font-weight:700;color:#0B1929;letter-spacing:-.01em">1 EUR = <span style="color:#1E4E80;font-style:italic">1,0842</span> USD</div>
                   </div>
                   <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:#1DA34B">
                     <span style="width:5px;height:5px;border-radius:50%;background:#34C759;display:inline-block;box-shadow:0 0 5px rgba(52,199,89,.5)"></span>
@@ -632,15 +632,24 @@ a{color:inherit;text-decoration:none}
                   <div>
                     <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(11,25,41,.35);margin-bottom:5px">YOU SEND</div>
                     <div style="border:1px solid rgba(11,25,41,.10);border-radius:7px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;background:#fff">
-                      <span style="font-size:13px;font-weight:600;color:#0B1929">1.000,00</span>
+                      <input id="hp-mock-send" type="text" inputmode="decimal" value="1.000,00" oninput="hpMockRecalc()" style="width:60%;border:none;outline:none;padding:0;font-family:inherit;font-size:13px;font-weight:600;color:#0B1929;background:transparent" />
                       <span style="font-size:11px;font-weight:600;color:#0B1929">🇪🇺 EUR</span>
                     </div>
                   </div>
                   <div>
                     <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(11,25,41,.35);margin-bottom:5px">RECIPIENT GETS</div>
                     <div style="border:1px solid rgba(11,25,41,.10);border-radius:7px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;background:#fff">
-                      <span style="font-size:13px;font-weight:600;color:#0B1929">1.073,47</span>
-                      <span style="font-size:11px;font-weight:600;color:#0B1929">🇺🇸 USD ▾</span>
+                      <span id="hp-mock-recv" style="font-size:13px;font-weight:600;color:#0B1929">1.073,47</span>
+                      <span style="display:inline-flex;align-items:center;gap:3px">
+                        <select id="hp-mock-currency" onchange="hpMockRecalc()" style="border:none;outline:none;background:transparent;font-family:inherit;font-size:11px;font-weight:600;color:#0B1929;cursor:pointer;appearance:none;-webkit-appearance:none;padding:0">
+                          <option value="USD" selected>🇺🇸 USD</option>
+                          <option value="GBP">🇬🇧 GBP</option>
+                          <option value="CHF">🇨🇭 CHF</option>
+                          <option value="JPY">🇯🇵 JPY</option>
+                          <option value="CNY">🇨🇳 CNY</option>
+                        </select>
+                        <span style="font-size:9px;color:#0B1929;pointer-events:none">▾</span>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1291,6 +1300,33 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener
     if(posts.length) renderCards(posts);
   }).catch(function(){});
 })();
+</script>
+<script>
+// Illustrative rates for the platform dashboard mockup (marketing demo only,
+// not a live FX feed — the real rate calculator lives in the "calc-section").
+var HP_MOCK_RATES = {
+  USD: { rate: 1.0842, label: '🇺🇸 USD ▾' },
+  GBP: { rate: 0.8521, label: '🇬🇧 GBP ▾' },
+  CHF: { rate: 0.9412, label: '🇨🇭 CHF ▾' },
+  JPY: { rate: 168.45, label: '🇯🇵 JPY ▾' },
+  CNY: { rate: 7.8236, label: '🇨🇳 CNY ▾' },
+};
+function hpMockRecalc() {
+  var sendEl = document.getElementById('hp-mock-send');
+  var curSel = document.getElementById('hp-mock-currency');
+  var recvEl = document.getElementById('hp-mock-recv');
+  var rateEl = document.getElementById('hp-mock-rate');
+  if (!sendEl || !curSel || !recvEl || !rateEl) return;
+  var info = HP_MOCK_RATES[curSel.value] || HP_MOCK_RATES.USD;
+  var raw = sendEl.value.replace(/\./g, '').replace(',', '.');
+  var amt = parseFloat(raw);
+  if (isNaN(amt) || amt < 0) amt = 0;
+  var recv = amt * info.rate;
+  recvEl.textContent = recv.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  rateEl.innerHTML = '1 EUR = <span style="color:#1E4E80;font-style:italic">' +
+    info.rate.toLocaleString('de-DE', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) +
+    '</span> ' + curSel.value;
+}
 </script>
 <script src="assets/globe.js"></script>
 </body>
