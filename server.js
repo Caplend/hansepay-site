@@ -2576,6 +2576,7 @@ app.get('/api/schedule/config', async (req, res) => {
   res.json({
     ...cfg,
     repName: rep.name,
+    repPhotoUrl: rep.photoUrl || null,
     type: {
       id: bookingType.id, label: bookingType.label, duration: bookingType.duration,
       description: bookingType.description || '', fields: bookingType.fields || {},
