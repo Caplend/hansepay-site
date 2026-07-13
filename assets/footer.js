@@ -9,9 +9,8 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:64px;margin-bottom:80px}
 @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;gap:48px}}
 @media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
-.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.footer-logo img{height:28px;width:28px;object-fit:contain}
-.footer-logo-text{font-family:var(--font-logo);font-size:18px;font-weight:400;color:#fff;letter-spacing:-.02em}
+.footer-logo{display:flex;align-items:center;margin-bottom:16px}
+.footer-logo img{height:25px;width:auto;display:block}
 .footer-tagline{font-size:13px;color:rgba(255,255,255,.45);line-height:1.6;max-width:240px;margin-bottom:12px}
 .footer-legal{font-size:11px;color:rgba(255,255,255,.25);line-height:1.6}
 .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;margin-bottom:20px}
@@ -36,7 +35,7 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="footer-logo"><img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay" /><span class="footer-logo-text">HansePay</span></div>
+        <div class="footer-logo"><img src="assets/hansepay-wordmark-white.svg" alt="HansePay" /></div>
         <p class="footer-tagline">Bridging markets.</p>
         <p class="footer-legal">&#169; 2026 Caplend Technologies GmbH<br>HansePay is a brand of Caplend Technologies GmbH</p>
       </div>

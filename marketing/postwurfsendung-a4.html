@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HansePay · Postwurfsendung A4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --n900:#060D1A; --n800:#0B1929; --n700:#0F2540; --n600:#163659;
+  --n500:#1E4E80; --n400:#2E6BAD; --n300:#3B7BC4; --n200:#8DBDE6;
+  --n100:#C4DDEF; --n050:#EBF4FB;
+  --ink:#0B1929; --body:#33485B; --ink2:#3D5A73; --ink3:#8197A8; --hair:#E6ECF2;
+  --grad:radial-gradient(ellipse at 62% 50%, #2E6BAD 0%, #1E4E80 28%, #163659 58%, #0F2540 100%);
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body {
+  background:#CDD2D8;
+  font-family:var(--font-ui);
+  min-height:100vh;
+  padding:28px 20px 52px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  -webkit-font-smoothing:antialiased;
+}
+.sw { display:flex; gap:2px; background:rgba(11,25,41,.2); border-radius:10px; padding:3px; }
+.sw-btn {
+  padding:8px 26px; border:none; border-radius:8px; background:transparent;
+  font-family:var(--font-ui); font-size:12.5px; font-weight:500;
+  color:rgba(11,25,41,.42); cursor:pointer; letter-spacing:.02em; transition:all .15s;
+}
+.sw-btn.on { background:#fff; color:var(--n800); box-shadow:0 1px 5px rgba(0,0,0,.18); }
+.sw-note { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:rgba(11,25,41,.3); }
+.dl { display:flex; gap:8px; }
+.dl-btn {
+  display:inline-flex; align-items:center; gap:7px; padding:8px 17px;
+  border:1px solid rgba(11,25,41,.16); border-radius:8px; background:#fff;
+  font-family:var(--font-ui); font-size:12px; font-weight:500; color:var(--n700);
+  cursor:pointer; letter-spacing:.01em; transition:border-color .15s,color .15s;
+}
+.dl-btn:hover { border-color:var(--n400); color:var(--n500); }
+.dl-btn:disabled { opacity:.5; cursor:default; }
+.dl-btn svg { width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+.a4 {
+  width:595px; height:841px; position:relative; overflow:hidden; background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.12), 0 20px 64px rgba(0,0,0,.22);
+}
+
+/* ════════════ VERSION A — REFINED LETTER ════════════ */
+.a-hd {
+  height:84px; background:var(--grad);
+  display:flex; align-items:center; justify-content:space-between; padding:0 56px;
+}
+.a-lock { display:flex; align-items:center; }
+.a-logo-icon { height:32px; width:auto; display:block; }
+.a-hd-tag { font-size:8px; font-weight:500; letter-spacing:.26em; text-transform:uppercase; color:rgba(255,255,255,.34); }
+
+.a-body { position:absolute; top:84px; left:0; right:0; bottom:72px; padding:40px 56px 0; overflow:hidden; }
+.a-meta { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; }
+.a-sender { font-size:9px; color:var(--ink3); line-height:2; letter-spacing:.01em; }
+.a-sender-name { display:block; font-size:9.5px; font-weight:500; color:var(--ink2); margin-bottom:4px; }
+.a-date { font-size:9.5px; color:var(--ink3); text-align:right; }
+
+.a-ref-label { font-size:8.5px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--n400); margin-bottom:14px; }
+.a-subject {
+  font-family:var(--font-display); font-size:25px; font-weight:400;
+  color:var(--ink); line-height:1.22; letter-spacing:-.018em;
+  margin-bottom:24px; max-width:420px;
+}
+.a-subject em { font-style:italic; font-weight:400; color:var(--n500); }
+
+.a-sal { font-size:11.5px; font-weight:500; color:var(--ink); margin-bottom:14px; }
+.a-p { font-size:11px; font-weight:400; color:var(--body); line-height:1.85; margin-bottom:28px; max-width:455px; }
+
+.a-panel { margin-bottom:28px; }
+.a-panel-top { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.a-panel-label { font-size:8.5px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--n500); white-space:nowrap; }
+.a-panel-rule { flex:1; height:1px; background:var(--hair); }
+.a-item { display:flex; gap:13px; font-size:11px; font-weight:400; color:var(--ink); line-height:1.5; margin-bottom:11px; align-items:flex-start; }
+.a-item:last-child { margin-bottom:0; }
+.a-check { width:14px; height:14px; flex-shrink:0; margin-top:1px; stroke:var(--n400); stroke-width:2.5; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+.a-cta { display:flex; gap:28px; align-items:center; }
+.a-cta-text { flex:1; font-size:11px; font-weight:400; color:var(--body); line-height:1.7; }
+.a-cta-text strong { font-weight:600; color:var(--n500); }
+.a-cta-qr { display:flex; flex-direction:column; align-items:center; gap:7px; flex-shrink:0; }
+.a-cta-qr .qr { line-height:0; }
+.a-cta-qr .lbl { font-size:7.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--ink3); }
+
+.a-signoff { font-size:11px; color:var(--body); margin:28px 0 14px; }
+.a-sig-lock { display:flex; align-items:center; margin-bottom:5px; }
+.a-sig-icon { height:20px; width:auto; display:block; }
+.a-sig-sub { font-size:9.5px; color:var(--ink3); }
+
+.a-ftr-rule { position:absolute; bottom:52px; left:56px; right:56px; height:1px; background:var(--hair); }
+.a-ftr { position:absolute; bottom:22px; left:56px; right:56px; display:flex; justify-content:space-between; align-items:flex-start; }
+.a-ftr-l { font-size:8px; color:var(--ink3); line-height:2; }
+.a-ftr-r { font-size:8px; color:var(--ink3); line-height:2; text-align:right; }
+
+/* ════════════ VERSION B — GRADIENT POSTER ════════════ */
+#vb { background:radial-gradient(ellipse 125% 95% at 50% 28%, #2E6BAD 0%, #1E4E80 26%, #163659 55%, #0F2540 80%, #0B1929 100%); display:flex; flex-direction:column; }
+
+.b-top { height:68px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; padding:0 56px; }
+.b-lock { display:flex; align-items:center; }
+.b-logo-icon { height:26px; width:auto; display:block; }
+.b-top-tag { font-size:8px; font-weight:500; letter-spacing:.24em; text-transform:uppercase; color:rgba(255,255,255,.34); }
+
+.b-hero { flex:1; padding:24px 56px 40px; display:flex; flex-direction:column; justify-content:center; }
+.b-eyebrow { font-size:9px; font-weight:600; letter-spacing:.3em; text-transform:uppercase; color:var(--n200); margin-bottom:24px; }
+.b-hl {
+  font-family:var(--font-display); font-size:53px; font-weight:400;
+  color:#fff; line-height:1.04; letter-spacing:-.03em;
+}
+.b-hl em { font-style:italic; font-weight:400; color:var(--n200); }
+.b-sub { font-size:12px; font-weight:400; color:rgba(255,255,255,.68); margin-top:22px; max-width:390px; line-height:1.62; }
+
+.b-div { height:1px; flex-shrink:0; margin:0 56px; background:rgba(255,255,255,.13); }
+
+.b-features { flex-shrink:0; display:grid; grid-template-columns:1fr 1fr; padding:0 56px; }
+.b-feat { padding:28px 0; display:flex; flex-direction:column; }
+.b-feat:nth-child(odd) { padding-right:40px; }
+.b-feat:nth-child(even) { padding-left:40px; border-left:1px solid rgba(255,255,255,.13); }
+.b-feat:nth-child(1),.b-feat:nth-child(2) { border-bottom:1px solid rgba(255,255,255,.13); }
+.b-feat-icon { width:24px; height:24px; stroke:var(--n200); stroke-width:1.5; fill:none; stroke-linecap:round; stroke-linejoin:round; margin-bottom:15px; }
+.b-feat-ttl { font-size:14px; font-weight:600; color:#fff; margin-bottom:7px; letter-spacing:-.01em; }
+.b-feat-desc { font-size:10.5px; font-weight:400; color:rgba(255,255,255,.66); line-height:1.66; }
+
+.b-cta { flex-shrink:0; padding:36px 56px 40px; display:flex; align-items:center; gap:36px; justify-content:space-between; }
+.b-cta-l { flex:1; }
+.b-cta-hl { font-family:var(--font-display); font-size:26px; font-weight:400; color:#fff; line-height:1.14; letter-spacing:-.02em; margin-bottom:11px; }
+.b-cta-hl em { font-style:italic; font-weight:400; color:var(--n200); }
+.b-cta-body { font-size:10.5px; font-weight:400; color:rgba(255,255,255,.66); line-height:1.6; margin-bottom:18px; max-width:300px; }
+.b-cta-url { display:inline-flex; align-items:center; gap:9px; font-size:12px; font-weight:600; color:var(--n800); background:#fff; padding:11px 20px; border-radius:7px; letter-spacing:-.01em; }
+.b-cta-url svg { width:13px; height:13px; stroke:var(--n800); stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+.b-qr-col { display:flex; flex-direction:column; align-items:center; gap:10px; flex-shrink:0; }
+.b-qr-wrap { background:#fff; padding:9px; border-radius:8px; line-height:0; }
+.b-qr-label { font-size:8px; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.46); }
+</style>
+</head>
+<body>
+
+<div class="sw">
+  <button class="sw-btn on" onclick="show('a',this)">A · Klassisch</button>
+  <button class="sw-btn" onclick="show('b',this)">B · Modern</button>
+</div>
+<div class="sw-note" id="sw-note">Version A · DIN A4 · Klassisch</div>
+<div class="dl">
+  <button class="dl-btn" onclick="dl('pdf',this)"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF</button>
+  <button class="dl-btn" onclick="dl('png',this)"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</button>
+</div>
+
+<!-- ════════════ VERSION A ════════════ -->
+<div class="a4" id="va">
+  <div class="a-hd">
+    <div class="a-lock">
+      <img src="../assets/hansepay-wordmark-white.svg" class="a-logo-icon" alt="HansePay">
+    </div>
+    <div class="a-hd-tag">Postwurfsendung Spezial</div>
+  </div>
+
+  <div class="a-body">
+    <div class="a-meta">
+      <div class="a-sender">
+        <span class="a-sender-name">HansePay · Caplend Technologies GmbH</span>
+        Speersort 10 · 20095 Hamburg<br>
+        hello@hansepay.de · hansepay.de
+      </div>
+      <div class="a-date">Hamburg, im Juni 2026</div>
+    </div>
+
+    <div class="a-ref-label">Betreff</div>
+    <div class="a-subject">Ihr Unternehmen verdient mehr als eine <em>Standard-Bankverbindung.</em></div>
+
+    <div class="a-sal">Sehr geehrte Damen und Herren,</div>
+
+    <div class="a-p">der Mittelstand verdient Bankdienstleistungen auf Augenhöhe. Mit HansePay erhalten Sie ein digitales Geschäftskonto, das konsequent auf wachsende Unternehmen ausgerichtet ist — schnell, transparent und rund um die Uhr verfügbar.</div>
+
+    <div class="a-panel">
+      <div class="a-panel-top">
+        <span class="a-panel-label">Das erwartet Sie bei HansePay</span>
+        <span class="a-panel-rule"></span>
+      </div>
+      <div class="a-item"><svg class="a-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Geschäftskonto mit deutscher IBAN · Onboarding in unter 10 Minuten</span></div>
+      <div class="a-item"><svg class="a-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>SEPA- &amp; internationale Überweisungen in Echtzeit, rund um die Uhr</span></div>
+      <div class="a-item"><svg class="a-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>FX-Management: Fremdwährungszahlungen zu Interbankkursen</span></div>
+      <div class="a-item"><svg class="a-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Keine versteckten Gebühren — vollständige Kostentransparenz</span></div>
+    </div>
+
+    <div class="a-cta">
+      <div class="a-cta-text">Überzeugen Sie sich selbst. Vereinbaren Sie jetzt Ihr unverbindliches Beratungsgespräch — kostenlos und in Ihrem Tempo. Besuchen Sie <strong>hansepay.de</strong> oder scannen Sie den nebenstehenden QR-Code.</div>
+      <div class="a-cta-qr">
+        <div class="qr">
+          <svg width="58" height="58" viewBox="0 0 9 9" fill="var(--n800)">
+            <rect x="0" y="0" width="3" height="3"/><rect x="1" y="1" width="1" height="1" fill="white"/>
+            <rect x="5" y="0" width="3" height="3"/><rect x="6" y="1" width="1" height="1" fill="white"/>
+            <rect x="0" y="5" width="3" height="3"/><rect x="1" y="6" width="1" height="1" fill="white"/>
+            <rect x="4" y="0" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/>
+            <rect x="5" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/>
+            <rect x="4" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/>
+            <rect x="4" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/>
+            <rect x="8" y="6" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/>
+            <rect x="3" y="6" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/>
+          </svg>
+        </div>
+        <span class="lbl">Jetzt scannen</span>
+      </div>
+    </div>
+
+    <div class="a-signoff">Mit freundlichen Grüßen,</div>
+    <div class="a-sig-lock">
+      <img src="../assets/hansepay-wordmark-navy.svg" class="a-sig-icon" alt="HansePay">
+    </div>
+    <div class="a-sig-sub">Das HansePay-Team · hello@hansepay.de</div>
+  </div>
+
+  <div class="a-ftr-rule"></div>
+  <div class="a-ftr">
+    <div class="a-ftr-l">
+      Caplend Technologies GmbH · HRB 185277 AG Hamburg<br>
+      Speersort 10 · 20095 Hamburg · MiCAR-autorisiert · BaFin-reguliert
+    </div>
+    <div class="a-ftr-r">
+      hansepay.de<br>
+      hello@hansepay.de · +49 (0)40 123 456 78
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ VERSION B ════════════ -->
+<div class="a4" id="vb" style="display:none">
+  <div class="b-top">
+    <div class="b-lock">
+      <img src="../assets/hansepay-wordmark-white.svg" class="b-logo-icon" alt="HansePay">
+    </div>
+    <div class="b-top-tag">Geschäftskonto · Neu gedacht</div>
+  </div>
+
+  <div class="b-hero">
+    <div class="b-eyebrow">Für den deutschen Mittelstand</div>
+    <div class="b-hl">Zahlungen, die<br><em>einfach funktionieren.</em></div>
+    <div class="b-sub">Ein digitales Geschäftskonto, gebaut für wachsende Unternehmen — schnell, transparent und rund um die Uhr verfügbar.</div>
+  </div>
+
+  <div class="b-div"></div>
+
+  <div class="b-features">
+    <div class="b-feat">
+      <svg class="b-feat-icon" viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <div class="b-feat-ttl">Echtzeitzahlungen</div>
+      <div class="b-feat-desc">SEPA &amp; international — Überweisungen gehen sofort raus, rund um die Uhr.</div>
+    </div>
+    <div class="b-feat">
+      <svg class="b-feat-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <div class="b-feat-ttl">FX-Management</div>
+      <div class="b-feat-desc">Fremdwährungszahlungen zu Interbankkursen. Kein Aufschlag, keine Überraschungen.</div>
+    </div>
+    <div class="b-feat">
+      <svg class="b-feat-icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      <div class="b-feat-ttl">Transparente Konditionen</div>
+      <div class="b-feat-desc">Klare Preisstruktur ohne Kleingedrucktes. Volle Kostenkontrolle ab Tag 1.</div>
+    </div>
+    <div class="b-feat">
+      <svg class="b-feat-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="b-feat-ttl">Persönlicher Service</div>
+      <div class="b-feat-desc">Ihr dedizierter Kundenbetreuer. Immer erreichbar, immer auf Ihrer Seite.</div>
+    </div>
+  </div>
+
+  <div class="b-div"></div>
+
+  <div class="b-cta">
+    <div class="b-cta-l">
+      <div class="b-cta-hl">Bereit für eine <em>bessere Bank?</em></div>
+      <div class="b-cta-body">Onboarding in unter 10 Minuten. Kein Papierkram. Kein Filialtermin.</div>
+      <span class="b-cta-url">hansepay.de<svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </div>
+    <div class="b-qr-col">
+      <div class="b-qr-wrap">
+        <svg width="78" height="78" viewBox="0 0 9 9" fill="var(--n800)">
+          <rect x="0" y="0" width="3" height="3"/><rect x="1" y="1" width="1" height="1" fill="white"/>
+          <rect x="5" y="0" width="3" height="3"/><rect x="6" y="1" width="1" height="1" fill="white"/>
+          <rect x="0" y="5" width="3" height="3"/><rect x="1" y="6" width="1" height="1" fill="white"/>
+          <rect x="4" y="0" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/>
+          <rect x="5" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/>
+          <rect x="4" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/>
+          <rect x="4" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/>
+          <rect x="8" y="6" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/>
+          <rect x="3" y="6" width="1" height="1"/><rect x="8" y="4" width="1" height="1"/>
+        </svg>
+      </div>
+      <div class="b-qr-label">Jetzt scannen</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(v,btn){
+  document.getElementById('va').style.display=v==='a'?'block':'none';
+  document.getElementById('vb').style.display=v==='b'?'flex':'none';
+  document.querySelectorAll('.sw-btn').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  document.getElementById('sw-note').textContent=v==='a'?'Version A · DIN A4 · Klassisch':'Version B · DIN A4 · Modern';
+}
+
+function loadScript(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=function(){rej(new Error('Bibliothek konnte nicht geladen werden'))};document.head.appendChild(s);});}
+var libsReady=false;
+function ensureLibs(){
+  if(libsReady)return Promise.resolve();
+  return loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+    .then(function(){return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');})
+    .then(function(){libsReady=true;});
+}
+function activeVersion(){return document.getElementById('vb').style.display!=='none'?'b':'a';}
+
+function dl(fmt,btn){
+  var v=activeVersion();
+  var el=document.getElementById(v==='a'?'va':'vb');
+  var orig=btn.innerHTML; btn.disabled=true; btn.textContent='…';
+  var fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+  ensureLibs().then(function(){return fontsReady;}).then(function(){
+    return html2canvas(el,{scale:4,backgroundColor:null,useCORS:true,logging:false,width:595,height:841,windowWidth:595,windowHeight:841});
+  }).then(function(canvas){
+    var name='hansepay-postwurfsendung-'+v.toUpperCase();
+    if(fmt==='png'){
+      var a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=name+'.png'; a.click();
+    } else {
+      var JsPDF=window.jspdf.jsPDF;
+      var pdf=new JsPDF({orientation:'portrait',unit:'pt',format:'a4'});
+      var w=pdf.internal.pageSize.getWidth(), h=pdf.internal.pageSize.getHeight();
+      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,w,h);
+      pdf.save(name+'.pdf');
+    }
+  }).catch(function(e){
+    alert('Download fehlgeschlagen: '+(e&&e.message?e.message:e)+'\nBitte Internetverbindung prüfen oder Cmd+P → „Als PDF sichern" nutzen.');
+  }).then(function(){ btn.disabled=false; btn.innerHTML=orig; });
+}
+</script>
+</body>
+</html>

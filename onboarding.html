@@ -25,9 +25,8 @@ body{display:flex;flex-direction:column;min-height:100vh}
 
 /* TOP HEADER */
 .ob-topbar{background:var(--n800);background:linear-gradient(135deg,#060D1A 0%,#0F2540 55%,#163659 100%);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.ob-topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.ob-topbar-logo img{width:26px;height:26px;object-fit:contain}
-.ob-topbar-logo-text{font-family:'Libre Baskerville',serif;font-size:17px;font-weight:400;color:#fff;letter-spacing:.01em}
+.ob-topbar-logo{display:flex;align-items:center;text-decoration:none}
+.ob-topbar-logo img{height:22px;width:auto;display:block}
 .ob-topbar-exit{font-size:12.5px;color:rgba(255,255,255,.45);cursor:pointer;text-decoration:none;transition:.15s}
 .ob-topbar-exit:hover{color:rgba(255,255,255,.75)}
 
@@ -366,8 +365,7 @@ input[readonly]{background:var(--n800);color:rgba(255,255,255,.7);cursor:default
 <!-- TOP HEADER -->
 <header class="ob-topbar">
   <a class="ob-topbar-logo" href="/" id="topbarLogo">
-    <img src="/assets/hansepay-mark-uploaded-white.png" alt="HansePay">
-    <span class="ob-topbar-logo-text">HansePay</span>
+    <img src="/assets/hansepay-wordmark-white.svg" alt="HansePay">
   </a>
   <a class="ob-topbar-exit" href="/" id="topbarExit">Save &amp; exit</a>
 </header>

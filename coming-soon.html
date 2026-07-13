@@ -52,11 +52,9 @@ a{color:inherit;text-decoration:none}
   padding: 0 clamp(24px,5vw,88px);
 }
 .logo {
-  display: flex; align-items: center; gap: 13px;
-  font-family: var(--font-logo); font-size: 26px; font-weight: 400;
-  letter-spacing: -.02em; color: #fff;
+  display: flex; align-items: center;
 }
-.logo img { height: 38px; width: 38px; object-fit: contain; filter: brightness(0) invert(1); }
+.logo img { height: 30px; width: auto; display: block; }
 
 /* ── LANGUAGE TOGGLE ── */
 .lang-toggle {
@@ -215,7 +213,8 @@ a{color:inherit;text-decoration:none}
 .hp-bm-panel{width:100%;max-width:1060px;height:min(720px,90vh);border-radius:20px;overflow:hidden;display:flex;box-shadow:0 40px 100px rgba(6,13,26,.55);transform:translateY(18px) scale(.97);transition:transform .35s cubic-bezier(.22,.68,0,1.2),opacity .28s ease;opacity:0}
 .hp-bm-overlay.hp-bm-open .hp-bm-panel{transform:none;opacity:1}
 .hp-bm-left{width:300px;flex-shrink:0;background:linear-gradient(160deg,#0B1929 0%,#163659 100%);padding:36px 32px;display:flex;flex-direction:column}
-.hp-bm-logo{font-family:var(--font-logo);font-size:17px;color:#fff;margin-bottom:auto}
+.hp-bm-logo{margin-bottom:auto}
+.hp-bm-logo img{height:22px;width:auto;display:block}
 .hp-bm-body{padding:28px 0}
 .hp-bm-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(141,189,230,.7);margin-bottom:12px}
 .hp-bm-headline{font-family:var(--font-display);font-size:26px;font-weight:400;color:#fff;line-height:1.18;letter-spacing:-.02em;margin-bottom:6px}
@@ -245,8 +244,7 @@ footer {
 
 <header class="topbar">
   <div class="logo">
-    <img src="assets/hansepay-mark-uploaded.png" alt="HansePay" />
-    HansePay
+    <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" />
   </div>
   <div class="lang-toggle">
     <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
@@ -331,7 +329,7 @@ footer {
 <div class="hp-bm-overlay" id="hp-bm-overlay">
   <div class="hp-bm-panel">
     <div class="hp-bm-left">
-      <div class="hp-bm-logo">HansePay</div>
+      <div class="hp-bm-logo"><img src="assets/hansepay-wordmark-white.svg" alt="HansePay"></div>
       <div class="hp-bm-body">
         <div class="hp-bm-eyebrow" data-i18n="bm-eyebrow"></div>
         <div class="hp-bm-headline" data-i18n="bm-headline-html"></div>

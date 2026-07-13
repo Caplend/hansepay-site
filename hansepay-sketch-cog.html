@@ -39,9 +39,8 @@ a{color:inherit;text-decoration:none}
 /* ── NAV ── */
 nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 clamp(20px,5vw,80px);height:68px;display:flex;align-items:center;background:rgba(11,30,45,.92);box-shadow:0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
 .nav-inner{max-width:1240px;margin:0 auto;width:100%;display:flex;align-items:center;gap:0}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;margin-right:40px}
-.nav-logo img{height:28px;width:28px;object-fit:contain}
-.nav-logo-text{font-family:var(--font-display);font-size:19px;font-weight:400;letter-spacing:-.02em;color:#fff;line-height:1}
+.nav-logo{display:flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:40px}
+.nav-logo img{height:26px;width:auto;display:block}
 .nav-links{display:flex;align-items:stretch;gap:0;list-style:none;flex:1;height:68px}
 .nav-item{position:relative;display:flex;align-items:center}
 .nav-link{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;color:rgba(255,255,255,.55);transition:color .15s;white-space:nowrap;padding:0 16px;height:100%;cursor:pointer}
@@ -150,9 +149,8 @@ footer{background:#070F17;padding:80px 0 40px}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:64px;margin-bottom:64px}
 @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;gap:48px}}
 @media(max-width:560px){.footer-grid{grid-template-columns:1fr}}
-.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.footer-logo img{height:26px;width:26px;object-fit:contain}
-.footer-logo-text{font-family:var(--font-display);font-size:18px;font-weight:400;color:#fff;letter-spacing:-.02em}
+.footer-logo{display:flex;align-items:center;margin-bottom:14px}
+.footer-logo img{height:24px;width:auto;display:block}
 .footer-tagline{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;max-width:220px;margin-bottom:12px}
 .footer-legal{font-size:11px;color:rgba(255,255,255,.20);line-height:1.6}
 .footer-col-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85);margin-bottom:18px}
@@ -171,8 +169,7 @@ footer{background:#070F17;padding:80px 0 40px}
 <nav id="main-nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay" />
-      <span class="nav-logo-text">HansePay</span>
+      <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" />
     </a>
     <ul class="nav-links">
       <li class="nav-item">
@@ -578,8 +575,7 @@ footer{background:#070F17;padding:80px 0 40px}
     <div class="footer-grid">
       <div>
         <div class="footer-logo">
-          <img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay" />
-          <span class="footer-logo-text">HansePay</span>
+          <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" />
         </div>
         <p class="footer-tagline">Global payments rooted in Hamburg's trading heritage.</p>
         <p class="footer-legal">© 2025 HansePay GmbH. Alle Rechte vorbehalten.<br>BaFin-Reg. Nr. 12345678 · USt-IdNr. DE123456789</p>

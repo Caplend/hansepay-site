@@ -8,11 +8,11 @@
 nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 clamp(20px,5vw,80px);height:68px;display:flex;align-items:center;transition:background .35s,box-shadow .35s,backdrop-filter .35s}
 nav.scrolled{background:rgba(255,255,255,.97);box-shadow:0 1px 0 rgba(11,25,41,.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .nav-inner{max-width:1240px;margin:0 auto;width:100%;display:flex;align-items:center;gap:0}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;margin-right:40px}
-.nav-logo img{height:28px;width:28px;object-fit:contain;filter:brightness(0) invert(1);transition:filter .35s}
-nav.scrolled .nav-logo img{filter:none}
-.nav-logo-text{font-family:var(--font-logo);font-size:19px;font-weight:400;letter-spacing:-.02em;color:#fff;line-height:1;transition:color .25s}
-nav.scrolled .nav-logo-text{color:var(--n800)}
+.nav-logo{position:relative;display:flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:40px}
+.nav-logo-mark{height:26px;width:auto;display:block;transition:opacity .25s}
+.nav-logo-mark-navy{position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0}
+nav.scrolled .nav-logo-mark-white{opacity:0}
+nav.scrolled .nav-logo-mark-navy{opacity:1}
 .nav-links{display:flex;align-items:stretch;gap:0;list-style:none;flex:1;height:68px}
 .nav-item{position:relative;display:flex;align-items:center}
 .nav-link{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:500;color:rgba(255,255,255,.78);transition:color .15s;white-space:nowrap;padding:0 16px;height:100%;cursor:pointer}
@@ -114,8 +114,8 @@ img.hp-cine,.hp-cine>img{
 <nav id="main-nav">
   <div class="nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="assets/hansepay-mark-uploaded.png" alt="HansePay" />
-      <span class="nav-logo-text">HansePay</span>
+      <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-white" />
+      <img src="assets/hansepay-wordmark-navy.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-navy" />
     </a>
     <ul class="nav-links">
 
@@ -258,8 +258,7 @@ img.hp-cine,.hp-cine>img{
   <div class="hp-signin-modal" id="hp-signin-modal" role="dialog" aria-modal="true">
     <button class="hp-signin-close" onclick="closeSignIn()" aria-label="Close">×</button>
     <div class="hp-signin-logo">
-      <img src="/assets/hansepay-mark-uploaded.png" width="28" height="28" alt="HansePay" style="vertical-align:middle;margin-right:9px">
-      <span style="font-family:var(--font-logo);font-size:20px;font-weight:400;color:var(--n800)">HansePay</span>
+      <img src="/assets/hansepay-wordmark-navy.svg" alt="HansePay" style="height:24px;display:block">
     </div>
     <h2 class="hp-signin-title" id="hp-signin-title" data-i18n="signin.title">Sign in to your account</h2>
     <p class="hp-signin-sub" id="hp-signin-sub" data-i18n="signin.sub">Access your HansePay dashboard.</p>
@@ -456,9 +455,8 @@ img.hp-cine,.hp-cine>img{
 .hp-bm-left::before{content:'';position:absolute;right:-80px;top:-80px;width:320px;height:320px;background:radial-gradient(circle,rgba(46,107,173,.35) 0%,transparent 70%);pointer-events:none}
 .hp-bm-left::after{content:'';position:absolute;left:-40px;bottom:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(30,78,128,.25) 0%,transparent 70%);pointer-events:none}
 
-.hp-bm-left-logo{display:flex;align-items:center;gap:10px;margin-bottom:auto;text-decoration:none}
-.hp-bm-left-logo img{height:26px;width:26px;object-fit:contain}
-.hp-bm-left-logo-text{font-family:'Libre Baskerville',Georgia,serif;font-size:17px;font-weight:400;color:#fff;letter-spacing:-.02em}
+.hp-bm-left-logo{display:flex;align-items:center;margin-bottom:auto;text-decoration:none}
+.hp-bm-left-logo img{height:22px;width:auto;display:block}
 
 .hp-bm-left-body{margin:auto 0;padding:32px 0}
 .hp-bm-left-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(141,189,230,.7);margin-bottom:14px}
@@ -516,8 +514,7 @@ img.hp-cine,.hp-cine>img{
           // Left branding panel
           '<div class="hp-bm-left">' +
             '<a class="hp-bm-left-logo" href="index.html">' +
-              '<img src="assets/hansepay-mark-uploaded-white.png" alt="HansePay"/>' +
-              '<span class="hp-bm-left-logo-text">HansePay</span>' +
+              '<img src="assets/hansepay-wordmark-white.svg" alt="HansePay"/>' +
             '</a>' +
             '<button class="hp-bm-close-mobile" id="hp-bm-close-mobile" aria-label="Close">' + closeIconSvg + '</button>' +
             '<div class="hp-bm-left-body">' +

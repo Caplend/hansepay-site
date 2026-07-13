@@ -200,7 +200,6 @@ nav.scrolled {
   box-shadow: 0 1px 0 rgba(11,25,41,0.08);
   backdrop-filter: blur(8px);
 }
-nav.scrolled .nav-logo-text,
 nav.scrolled .nav-link { color: var(--n800); }
 nav.scrolled .nav-cta { background: var(--n500); color: #fff; }
 nav.scrolled .nav-cta:hover { background: var(--n600); }
@@ -215,28 +214,27 @@ nav.scrolled .nav-cta:hover { background: var(--n600); }
 }
 
 .nav-logo {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
   text-decoration: none;
   flex-shrink: 0;
 }
-.nav-logo-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
-  transition: filter .35s;
+.nav-logo-mark {
+  height: 26px;
+  width: auto;
+  display: block;
+  transition: opacity .25s;
 }
-nav.scrolled .nav-logo-icon { filter: none; }
-.nav-logo-text {
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  color: #fff;
-  line-height: 1;
+.nav-logo-mark-navy {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
 }
+nav.scrolled .nav-logo-mark-white { opacity: 0; }
+nav.scrolled .nav-logo-mark-navy { opacity: 1; }
 
 .nav-links {
   display: flex;
@@ -1227,8 +1225,8 @@ footer {
 <nav id="main-nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo">
-      <img class="nav-logo-icon" src="assets/hansepay-mark-uploaded.png" alt="HansePay">
-      <span class="nav-logo-text">HansePay</span>
+      <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-white">
+      <img src="assets/hansepay-wordmark-navy.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-navy">
     </a>
 
     <ul class="nav-links">
