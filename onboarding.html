@@ -512,7 +512,7 @@ const S = {
   coOwnerMgmt:[],coOwnerExtra:[],
   // B6 – Business activity & payments
   coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
-  coCompanySize:'',
+  coCompanySize:'',coAnnualRevenue:'',
   coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
   // B9 – Terms
   coTcAccepted:false,coBlindpayAccepted:false,
@@ -2768,6 +2768,15 @@ function RB6(){
     {v:'200+',label:'200+ employees'}
   ],S.coCompanySize,2);
 
+  const revenueCards=radioCardsHTML('rcCoRevenue',[
+    {v:'under-100k',label:'Under $100,000'},
+    {v:'100k-1m',label:'$100,000 – $1 million'},
+    {v:'1m-10m',label:'$1 million – $10 million'},
+    {v:'10m-50m',label:'$10 million – $50 million'},
+    {v:'50m-250m',label:'$50 million – $250 million'},
+    {v:'over-250m',label:'Over $250 million'}
+  ],S.coAnnualRevenue,2);
+
   return`<div class="step-card" id="sCard">
     <div class="step-icon"><div style="width:56px;height:56px;border-radius:50%;background:var(--n050);display:flex;align-items:center;justify-content:center;margin:0 auto"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--n700)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div></div>
     <h1 class="step-heading" style="text-align:center">Business Activity.</h1>
@@ -2787,6 +2796,12 @@ function RB6(){
       <label>What is the size of your company?</label>
       ${sizeCards}
       <div class="field-error" id="coCompanySize-err"></div>
+    </div>
+
+    <div class="field-group">
+      <label>What is your company's estimated annual revenue? <span style="font-weight:400;opacity:.6;text-transform:none">(in USD)</span></label>
+      ${revenueCards}
+      <div class="field-error" id="coAnnualRevenue-err"></div>
     </div>
 
     <div class="section-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>&ensp;Payment volumes</div>
@@ -3093,6 +3108,7 @@ function validateStep(){
     if(!S.coCustomerType) fail('coCustomerType','Please select your customer type');
     if(!S.coCustomerCountries.length){const e=document.getElementById('bcp-coCustomerCountries-err');if(e){e.textContent='Please add at least one customer country';e.classList.add('visible');}ok=false;}
     if(!S.coCompanySize) fail('coCompanySize','Please select your company size');
+    if(!S.coAnnualRevenue) fail('coAnnualRevenue','Please select a revenue range');
     if(!S.coMonthlyVolume) fail('coMonthlyVolume','Please select a volume range');
     if(!S.coMonthlyTransactions) fail('coMonthlyTransactions','Please select a transaction range');
     if(!S.coMaxTransfer) fail('coMaxTransfer','Please select a transfer amount');
@@ -3431,6 +3447,7 @@ function onRadioSelect(grp,val){
     const w=document.getElementById('coRegDetailWrap');if(w)w.className='collapsible'+(val==='yes'?' open':'');
   }
   else if(grp==='rcCoSize'){S.coCompanySize=val;}
+  else if(grp==='rcCoRevenue'){S.coAnnualRevenue=val;}
   else if(grp==='rcCoVolume'){S.coMonthlyVolume=val;}
   else if(grp==='rcCoTxns'){S.coMonthlyTransactions=val;}
   else if(grp==='rcCoMaxTx'){S.coMaxTransfer=val;}
@@ -4483,7 +4500,7 @@ function startFresh(){
     coHasDiffOp:false,coOpAddr1:'',coOpAddr2:'',coOpCity:'',coOpState:'',coOpPostcode:'',coOpCountry:'',
     coManagement:[],coOwnerMgmt:[],coOwnerExtra:[],coTcAccepted:false,coBlindpayAccepted:false,
     coSellsWhat:'',coCustomerType:'',coCustomerCountries:[],coOperatingCountries:[],
-    coCompanySize:'',
+    coCompanySize:'',coAnnualRevenue:'',
     coMonthlyVolume:'',coMonthlyTransactions:'',coMaxTransfer:'',coSendingCountries:[],
     coSanctionsExposure:'no',coSanctionsDetail:'',coHighRiskCountries:'no',coHighRiskDetail:'',
     coPreviousAccountClosure:'no',coPreviousClosureDetail:'',coFraudDisputes:'no',coFraudDetail:''
