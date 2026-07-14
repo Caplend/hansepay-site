@@ -87,11 +87,11 @@ a{color:inherit;text-decoration:none}
     var(--n900);
 }
 .page-inner {
-  flex: 1; width: 100%; max-width: 1040px; margin: 0 auto;
-  padding: 152px clamp(24px,5vw,64px) 64px;
+  flex: 1; width: 100%; max-width: 860px; margin: 0 auto;
+  padding: 88px clamp(24px,5vw,64px) 32px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-@media(max-width:640px){.page-inner{padding:128px 20px 48px}}
+@media(max-width:640px){.page-inner{padding:96px 20px 32px}}
 
 .chip {
   display: inline-flex; align-items: center; gap: 8px;
@@ -103,16 +103,16 @@ a{color:inherit;text-decoration:none}
 .chip-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); flex-shrink:0; box-shadow:0 0 6px var(--gold); }
 
 .headline {
-  font-family: var(--font-display); font-size: clamp(34px,5vw,54px);
+  font-family: var(--font-display); font-size: clamp(30px,4.4vw,46px);
   font-weight: 400; line-height: 1.08; letter-spacing: -.02em; color: #fff;
-  margin-bottom: 16px; text-wrap: balance;
+  margin-bottom: 10px; text-wrap: balance;
 }
 .headline em { font-style: italic; color: var(--n100); }
 
 .sub {
-  font-size: clamp(15px,1.4vw,17px); font-weight: 300;
-  color: rgba(255,255,255,.65); line-height: 1.7;
-  max-width: 520px; margin-bottom: 44px;
+  font-size: clamp(14px,1.3vw,16px); font-weight: 300;
+  color: rgba(255,255,255,.65); line-height: 1.6;
+  max-width: 500px; margin-bottom: 24px;
 }
 
 .video-frame {
@@ -122,7 +122,7 @@ a{color:inherit;text-decoration:none}
 }
 .video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-.cta-row { margin-top: 40px; }
+.cta-row { margin-top: 24px; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -134,18 +134,9 @@ a{color:inherit;text-decoration:none}
 .btn-primary { background: var(--n500); color: #fff; }
 .btn-primary:hover { background: var(--n400); transform: translateY(-1px); }
 
-/* ── FOOTER ── */
-footer {
-  padding: 26px clamp(24px,5vw,88px);
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 16px;
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-.footer-logo { font-family: var(--font-logo); font-size: 15px; color: rgba(255,255,255,.4); }
-.footer-links { display: flex; align-items: center; gap: 24px; }
-.footer-link { font-size: 12px; color: rgba(255,255,255,.32); transition: color .15s; }
-.footer-link:hover { color: rgba(255,255,255,.6); }
-.footer-sep { color: rgba(255,255,255,.14); font-size: 12px; }
+.container{max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,80px)}
+
+/* FOOTER, see assets/footer.js */
 
 /* ── BOOKING MODAL ── */
 .hp-bm-overlay{position:fixed;inset:0;z-index:9000;background:rgba(6,13,26,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .28s ease}
@@ -196,18 +187,9 @@ footer {
       </button>
     </div>
   </div>
-
-  <footer>
-    <div class="footer-logo">HansePay</div>
-    <div class="footer-links">
-      <a href="/imprint.html" class="footer-link" data-i18n="footer-imprint"></a>
-      <span class="footer-sep">·</span>
-      <a href="/cookie-policy.html" class="footer-link" data-i18n="footer-cookies"></a>
-      <span class="footer-sep">·</span>
-      <span class="footer-link">© 2026 HansePay GmbH</span>
-    </div>
-  </footer>
 </div>
+
+<script src="assets/footer.js"></script>
 
 <!-- Booking modal -->
 <div class="hp-bm-overlay" id="hp-bm-overlay">
@@ -239,8 +221,6 @@ var translations = {
     'headline-html': 'Internationale Zahlungen,<br><em>neu gedacht.</em>',
     'sub':           'Sehen Sie in 90 Sekunden, wie HansePay grenzüberschreitende Zahlungen schneller, günstiger und einfacher macht.',
     'cta-book':      'Gespräch buchen',
-    'footer-imprint':'Impressum',
-    'footer-cookies':'Datenschutz & Cookies',
     'bm-eyebrow':       'Erstgespräch',
     'bm-headline-html': 'Sprechen Sie mit einem <em>FX-Experten.</em>',
     'bm-sub':           '30 Minuten. Unverbindlich. Erfahren Sie genau, wie viel Ihr Unternehmen bei Auslandszahlungen sparen kann.',
@@ -250,8 +230,6 @@ var translations = {
     'headline-html': 'Cross-border payments,<br><em>reimagined.</em>',
     'sub':           'See in 90 seconds how HansePay makes cross-border payments faster, cheaper, and simpler.',
     'cta-book':      'Book a call',
-    'footer-imprint':'Imprint',
-    'footer-cookies':'Cookie Policy',
     'bm-eyebrow':       'Discovery call',
     'bm-headline-html': 'Talk to an <em>FX specialist.</em>',
     'bm-sub':           '30 minutes. No commitment. See exactly how much your company could save on cross-border payments.',
