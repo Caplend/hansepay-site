@@ -9,8 +9,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 clamp(20px,5vw,80p
 nav.scrolled{background:rgba(255,255,255,.97);box-shadow:0 1px 0 rgba(11,25,41,.08);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .nav-inner{max-width:1240px;margin:0 auto;width:100%;display:flex;align-items:center;gap:0}
 .nav-logo{position:relative;display:flex;align-items:center;text-decoration:none;flex-shrink:0;margin-right:40px}
-.nav-logo-mark{height:42px;width:auto;display:block;transition:opacity .25s}
-.nav-logo-mark-navy{position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0}
+.nav-logo-mark{height:42px;width:auto;display:block;transition:opacity .25s;transform:translateY(-3px)}
+.nav-logo-mark-navy{position:absolute;left:0;top:50%;transform:translateY(calc(-50% - 3px));opacity:0}
 nav.scrolled .nav-logo-mark-white{opacity:0}
 nav.scrolled .nav-logo-mark-navy{opacity:1}
 .nav-links{display:flex;align-items:stretch;gap:0;list-style:none;flex:1;height:68px}
