@@ -130,17 +130,6 @@ a{color:inherit;text-decoration:none}
 .video-frame { max-width: 960px; margin: 0 auto; border-radius: var(--r-lg); overflow: hidden; box-shadow: 0 20px 60px rgba(6,13,26,.45); aspect-ratio: 16 / 9; }
 .video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-.video-share-row { max-width: 960px; margin: 18px auto 0; display: flex; align-items: center; justify-content: center; gap: 12px; }
-.btn-share {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: transparent; border: none; padding: 6px 4px;
-  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
-  color: rgba(255,255,255,.6); cursor: pointer; transition: color .15s ease;
-}
-.btn-share:hover { color: #fff; }
-.video-share-toast { font-family: var(--font-ui); font-size: 13px; color: #7bd88f; opacity: 0; transition: opacity .25s ease; pointer-events: none; }
-.video-share-toast.show { opacity: 1; }
-
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 28px; border-radius: var(--r-pill);
@@ -287,16 +276,9 @@ footer {
 </section>
 
 <!-- LAUNCH VIDEO -->
-<section class="video-section" id="video">
+<section class="video-section">
   <div class="video-frame">
     <iframe id="launch-video-iframe" loading="lazy" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen;" allowfullscreen="true"></iframe>
-  </div>
-  <div class="video-share-row">
-    <button class="btn-share" onclick="shareVideo()" aria-label="Share this video">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
-      <span data-i18n="video-share"></span>
-    </button>
-    <span class="video-share-toast" id="video-share-toast" data-i18n="video-share-copied"></span>
   </div>
 </section>
 
@@ -391,9 +373,6 @@ var translations = {
     'bm-eyebrow':       'Erstgespräch',
     'bm-headline-html': 'Sprechen Sie mit einem <em>FX-Experten.</em>',
     'bm-sub':           '30 Minuten. Unverbindlich. Erfahren Sie genau, wie viel Ihr Unternehmen bei Auslandszahlungen sparen kann.',
-    'video-share':       'Video teilen',
-    'video-share-copied':'Link kopiert!',
-    'video-share-text':  'Schauen Sie sich an, wie HansePay grenzüberschreitende Zahlungen neu denkt.',
   },
   en: {
     'chip':          'EU-regulated · Hamburg',
@@ -418,9 +397,6 @@ var translations = {
     'bm-eyebrow':       'Discovery call',
     'bm-headline-html': 'Talk to an <em>FX specialist.</em>',
     'bm-sub':           '30 minutes. No commitment. See exactly how much your company could save on cross-border payments.',
-    'video-share':       'Share this video',
-    'video-share-copied':'Link copied!',
-    'video-share-text':  'See how HansePay reimagines cross-border payments.',
   }
 };
 
@@ -481,35 +457,6 @@ function setLang(lang) {
   }
   setLang(lang);
 })();
-
-// ── Video share ──
-function shareVideo() {
-  var url = window.location.href.split('#')[0] + '#video';
-  var shareData = { title: 'HansePay', text: translations[currentLang]['video-share-text'], url: url };
-  if (navigator.share) {
-    navigator.share(shareData).catch(function() {});
-    return;
-  }
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(showShareToast, showShareToast);
-  } else {
-    var ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
-    showShareToast();
-  }
-}
-function showShareToast() {
-  var t = document.getElementById('video-share-toast');
-  t.classList.add('show');
-  clearTimeout(t._hideTimer);
-  t._hideTimer = setTimeout(function() { t.classList.remove('show'); }, 2200);
-}
 
 // ── Waitlist ──
 function openWaitlist() { document.getElementById('waitlist-modal').classList.add('open'); }
