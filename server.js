@@ -197,7 +197,8 @@ app.use(async (req, res, next) => {
                      '/onboarding.html', '/hansepay/onboarding.html',
                      '/rebook.html', '/hansepay/rebook.html',
                      '/dashboard-login.html', '/hansepay/dashboard-login.html',
-                     '/dashboard.html', '/hansepay/dashboard.html'];
+                     '/dashboard.html', '/hansepay/dashboard.html',
+                     '/video.html', '/hansepay/video.html'];
   if (skipPrefixes.some(p => req.path.startsWith(p))) return next();
   // Normalize both this request's path and the allowlist to extension-less
   // form, so /booking and /booking.html are treated identically now that

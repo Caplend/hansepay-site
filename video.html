@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HansePay — Watch the video</title>
+<meta name="description" content="See how HansePay reimagines cross-border payments — real interbank rates, no markups, faster settlement." />
+<link rel="icon" type="image/png" href="assets/hansepay-mark-uploaded.png">
+
+<meta property="og:type" content="video.other" />
+<meta property="og:title" content="HansePay — Cross-border payments, reimagined." />
+<meta property="og:description" content="See how HansePay reimagines cross-border payments — real interbank rates, no markups, faster settlement." />
+<meta property="og:image" content="https://vz-947a223e-eaf.b-cdn.net/93ce3fd6-8d07-47a9-bd9a-85b36e32cda0/thumbnail.jpg" />
+<meta property="og:url" content="https://www.hansepay.de/video" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="HansePay — Cross-border payments, reimagined." />
+<meta name="twitter:description" content="See how HansePay reimagines cross-border payments — real interbank rates, no markups, faster settlement." />
+<meta name="twitter:image" content="https://vz-947a223e-eaf.b-cdn.net/93ce3fd6-8d07-47a9-bd9a-85b36e32cda0/thumbnail.jpg" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "name": "HansePay — Cross-border payments, reimagined",
+  "description": "An introduction to HansePay: send cross-border payments in 30+ currencies at the real interbank rate, with no markups or hidden fees — faster and cheaper than a traditional bank.",
+  "thumbnailUrl": "https://vz-947a223e-eaf.b-cdn.net/93ce3fd6-8d07-47a9-bd9a-85b36e32cda0/thumbnail.jpg",
+  "uploadDate": "2026-07-13",
+  "embedUrl": "https://player.mediadelivery.net/embed/700627/93ce3fd6-8d07-47a9-bd9a-85b36e32cda0",
+  "publisher": {
+    "@type": "Organization",
+    "name": "HansePay",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.hansepay.de/assets/hansepay-mark-logo.png"
+    }
+  }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --n900:#060D1A;--n800:#0B1929;--n700:#0F2540;--n600:#163659;
+  --n500:#1E4E80;--n400:#2E6BAD;--n300:#3B7BC4;--n200:#8DBDE6;
+  --n100:#C4DDEF;--n050:#EBF4FB;--off:#F5F1EA;--gold:#C9A961;
+  --ink:#0B1929;--ink2:#3D5A73;--ink3:#7A9AB0;
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-display:Georgia,'Times New Roman',serif;
+  --font-logo:'Libre Baskerville',Georgia,serif;
+  --r-pill:100px;--r-lg:16px;--r-md:10px;--r-sm:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{font-family:var(--font-ui);color:var(--ink);background:var(--n900);-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 68px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(24px,5vw,88px);
+}
+.logo { display: flex; align-items: center; }
+.logo img { height: 40px; width: auto; display: block; }
+
+.lang-toggle {
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  border-radius: var(--r-pill); padding: 3px; backdrop-filter: blur(8px);
+}
+.lang-btn {
+  padding: 5px 12px; border-radius: var(--r-pill); border: none;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600;
+  letter-spacing: .06em; cursor: pointer; transition: all .18s ease;
+  background: transparent; color: rgba(255,255,255,.5);
+}
+.lang-btn.active { background: rgba(255,255,255,.18); color: #fff; }
+
+/* ── PAGE ── */
+.page {
+  min-height: 100vh; display: flex; flex-direction: column;
+  background:
+    radial-gradient(1100px 560px at 50% -8%, rgba(46,107,173,.22) 0%, rgba(46,107,173,0) 62%),
+    var(--n900);
+}
+.page-inner {
+  flex: 1; width: 100%; max-width: 1040px; margin: 0 auto;
+  padding: 152px clamp(24px,5vw,64px) 64px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+@media(max-width:640px){.page-inner{padding:128px 20px 48px}}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; border-radius: var(--r-pill);
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+  font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+  color: rgba(255,255,255,.9); margin-bottom: 26px; backdrop-filter: blur(8px);
+}
+.chip-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); flex-shrink:0; box-shadow:0 0 6px var(--gold); }
+
+.headline {
+  font-family: var(--font-display); font-size: clamp(34px,5vw,54px);
+  font-weight: 400; line-height: 1.08; letter-spacing: -.02em; color: #fff;
+  margin-bottom: 16px; text-wrap: balance;
+}
+.headline em { font-style: italic; color: var(--n100); }
+
+.sub {
+  font-size: clamp(15px,1.4vw,17px); font-weight: 300;
+  color: rgba(255,255,255,.65); line-height: 1.7;
+  max-width: 520px; margin-bottom: 44px;
+}
+
+.video-frame {
+  width: 100%; border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: 0 24px 70px rgba(6,13,26,.55), 0 0 0 1px rgba(255,255,255,.06);
+  aspect-ratio: 16 / 9; background: #000;
+}
+.video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+.cta-row { margin-top: 40px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px; border-radius: var(--r-pill);
+  font-family: var(--font-ui); font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .18s ease;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-primary { background: var(--n500); color: #fff; }
+.btn-primary:hover { background: var(--n400); transform: translateY(-1px); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 26px clamp(24px,5vw,88px);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.footer-logo { font-family: var(--font-logo); font-size: 15px; color: rgba(255,255,255,.4); }
+.footer-links { display: flex; align-items: center; gap: 24px; }
+.footer-link { font-size: 12px; color: rgba(255,255,255,.32); transition: color .15s; }
+.footer-link:hover { color: rgba(255,255,255,.6); }
+.footer-sep { color: rgba(255,255,255,.14); font-size: 12px; }
+
+/* ── BOOKING MODAL ── */
+.hp-bm-overlay{position:fixed;inset:0;z-index:9000;background:rgba(6,13,26,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .28s ease}
+.hp-bm-overlay.hp-bm-open{opacity:1;pointer-events:auto}
+.hp-bm-panel{width:100%;max-width:1060px;height:min(720px,90vh);border-radius:20px;overflow:hidden;display:flex;box-shadow:0 40px 100px rgba(6,13,26,.55);transform:translateY(18px) scale(.97);transition:transform .35s cubic-bezier(.22,.68,0,1.2),opacity .28s ease;opacity:0}
+.hp-bm-overlay.hp-bm-open .hp-bm-panel{transform:none;opacity:1}
+.hp-bm-left{width:300px;flex-shrink:0;background:linear-gradient(160deg,#0B1929 0%,#163659 100%);padding:36px 32px;display:flex;flex-direction:column}
+.hp-bm-logo{margin-bottom:auto}
+.hp-bm-logo img{height:26px;width:auto;display:block}
+.hp-bm-body{padding:28px 0}
+.hp-bm-eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(141,189,230,.7);margin-bottom:12px}
+.hp-bm-headline{font-family:var(--font-display);font-size:26px;font-weight:400;color:#fff;line-height:1.18;letter-spacing:-.02em;margin-bottom:6px}
+.hp-bm-headline em{font-style:italic;color:#8DBDE6}
+.hp-bm-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.6}
+.hp-bm-right{flex:1;background:#F6F9FC;display:flex;flex-direction:column;min-width:0}
+.hp-bm-right-head{display:flex;justify-content:flex-end;padding:14px 18px;background:#F6F9FC;border-bottom:1px solid rgba(11,25,41,.06)}
+.hp-bm-close{width:32px;height:32px;border:1.5px solid rgba(11,25,41,.12);border-radius:8px;background:#fff;color:rgba(11,25,41,.45);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.hp-bm-close:hover{background:rgba(11,25,41,.05);color:var(--ink)}
+.hp-bm-iframe{flex:1;border:none;width:100%;display:block}
+@media(max-width:700px){.hp-bm-left{display:none}.hp-bm-overlay{padding:0}.hp-bm-panel{border-radius:0;max-height:100vh;height:100vh}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="logo">
+    <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" />
+  </a>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-inner">
+    <div class="chip">
+      <span class="chip-dot"></span>
+      <span data-i18n="chip"></span>
+    </div>
+    <h1 class="headline" data-i18n="headline-html"></h1>
+    <p class="sub" data-i18n="sub"></p>
+
+    <div class="video-frame">
+      <iframe id="launch-video-iframe" loading="lazy" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;fullscreen;" allowfullscreen="true"></iframe>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn btn-primary" onclick="openBooking()">
+        <span data-i18n="cta-book"></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">HansePay</div>
+    <div class="footer-links">
+      <a href="/imprint.html" class="footer-link" data-i18n="footer-imprint"></a>
+      <span class="footer-sep">·</span>
+      <a href="/cookie-policy.html" class="footer-link" data-i18n="footer-cookies"></a>
+      <span class="footer-sep">·</span>
+      <span class="footer-link">© 2026 HansePay GmbH</span>
+    </div>
+  </footer>
+</div>
+
+<!-- Booking modal -->
+<div class="hp-bm-overlay" id="hp-bm-overlay">
+  <div class="hp-bm-panel">
+    <div class="hp-bm-left">
+      <div class="hp-bm-logo"><img src="assets/hansepay-wordmark-white.svg" alt="HansePay"></div>
+      <div class="hp-bm-body">
+        <div class="hp-bm-eyebrow" data-i18n="bm-eyebrow"></div>
+        <div class="hp-bm-headline" data-i18n="bm-headline-html"></div>
+        <p class="hp-bm-sub" style="margin-top:10px" data-i18n="bm-sub"></p>
+      </div>
+    </div>
+    <div class="hp-bm-right">
+      <div class="hp-bm-right-head">
+        <button class="hp-bm-close" id="hp-bm-close-btn" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <iframe class="hp-bm-iframe" id="hp-bm-iframe" src="" title="Book a discovery call"></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Translations ──
+var translations = {
+  de: {
+    'chip':          'EU-reguliert · Hamburg',
+    'headline-html': 'Internationale Zahlungen,<br><em>neu gedacht.</em>',
+    'sub':           'Sehen Sie in 90 Sekunden, wie HansePay grenzüberschreitende Zahlungen schneller, günstiger und einfacher macht.',
+    'cta-book':      'Gespräch buchen',
+    'footer-imprint':'Impressum',
+    'footer-cookies':'Datenschutz & Cookies',
+    'bm-eyebrow':       'Erstgespräch',
+    'bm-headline-html': 'Sprechen Sie mit einem <em>FX-Experten.</em>',
+    'bm-sub':           '30 Minuten. Unverbindlich. Erfahren Sie genau, wie viel Ihr Unternehmen bei Auslandszahlungen sparen kann.',
+  },
+  en: {
+    'chip':          'EU-regulated · Hamburg',
+    'headline-html': 'Cross-border payments,<br><em>reimagined.</em>',
+    'sub':           'See in 90 seconds how HansePay makes cross-border payments faster, cheaper, and simpler.',
+    'cta-book':      'Book a call',
+    'footer-imprint':'Imprint',
+    'footer-cookies':'Cookie Policy',
+    'bm-eyebrow':       'Discovery call',
+    'bm-headline-html': 'Talk to an <em>FX specialist.</em>',
+    'bm-sub':           '30 minutes. No commitment. See exactly how much your company could save on cross-border payments.',
+  }
+};
+
+var currentLang = 'de';
+
+// Two uploads of the same multi-audio-track video, differing only in which
+// audio track is physically first — Bunny doesn't expose a way to pick a
+// default audio track via URL/API, and ignores the container disposition
+// flag, but does honor stream order.
+var LAUNCH_VIDEO_LIB = '700627';
+var LAUNCH_VIDEO_IDS = {
+  de: 'd34f6969-3f0a-48d9-a597-8e528e8043a2',
+  en: '93ce3fd6-8d07-47a9-bd9a-85b36e32cda0'
+};
+
+function setVideoLang(lang) {
+  var videoId = LAUNCH_VIDEO_IDS[lang] || LAUNCH_VIDEO_IDS.de;
+  var iframe = document.getElementById('launch-video-iframe');
+  if (!iframe || iframe.dataset.videoId === videoId) return;
+  iframe.dataset.videoId = videoId;
+  iframe.src = 'https://player.mediadelivery.net/embed/' + LAUNCH_VIDEO_LIB + '/' + videoId +
+    '?autoplay=false&loop=false&muted=false&preload=true&responsive=false';
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  setVideoLang(lang);
+  document.documentElement.lang = lang;
+  document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  var t = translations[lang];
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (!t[key]) return;
+    if (key.endsWith('-html')) { el.innerHTML = t[key]; }
+    else { el.textContent = t[key]; }
+  });
+  try { localStorage.setItem('hp_lang', lang); } catch(e) {}
+}
+
+// Init — priority: localStorage (explicit choice) → browser language → default DE
+(function() {
+  var lang = 'de';
+  try { var s = localStorage.getItem('hp_lang'); if (s === 'en' || s === 'de') { lang = s; setLang(lang); return; } } catch(e) {}
+  var langs = navigator.languages || (navigator.language ? [navigator.language] : []);
+  for (var i = 0; i < langs.length; i++) {
+    var l = (langs[i] || '').toLowerCase().split('-')[0];
+    if (l === 'en' || l === 'de') { lang = l; break; }
+  }
+  setLang(lang);
+})();
+
+// ── Booking ──
+function openBooking() {
+  var overlay = document.getElementById('hp-bm-overlay');
+  document.getElementById('hp-bm-iframe').src = '/booking.html?modal=1&lang=' + currentLang;
+  overlay.classList.add('hp-bm-open');
+  document.body.style.overflow = 'hidden';
+}
+function closeBooking() {
+  var overlay = document.getElementById('hp-bm-overlay');
+  overlay.classList.remove('hp-bm-open');
+  document.body.style.overflow = '';
+  setTimeout(function() { document.getElementById('hp-bm-iframe').src = ''; }, 300);
+}
+document.getElementById('hp-bm-overlay').addEventListener('click', function(e) { if (e.target === this) closeBooking(); });
+document.getElementById('hp-bm-close-btn').addEventListener('click', closeBooking);
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeBooking(); });
+</script>
+<script defer src="/assets/consent.js"></script>
+</body>
+</html>
