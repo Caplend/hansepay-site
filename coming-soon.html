@@ -417,7 +417,7 @@ function setVideoLang(lang) {
   if (!iframe || iframe.dataset.videoId === videoId) return;
   iframe.dataset.videoId = videoId;
   iframe.src = 'https://player.mediadelivery.net/embed/' + LAUNCH_VIDEO_LIB + '/' + videoId +
-    '?autoplay=false&loop=false&muted=false&preload=true&responsive=false&captions=' + lang;
+    '?autoplay=false&loop=false&muted=false&preload=true&responsive=false';
 }
 
 function setLang(lang) {
