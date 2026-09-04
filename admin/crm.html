@@ -390,6 +390,8 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
       country:  ['country','land','herkunftsland'],
       city:     ['city','stadt','ort'],
       fxVolume: ['fx volume','fxvolume','monthly volume','volumen'],
+      annualVolume: ['estimated volume (eur)','estimated volume','annual volume','jahresvolumen'],
+      takeRate: ['marge (take-rate)','take-rate','take rate','marge','margin'],
       notes:    ['notes','notizen','note','anmerkungen','kommentar'],
       standort: ['standort','location','ort/land'] // special: "City, Country"
     };
@@ -415,6 +417,30 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
           if(!obj.city)obj.city=cols[sIdx];
         }
       }
+      // Annual volume + take-rate → compute both monthly/yearly figures and precise Est. Value
+      var avIdx=col('annualVolume'), trIdx=col('takeRate');
+      if(avIdx!==-1&&cols[avIdx]){
+        var annualVol=parseFloat(String(cols[avIdx]).replace(/[^0-9.\-]/g,''));
+        if(!isNaN(annualVol)){
+          var monthlyVol=Math.round(annualVol/12);
+
+          // Show monthly figure in the FX volume field (that's what this field means elsewhere in the app)
+          obj.fxVolume='€'+monthlyVol.toLocaleString('de-DE')+' / month (≈ €'+annualVol.toLocaleString('de-DE')+' / year)';
+
+          var rate=0.005; // fallback take-rate if none supplied
+          var rateLabel='0.5% (default)';
+          if(trIdx!==-1&&cols[trIdx]&&String(cols[trIdx]).toLowerCase().trim()!=='n/a'){
+            var rNum=parseFloat(String(cols[trIdx]).replace(/[^0-9.\-]/g,''));
+            if(!isNaN(rNum)){ rate=rNum/100; rateLabel=rNum+'%'; }
+          }
+
+          obj.estValueEur=Math.round(annualVol*rate); // precise annual revenue estimate
+
+          var noteLine='Imported volume — Annual: €'+annualVol.toLocaleString('de-DE')+' · Monthly: €'+monthlyVol.toLocaleString('de-DE')+' · Take-rate: '+rateLabel;
+          obj.notes = obj.notes ? (obj.notes+' | '+noteLine) : noteLine;
+        }
+      }
+
       if(!obj.company&&!obj.email&&!obj.firstName){failed++;return Promise.resolve();}
       return A('/api/customers',{method:'POST',body:JSON.stringify(obj)})
         .then(function(r){
