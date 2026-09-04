@@ -261,7 +261,7 @@ function viewList(){
   var list = all.slice();
   if(q){
     list = list.filter(function(c){
-      var hay = [c.company, contactName(c), c.email, c.country, c.city, c.industry].filter(Boolean).join(' ').toLowerCase();
+      var hay = [c.company, contactName(c), c.email, c.country, c.city, c.industry, c.fxVolume].filter(Boolean).join(' ').toLowerCase();
       var av = c.analysis ? Object.keys(c.analysis).map(function(k){return c.analysis[k];}).join(' ').toLowerCase() : '';
       return (hay+' '+av).indexOf(q) !== -1;
     });
@@ -277,6 +277,7 @@ function viewList(){
 function sortVal(c,key){
   var v;
   if(key==='company') v=c.company; else if(key==='contact') v=contactName(c);
+  else if(key==='fxVolume') v=c.fxVolume; else if(key==='estValueEur') v=c.estValueEur;
   else v = c.analysis ? c.analysis[key] : undefined;
   if(v==null) return ''; if(typeof v==='number') return v;
   var n=parseFloat(v); return isNaN(n)?String(v).toLowerCase():(/^[\s\d.,%+–-]+$/.test(String(v))?n:String(v).toLowerCase());
@@ -325,7 +326,9 @@ function sortArrow(key){ return sortKey===key ? '<span class="arrow">'+(sortDir>
 function renderHead(){
   var h = '<th class="sel-col"><input type="checkbox" class="row-check" id="check-all" title="Select all"></th>'+
     '<th class="sortable" onclick="setSort(\'company\')"><span class="col-head">Company '+sortArrow('company')+'</span></th>'+
-    '<th class="sortable" onclick="setSort(\'contact\')"><span class="col-head">Contact '+sortArrow('contact')+'</span></th>';
+    '<th class="sortable" onclick="setSort(\'contact\')"><span class="col-head">Contact '+sortArrow('contact')+'</span></th>'+
+    '<th class="sortable" onclick="setSort(\'fxVolume\')"><span class="col-head">FX Volume '+sortArrow('fxVolume')+'</span></th>'+
+    '<th class="sortable" onclick="setSort(\'estValueEur\')"><span class="col-head">Est. Value '+sortArrow('estValueEur')+'</span></th>';
   h += columns.map(function(col){
     return '<th class="sortable" onclick="setSort(\''+col.key+'\')"><span class="col-head">'+esc(col.label)+' '+sortArrow(col.key)+'</span></th>';
   }).join('');
@@ -339,12 +342,14 @@ function render(){
   renderHead();
   var tb = document.getElementById('rows');
   var list = viewList();
-  var colCount = 3 + columns.length;
+  var colCount = 5 + columns.length;
   if(!list.length){ tb.innerHTML='<tr><td colspan="'+colCount+'" class="empty">No customers match.</td></tr>'; return; }
   tb.innerHTML = list.map(function(c){
     var cells = '<td class="sel-col"><input type="checkbox" class="row-check" '+(selected[c.id]?'checked':'')+' onclick="toggleRow(\''+c.id+'\',this.checked)"></td>'+
       '<td class="t-strong">'+esc(c.company||'—')+srcBadge(c)+'<div class="muted" style="font-weight:400;font-size:.6875rem">'+esc(c.industry||'')+(c.country?' · '+esc(c.country):'')+'</div></td>'+
-      '<td>'+esc(contactName(c)||'—')+'<div class="muted" style="font-size:.6875rem">'+esc(c.email||'')+'</div></td>';
+      '<td>'+esc(contactName(c)||'—')+'<div class="muted" style="font-size:.6875rem">'+esc(c.email||'')+'</div></td>'+
+      '<td>'+esc(c.fxVolume||'—')+'</td>'+
+      '<td class="t-strong">'+H.eur(c.estValueEur)+'</td>';
     cells += columns.map(function(col){ return '<td>'+cellVal(c,col)+'</td>'; }).join('');
     return '<tr>'+cells+'</tr>';
   }).join('');
