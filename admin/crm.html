@@ -337,12 +337,13 @@ document.getElementById('btn-outbound').addEventListener('click',function(){
 
 // ── CSV Import ──
 // Properly parses RFC 4180 CSV (handles quoted fields with commas inside)
-function parseCSVLine(line){
+function parseCSVLine(line, delim){
+  delim = delim || ',';
   var result=[],cur='',inQ=false;
   for(var i=0;i<line.length;i++){
     var c=line[i];
     if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else{inQ=!inQ;}}
-    else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+    else if(c===delim&&!inQ){result.push(cur.trim());cur='';}
     else{cur+=c;}
   }
   result.push(cur.trim());
@@ -376,7 +377,13 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
     var lines=raw.split(/\r?\n/).filter(Boolean);
     if(lines.length<2){H.toast('CSV must have a header row and at least one data row.','error');return;}
 
-    var headers=parseCSVLine(lines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim().toLowerCase();});
+    // Auto-detect delimiter: many German exports (Excel EU locale) use ';' instead of ','
+    var headerLine=lines[0];
+    var semiCount=(headerLine.match(/;/g)||[]).length;
+    var commaCount=(headerLine.match(/,/g)||[]).length;
+    var delim = semiCount>commaCount ? ';' : ',';
+
+    var headers=parseCSVLine(headerLine, delim).map(function(h){return h.replace(/^"|"$/g,'').trim().toLowerCase();});
 
     // Column alias map — includes common German trade show headers
     var map={
@@ -400,7 +407,7 @@ document.getElementById('import-csv-file').addEventListener('change',function(e)
     var created=0,failed=0,createdIds=[];
     var promises=lines.slice(1).map(function(line){
       if(!line.trim())return Promise.resolve();
-      var cols=parseCSVLine(line);
+      var cols=parseCSVLine(line, delim);
       var obj={source:'import'};
       // Map known fields
       ['company','firstName','lastName','email','phone','website','industry','country','city','fxVolume','notes'].forEach(function(k){
