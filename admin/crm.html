@@ -51,7 +51,7 @@
 
     <!-- Toolbar -->
     <div class="toolbar">
-      <input class="search-input" id="search" type="text" placeholder="Search company, contact, email, industry…" />
+      <input class="search-input" id="search" type="text" placeholder="Search company, contact, email, industry, notes…" />
       <select class="select" id="f-stage"><option value="">All stages</option><option value="lead">Lead</option><option value="qualified">Qualified</option><option value="proposal">Proposal</option><option value="won">Won</option><option value="lost">Lost</option></select>
       <select class="select" id="f-status"><option value="">All statuses</option><option value="prospect">Prospect</option><option value="active">Active</option><option value="churned">Churned</option></select>
       <select class="select" id="f-churn"><option value="">All health</option><option value="high">High churn risk</option><option value="medium">Medium churn risk</option><option value="low">Low risk</option></select>
@@ -97,7 +97,9 @@ var A = H.authFetch, esc = H.escapeHtml;
 function ok(r){
   if(r.ok) return r.json();
   return r.json().catch(function(){return {};}).then(function(e){
-    throw new Error(e.error || ('Request failed (HTTP '+r.status+')'));
+    var err = new Error(e.message || e.error || ('Request failed (HTTP '+r.status+')'));
+    err.body = e; err.status = r.status;
+    throw err;
   });
 }
 
@@ -188,6 +190,12 @@ function renderDrawer(c){
     '<div class="subhead" style="margin-top:0">Health factors</div>'+
     '<ul style="list-style:none;margin-bottom:6px">'+(c.health.reasons.length?c.health.reasons.map(function(r){return '<li style="font-size:.8125rem;color:var(--ink2);padding:3px 0">• '+esc(r)+'</li>';}).join(''):'<li class="muted" style="font-size:.8125rem">No flags</li>')+'</ul>'+
 
+    '<div class="subhead">Tasks</div>'+
+    '<div id="tasks-list" style="margin-bottom:10px">Loading…</div>'+
+    '<div class="field-row"><div class="field"><label>New task</label><input id="task-title" placeholder="e.g. Send updated pricing"></div>'+
+    '<div class="field"><label>Due date</label><input id="task-due" type="date"></div></div>'+
+    '<button class="btn btn-ghost btn-sm" id="btn-add-task" style="margin-bottom:12px">+ Add task</button>'+
+
     '<div class="subhead">Profile</div>'+
     '<div class="field-row"><div class="field"><label>First name</label><input id="e-firstName" value="'+esc(c.firstName||'')+'"></div><div class="field"><label>Last name</label><input id="e-lastName" value="'+esc(c.lastName||'')+'"></div></div>'+
     '<div class="field"><label>Company</label><input id="e-company" value="'+esc(c.company||'')+'"></div>'+
@@ -217,6 +225,13 @@ function renderDrawer(c){
       ' Send booking link'+'</button>'+
     (!c.email ? '<div class="muted" style="font-size:.6875rem;margin-bottom:12px">Add an email address above to send a booking link.</div>' : '<div style="margin-bottom:8px"></div>')+
 
+    '<div class="subhead">Send email</div>'+
+    '<div class="field"><label>Subject</label><input id="em-subject" placeholder="e.g. Following up on our call"></div>'+
+    '<div class="field"><label>Message</label><textarea id="em-body" placeholder="Write your message…" style="min-height:90px"></textarea></div>'+
+    '<button class="btn btn-ghost btn-sm" id="btn-send-email" style="margin-bottom:12px"'+(c.email?'':' disabled title="No email on file"')+'>'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>'+
+      ' Send email'+'</button>'+
+
     '<div class="subhead">Log activity</div>'+
     '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting'],['linkedin','LinkedIn'],['outreach','Outreach sent']],'note')+'</select></div>'+
     '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Sent intro email"></div></div>'+
@@ -232,7 +247,70 @@ function renderDrawer(c){
   document.getElementById('add-activity').addEventListener('click',addActivity);
   document.getElementById('btn-research').addEventListener('click',runResearch);
   document.getElementById('btn-send-booking-link').addEventListener('click',sendBookingLink);
+  document.getElementById('btn-add-task').addEventListener('click',addTask);
+  document.getElementById('btn-send-email').addEventListener('click',sendCustomerEmail);
   loadBookingOptions();
+  loadTasks();
+}
+
+// ── Tasks ──
+function loadTasks(){
+  var list = document.getElementById('tasks-list');
+  if(!list || !current) return;
+  A('/api/customers/'+current.id+'/tasks').then(ok).then(renderTasksList).catch(function(){
+    list.innerHTML = '<div class="muted" style="font-size:.8125rem">Could not load tasks.</div>';
+  });
+}
+function renderTasksList(tasks){
+  var list = document.getElementById('tasks-list');
+  if(!list) return;
+  if(!tasks.length){ list.innerHTML = '<div class="muted" style="font-size:.8125rem">No tasks yet.</div>'; return; }
+  var today = new Date().toISOString().slice(0,10);
+  list.innerHTML = tasks.map(function(t){
+    var overdue = t.dueDate && t.dueDate < today && !t.done;
+    var dueLabel = t.dueDate ? (t.dueDate===today?'Today':(overdue?'Overdue: '+t.dueDate:t.dueDate)) : '';
+    return '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(11,25,41,.06)">'+
+      '<input type="checkbox" '+(t.done?'checked':'')+' style="margin-top:3px;flex-shrink:0" onchange="toggleTask(\''+t.id+'\',this.checked)">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:.8125rem;'+(t.done?'text-decoration:line-through;color:var(--ink3)':'color:var(--ink)')+'">'+esc(t.title)+'</div>'+
+        (dueLabel?'<div style="font-size:.6875rem;'+(overdue?'color:var(--bad)':'color:var(--ink3)')+'">'+esc(dueLabel)+'</div>':'')+
+      '</div>'+
+      '<button class="btn btn-ghost btn-sm" style="padding:2px 8px;color:var(--bad)" title="Delete task" onclick="deleteTask(\''+t.id+'\')">×</button>'+
+    '</div>';
+  }).join('');
+}
+function addTask(){
+  var title = document.getElementById('task-title').value.trim();
+  var due = document.getElementById('task-due').value;
+  if(!title){ H.toast('Enter a task title first.','error'); return; }
+  var btn = document.getElementById('btn-add-task'); btn.disabled = true;
+  A('/api/customers/'+current.id+'/tasks',{method:'POST',body:JSON.stringify({title:title,dueDate:due||null})}).then(ok).then(function(){
+    document.getElementById('task-title').value=''; document.getElementById('task-due').value='';
+    H.toast('Task added ✓'); loadTasks(); load();
+  }).catch(function(err){ H.toast(err.message||'Could not add task','error'); })
+  .finally(function(){ btn.disabled=false; });
+}
+window.toggleTask = function(id, done){
+  A('/api/tasks/'+id,{method:'PUT',body:JSON.stringify({done:done})}).then(ok).then(function(){ loadTasks(); load(); })
+  .catch(function(err){ H.toast(err.message||'Could not update task','error'); loadTasks(); });
+};
+window.deleteTask = function(id){
+  A('/api/tasks/'+id,{method:'DELETE'}).then(ok).then(function(){ H.toast('Task removed'); loadTasks(); })
+  .catch(function(err){ H.toast(err.message||'Could not delete task','error'); });
+};
+
+// ── Send email ──
+function sendCustomerEmail(){
+  var subject = document.getElementById('em-subject').value.trim();
+  var body = document.getElementById('em-body').value.trim();
+  if(!subject || !body){ H.toast('Add a subject and message first.','error'); return; }
+  var btn = document.getElementById('btn-send-email'); btn.disabled = true; var orig = btn.textContent; btn.textContent = 'Sending…';
+  A('/api/customers/'+current.id+'/send-email',{method:'POST',body:JSON.stringify({subject:subject,body:body})}).then(ok).then(function(){
+    H.toast('Email sent ✓');
+    document.getElementById('em-subject').value=''; document.getElementById('em-body').value='';
+    openCustomer(current.id);
+  }).catch(function(err){ H.toast(err.message||'Could not send email','error'); })
+  .finally(function(){ btn.disabled=false; btn.textContent=orig; });
 }
 
 var bookingOptionsCache = null;
@@ -352,16 +430,25 @@ function saveStage(){
   }).catch(function(err){ H.toast(err.message||'Save failed','error'); })
   .finally(function(){ btn.disabled=false; btn.textContent=orig; });
 }
-function saveProfile(){
+function saveProfile(force){
   var fields=['firstName','lastName','company','email','phone','industry','companySize','country','city','fxVolume','currencyPairs','notes'];
   var body={}; fields.forEach(function(f){body[f]=document.getElementById('e-'+f).value;});
   body.estValueEur=parseInt(document.getElementById('e-estValueEur').value,10)||0;
   body.tags=document.getElementById('e-tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+  if(force) body.force=true;
   var btn=document.getElementById('save-profile'); btn.disabled=true; var orig=btn.textContent; btn.textContent='Saving…';
+  var retrying=false;
   A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(ok).then(function(c){
     H.toast('Profile saved ✓'); openCustomer(c.id); load();
-  }).catch(function(err){ H.toast(err.message||'Save failed','error'); })
-  .finally(function(){ btn.disabled=false; btn.textContent=orig; });
+  }).catch(function(err){
+    if(err.status===409 && err.body && err.body.error==='duplicate'){
+      btn.disabled=false; btn.textContent=orig;
+      if(confirm(err.message+'\n\nSave anyway?')){ retrying=true; saveProfile(true); }
+      return;
+    }
+    H.toast(err.message||'Save failed','error');
+  })
+  .finally(function(){ if(!retrying){ btn.disabled=false; btn.textContent=orig; } });
 }
 function delCustomer(){
   if(!confirm('Delete this customer and all its activity? This cannot be undone.'))return;
@@ -781,7 +868,7 @@ function addSelectedLeads(){
   }).finally(function(){ btn.disabled=false; btn.textContent='Add to CRM →'; });
 }
 
-function saveOutbound(withResearch){
+function saveOutbound(withResearch, force){
   withResearch = withResearch !== false;
   var company = document.getElementById('ob-company').value.trim();
   if(!company){document.getElementById('ob-company').focus();return;}
@@ -794,8 +881,10 @@ function saveOutbound(withResearch){
     industry:  document.getElementById('ob-industry').value.trim(),
     notes:     document.getElementById('ob-notes').value.trim(),
   };
+  if(force) body.force=true;
   var btn=document.getElementById('ob-save');
   btn.disabled=true; btn.textContent='Adding…';
+  var retrying=false;
   window.HPAdmin.authFetch('/api/customers',{method:'POST',body:JSON.stringify(body)})
     .then(ok)
     .then(function(c){
@@ -813,8 +902,15 @@ function saveOutbound(withResearch){
         window.HPAdmin.toast('Lead added ✓');
       }
     })
-    .catch(function(err){window.HPAdmin.toast(err.message||'Failed to add lead','error');})
-    .finally(function(){btn.disabled=false; btn.textContent='Add & research with AI';});
+    .catch(function(err){
+      if(err.status===409 && err.body && err.body.error==='duplicate'){
+        btn.disabled=false; btn.textContent='Add & research with AI';
+        if(confirm(err.message+'\n\nAdd anyway?')){ retrying=true; saveOutbound(withResearch, true); }
+        return;
+      }
+      window.HPAdmin.toast(err.message||'Failed to add lead','error');
+    })
+    .finally(function(){ if(!retrying){ btn.disabled=false; btn.textContent='Add & research with AI'; } });
 }
 </script>
 </body>

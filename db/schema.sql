@@ -336,3 +336,22 @@ CREATE TABLE IF NOT EXISTS notifications (
   KEY idx_notifications_read_at (read_at),
   KEY idx_notifications_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 20. tasks (multiple to-dos per customer — the new primary "what do I need
+-- to do" mechanism, replacing the single legacy next_follow_up_at date on
+-- customers for reminder/notification purposes. That column is kept as a
+-- quick-reference field in the UI but no longer drives reminders.)
+CREATE TABLE IF NOT EXISTS tasks (
+  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
+  customer_id  VARCHAR(32)   NOT NULL,
+  title        VARCHAR(500)  NOT NULL DEFAULT '',
+  due_date     DATE          NULL,
+  done         TINYINT(1)    NOT NULL DEFAULT 0,
+  done_at      DATETIME(3)   NULL,
+  created_by   VARCHAR(255)  NULL,
+  created_at   DATETIME(3)   NOT NULL,
+  updated_at   DATETIME(3)   NULL,
+  KEY idx_tasks_customer (customer_id),
+  KEY idx_tasks_due_date (due_date, done),
+  CONSTRAINT fk_tasks_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
