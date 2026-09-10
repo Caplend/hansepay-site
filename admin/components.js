@@ -99,6 +99,7 @@
     share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     check: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
     clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   };
   function svg(p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; }
 
@@ -127,6 +128,7 @@
     { key: 'posts', label: 'Posts', href: '/hansepay/admin/posts.html', icon: 'doc', roles: ['admin','editor'],
       children: [
         { key: 'new-post', label: 'New Post', href: '/hansepay/admin/new-post.html', icon: 'plus', roles: ['admin','editor'] },
+        { key: 'content-engine', label: 'Content Engine', href: '/hansepay/admin/content-engine.html', icon: 'sparkle', roles: ['admin','editor'] },
       ]
     },
     { key: 'email-center', label: 'Email Center', href: '/hansepay/admin/email-center.html', icon: 'email', roles: ['admin'] },
@@ -142,6 +144,67 @@
   ];
 
   var CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+  // ── Notification bell ──
+  var bellPollTimer = null;
+  var bellOpen = false;
+
+  function renderBellItem(n) {
+    var cls = 'bell-item' + (n.read ? '' : ' unread');
+    return '<a href="' + (n.link || '#') + '" class="' + cls + '" data-id="' + n.id + '">' +
+      '<div class="bell-item-title">' + escapeHtml(n.title || '') + '</div>' +
+      (n.body ? '<div class="bell-item-body">' + escapeHtml(n.body) + '</div>' : '') +
+      '<div class="bell-item-time">' + timeAgo(n.createdAt) + '</div>' +
+      '</a>';
+  }
+
+  function loadNotifications() {
+    authFetch('/api/notifications?limit=8').then(function(r){ return r.json(); }).then(function(res){
+      var list = (res && res.notifications) || [];
+      var badge = document.getElementById('hp-bell-badge');
+      var count = (res && res.unreadCount) || 0;
+      if (badge) {
+        if (count > 0) { badge.style.display = 'flex'; badge.textContent = count > 9 ? '9+' : String(count); }
+        else { badge.style.display = 'none'; }
+      }
+      var listEl = document.getElementById('hp-bell-list');
+      if (listEl) {
+        listEl.innerHTML = list.length
+          ? list.map(renderBellItem).join('')
+          : '<div class="bell-empty">No notifications yet.</div>';
+        Array.prototype.forEach.call(listEl.querySelectorAll('.bell-item'), function(el){
+          el.addEventListener('click', function(){
+            var id = el.getAttribute('data-id');
+            authFetch('/api/notifications/' + id + '/read', { method: 'PUT' }).catch(function(){});
+          });
+        });
+      }
+    }).catch(function(){});
+  }
+
+  function toggleBellPanel(force) {
+    var panel = document.getElementById('hp-bell-panel');
+    if (!panel) return;
+    bellOpen = (typeof force === 'boolean') ? force : !bellOpen;
+    panel.className = 'bell-panel' + (bellOpen ? ' open' : '');
+    if (bellOpen) loadNotifications();
+  }
+
+  function initBell() {
+    var btn = document.getElementById('hp-bell-btn');
+    if (btn) btn.addEventListener('click', function(e){ e.stopPropagation(); toggleBellPanel(); });
+    var markAll = document.getElementById('hp-bell-mark-all');
+    if (markAll) markAll.addEventListener('click', function(e){
+      e.stopPropagation();
+      authFetch('/api/notifications/read-all', { method: 'PUT' }).then(loadNotifications).catch(function(){});
+    });
+    document.addEventListener('click', function(e){
+      var panel = document.getElementById('hp-bell-panel');
+      if (bellOpen && panel && !panel.contains(e.target) && e.target.id !== 'hp-bell-btn') toggleBellPanel(false);
+    });
+    loadNotifications();
+    if (!bellPollTimer) bellPollTimer = setInterval(loadNotifications, 30000);
+  }
 
   function renderSidebar(active) {
     var role = (user && user.role) || 'editor';
@@ -181,18 +244,25 @@
     var ini = initials(user && user.name);
     var html =
       '<aside class="sidebar">' +
-      '<div class="sidebar-logo"><div><div class="sidebar-brand">HansePay</div><span class="sidebar-admin-badge">Admin</span></div></div>' +
+      '<div class="sidebar-logo"><div><div class="sidebar-brand">HansePay</div><span class="sidebar-admin-badge">Admin</span></div>' +
+      '<button class="bell-btn" id="hp-bell-btn" title="Notifications">' + svg(ICONS.bell) + '<span class="bell-badge" id="hp-bell-badge" style="display:none">0</span></button>' +
+      '</div>' +
       '<nav class="sidebar-nav">' + nav + '</nav>' +
       '<div class="sidebar-footer"><div class="sidebar-user">' +
       '<div class="sidebar-avatar" id="hp-side-avatar">' + ini + '</div>' +
       '<div class="sidebar-user-info"><div class="sidebar-user-name" id="hp-side-name">' + escapeHtml((user && user.name) || 'Admin') + '</div>' +
       '<div class="sidebar-user-email" id="hp-side-email">' + escapeHtml((user && user.email) || '') + '</div></div></div>' +
       '<button class="signout-link" id="hp-signout">' + svg(ICONS.signout) + 'Sign out</button>' +
-      '</div></aside>';
+      '</div></aside>' +
+      '<div class="bell-panel" id="hp-bell-panel">' +
+      '<div class="bell-panel-head"><span>Notifications</span><button id="hp-bell-mark-all">Mark all read</button></div>' +
+      '<div class="bell-panel-list" id="hp-bell-list"><div class="bell-empty">Loading…</div></div>' +
+      '</div>';
 
     var mount = document.getElementById('hp-sidebar');
     if (mount) mount.outerHTML = html; else document.body.insertAdjacentHTML('afterbegin', html);
     document.getElementById('hp-signout').addEventListener('click', signOut);
+    initBell();
 
     // Validate token + refresh user info
     authFetch('/api/auth/me').then(function (r) { return r.json(); }).then(function (me) {

@@ -24,6 +24,7 @@ const bookingsRepo = require('./lib/repositories/bookings');
 const transactionsRepo = require('./lib/repositories/transactions');
 const analyticsRepo = require('./lib/repositories/analyticsEvents');
 const waitlistRepo = require('./lib/repositories/waitlist');
+const notificationsRepo = require('./lib/repositories/notifications');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -293,6 +294,43 @@ async function logActivity({ customerId, type, title, body, by }, conn) {
 
 async function activitiesFor(customerId, conn) {
   return activitiesRepo.forCustomer(customerId, conn);
+}
+
+// Fires on every successful booking (personal-link and main inbound flow alike):
+// emails the internal team and creates an in-app notification. Best-effort —
+// failures here are logged but never fail the booking itself.
+async function notifyTeamOfBooking({ rep, lead, slot, bookingTypeLabel, req }) {
+  const siteBase = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+  const adminUrl = `${siteBase}/hansepay/admin/crm.html`;
+  const repName = rep ? rep.name : 'Unassigned';
+  const teamEmail = process.env.TEAM_NOTIFICATION_EMAIL || (rep && rep.calendarId) || process.env.CALENDAR_OWNER_EMAIL || null;
+
+  if (mailer && teamEmail) {
+    try {
+      const teamMail = mailer.renderTeamBookingNotificationEmail({
+        teamEmail, lead, slot, repName, bookingTypeLabel: bookingTypeLabel || 'Discovery call', adminUrl,
+      });
+      mailer.sendMail(teamMail).then(r => {
+        console.log(`[email] team booking notification → ${teamEmail}: ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
+      }).catch(err => console.error('[email] team notification send error:', err.message));
+    } catch (e) {
+      console.error('[email] team notification render error:', e.message);
+    }
+  }
+
+  try {
+    const leadName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email;
+    await notificationsRepo.create({
+      id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
+      type: 'booking',
+      title: `New booking: ${leadName}`,
+      body: `Booked ${bookingTypeLabel || 'a call'} with ${repName} — ${new Date(slot.startISO).toLocaleString('en-GB', { timeZone: 'Europe/Berlin' })}`,
+      link: adminUrl,
+      createdAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error('[notifications] create error:', e.message);
+  }
 }
 
 // Create or update a customer from an inbound lead (e.g. a booking). Wrapped in
@@ -681,6 +719,149 @@ Return ONLY valid JSON (no markdown):
     console.error('[social/generate] error:', err.message);
     res.status(500).json({ error: 'Generation failed: ' + err.message });
   }
+});
+
+// ─── Content Engine: AI landing-page copy per segment ─────────────────────────
+// Generation happens server-side only — the Claude API key never reaches the
+// browser. Drafts are persisted so past generations aren't lost on refresh.
+const contentDraftsRepo = require('./lib/repositories/contentDrafts');
+
+const CONTENT_BRAND_CONTEXT = `
+Du schreibst Landingpage-Copy für HansePay, einen deutschen B2B-Zahlungsdienstleister für grenzüberschreitende Zahlungen.
+
+FAKTEN ZU HANSEPAY (nur diese verwenden, nichts erfinden):
+- Zahlungen werden je nach Korridor in Sekunden bis Minuten gutgeschrieben, statt der sonst üblichen Tage über klassisches Korrespondenzbanking.
+- Günstiger als etablierte Anbieter wie Wise, Ebury, iBanFirst und Revolut.
+- Sitz in Deutschland, MiCAR-Lizenz von der lettischen Zentralbank, dadurch EU-weiter Marktzugang (EU-Pass).
+- Fokus auf B2B-Mittelstand in DACH, Schwerpunkt exotische Zahlungskorridore, in denen klassische Banken und Standard-Fintechs strukturell langsam sind.
+- Kann zusätzlich auch Privatpersonen onboarden, nicht nur Unternehmen.
+- Der deutsche Mittelstand braucht Vertrauen, bevor er ein neues Konto eröffnet — Regulierung/Lizenz sollte klar und beruhigend erklärt werden, nicht als "Krypto"-Thema wirken.
+- Gründer: Lorian Qorraj (CEO) und Ben James, beide PIMCO/Citi-Alumni.
+
+TONALITÄT: professionell, konkret, keine Übertreibungen, keine Buzzwords, kurze Sätze. Vertrauen wird durch Klarheit erzeugt, nicht durch Superlative.
+
+Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach, exakt in dieser Struktur:
+{
+  "headline": "string, max 10 Wörter",
+  "sub": "string, 1-2 Sätze",
+  "badges": ["string", "string", "string"],
+  "benefits": [{"title":"string","text":"string, 1 Satz"},{"title":"string","text":"string"},{"title":"string","text":"string"}],
+  "steps": [{"title":"string","text":"string, 1 Satz"},{"title":"string","text":"string"},{"title":"string","text":"string"}],
+  "cta": "string, Button-Text, max 5 Wörter",
+  "faq": [{"q":"string","a":"string, 1-2 Sätze"},{"q":"string","a":"string"}]
+}
+`;
+
+app.post('/api/content/generate', authenticateToken, async (req, res) => {
+  const user   = await usersRepo.findById(req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const segment  = String(req.body.segment || '').trim();
+  const corridor = String(req.body.corridor || '').trim();
+  const tone     = String(req.body.tone || '').trim();
+  const ctaGoal  = String(req.body.ctaGoal || '').trim();
+  const notes    = String(req.body.notes || '').trim();
+  if (!segment) return res.status(400).json({ error: 'Zielsegment fehlt.' });
+
+  const userPrompt = `
+Zielsegment: ${segment}
+Korridor/Zielland: ${corridor || 'nicht spezifiziert, allgemein halten'}
+Tonalität: ${tone || 'professionell, vertrauensvoll'}
+CTA-Ziel: ${ctaGoal || 'Demo/Erstgespräch buchen'}
+Zusätzliche Hinweise: ${notes || 'keine'}
+`;
+
+  try {
+    const prompt = CONTENT_BRAND_CONTEXT + '\n\n' + userPrompt;
+    const out = await callClaude(apiKey, prompt, 1500);
+    if (!out || typeof out !== 'object') throw new Error('Unexpected AI response');
+    res.json({
+      headline: String(out.headline || ''),
+      sub: String(out.sub || ''),
+      badges: Array.isArray(out.badges) ? out.badges.map(String) : [],
+      benefits: Array.isArray(out.benefits) ? out.benefits.map(b => ({ title: String(b.title||''), text: String(b.text||'') })) : [],
+      steps: Array.isArray(out.steps) ? out.steps.map(s => ({ title: String(s.title||''), text: String(s.text||'') })) : [],
+      cta: String(out.cta || ''),
+      faq: Array.isArray(out.faq) ? out.faq.map(f => ({ q: String(f.q||''), a: String(f.a||'') })) : [],
+    });
+  } catch (err) {
+    console.error('[content/generate] error:', err.message);
+    res.status(500).json({ error: 'Generierung fehlgeschlagen: ' + err.message });
+  }
+});
+
+app.get('/api/content/drafts', authenticateToken, async (req, res) => {
+  const status = req.query.status === 'published' ? 'published' : (req.query.status === 'draft' ? 'draft' : undefined);
+  res.json(await contentDraftsRepo.list({ status }));
+});
+
+app.post('/api/content/drafts', authenticateToken, async (req, res) => {
+  const now = new Date().toISOString();
+  const b = req.body || {};
+  if (!b.content || typeof b.content !== 'object') return res.status(400).json({ error: 'content is required' });
+  const draft = {
+    id: 'cdraft_' + uuidv4().replace(/-/g, '').substring(0, 10),
+    segment: String(b.segment || '').slice(0, 255),
+    corridor: b.corridor ? String(b.corridor).slice(0, 255) : null,
+    tone: b.tone ? String(b.tone).slice(0, 255) : null,
+    ctaGoal: b.ctaGoal ? String(b.ctaGoal).slice(0, 255) : null,
+    notes: b.notes ? String(b.notes).slice(0, 2000) : null,
+    content: b.content,
+    status: 'draft',
+    createdBy: req.user.name || req.user.id,
+    createdAt: now, updatedAt: now,
+  };
+  const created = await contentDraftsRepo.create(draft);
+  res.status(201).json(created);
+});
+
+app.put('/api/content/drafts/:id', authenticateToken, async (req, res) => {
+  const existing = await contentDraftsRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Draft not found' });
+  const b = req.body || {};
+  const updated = Object.assign({}, existing, {
+    segment: b.segment !== undefined ? String(b.segment).slice(0,255) : existing.segment,
+    corridor: b.corridor !== undefined ? String(b.corridor).slice(0,255) : existing.corridor,
+    tone: b.tone !== undefined ? String(b.tone).slice(0,255) : existing.tone,
+    ctaGoal: b.ctaGoal !== undefined ? String(b.ctaGoal).slice(0,255) : existing.ctaGoal,
+    notes: b.notes !== undefined ? String(b.notes).slice(0,2000) : existing.notes,
+    content: b.content !== undefined ? b.content : existing.content,
+    status: b.status === 'published' ? 'published' : (b.status === 'draft' ? 'draft' : existing.status),
+    updatedAt: new Date().toISOString(),
+  });
+  const saved = await contentDraftsRepo.update(req.params.id, updated);
+  res.json(saved);
+});
+
+app.delete('/api/content/drafts/:id', authenticateToken, async (req, res) => {
+  const ok = await contentDraftsRepo.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Draft not found' });
+  res.json({ success: true });
+});
+
+
+// The feature catalog lives in admin/readiness.html (versioned with code). This
+// stores only the mutable team overlay, keyed by catalog item id:
+//   { <itemId>: { owner, notes, done, statusOverride, updatedAt, updatedBy } }
+// ─── In-app notifications ──────────────────────────────────────────────────
+app.get('/api/notifications', authenticateToken, async (req, res) => {
+  const unreadOnly = req.query.unread === 'true';
+  const [list, unread] = await Promise.all([
+    notificationsRepo.list({ unreadOnly, limit: req.query.limit }),
+    notificationsRepo.unreadCount(),
+  ]);
+  res.json({ notifications: list, unreadCount: unread });
+});
+
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
+  await notificationsRepo.markRead(req.params.id);
+  res.json({ success: true });
+});
+
+app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
+  const n = await notificationsRepo.markAllRead();
+  res.json({ success: true, count: n });
 });
 
 // ─── Readiness Center (team-shared feature-readiness overlay) ─────────────────
@@ -1755,6 +1936,61 @@ Return ONLY a valid JSON array (no markdown):
 // ─── AI: Lead research ────────────────────────────────────────────────────────
 
 // POST /api/customers/:id/research — enhanced with live web search when Tavily configured
+// GET /api/customers/booking-options — active reps + their active booking types,
+// stripped of calendar credentials. Powers the "Send booking link" picker in the CRM drawer.
+app.get('/api/customers/booking-options', authenticateToken, async (req, res) => {
+  const settings = await settingsRepo.get();
+  const reps = (settings.salesReps || []).filter(r => r.active !== false).map(r => ({
+    id: r.id, name: r.name,
+    bookingTypes: (r.bookingTypes || []).filter(t => t.active !== false).map(t => ({ slug: t.slug, label: t.label, duration: t.duration })),
+  })).filter(r => r.bookingTypes.length);
+  res.json(reps);
+});
+
+// POST /api/customers/:id/send-booking-link — email this customer a link to
+// book a call directly, and log it on their activity timeline.
+app.post('/api/customers/:id/send-booking-link', authenticateToken, async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'Email is not configured.' });
+
+  const c = await customersRepo.findById(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Customer not found' });
+  if (!c.email) return res.status(400).json({ error: 'This customer has no email address on file.' });
+
+  const settings = await settingsRepo.get();
+  const reps = (settings.salesReps || []).filter(r => r.active !== false);
+  if (!reps.length) return res.status(400).json({ error: 'No active sales reps configured. Add one in Settings first.' });
+
+  const rep = req.body.repId ? reps.find(r => r.id === req.body.repId) : reps[0];
+  if (!rep) return res.status(400).json({ error: 'Sales rep not found.' });
+
+  const types = (rep.bookingTypes || []).filter(t => t.active !== false);
+  if (!types.length) return res.status(400).json({ error: 'This rep has no active booking types.' });
+  const bookingType = req.body.bookingTypeSlug ? types.find(t => t.slug === req.body.bookingTypeSlug) : types[0];
+  if (!bookingType) return res.status(400).json({ error: 'Booking type not found.' });
+
+  const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+  const bookingUrl = `${siteBase}/call-with-${bookingType.slug}`;
+  const note = req.body.note ? String(req.body.note).slice(0, 500) : '';
+  const lang = req.body.lang === 'en' ? 'en' : 'de';
+
+  try {
+    const mail = mailer.renderBookingLinkEmail({
+      toEmail: c.email, toName: c.firstName || c.company || '',
+      repName: rep.name, bookingUrl, bookingTypeLabel: bookingType.label, lang, note,
+    });
+    const result = await mailer.sendMail(mail);
+    await logActivity({
+      customerId: c.id, type: 'email', title: 'Booking link sent',
+      body: `Sent ${rep.name}'s "${bookingType.label}" booking link to ${c.email}` + (note ? ` — note: ${note}` : ''),
+      by: req.user.name,
+    });
+    res.json({ success: true, sent: !!result.sent, bookingUrl });
+  } catch (err) {
+    console.error('[send-booking-link] error:', err.message);
+    res.status(500).json({ error: 'Could not send booking link: ' + err.message });
+  }
+});
+
 app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
   const user   = await usersRepo.findById(req.user.id);
   const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
@@ -2530,6 +2766,9 @@ app.post('/api/booking', async (req, res) => {
       }
     }
 
+    // Notify the internal team — email + in-app — so a booking is never missed.
+    await notifyTeamOfBooking({ rep: assignedRep, lead, slot, bookingTypeLabel: 'Discovery call', req });
+
     res.json({
       success: true,
       eventId:     event.id,
@@ -2674,6 +2913,9 @@ app.post('/api/schedule/book', async (req, res) => {
         console.error('[email] render error:', e.message);
       }
     }
+
+    // Notify the internal team — email + in-app — so a booking is never missed.
+    await notifyTeamOfBooking({ rep, lead, slot, bookingTypeLabel: bookingType.label, req });
 
     res.json({ success: true, eventId: event.id, meetLink: event.hangoutLink || null, calendarUrl: event.htmlLink || null });
   } catch (err) {

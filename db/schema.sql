@@ -306,3 +306,33 @@ CREATE TABLE IF NOT EXISTS waitlist (
   UNIQUE KEY uq_waitlist_email (email),
   KEY idx_waitlist_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 18. content_drafts (AI-generated landing-page copy from the Content Engine)
+CREATE TABLE IF NOT EXISTS content_drafts (
+  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
+  segment      VARCHAR(255)  NOT NULL DEFAULT '',
+  corridor     VARCHAR(255)  NULL,
+  tone         VARCHAR(255)  NULL,
+  cta_goal     VARCHAR(255)  NULL,
+  notes        TEXT          NULL,
+  content      JSON          NOT NULL,
+  status       ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  created_by   VARCHAR(255)  NULL,
+  created_at   DATETIME(3)   NOT NULL,
+  updated_at   DATETIME(3)   NULL,
+  KEY idx_content_drafts_status (status),
+  KEY idx_content_drafts_updated_at (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 19. notifications (in-app notification feed — e.g. new booking alerts)
+CREATE TABLE IF NOT EXISTS notifications (
+  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
+  type         VARCHAR(64)   NOT NULL DEFAULT 'info',
+  title        VARCHAR(255)  NOT NULL DEFAULT '',
+  body         TEXT          NULL,
+  link         VARCHAR(512)  NULL,
+  read_at      DATETIME(3)   NULL,
+  created_at   DATETIME(3)   NOT NULL,
+  KEY idx_notifications_read_at (read_at),
+  KEY idx_notifications_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
