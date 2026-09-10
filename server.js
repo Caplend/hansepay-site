@@ -310,7 +310,13 @@ async function notifyTeamOfBooking({ rep, lead, slot, bookingTypeLabel, req }) {
       const teamMail = mailer.renderTeamBookingNotificationEmail({
         teamEmail, lead, slot, repName, bookingTypeLabel: bookingTypeLabel || 'Discovery call', adminUrl,
       });
-      mailer.sendMail(teamMail).then(r => {
+      // Prefer the assigned rep's own connected Gmail (proven to work — it's the
+      // same one used for the customer's confirmation email) over the shared/
+      // default account, whose OAuth token can silently expire (invalid_grant).
+      const sendAs = (cal && rep && cal.isRepConfigured(rep))
+        ? { ...teamMail, refreshToken: rep.refreshToken, from: `${rep.name} <${rep.calendarId}>` }
+        : teamMail;
+      mailer.sendMail(sendAs).then(r => {
         console.log(`[email] team booking notification → ${teamEmail}: ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
       }).catch(err => console.error('[email] team notification send error:', err.message));
     } catch (e) {
