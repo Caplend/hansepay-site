@@ -89,6 +89,18 @@ var H = window.HPAdmin;
 H.renderSidebar('crm');
 var A = H.authFetch, esc = H.escapeHtml;
 
+// Every write (POST/PUT/DELETE) must go through this before assuming success —
+// A()/authFetch() resolves even on 4xx/5xx responses, so `.then(r=>r.json())`
+// alone can't tell a failed save from a successful one. Use this instead of
+// that pattern anywhere a toast or UI state depends on the request having
+// actually succeeded.
+function ok(r){
+  if(r.ok) return r.json();
+  return r.json().catch(function(){return {};}).then(function(e){
+    throw new Error(e.error || ('Request failed (HTTP '+r.status+')'));
+  });
+}
+
 var all = [];
 var current = null;
 var debounce;
@@ -329,19 +341,27 @@ function renderTimeline(acts){
 
 function saveStage(){
   var body={stage:document.getElementById('e-stage').value,status:document.getElementById('e-status').value,owner:document.getElementById('e-owner').value};
-  var fu=document.getElementById('e-followup').value; if(fu)body.nextFollowUpAt=new Date(fu).toISOString();
-  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
-    H.toast('Saved'); openCustomer(c.id); load();
-  });
+  var fu=document.getElementById('e-followup').value;
+  body.nextFollowUpAt = fu ? new Date(fu+'T00:00:00').toISOString() : null; // always explicit — never silently omitted
+  var btn=document.getElementById('save-stage'); btn.disabled=true; var orig=btn.textContent; btn.textContent='Saving…';
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(ok).then(function(c){
+    if(c.owner!==body.owner || (fu && !c.nextFollowUpAt)){
+      H.toast('Save may not have applied correctly — please check and retry','error'); return;
+    }
+    H.toast('Saved ✓'); openCustomer(c.id); load();
+  }).catch(function(err){ H.toast(err.message||'Save failed','error'); })
+  .finally(function(){ btn.disabled=false; btn.textContent=orig; });
 }
 function saveProfile(){
   var fields=['firstName','lastName','company','email','phone','industry','companySize','country','city','fxVolume','currencyPairs','notes'];
   var body={}; fields.forEach(function(f){body[f]=document.getElementById('e-'+f).value;});
   body.estValueEur=parseInt(document.getElementById('e-estValueEur').value,10)||0;
   body.tags=document.getElementById('e-tags').value.split(',').map(function(s){return s.trim();}).filter(Boolean);
-  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(c){
-    H.toast('Profile saved'); openCustomer(c.id); load();
-  });
+  var btn=document.getElementById('save-profile'); btn.disabled=true; var orig=btn.textContent; btn.textContent='Saving…';
+  A('/api/customers/'+current.id,{method:'PUT',body:JSON.stringify(body)}).then(ok).then(function(c){
+    H.toast('Profile saved ✓'); openCustomer(c.id); load();
+  }).catch(function(err){ H.toast(err.message||'Save failed','error'); })
+  .finally(function(){ btn.disabled=false; btn.textContent=orig; });
 }
 function delCustomer(){
   if(!confirm('Delete this customer and all its activity? This cannot be undone.'))return;
@@ -352,16 +372,21 @@ function delCustomer(){
 function addActivity(){
   var body={type:document.getElementById('a-type').value,title:document.getElementById('a-title').value.trim(),body:document.getElementById('a-body').value.trim()};
   if(!body.title&&!body.body){H.toast('Add a title or details','error');return;}
-  A('/api/customers/'+current.id+'/activities',{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(){
-    H.toast('Logged'); openCustomer(current.id); load();
-  });
+  var btn=document.getElementById('add-activity'); btn.disabled=true; var orig=btn.textContent; btn.textContent='Logging…';
+  A('/api/customers/'+current.id+'/activities',{method:'POST',body:JSON.stringify(body)}).then(ok).then(function(){
+    H.toast('Logged ✓'); document.getElementById('a-title').value=''; document.getElementById('a-body').value='';
+    openCustomer(current.id); load();
+  }).catch(function(err){ H.toast(err.message||'Could not log activity','error'); })
+  .finally(function(){ btn.disabled=false; btn.textContent=orig; });
 }
 
 // ── New customer ──
 document.getElementById('new-customer').addEventListener('click',function(){
-  A('/api/customers',{method:'POST',body:JSON.stringify({company:'New customer',source:'manual'})}).then(function(r){return r.json();}).then(function(c){
+  var btn=this; btn.disabled=true;
+  A('/api/customers',{method:'POST',body:JSON.stringify({company:'New customer',source:'manual'})}).then(ok).then(function(c){
     load(); openCustomer(c.id);
-  });
+  }).catch(function(err){ H.toast(err.message||'Could not create customer','error'); })
+  .finally(function(){ btn.disabled=false; });
 });
 
 // ── Export ──
@@ -733,6 +758,7 @@ function addSelectedLeads(){
   var btn=document.getElementById('btn-add-selected'); btn.disabled=true; btn.textContent='Adding…';
   var withResearch=confirm('Run AI research on each lead as it\'s added?\n\nThis will enrich each company immediately (uses Claude API credits).');
 
+  var failCount = 0;
   Promise.all(toAdd.map(function(l){
     return H.authFetch('/api/customers',{method:'POST',body:JSON.stringify({
       company:l.company,website:l.website||'',industry:l.industry||'',country:l.country||'',
@@ -742,13 +768,14 @@ function addSelectedLeads(){
         decisionMakers:[],relevanceScore:3,confidenceNote:'From lead generation',
         webSearchUsed:false,sources:[],linkedinUrl:l.linkedinUrl||null
       }
-    })}).then(function(r){return r.json();}).then(function(c){
+    })}).then(ok).then(function(c){
       if(withResearch&&c.id){
         return H.authFetch('/api/customers/'+c.id+'/research',{method:'POST'}).catch(function(){});
       }
-    });
+    }).catch(function(){ failCount++; });
   })).then(function(){
-    H.toast(toAdd.length+' leads added to CRM ✓');
+    var okCount = toAdd.length - failCount;
+    H.toast(failCount ? (okCount+' of '+toAdd.length+' leads added — '+failCount+' failed') : (toAdd.length+' leads added to CRM ✓'), failCount ? 'error' : undefined);
     document.getElementById('gen-leads-panel').style.display='none';
     load();
   }).finally(function(){ btn.disabled=false; btn.textContent='Add to CRM →'; });
@@ -770,7 +797,7 @@ function saveOutbound(withResearch){
   var btn=document.getElementById('ob-save');
   btn.disabled=true; btn.textContent='Adding…';
   window.HPAdmin.authFetch('/api/customers',{method:'POST',body:JSON.stringify(body)})
-    .then(function(r){return r.json();})
+    .then(ok)
     .then(function(c){
       document.getElementById('outbound-modal').style.display='none';
       ['ob-company','ob-firstName','ob-lastName','ob-email','ob-website','ob-industry','ob-notes'].forEach(function(id){document.getElementById(id).value='';});
@@ -786,7 +813,7 @@ function saveOutbound(withResearch){
         window.HPAdmin.toast('Lead added ✓');
       }
     })
-    .catch(function(){window.HPAdmin.toast('Failed to add lead','error');})
+    .catch(function(err){window.HPAdmin.toast(err.message||'Failed to add lead','error');})
     .finally(function(){btn.disabled=false; btn.textContent='Add & research with AI';});
 }
 </script>
