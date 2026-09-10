@@ -339,6 +339,70 @@ async function notifyTeamOfBooking({ rep, lead, slot, bookingTypeLabel, req }) {
   }
 }
 
+// ─── CRM follow-up reminders ────────────────────────────────────────────────
+// Runs on an interval (see bottom of file) rather than an external cron, since
+// this app has no scheduler infra. Guards itself with a persisted "last run
+// date" so restarts / frequent ticks never send the same reminder twice.
+function todayBerlin() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }); // YYYY-MM-DD
+}
+
+async function resolveOwnerEmail(ownerName) {
+  if (ownerName) {
+    try {
+      const users = await usersRepo.list();
+      const match = users.find(u => (u.name || '').trim().toLowerCase() === ownerName.trim().toLowerCase());
+      if (match && match.email) return match.email;
+    } catch (e) { console.error('[followups] owner lookup error:', e.message); }
+  }
+  return process.env.TEAM_NOTIFICATION_EMAIL || process.env.CALENDAR_OWNER_EMAIL || null;
+}
+
+async function checkFollowUpsDue() {
+  const today = todayBerlin();
+  const state = readData('followup-checks.json');
+  if (state && state.lastRunDate === today) return; // already ran today
+
+  try {
+    const all = await customersRepo.list({});
+    const due = all.filter(c => {
+      if (!c.nextFollowUpAt) return false;
+      return new Date(c.nextFollowUpAt).toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }) === today;
+    });
+
+    if (due.length && mailer) {
+      const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+      const crmUrl = `${siteBase}/hansepay/admin/crm.html`;
+
+      for (const c of due) {
+        try {
+          const toEmail = await resolveOwnerEmail(c.owner);
+          if (toEmail) {
+            const mail = mailer.renderFollowUpReminderEmail({ toEmail, ownerName: c.owner, customer: c, crmUrl });
+            const r = await mailer.sendMail(mail);
+            console.log(`[email] follow-up reminder → ${toEmail} (${c.company}): ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
+          } else {
+            console.log(`[followups] no email resolved for owner "${c.owner}" on ${c.company} — skipped`);
+          }
+          await logActivity({ customerId: c.id, type: 'email', title: 'Follow-up reminder sent', body: `Automated reminder for today's follow-up date, sent to ${toEmail || 'no one (no owner email found)'}.`, by: 'system' });
+          await notificationsRepo.create({
+            id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
+            type: 'followup', title: `Follow-up due: ${c.company || c.email || 'Customer'}`,
+            body: `Follow-up scheduled for today${c.owner ? ' — owner: ' + c.owner : ''}.`,
+            link: crmUrl, createdAt: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.error('[followups] per-customer error for', c.id, ':', e.message);
+        }
+      }
+    }
+
+    writeData('followup-checks.json', { lastRunDate: today, lastRunCount: due.length });
+  } catch (e) {
+    console.error('[followups] check error:', e.message);
+  }
+}
+
 // Create or update a customer from an inbound lead (e.g. a booking). Wrapped in
 // a transaction so the customer upsert and its activity log never diverge.
 async function upsertCustomerFromLead(lead, opts) {
@@ -1988,6 +2052,22 @@ Return ONLY a valid JSON array (no markdown):
 // POST /api/customers/:id/research — enhanced with live web search when Tavily configured
 // GET /api/customers/booking-options — active reps + their active booking types,
 // stripped of calendar credentials. Powers the "Send booking link" picker in the CRM drawer.
+// GET /api/customers/follow-ups — customers whose next-follow-up date is
+// today or earlier (overdue). Powers the "Follow-ups due" card on Bookings.
+app.get('/api/customers/follow-ups', authenticateToken, async (req, res) => {
+  try {
+    const today = todayBerlin();
+    const all = await customersRepo.list({});
+    const due = all
+      .filter(c => c.nextFollowUpAt && new Date(c.nextFollowUpAt).toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }) <= today)
+      .sort((a, b) => new Date(a.nextFollowUpAt) - new Date(b.nextFollowUpAt));
+    res.json(due);
+  } catch (err) {
+    console.error('[customers/follow-ups] error:', err.message);
+    res.status(500).json({ error: 'Could not load follow-ups.' });
+  }
+});
+
 app.get('/api/customers/booking-options', authenticateToken, async (req, res) => {
   const settings = await settingsRepo.get();
   const reps = (settings.salesReps || []).filter(r => r.active !== false).map(r => ({
@@ -3742,3 +3822,9 @@ app.listen(PORT, () => {
 db.assertConnected()
   .then(() => console.log('[startup] MySQL: connected'))
   .catch(err => console.error('[startup] MySQL: connection check failed —', err.message));
+
+// CRM follow-up reminders: check shortly after boot (in case the day's window
+// was missed by a restart), then hourly. checkFollowUpsDue() itself is a
+// same-day no-op once it has already run, so hourly polling is safe.
+setTimeout(checkFollowUpsDue, 30 * 1000);
+setInterval(checkFollowUpsDue, 60 * 60 * 1000);
