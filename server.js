@@ -748,7 +748,9 @@ Antworte AUSSCHLIESSLICH mit einem validen JSON-Objekt, ohne Markdown-Codeblock,
   "benefits": [{"title":"string","text":"string, 1 Satz"},{"title":"string","text":"string"},{"title":"string","text":"string"}],
   "steps": [{"title":"string","text":"string, 1 Satz"},{"title":"string","text":"string"},{"title":"string","text":"string"}],
   "cta": "string, Button-Text, max 5 Wörter",
-  "faq": [{"q":"string","a":"string, 1-2 Sätze"},{"q":"string","a":"string"}]
+  "faq": [{"q":"string","a":"string, 1-2 Sätze"},{"q":"string","a":"string"}],
+  "metaTitle": "string, max 60 Zeichen, für <title> und Suchmaschinen",
+  "metaDescription": "string, max 155 Zeichen, für die Meta-Description in Suchergebnissen"
 }
 `;
 
@@ -762,6 +764,7 @@ app.post('/api/content/generate', authenticateToken, async (req, res) => {
   const tone     = String(req.body.tone || '').trim();
   const ctaGoal  = String(req.body.ctaGoal || '').trim();
   const notes    = String(req.body.notes || '').trim();
+  const lang     = req.body.lang === 'en' ? 'en' : 'de';
   if (!segment) return res.status(400).json({ error: 'Zielsegment fehlt.' });
 
   const userPrompt = `
@@ -770,11 +773,12 @@ Korridor/Zielland: ${corridor || 'nicht spezifiziert, allgemein halten'}
 Tonalität: ${tone || 'professionell, vertrauensvoll'}
 CTA-Ziel: ${ctaGoal || 'Demo/Erstgespräch buchen'}
 Zusätzliche Hinweise: ${notes || 'keine'}
+${lang === 'en' ? 'WICHTIG: Schreibe alle Textfelder (headline, sub, badges, benefits, steps, cta, faq, metaTitle, metaDescription) auf Englisch, nicht auf Deutsch.' : ''}
 `;
 
   try {
     const prompt = CONTENT_BRAND_CONTEXT + '\n\n' + userPrompt;
-    const out = await callClaude(apiKey, prompt, 1500);
+    const out = await callClaude(apiKey, prompt, 1600);
     if (!out || typeof out !== 'object') throw new Error('Unexpected AI response');
     res.json({
       headline: String(out.headline || ''),
@@ -784,6 +788,8 @@ Zusätzliche Hinweise: ${notes || 'keine'}
       steps: Array.isArray(out.steps) ? out.steps.map(s => ({ title: String(s.title||''), text: String(s.text||'') })) : [],
       cta: String(out.cta || ''),
       faq: Array.isArray(out.faq) ? out.faq.map(f => ({ q: String(f.q||''), a: String(f.a||'') })) : [],
+      metaTitle: String(out.metaTitle || ''),
+      metaDescription: String(out.metaDescription || ''),
     });
   } catch (err) {
     console.error('[content/generate] error:', err.message);
@@ -840,10 +846,48 @@ app.delete('/api/content/drafts/:id', authenticateToken, async (req, res) => {
   res.json({ success: true });
 });
 
+// POST /api/content/drafts/:id/publish-post — turn a saved landing-page draft
+// into a draft blog Post (never auto-published live; status stays 'draft'
+// so someone still reviews it in Posts before it goes out).
+app.post('/api/content/drafts/:id/publish-post', authenticateToken, async (req, res) => {
+  const draft = await contentDraftsRepo.findById(req.params.id);
+  if (!draft) return res.status(404).json({ error: 'Draft not found' });
+  const d = draft.content || {};
+  if (!d.headline) return res.status(400).json({ error: 'This draft has no generated content yet.' });
 
-// The feature catalog lives in admin/readiness.html (versioned with code). This
-// stores only the mutable team overlay, keyed by catalog item id:
-//   { <itemId>: { owner, notes, done, statusOverride, updatedAt, updatedBy } }
+  const bodyHtml = [
+    d.sub ? `<p>${escapeHtmlServer(d.sub)}</p>` : '',
+    (d.benefits || []).length ? '<h2>Nutzenargumente</h2>' : '',
+    ...(d.benefits || []).map(b => `<h3>${escapeHtmlServer(b.title)}</h3><p>${escapeHtmlServer(b.text)}</p>`),
+    (d.steps || []).length ? '<h2>Ablauf</h2>' : '',
+    ...(d.steps || []).map((s, i) => `<h3>${i + 1}. ${escapeHtmlServer(s.title)}</h3><p>${escapeHtmlServer(s.text)}</p>`),
+    (d.faq || []).length ? '<h2>FAQ</h2>' : '',
+    ...(d.faq || []).map(f => `<h3>${escapeHtmlServer(f.q)}</h3><p>${escapeHtmlServer(f.a)}</p>`),
+  ].filter(Boolean).join('\n');
+
+  const author = (await usersRepo.findById(req.user.id)) || { name: req.user.name };
+  try {
+    const post = await postsRepo.create({
+      title: d.headline,
+      excerpt: d.metaDescription || d.sub || '',
+      content: bodyHtml,
+      category: 'Landing Page',
+      tags: [draft.segment].filter(Boolean),
+      status: 'draft',
+    }, author);
+    await contentDraftsRepo.update(draft.id, Object.assign({}, draft, { status: 'published', updatedAt: new Date().toISOString() }));
+    res.status(201).json({ success: true, post });
+  } catch (err) {
+    console.error('[content/publish-post] error:', err.message);
+    res.status(500).json({ error: 'Could not create post: ' + err.message });
+  }
+});
+
+function escapeHtmlServer(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
 // ─── In-app notifications ──────────────────────────────────────────────────
 app.get('/api/notifications', authenticateToken, async (req, res) => {
   const unreadOnly = req.query.unread === 'true';
