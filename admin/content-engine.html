@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" sizes="32x32" href="/hansepay/assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/hansepay/assets/favicon-180.png">
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Content Engine — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .gen-layout{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+  @media (max-width:1000px){.gen-layout{grid-template-columns:1fr}}
+  .status-line{font-size:.75rem;color:var(--ink3);min-height:16px;margin-top:10px}
+  .status-line.err{color:var(--bad)}
+
+  /* Preview */
+  .lp-empty{color:var(--ink3);font-size:.875rem;max-width:420px;line-height:1.6;padding:60px 8px}
+  .lp-headline{font-family:'Playfair Display',serif;font-size:1.85rem;font-weight:600;color:var(--n800);line-height:1.2;max-width:560px}
+  .lp-sub{font-size:.9375rem;color:var(--ink2);margin-top:12px;max-width:520px;line-height:1.55}
+  .lp-badges{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+  .lp-badge{border:1px solid rgba(11,25,41,.12);border-radius:var(--r-pill);padding:6px 13px;font-size:.75rem;color:var(--n500);background:#fff}
+  .lp-section-title{font-size:.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-top:30px;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid rgba(11,25,41,.08)}
+  .lp-benefit{padding:11px 0;border-bottom:1px solid rgba(11,25,41,.06)}
+  .lp-benefit:last-child{border-bottom:none}
+  .lp-benefit h4{margin:0 0 3px;font-size:.875rem;font-weight:600;color:var(--ink)}
+  .lp-benefit p{margin:0;font-size:.8125rem;color:var(--ink2);line-height:1.5}
+  .lp-step{display:flex;gap:12px;padding:9px 0}
+  .lp-step-num{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.15rem;width:22px;flex-shrink:0}
+  .lp-step h4{margin:0 0 2px;font-size:.8125rem;font-weight:600;color:var(--ink)}
+  .lp-step p{margin:0;font-size:.75rem;color:var(--ink2);line-height:1.5}
+  .lp-cta-box{margin-top:26px;background:var(--n800);color:#fff;padding:18px 22px;border-radius:var(--r-lg);font-size:.875rem;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+  .lp-cta-box button{pointer-events:none}
+  .lp-faq{padding:10px 0;border-bottom:1px solid rgba(11,25,41,.06)}
+  .lp-faq:last-child{border-bottom:none}
+  .lp-faq h4{margin:0 0 3px;font-size:.8125rem;font-weight:600;color:var(--ink)}
+  .lp-faq p{margin:0;font-size:.8125rem;color:var(--ink2);line-height:1.5}
+  .preview-actions{display:flex;gap:8px;margin-top:26px;padding-top:18px;border-top:1px solid rgba(11,25,41,.08)}
+
+  .drafts-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Content Engine</div>
+  </div>
+
+  <div class="content">
+    <p class="muted" style="margin:-4px 0 20px;font-size:.875rem;max-width:760px">
+      Erzeugt Landingpage-Entwürfe je Zielsegment auf Basis der HansePay-Positionierung. Die Generierung läuft serverseitig — Entwürfe werden gespeichert und bleiben nach dem Neuladen erhalten.
+    </p>
+
+    <div class="gen-layout">
+      <!-- Left: generator form -->
+      <div class="card card-pad">
+        <div class="card-title">Neuer Entwurf</div>
+
+        <div class="field">
+          <label>Zielsegment</label>
+          <select id="segment">
+            <option value="Reiseanbieter (Reisebüros, Veranstalter, DMCs mit Zahlungen an Hotels/Leistungsträger in exotischen Zielländern)">Reiseanbieter</option>
+            <option value="Autohändler mit Fahrzeugimport aus Japan/Korea (Zahlungen in JPY/KRW an Auktionshäuser, Zeitdruck durch Auktionsfristen, auch Privatkäufer)">Autohändler – Japan/Korea-Import</option>
+            <option value="E-Commerce-Händler mit Lieferantenzahlungen nach Fernost/Emerging Markets, hohe Frequenz kleinerer Beträge">E-Commerce</option>
+            <option value="custom">Individuell (unten beschreiben)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Korridor / Zielland (optional)</label>
+          <input id="corridor" placeholder="z. B. Japan, Albanien, Vietnam" />
+        </div>
+
+        <div class="field">
+          <label>Tonalität</label>
+          <select id="tone">
+            <option value="vertrauensvoll, ruhig, corporate – passend für Mittelstandsentscheider, die zuerst Sicherheit brauchen">Vertrauensvoll &amp; Corporate</option>
+            <option value="direkt, dynamisch, tempo-orientiert">Dynamisch &amp; Direkt</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>CTA-Ziel</label>
+          <select id="ctaGoal">
+            <option value="Demo/Erstgespräch buchen">Demo/Erstgespräch buchen</option>
+            <option value="Konto eröffnen">Konto eröffnen</option>
+            <option value="Testtransaktion starten">Testtransaktion starten</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Zusätzliche Hinweise (optional)</label>
+          <textarea id="notes" placeholder="z. B. individuelle Zielgruppe, besonderer Aufhänger, Kampagnenkontext"></textarea>
+        </div>
+
+        <button class="btn btn-primary" id="genBtn" style="width:100%;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+          Landingpage-Text generieren
+        </button>
+        <div class="status-line" id="status"></div>
+      </div>
+
+      <!-- Right: preview -->
+      <div class="card card-pad">
+        <div id="preview"><div class="lp-empty">Wähle links ein Segment und klicke auf „Landingpage-Text generieren" — der Entwurf erscheint hier als Vorschau.</div></div>
+      </div>
+    </div>
+
+    <!-- Saved drafts -->
+    <div class="drafts-head" style="margin-top:32px">
+      <div class="card-title" style="margin-bottom:0">Gespeicherte Entwürfe</div>
+    </div>
+    <div class="card" style="overflow:hidden">
+      <table class="data-table">
+        <thead><tr>
+          <th>Segment</th><th>Korridor</th><th>Status</th><th>Erstellt</th><th></th>
+        </tr></thead>
+        <tbody id="drafts-rows"><tr><td colspan="5" class="empty">Lade…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="components.js"></script>
+<script>
+var H = window.HPAdmin;
+H.renderSidebar('content-engine');
+var A = H.authFetch, esc = H.escapeHtml;
+
+var currentDraft = null; // { content, segment, corridor, tone, ctaGoal, notes, id? }
+
+function loadDrafts(){
+  A('/api/content/drafts').then(function(r){return r.json();}).then(function(list){
+    renderDrafts(Array.isArray(list)?list:[]);
+  }).catch(function(){
+    document.getElementById('drafts-rows').innerHTML = '<tr><td colspan="5" class="empty">Konnte Entwürfe nicht laden.</td></tr>';
+  });
+}
+
+function renderDrafts(list){
+  var tb = document.getElementById('drafts-rows');
+  if(!list.length){ tb.innerHTML = '<tr><td colspan="5" class="empty">Noch keine gespeicherten Entwürfe.</td></tr>'; return; }
+  tb.innerHTML = list.map(function(d){
+    var created = d.createdAt ? new Date(d.createdAt).toLocaleDateString('de-DE') : '—';
+    var segShort = (d.segment||'').split('(')[0].trim() || '—';
+    var statusBadge = d.status==='published'
+      ? '<span class="badge badge-won">Veröffentlicht</span>'
+      : '<span class="badge badge-soft">Entwurf</span>';
+    return '<tr>'+
+      '<td class="t-strong" style="cursor:pointer" onclick="openDraft(\''+d.id+'\')">'+esc(segShort)+'</td>'+
+      '<td>'+esc(d.corridor||'—')+'</td>'+
+      '<td>'+statusBadge+'</td>'+
+      '<td>'+esc(created)+'</td>'+
+      '<td style="text-align:right;white-space:nowrap">'+
+        '<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDraft(\''+d.id+'\')">Ansehen</button> '+
+        '<button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="event.stopPropagation();deleteDraft(\''+d.id+'\')">Löschen</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+}
+
+window.openDraft = function(id){
+  A('/api/content/drafts').then(function(r){return r.json();}).then(function(list){
+    var d = (list||[]).find(function(x){return x.id===id;});
+    if(!d) return;
+    currentDraft = d;
+    render(d.content);
+    document.getElementById('status').textContent = 'Gespeicherter Entwurf geladen.';
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+};
+
+window.deleteDraft = function(id){
+  if(!confirm('Diesen Entwurf endgültig löschen?')) return;
+  A('/api/content/drafts/'+id, {method:'DELETE'}).then(function(r){return r.json();}).then(function(){
+    H.toast('Entwurf gelöscht ✓');
+    loadDrafts();
+  }).catch(function(){ H.toast('Löschen fehlgeschlagen','error'); });
+};
+
+function generate(){
+  var btn = document.getElementById('genBtn');
+  var status = document.getElementById('status');
+  var preview = document.getElementById('preview');
+  var segmentSelect = document.getElementById('segment');
+  var segment = segmentSelect.value === 'custom'
+    ? (document.getElementById('notes').value || 'individuelles Zielsegment')
+    : segmentSelect.options[segmentSelect.selectedIndex].text + ': ' + segmentSelect.value;
+  var corridor = document.getElementById('corridor').value.trim();
+  var tone = document.getElementById('tone').value;
+  var ctaGoal = document.getElementById('ctaGoal').value;
+  var notes = document.getElementById('notes').value.trim();
+
+  btn.disabled = true;
+  status.className = 'status-line';
+  status.textContent = 'Generiere Entwurf …';
+  preview.innerHTML = '<div class="lp-empty">Einen Moment …</div>';
+
+  A('/api/content/generate', { method:'POST', body: JSON.stringify({ segment: segment, corridor: corridor, tone: tone, ctaGoal: ctaGoal, notes: notes }) })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(!res.ok){ throw new Error(res.data && res.data.error ? res.data.error : 'Generierung fehlgeschlagen'); }
+      currentDraft = { content: res.data, segment: segment, corridor: corridor, tone: tone, ctaGoal: ctaGoal, notes: notes };
+      render(res.data);
+      status.textContent = 'Entwurf erstellt. Bitte vor Veröffentlichung prüfen.';
+    })
+    .catch(function(err){
+      status.className = 'status-line err';
+      status.textContent = err.message || 'Fehler bei der Generierung — bitte erneut versuchen.';
+      preview.innerHTML = '<div class="lp-empty">Es gab ein Problem beim Erzeugen des Entwurfs. Bitte nochmal versuchen.</div>';
+    })
+    .finally(function(){ btn.disabled = false; });
+}
+
+function render(d){
+  var preview = document.getElementById('preview');
+  preview.innerHTML =
+    '<div class="lp-headline">'+esc(d.headline)+'</div>'+
+    '<div class="lp-sub">'+esc(d.sub)+'</div>'+
+    '<div class="lp-badges">'+(d.badges||[]).map(function(b){return '<div class="lp-badge">'+esc(b)+'</div>';}).join('')+'</div>'+
+
+    '<div class="lp-section-title">Nutzenargumente</div>'+
+    (d.benefits||[]).map(function(b){return '<div class="lp-benefit"><h4>'+esc(b.title)+'</h4><p>'+esc(b.text)+'</p></div>';}).join('')+
+
+    '<div class="lp-section-title">Ablauf</div>'+
+    (d.steps||[]).map(function(s,i){return '<div class="lp-step"><div class="lp-step-num">'+(i+1)+'</div><div><h4>'+esc(s.title)+'</h4><p>'+esc(s.text)+'</p></div></div>';}).join('')+
+
+    '<div class="lp-cta-box"><span>Bereit für den nächsten Schritt?</span><button class="btn btn-primary btn-sm">'+esc(d.cta)+'</button></div>'+
+
+    '<div class="lp-section-title">FAQ</div>'+
+    (d.faq||[]).map(function(f){return '<div class="lp-faq"><h4>'+esc(f.q)+'</h4><p>'+esc(f.a)+'</p></div>';}).join('')+
+
+    '<div class="preview-actions">'+
+      '<button class="btn btn-primary" id="btn-save-draft">Als Entwurf speichern</button>'+
+      '<button class="btn btn-ghost" id="btn-copy">Als Text kopieren</button>'+
+    '</div>';
+
+  document.getElementById('btn-save-draft').addEventListener('click', saveDraft);
+  document.getElementById('btn-copy').addEventListener('click', copyAll);
+}
+
+function saveDraft(){
+  if(!currentDraft){ return; }
+  var btn = document.getElementById('btn-save-draft');
+  btn.disabled = true; btn.textContent = 'Speichere…';
+  var body = {
+    segment: currentDraft.segment, corridor: currentDraft.corridor, tone: currentDraft.tone,
+    ctaGoal: currentDraft.ctaGoal, notes: currentDraft.notes, content: currentDraft.content
+  };
+  var isUpdate = !!currentDraft.id;
+  var req = isUpdate
+    ? A('/api/content/drafts/'+currentDraft.id, { method:'PUT', body: JSON.stringify(body) })
+    : A('/api/content/drafts', { method:'POST', body: JSON.stringify(body) });
+  req.then(function(r){return r.json();}).then(function(saved){
+    currentDraft.id = saved.id;
+    H.toast('Entwurf gespeichert ✓');
+    loadDrafts();
+  }).catch(function(){ H.toast('Speichern fehlgeschlagen','error'); })
+  .finally(function(){ btn.disabled = false; btn.textContent = 'Als Entwurf speichern'; });
+}
+
+function copyAll(){
+  var d = currentDraft ? currentDraft.content : null;
+  if(!d) return;
+  var lines = [
+    d.headline, '', d.sub, '',
+    'Trust: ' + (d.badges||[]).join(' · '), '',
+    'Nutzenargumente:',
+  ].concat((d.benefits||[]).map(function(b){return '- '+b.title+': '+b.text;})).concat([
+    '', 'Ablauf:',
+  ]).concat((d.steps||[]).map(function(s,i){return (i+1)+'. '+s.title+': '+s.text;})).concat([
+    '', 'CTA: ' + d.cta, '', 'FAQ:',
+  ]).concat((d.faq||[]).map(function(f){return 'Q: '+f.q+'\nA: '+f.a;}));
+  navigator.clipboard.writeText(lines.join('\n'));
+  document.getElementById('status').textContent = 'In Zwischenablage kopiert.';
+}
+
+document.getElementById('genBtn').addEventListener('click', generate);
+
+loadDrafts();
+</script>
+</body>
+</html>
