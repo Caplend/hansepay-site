@@ -25,6 +25,7 @@ const transactionsRepo = require('./lib/repositories/transactions');
 const analyticsRepo = require('./lib/repositories/analyticsEvents');
 const waitlistRepo = require('./lib/repositories/waitlist');
 const notificationsRepo = require('./lib/repositories/notifications');
+const tasksRepo = require('./lib/repositories/tasks');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
@@ -361,43 +362,40 @@ async function resolveOwnerEmail(ownerName) {
 async function checkFollowUpsDue() {
   const today = todayBerlin();
   const state = readData('followup-checks.json');
-  if (state && state.lastRunDate === today) return; // already ran today
+  const remindedToday = (state && state.remindedToday && state.remindedDate === today) ? state.remindedToday : {};
+  if (state && state.remindedDate === today && state.fullyProcessed) return; // already ran today
 
   try {
-    const all = await customersRepo.list({});
-    const due = all.filter(c => {
-      if (!c.nextFollowUpAt) return false;
-      return new Date(c.nextFollowUpAt).toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }) === today;
-    });
+    const due = await tasksRepo.dueTasks(today);
+    const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
+    const crmUrl = `${siteBase}/hansepay/admin/crm.html`;
 
-    if (due.length && mailer) {
-      const siteBase = (process.env.PUBLIC_BASE_URL || 'https://www.hansepay.de').replace(/\/$/, '');
-      const crmUrl = `${siteBase}/hansepay/admin/crm.html`;
-
-      for (const c of due) {
-        try {
-          const toEmail = await resolveOwnerEmail(c.owner);
-          if (toEmail) {
-            const mail = mailer.renderFollowUpReminderEmail({ toEmail, ownerName: c.owner, customer: c, crmUrl });
-            const r = await mailer.sendMail(mail);
-            console.log(`[email] follow-up reminder → ${toEmail} (${c.company}): ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
-          } else {
-            console.log(`[followups] no email resolved for owner "${c.owner}" on ${c.company} — skipped`);
-          }
-          await logActivity({ customerId: c.id, type: 'email', title: 'Follow-up reminder sent', body: `Automated reminder for today's follow-up date, sent to ${toEmail || 'no one (no owner email found)'}.`, by: 'system' });
-          await notificationsRepo.create({
-            id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
-            type: 'followup', title: `Follow-up due: ${c.company || c.email || 'Customer'}`,
-            body: `Follow-up scheduled for today${c.owner ? ' — owner: ' + c.owner : ''}.`,
-            link: crmUrl, createdAt: new Date().toISOString(),
-          });
-        } catch (e) {
-          console.error('[followups] per-customer error for', c.id, ':', e.message);
+    for (const t of due) {
+      if (remindedToday[t.id]) continue; // already reminded for this task today
+      try {
+        const toEmail = await resolveOwnerEmail(t.customerOwner);
+        const fakeCustomer = { company: t.customerCompany, firstName: '', lastName: t.customerName, email: '', stage: '' };
+        if (mailer && toEmail) {
+          const mail = mailer.renderFollowUpReminderEmail({ toEmail, ownerName: t.customerOwner, customer: Object.assign({}, fakeCustomer, { taskTitle: t.title }), crmUrl });
+          const r = await mailer.sendMail(mail);
+          console.log(`[email] task reminder → ${toEmail} (${t.customerCompany} — ${t.title}): ${r.sent ? 'sent (' + r.transport + ')' : 'skipped (' + r.reason + ')'}`);
+        } else {
+          console.log(`[followups] no email resolved for owner "${t.customerOwner}" on task "${t.title}" (${t.customerCompany}) — skipped`);
         }
+        await logActivity({ customerId: t.customerId, type: 'email', title: 'Task reminder sent', body: `"${t.title}" is due — reminder sent to ${toEmail || 'no one (no owner email found)'}.`, by: 'system' });
+        await notificationsRepo.create({
+          id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
+          type: 'followup', title: `Task due: ${t.title}`,
+          body: `${t.customerCompany || 'Customer'}${t.customerOwner ? ' — owner: ' + t.customerOwner : ''}`,
+          link: crmUrl, createdAt: new Date().toISOString(),
+        });
+        remindedToday[t.id] = true;
+      } catch (e) {
+        console.error('[followups] per-task error for', t.id, ':', e.message);
       }
     }
 
-    writeData('followup-checks.json', { lastRunDate: today, lastRunCount: due.length });
+    writeData('followup-checks.json', { remindedDate: today, remindedToday, fullyProcessed: true, lastRunCount: due.length });
   } catch (e) {
     console.error('[followups] check error:', e.message);
   }
@@ -1721,7 +1719,7 @@ app.get('/api/crm/customers', requireApiKey, async (req, res) => {
   if (q) {
     const needle = String(q).toLowerCase();
     list = list.filter(c =>
-      [c.company, c.firstName, c.lastName, c.email, c.industry, c.city, c.country]
+      [c.company, c.firstName, c.lastName, c.email, c.industry, c.city, c.country, c.notes]
         .filter(Boolean).some(v => String(v).toLowerCase().includes(needle))
     );
   }
@@ -1788,7 +1786,7 @@ app.get('/api/customers', authenticateToken, async (req, res) => {
   if (q) {
     const needle = String(q).toLowerCase();
     list = list.filter(c =>
-      [c.company, c.firstName, c.lastName, c.email, c.industry, c.country]
+      [c.company, c.firstName, c.lastName, c.email, c.industry, c.country, c.notes]
         .filter(Boolean).some(v => String(v).toLowerCase().includes(needle))
     );
   }
@@ -1828,6 +1826,23 @@ app.get('/api/customers/:id', authenticateToken, async (req, res) => {
   res.json(enriched);
 });
 
+// Finds an existing customer matching by company name or email (case/whitespace
+// insensitive), excluding a given id (for edit-in-place checks). Used to warn
+// on likely-duplicate creation without ever hard-blocking it.
+async function findDuplicateCustomer({ company, email, excludeId }) {
+  const all = await customersRepo.list({});
+  const normCompany = (company || '').trim().toLowerCase();
+  const normEmail = (email || '').trim().toLowerCase();
+  return all.find(c => {
+    if (excludeId && c.id === excludeId) return false;
+    const cCompany = (c.company || '').trim().toLowerCase();
+    const cEmail = (c.email || '').trim().toLowerCase();
+    if (normEmail && cEmail && normEmail === cEmail) return true;
+    if (normCompany && cCompany && normCompany === cCompany) return true;
+    return false;
+  }) || null;
+}
+
 const CUSTOMER_FIELDS = ['firstName', 'lastName', 'email', 'phone', 'website', 'company',
   'industry', 'companySize', 'country', 'city', 'fxVolume', 'currencyPairs',
   'stage', 'status', 'owner', 'source', 'tags', 'notes', 'estValueEur',
@@ -1836,6 +1851,16 @@ const CUSTOMER_FIELDS = ['firstName', 'lastName', 'email', 'phone', 'website', '
 app.post('/api/customers', authenticateToken, async (req, res) => {
   if (!req.body.company && !req.body.email && !req.body.firstName) {
     return res.status(400).json({ error: 'At least a company, name or email is required' });
+  }
+  if (!req.body.force) {
+    const dup = await findDuplicateCustomer({ company: req.body.company, email: req.body.email });
+    if (dup) {
+      return res.status(409).json({
+        error: 'duplicate',
+        message: `A customer matching this ${dup.email && req.body.email && dup.email.toLowerCase() === (req.body.email||'').toLowerCase() ? 'email' : 'company name'} already exists: "${dup.company || dup.email}".`,
+        existing: { id: dup.id, company: dup.company, email: dup.email },
+      });
+    }
   }
   const now = new Date().toISOString();
   const fields = { stage: 'lead', status: 'prospect', source: 'manual', tags: [], bookingIds: [],
@@ -1853,6 +1878,23 @@ app.post('/api/customers', authenticateToken, async (req, res) => {
 app.put('/api/customers/:id', authenticateToken, async (req, res) => {
   const existing = await customersRepo.findById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Customer not found' });
+
+  const companyChanging = req.body.company !== undefined && req.body.company !== existing.company;
+  const emailChanging = req.body.email !== undefined && req.body.email !== existing.email;
+  if (!req.body.force && (companyChanging || emailChanging)) {
+    const dup = await findDuplicateCustomer({
+      company: companyChanging ? req.body.company : null,
+      email: emailChanging ? req.body.email : null,
+      excludeId: existing.id,
+    });
+    if (dup) {
+      return res.status(409).json({
+        error: 'duplicate',
+        message: `Another customer already matches this ${emailChanging && dup.email && dup.email.toLowerCase() === (req.body.email||'').toLowerCase() ? 'email' : 'company name'}: "${dup.company || dup.email}".`,
+        existing: { id: dup.id, company: dup.company, email: dup.email },
+      });
+    }
+  }
 
   const prevStage = existing.stage;
   const prevStatus = existing.status;
@@ -2052,19 +2094,75 @@ Return ONLY a valid JSON array (no markdown):
 // POST /api/customers/:id/research — enhanced with live web search when Tavily configured
 // GET /api/customers/booking-options — active reps + their active booking types,
 // stripped of calendar credentials. Powers the "Send booking link" picker in the CRM drawer.
-// GET /api/customers/follow-ups — customers whose next-follow-up date is
-// today or earlier (overdue). Powers the "Follow-ups due" card on Bookings.
+// GET /api/customers/follow-ups — open tasks due today or earlier (overdue),
+// across all customers. Powers the "Follow-ups due" card on Bookings.
 app.get('/api/customers/follow-ups', authenticateToken, async (req, res) => {
   try {
-    const today = todayBerlin();
-    const all = await customersRepo.list({});
-    const due = all
-      .filter(c => c.nextFollowUpAt && new Date(c.nextFollowUpAt).toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' }) <= today)
-      .sort((a, b) => new Date(a.nextFollowUpAt) - new Date(b.nextFollowUpAt));
+    const due = await tasksRepo.dueTasks(todayBerlin());
     res.json(due);
   } catch (err) {
     console.error('[customers/follow-ups] error:', err.message);
     res.status(500).json({ error: 'Could not load follow-ups.' });
+  }
+});
+
+// ─── Tasks (multiple to-dos per customer) ──────────────────────────────────
+app.get('/api/customers/:id/tasks', authenticateToken, async (req, res) => {
+  try {
+    res.json(await tasksRepo.forCustomer(req.params.id));
+  } catch (err) {
+    console.error('[tasks/list] error:', err.message);
+    res.status(500).json({ error: 'Could not load tasks.' });
+  }
+});
+
+app.post('/api/customers/:id/tasks', authenticateToken, async (req, res) => {
+  const title = String(req.body.title || '').trim();
+  if (!title) return res.status(400).json({ error: 'Task title is required.' });
+  const customer = await customersRepo.findById(req.params.id);
+  if (!customer) return res.status(404).json({ error: 'Customer not found' });
+  try {
+    const now = new Date().toISOString();
+    const task = await tasksRepo.create({
+      id: 'task_' + uuidv4().replace(/-/g, '').substring(0, 10),
+      customerId: req.params.id, title, dueDate: req.body.dueDate || null,
+      createdBy: req.user.name, createdAt: now,
+    });
+    await logActivity({ customerId: req.params.id, type: 'note', title: 'Task added', body: title + (req.body.dueDate ? ' — due ' + req.body.dueDate : ''), by: req.user.name });
+    res.status(201).json(task);
+  } catch (err) {
+    console.error('[tasks/create] error:', err.message);
+    res.status(500).json({ error: 'Could not create task.' });
+  }
+});
+
+app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
+  const existing = await tasksRepo.findById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Task not found' });
+  try {
+    const patch = {};
+    if (req.body.title !== undefined) patch.title = String(req.body.title).trim();
+    if (req.body.dueDate !== undefined) patch.dueDate = req.body.dueDate;
+    if (req.body.done !== undefined) patch.done = !!req.body.done;
+    const updated = await tasksRepo.update(req.params.id, patch);
+    if (req.body.done === true) {
+      await logActivity({ customerId: existing.customerId, type: 'note', title: 'Task completed', body: existing.title, by: req.user.name });
+    }
+    res.json(updated);
+  } catch (err) {
+    console.error('[tasks/update] error:', err.message);
+    res.status(500).json({ error: 'Could not update task.' });
+  }
+});
+
+app.delete('/api/tasks/:id', authenticateToken, async (req, res) => {
+  try {
+    const ok2 = await tasksRepo.remove(req.params.id);
+    if (!ok2) return res.status(404).json({ error: 'Task not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[tasks/delete] error:', err.message);
+    res.status(500).json({ error: 'Could not delete task.' });
   }
 });
 
@@ -2120,6 +2218,46 @@ app.post('/api/customers/:id/send-booking-link', authenticateToken, async (req, 
     res.status(500).json({ error: 'Could not send booking link: ' + err.message });
   }
 });
+
+app.post('/api/customers/:id/send-email', authenticateToken, async (req, res) => {
+  if (!mailer) return res.status(503).json({ error: 'Email is not configured.' });
+
+  const c = await customersRepo.findById(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Customer not found' });
+  if (!c.email) return res.status(400).json({ error: 'This customer has no email address on file.' });
+
+  const subject = String(req.body.subject || '').trim();
+  const body = String(req.body.body || '').trim();
+  if (!subject || !body) return res.status(400).json({ error: 'Subject and message are required.' });
+
+  try {
+    const mail = mailer.renderCrmComposeEmail({
+      toEmail: c.email, toName: c.firstName || c.company || '',
+      fromName: req.user.name, subject, bodyText: body,
+    });
+
+    // Send as the logged-in user's own connected Gmail if their name matches
+    // a configured sales rep with a working connection — same principle as
+    // team booking notifications: ride on a proven-working per-rep OAuth
+    // token rather than always the shared/default account.
+    const settings = await settingsRepo.get();
+    const matchingRep = (settings.salesReps || []).find(r => (r.name || '').trim().toLowerCase() === (req.user.name || '').trim().toLowerCase());
+    const sendAs = (cal && matchingRep && cal.isRepConfigured(matchingRep))
+      ? { ...mail, refreshToken: matchingRep.refreshToken, from: `${matchingRep.name} <${matchingRep.calendarId}>`, replyTo: matchingRep.calendarId }
+      : mail;
+
+    const result = await mailer.sendMail(sendAs);
+    await logActivity({
+      customerId: c.id, type: 'email', title: `Email sent: ${subject}`,
+      body, by: req.user.name,
+    });
+    res.json({ success: true, sent: !!result.sent });
+  } catch (err) {
+    console.error('[send-email] error:', err.message);
+    res.status(500).json({ error: 'Could not send email: ' + err.message });
+  }
+});
+
 
 app.post('/api/customers/:id/research', authenticateToken, async (req, res) => {
   const user   = await usersRepo.findById(req.user.id);
