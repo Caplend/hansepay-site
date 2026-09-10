@@ -190,7 +190,37 @@
     if (bellOpen) loadNotifications();
   }
 
+  var bellStylesInjected = false;
+  function injectBellStyles() {
+    if (bellStylesInjected || document.getElementById('hp-bell-styles')) return;
+    bellStylesInjected = true;
+    var css = '.sidebar-logo{justify-content:space-between}'
+      + '.bell-btn{position:relative;background:rgba(255,255,255,.08);border:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.75);flex-shrink:0}'
+      + '.bell-btn:hover{background:rgba(255,255,255,.16);color:#fff}'
+      + '.bell-btn svg{width:15px;height:15px}'
+      + '.bell-badge{position:absolute;top:-3px;right:-3px;background:#dc2626;color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:50%;display:none;align-items:center;justify-content:center;padding:0 3px;line-height:1;border:1.5px solid #0B1929}'
+      + '.bell-panel{position:fixed;top:18px;left:252px;width:340px;max-height:440px;background:#fff;border-radius:16px;box-shadow:0 14px 44px rgba(6,13,26,.28);z-index:9999;display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(11,25,41,.08);font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif}'
+      + '.bell-panel.open{display:flex}'
+      + '.bell-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(11,25,41,.08);font-size:13px;font-weight:700;color:#0B1929;flex-shrink:0}'
+      + '.bell-panel-head button{background:none;border:none;font-size:11px;color:#1E4E80;font-weight:600;cursor:pointer;font-family:inherit}'
+      + '.bell-panel-head button:hover{text-decoration:underline}'
+      + '.bell-panel-list{overflow-y:auto;flex:1}'
+      + '.bell-item{display:block;padding:12px 16px;border-bottom:1px solid rgba(11,25,41,.05);cursor:pointer;transition:background .12s;text-decoration:none}'
+      + '.bell-item:hover{background:#EBF4FB}'
+      + '.bell-item.unread{background:#F5F9FE}'
+      + '.bell-item-title{font-size:13px;font-weight:600;color:#0B1929}'
+      + '.bell-item-body{font-size:12px;color:#3D5A73;margin-top:2px;line-height:1.4}'
+      + '.bell-item-time{font-size:11px;color:#7A9AB0;margin-top:4px}'
+      + '.bell-empty{padding:28px 16px;text-align:center;font-size:13px;color:#7A9AB0}'
+      + '@media(max-width:720px){.bell-panel{left:12px;right:12px;width:auto}}';
+    var style = document.createElement('style');
+    style.id = 'hp-bell-styles';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
   function initBell() {
+    injectBellStyles();
     var btn = document.getElementById('hp-bell-btn');
     if (btn) btn.addEventListener('click', function(e){ e.stopPropagation(); toggleBellPanel(); });
     var markAll = document.getElementById('hp-bell-mark-all');
