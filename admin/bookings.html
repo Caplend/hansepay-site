@@ -589,6 +589,15 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
 
+    <!-- Follow-ups due -->
+    <div class="card" id="followups-card" style="margin-bottom:20px;overflow:hidden;display:none">
+      <div style="padding:16px 20px;border-bottom:1px solid rgba(11,25,41,.08);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.9375rem;font-weight:600;color:#0B1929">Follow-ups due</div>
+        <span class="muted" id="followups-count" style="font-size:.75rem"></span>
+      </div>
+      <div id="followups-list"></div>
+    </div>
+
     <!-- Filter tabs -->
     <div class="filter-tabs" id="filter-tabs">
       <button class="filter-tab active" data-status="all" onclick="setFilter('all')">All <span class="tab-count" id="count-all">0</span></button>
@@ -1045,6 +1054,33 @@ function doCancelBooking(id) {
       alert('Error cancelling booking. Please try again.');
     });
 }
+
+// ---- Load follow-ups due ----
+function renderFollowUps(list) {
+  var card = document.getElementById('followups-card');
+  if (!list.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('followups-count').textContent = list.length + (list.length === 1 ? ' due' : ' due');
+  document.getElementById('followups-list').innerHTML = list.map(function(c) {
+    var name = ((c.firstName || '') + ' ' + (c.lastName || '')).trim();
+    var due = new Date(c.nextFollowUpAt);
+    var todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' });
+    var dueStr = due.toLocaleDateString('en-CA', { timeZone: 'Europe/Berlin' });
+    var overdue = dueStr < todayStr;
+    return '<a href="crm.html" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid rgba(11,25,41,.05);text-decoration:none;color:inherit">' +
+      '<div>' +
+        '<div style="font-size:.8125rem;font-weight:600;color:#0B1929">' + esc(c.company || name || '—') + '</div>' +
+        '<div style="font-size:.75rem;color:#7A9AB0;margin-top:2px">' + esc(name) + (c.owner ? ' · Owner: ' + esc(c.owner) : '') + '</div>' +
+      '</div>' +
+      '<span style="font-size:.6875rem;font-weight:700;padding:3px 9px;border-radius:100px;background:' + (overdue ? '#FEF2F2;color:#B91C1C' : '#FFFBEB;color:#B45309') + '">' + (overdue ? 'Overdue' : 'Today') + '</span>' +
+    '</a>';
+  }).join('');
+}
+
+authFetch('/api/customers/follow-ups')
+  .then(function(r) { return r.ok ? r.json() : []; })
+  .then(function(list) { renderFollowUps(Array.isArray(list) ? list : []); })
+  .catch(function() {});
 
 // ---- Load bookings ----
 authFetch('/api/bookings')
