@@ -3949,11 +3949,28 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
+const httpServer = app.listen(PORT, () => {
   console.log(`HansePay CMS server running at http://localhost:${PORT}`);
   console.log(`Admin dashboard: http://localhost:${PORT}/hansepay/admin/`);
   console.log(`Blog: http://localhost:${PORT}/hansepay/blog.html`);
 });
+
+// Railway sends SIGTERM to the old container during every rolling deploy —
+// this is a normal, intentional shutdown, not a crash. Without a handler,
+// Node's default SIGTERM behavior gets reported by npm as an "error",
+// which triggers a false "Deployment crashed" notification on every
+// routine deploy. Exiting cleanly here fixes that.
+function shutdown(signal) {
+  console.log(`[shutdown] ${signal} received — closing gracefully`);
+  httpServer.close(() => {
+    console.log('[shutdown] HTTP server closed');
+    process.exit(0);
+  });
+  // Failsafe: force-exit if close() hangs (e.g. a stuck connection)
+  setTimeout(() => process.exit(0), 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 // Log-only MySQL connectivity check — does not block startup or affect any
 // request handling yet (no route reads from MySQL until later migration phases).
