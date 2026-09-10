@@ -196,6 +196,15 @@ function renderDrawer(c){
       (c.aiResearch ? 'Re-research' : 'Research with Claude')+'</button>'+
     (c.researchedAt ? '<div class="muted" style="font-size:.6875rem;margin-bottom:12px">Last researched: '+H.fmtDate(c.researchedAt)+'</div>' : '')+
 
+    '<div class="subhead">Meeting scheduling</div>'+
+    '<div class="field-row"><div class="field"><label>Sales rep</label><select id="bl-rep"></select></div>'+
+    '<div class="field"><label>Call type</label><select id="bl-type"></select></div></div>'+
+    '<div class="field"><label>Note (optional)</label><input id="bl-note" placeholder="e.g. Great talking at the trade fair — pick a time that works"></div>'+
+    '<button class="btn btn-ghost btn-sm" id="btn-send-booking-link" style="margin-bottom:4px"'+(c.email?'':' disabled title="No email on file"')+'>'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
+      ' Send booking link'+'</button>'+
+    (!c.email ? '<div class="muted" style="font-size:.6875rem;margin-bottom:12px">Add an email address above to send a booking link.</div>' : '<div style="margin-bottom:8px"></div>')+
+
     '<div class="subhead">Log activity</div>'+
     '<div class="field-row"><div class="field"><label>Type</label><select id="a-type">'+selOpts([['note','Note'],['call','Call'],['email','Email'],['meeting','Meeting'],['linkedin','LinkedIn'],['outreach','Outreach sent']],'note')+'</select></div>'+
     '<div class="field"><label>Title</label><input id="a-title" placeholder="e.g. Sent intro email"></div></div>'+
@@ -210,6 +219,50 @@ function renderDrawer(c){
   document.getElementById('del-customer').addEventListener('click',delCustomer);
   document.getElementById('add-activity').addEventListener('click',addActivity);
   document.getElementById('btn-research').addEventListener('click',runResearch);
+  document.getElementById('btn-send-booking-link').addEventListener('click',sendBookingLink);
+  loadBookingOptions();
+}
+
+var bookingOptionsCache = null;
+function loadBookingOptions(){
+  var repSel = document.getElementById('bl-rep'), typeSel = document.getElementById('bl-type');
+  if(!repSel) return;
+  function fillTypes(){
+    var rep = (bookingOptionsCache||[]).find(function(r){return r.id===repSel.value;});
+    typeSel.innerHTML = rep ? rep.bookingTypes.map(function(t){return '<option value="'+esc(t.slug)+'">'+esc(t.label)+' ('+t.duration+'m)</option>';}).join('') : '';
+  }
+  if(bookingOptionsCache){
+    repSel.innerHTML = bookingOptionsCache.map(function(r){return '<option value="'+esc(r.id)+'">'+esc(r.name)+'</option>';}).join('');
+    fillTypes();
+    repSel.onchange = fillTypes;
+    return;
+  }
+  A('/api/customers/booking-options').then(function(r){return r.json();}).then(function(list){
+    bookingOptionsCache = Array.isArray(list) ? list : [];
+    if(!bookingOptionsCache.length){ repSel.innerHTML='<option value="">No reps configured</option>'; return; }
+    repSel.innerHTML = bookingOptionsCache.map(function(r){return '<option value="'+esc(r.id)+'">'+esc(r.name)+'</option>';}).join('');
+    fillTypes();
+    repSel.onchange = fillTypes;
+  }).catch(function(){ repSel.innerHTML='<option value="">Failed to load</option>'; });
+}
+
+function sendBookingLink(){
+  var repId = document.getElementById('bl-rep').value;
+  var slug  = document.getElementById('bl-type').value;
+  var note  = document.getElementById('bl-note').value.trim();
+  if(!repId || !slug){ H.toast('Choose a rep and call type first.','error'); return; }
+  var btn = document.getElementById('btn-send-booking-link');
+  btn.disabled = true; var origText = btn.textContent; btn.textContent = 'Sending…';
+  A('/api/customers/'+current.id+'/send-booking-link', { method:'POST', body: JSON.stringify({ repId: repId, bookingTypeSlug: slug, note: note }) })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(!res.ok) throw new Error(res.data && res.data.error ? res.data.error : 'Failed to send');
+      H.toast('Booking link sent ✓');
+      document.getElementById('bl-note').value = '';
+      openCustomer(current.id); // refresh drawer so the new activity shows in the timeline
+    })
+    .catch(function(err){ H.toast(err.message || 'Failed to send booking link','error'); })
+    .finally(function(){ btn.disabled = false; btn.textContent = origText; });
 }
 
 function renderResearchPanel(c){
