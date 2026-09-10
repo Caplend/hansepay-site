@@ -146,6 +146,15 @@ var H = window.HPAdmin;
 H.renderSidebar('content-engine');
 var A = H.authFetch, esc = H.escapeHtml;
 
+// authFetch() resolves even on 4xx/5xx — this distinguishes real success
+// from a failed request before any UI treats it as one.
+function ok(r){
+  if(r.ok) return r.json();
+  return r.json().catch(function(){return {};}).then(function(e){
+    throw new Error(e.error || ('Request failed (HTTP '+r.status+')'));
+  });
+}
+
 var currentDraft = null; // { content, segment, corridor, tone, ctaGoal, notes, id? }
 
 function loadDrafts(){
@@ -191,10 +200,10 @@ window.openDraft = function(id){
 
 window.deleteDraft = function(id){
   if(!confirm('Diesen Entwurf endgültig löschen?')) return;
-  A('/api/content/drafts/'+id, {method:'DELETE'}).then(function(r){return r.json();}).then(function(){
+  A('/api/content/drafts/'+id, {method:'DELETE'}).then(ok).then(function(){
     H.toast('Entwurf gelöscht ✓');
     loadDrafts();
-  }).catch(function(){ H.toast('Löschen fehlgeschlagen','error'); });
+  }).catch(function(err){ H.toast(err.message || 'Löschen fehlgeschlagen','error'); });
 };
 
 function generate(){
@@ -303,10 +312,10 @@ function publishAsPost(){
   var btn = document.getElementById('btn-publish-post');
   btn.disabled = true; var orig = btn.textContent; btn.textContent = 'Veröffentliche…';
   A('/api/content/drafts/'+currentDraft.id, { method:'PUT', body: JSON.stringify({ content: currentDraft.content }) })
+    .then(ok) // must succeed before publishing, or we'd publish stale/unsaved edits
     .then(function(){ return A('/api/content/drafts/'+currentDraft.id+'/publish-post', { method:'POST' }); })
-    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
-    .then(function(res){
-      if(!res.ok) throw new Error(res.data && res.data.error ? res.data.error : 'Fehlgeschlagen');
+    .then(ok)
+    .then(function(){
       H.toast('Als Blog-Post-Entwurf angelegt ✓ — zu finden unter Content → Posts');
       loadDrafts();
     })
@@ -327,13 +336,13 @@ function saveDraft(){
   var req = isUpdate
     ? A('/api/content/drafts/'+currentDraft.id, { method:'PUT', body: JSON.stringify(body) })
     : A('/api/content/drafts', { method:'POST', body: JSON.stringify(body) });
-  req.then(function(r){return r.json();}).then(function(saved){
+  req.then(ok).then(function(saved){
     currentDraft.id = saved.id;
     H.toast('Entwurf gespeichert ✓');
     var pubBtn = document.getElementById('btn-publish-post');
     if(pubBtn){ pubBtn.disabled = false; pubBtn.title = ''; }
     loadDrafts();
-  }).catch(function(){ H.toast('Speichern fehlgeschlagen','error'); })
+  }).catch(function(err){ H.toast(err.message || 'Speichern fehlgeschlagen','error'); })
   .finally(function(){ btn.disabled = false; btn.textContent = 'Als Entwurf speichern'; });
 }
 
