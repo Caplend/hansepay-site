@@ -89,7 +89,7 @@
       '@media(max-width:560px){#hp-consent button{flex:1 1 100%}}' +
       '</style>' +
       '<h4>' + t.title + '</h4>' +
-      '<p>' + t.body + ' <a class="hpc-link" href="/legal.html#cookies">' + t.more + '</a></p>' +
+      '<p>' + t.body + ' <a class="hpc-link" href="/cookie-policy.html">' + t.more + '</a></p>' +
       '<div class="hpc-btns">' +
       '<button class="hpc-decline" type="button">' + t.decline + '</button>' +
       '<button class="hpc-accept" type="button">' + t.accept + '</button>' +
