@@ -196,6 +196,9 @@ app.use(async (req, res, next) => {
                         '/internal-416309417146/', '/hansepay/internal-416309417146/',
                         '/internal-716596047071/', '/hansepay/internal-716596047071/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
+                     '/legal.html', '/hansepay/legal.html',
+                     '/terms.html', '/hansepay/terms.html',
+                     '/privacy.html', '/hansepay/privacy.html',
                      '/booking.html', '/hansepay/booking.html',
                      '/hansepay/imprint.html', '/hansepay/cookie-policy.html',
                      '/onboarding.html', '/hansepay/onboarding.html',
