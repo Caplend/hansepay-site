@@ -32,6 +32,11 @@ a:hover{text-decoration:underline}
 .doc-badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--n500);background:var(--n050);border:1px solid var(--n100);border-radius:var(--r-sm);padding:3px 10px;margin-bottom:12px}
 .doc-title{font-family:'Libre Baskerville',serif;font-size:30px;font-weight:400;color:var(--n800);margin-bottom:8px;line-height:1.3}
 .doc-date{font-size:13px;color:var(--ink3);margin-bottom:28px}
+.doc-header{position:relative}
+.doc-dl-btn{position:absolute;top:0;right:0;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-md);border:1.5px solid var(--n200);background:#fff;color:var(--n600);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .14s,border-color .14s}
+.doc-dl-btn:hover{background:var(--n050);border-color:var(--n400);text-decoration:none}
+.doc-dl-btn svg{flex-shrink:0}
+@media(max-width:520px){.doc-dl-btn{position:static;display:inline-flex;margin-bottom:16px}}
 
 .doc-body h2{font-size:16px;font-weight:700;color:var(--n800);margin:32px 0 12px}
 .doc-body h3{font-size:14px;font-weight:700;color:var(--n700);margin:22px 0 8px}
@@ -59,9 +64,15 @@ footer{padding:32px clamp(20px,5vw,80px);border-top:1px solid rgba(11,25,41,.07)
 </div>
 
 <div class="wrap">
-  <div class="doc-badge" id="docBadge">Legal Notice</div>
-  <h1 class="doc-title" id="docTitle">Legal Notice / Imprint</h1>
-  <p class="doc-date" id="docDate">In accordance with § 5 DDG (Digital Services Act) and § 5 TMG (German Telemedia Act)</p>
+  <div class="doc-header">
+    <div class="doc-badge" id="docBadge">Legal Notice</div>
+    <h1 class="doc-title" id="docTitle">Legal Notice / Imprint</h1>
+    <p class="doc-date" id="docDate">In accordance with § 5 DDG (Digital Services Act) and § 5 TMG (German Telemedia Act)</p>
+    <a class="doc-dl-btn" href="/api/legal/imprint/pdf" download>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download PDF
+    </a>
+  </div>
 
   <div class="doc-body" id="docBody">
 
