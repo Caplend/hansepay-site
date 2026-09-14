@@ -743,15 +743,27 @@ load();
 var genLeadsData = [];
 var genSelected  = new Set();
 
+var genWebSearchConfigured = null; // null = unknown yet, true/false once checked
+
 document.getElementById('btn-gen-leads').addEventListener('click', function(){
   var panel = document.getElementById('gen-leads-panel');
   panel.style.display = 'flex';
-  // Check web search status
-  H.authFetch('/api/settings').then(function(r){return r.json();}).then(function(){
-    var hasTavily = !!document.getElementById('gen-web-status'); // just a proxy
-    // We don't expose TAVILY status directly; show a neutral message
-    document.getElementById('gen-web-status').textContent = 'Fill in criteria and generate — Claude will search the web if configured.';
-  }).catch(function(){});
+  document.getElementById('gen-web-status').textContent = 'Checking web search availability…';
+  H.authFetch('/api/health').then(function(r){return r.json();}).then(function(h){
+    genWebSearchConfigured = !!(h && h.webSearchConfigured);
+    var statusEl = document.getElementById('gen-web-status');
+    if(genWebSearchConfigured){
+      statusEl.innerHTML = '🌐 Live web search is available — leads will be real, current companies.';
+      statusEl.style.color = '#166534';
+    } else {
+      statusEl.innerHTML = '⚠️ Live web search is NOT configured — Claude would be guessing companies from memory, which are frequently made up or outdated. Ask an admin to add a TAVILY_API_KEY in Railway before generating leads.';
+      statusEl.style.color = '#b91c1c';
+      statusEl.style.fontWeight = '600';
+    }
+  }).catch(function(){
+    genWebSearchConfigured = null;
+    document.getElementById('gen-web-status').textContent = 'Could not check web search status — proceed with caution.';
+  });
 });
 
 function generateLeads(){
@@ -761,6 +773,9 @@ function generateLeads(){
   var industry = document.getElementById('gl-industry').value.trim();
   var keywords = document.getElementById('gl-keywords').value.trim();
   if(!industry && !keywords){ err.textContent='Please enter at least an industry or keywords.'; err.style.display='block'; return; }
+  if(genWebSearchConfigured===false){
+    if(!confirm('Live web search is not configured. Claude will guess company names from memory — these are often fictional or outdated and MUST be manually verified before outreach.\n\nGenerate anyway?')) return;
+  }
   btn.disabled = true; btn.textContent = 'Searching & generating…';
   document.getElementById('gen-results').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--ink3)"><div style="font-size:1.5rem;margin-bottom:12px">🔍</div>Claude is researching the web for matching companies…<br><span style="font-size:.8125rem;opacity:.7">This may take 15–30 seconds.</span></div>';
   document.getElementById('gen-footer').style.display = 'none';
@@ -789,7 +804,7 @@ function generateLeads(){
 function renderGenResults(data){
   var webBadge = data.webSearchUsed
     ? '<span style="background:#dcfce7;color:#166534;font-size:.6875rem;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)">🌐 Live web · '+data.searchResultCount+' sources</span>'
-    : '<span style="background:#f1f5f9;color:#64748b;font-size:.6875rem;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)">Training data only · add TAVILY_API_KEY for live search</span>';
+    : '<span style="background:#fee2e2;color:#b91c1c;font-size:.6875rem;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)">⚠️ Unverified — training data only, may not exist. Verify each company before outreach.</span>';
 
   var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">'+
     '<span style="font-size:.875rem;font-weight:700;color:var(--n800)">'+genLeadsData.length+' leads found</span>'+webBadge+'</div>';
