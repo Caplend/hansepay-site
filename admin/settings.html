@@ -54,6 +54,20 @@ a { color: inherit; text-decoration: none; }
 /* SETTINGS CARDS */
 .settings-card { background:#fff; border-radius:var(--r-lg); border:1px solid rgba(11,25,41,0.08); box-shadow:0 1px 4px rgba(11,25,41,0.04); padding:28px; margin-bottom:20px; }
 .settings-card-title { font-size:1rem; font-weight:600; color:var(--n800); margin-bottom:4px; }
+.launch-status-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0}
+.launch-status-info{flex:1}
+.launch-status-name{font-size:0.9375rem;font-weight:600;color:var(--n800)}
+.launch-status-desc{font-size:0.8125rem;color:var(--ink3);margin-top:2px;line-height:1.5}
+.toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#d1d9e0;border-radius:24px;transition:.2s}
+.toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked + .toggle-slider{background:#d97706}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(20px)}
+.launch-status-badge{display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;font-weight:600;padding:4px 10px;border-radius:100px;margin-top:10px}
+.launch-status-badge.is-coming-soon{background:#fef3c7;color:#92400e}
+.launch-status-badge.is-live{background:#dcfce7;color:#166534}
+.launch-status-badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 .settings-card-desc { font-size:0.8125rem; color:var(--ink3); margin-bottom:24px; line-height:1.5; }
 .settings-divider { height:1px; background:rgba(11,25,41,0.06); margin-bottom:24px; }
 
@@ -223,6 +237,28 @@ a { color: inherit; text-decoration: none; }
       </div>
     </div>
 
+    <!-- Launch Status -->
+    <div class="settings-card">
+      <div class="settings-card-title">Launch Status</div>
+      <div class="settings-card-desc">Control whether visitors see the full site or the "coming soon" placeholder page.</div>
+      <div class="settings-divider"></div>
+
+      <div class="launch-status-row">
+        <div class="launch-status-info">
+          <div class="launch-status-name">Coming Soon Mode</div>
+          <div class="launch-status-desc">
+            When ON, every page except your Legal Centre, Imprint, Cookie Policy, and booking flow shows the "coming soon" placeholder instead — visitors can't browse Platform, Solutions, About, Insights, etc.
+            <br>Turning this OFF makes the entire site live immediately.
+          </div>
+          <span class="launch-status-badge" id="launchStatusBadge"><span class="dot"></span><span id="launchStatusText">Loading…</span></span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="s-coming-soon-mode" onchange="onComingSoonToggle(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- Site Settings -->
     <div class="settings-card">
       <div class="settings-card-title">Site Settings</div>
@@ -382,6 +418,38 @@ function populateForm(s) {
   if (s.contactEmail !== undefined) document.getElementById('s-contact-email').value = s.contactEmail || '';
   if (s.postsPerPage !== undefined) document.getElementById('s-posts-per-page').value = s.postsPerPage || '';
   if (s.googleAnalyticsId !== undefined) document.getElementById('s-ga-id').value = s.googleAnalyticsId || '';
+  renderLaunchStatus(!!s.comingSoonMode);
+}
+
+function renderLaunchStatus(isComingSoon) {
+  document.getElementById('s-coming-soon-mode').checked = isComingSoon;
+  var badge = document.getElementById('launchStatusBadge');
+  var text = document.getElementById('launchStatusText');
+  badge.className = 'launch-status-badge ' + (isComingSoon ? 'is-coming-soon' : 'is-live');
+  text.textContent = isComingSoon ? 'Coming Soon — full site hidden' : 'Live — full site visible to everyone';
+}
+
+function onComingSoonToggle(checked) {
+  var cb = document.getElementById('s-coming-soon-mode');
+  var goingLive = !checked;
+  var msg = goingLive
+    ? 'Turn OFF Coming Soon mode? The full site (Platform, Solutions, About, Insights, etc.) will be visible to every visitor immediately.'
+    : 'Turn ON Coming Soon mode? Visitors will see the placeholder page again instead of the full site.';
+  if (!confirm(msg)) { cb.checked = !checked; return; }
+
+  cb.disabled = true;
+  authFetch('/api/settings', { method: 'PUT', body: JSON.stringify({ comingSoonMode: checked }) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) throw new Error(res.data.message || 'Failed to update.');
+      renderLaunchStatus(!!res.data.comingSoonMode);
+      showToast(checked ? 'Coming Soon mode is back ON' : 'Site is now LIVE', 'success');
+    })
+    .catch(function(err) {
+      cb.checked = !checked; // revert the visual toggle on failure
+      showToast(err.message || 'Error updating launch status.', 'error');
+    })
+    .finally(function() { cb.disabled = false; });
 }
 
 // ── Profile & AI helpers ─────────────────────────────────────
