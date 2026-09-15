@@ -2033,9 +2033,9 @@ app.post('/api/customers/generate-leads', authenticateToken, async (req, res) =>
   if (webEnabled) {
     const baseTerms = [industry, country, size, keywords, useCase, 'international payments export import'].filter(Boolean).join(' ');
     const [q1, q2, q3] = await Promise.all([
-      webSearch(`${industry} companies ${country} ${keywords} export cross-border`, { deep: true, maxResults: 5 }),
-      webSearch(`${baseTerms} company list`, { maxResults: 4 }),
-      webSearch(`top ${industry} companies ${country} import export site:linkedin.com OR site:crunchbase.com`, { maxResults: 4 }),
+      webSearch(`${industry} companies headquartered in ${country} ${keywords} export cross-border`, { deep: true, maxResults: 5 }),
+      webSearch(`${baseTerms} company list -"regional office" -"subsidiary of"`, { maxResults: 4 }),
+      webSearch(`top ${industry} companies based in ${country} import export site:linkedin.com OR site:crunchbase.com`, { maxResults: 4 }),
     ]);
     searchResults = [...q1, ...q2, ...q3];
   }
@@ -2057,6 +2057,7 @@ ${webCtx}
 
 Rules:
 - Only suggest REAL companies (not invented ones)
+- CRITICAL — geographic match: the company's actual HEADQUARTERS (where it is legally based and primarily operates from) must be in "${country || 'Europe'}". Do NOT include a company just because it has a regional office, branch, subsidiary, or sales presence there — for example, if the target is "DACH", exclude a US-headquartered company that merely operates a "DACH office" or serves DACH customers remotely. If a search result's country is ambiguous or looks like a satellite office of a foreign parent, exclude it rather than guess.
 - Each must have a plausible FX/cross-border payment need
 - Vary size and sub-sector within the criteria
 - Be specific about the FX angle for each
@@ -2066,7 +2067,7 @@ Return ONLY a valid JSON array (no markdown):
   {
     "company": "Exact legal company name",
     "website": "domain.com or null",
-    "country": "Country",
+    "country": "Country/region where the company is actually headquartered (must match the target criteria — not just where it has an office)",
     "industry": "Specific sub-industry",
     "size": "e.g. 200–500 employees or €50M revenue",
     "fxAngle": "Why they specifically need FX payments — 1 sentence, concrete",
