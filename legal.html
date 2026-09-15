@@ -27,9 +27,15 @@ a:hover{text-decoration:underline}
 /* ── NAV, see assets/nav.js ── */
 
 /* ── PAGE HERO ── */
-.page-hero{background:var(--n050);border-bottom:1px solid rgba(11,25,41,.07);padding:116px 40px 40px}
+.page-hero{position:relative;background:var(--n050);border-bottom:1px solid rgba(11,25,41,.07);padding:116px 40px 40px}
 .page-hero-inner{max-width:1100px;margin:0 auto}
 .page-hero-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--n400);margin-bottom:10px}
+.lang-toggle{position:absolute;top:24px;right:40px;display:flex;align-items:center;gap:2px;background:#fff;border:1px solid var(--n100);border-radius:var(--r-pill);padding:3px}
+@media(max-width:600px){.lang-toggle{position:static;margin-top:16px;display:inline-flex}}
+.lang-btn{padding:5px 14px;border-radius:var(--r-pill);border:none;font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;background:transparent;color:var(--ink3)}
+.lang-btn.active{background:var(--n500);color:#fff}
+.draft-notice{background:#FFF3E0;border:1px solid #F5C77E;border-radius:var(--r-md);padding:12px 16px;margin-bottom:24px;font-size:13px;color:#8A5A00;display:none}
+.draft-notice.show{display:block}
 .page-hero-title{font-family:'Libre Baskerville',serif;font-size:32px;font-weight:400;color:var(--n800);margin-bottom:10px}
 .page-hero-sub{font-size:14.5px;color:var(--ink3);max-width:560px;line-height:1.6}
 .page-hero-meta{margin-top:20px;display:flex;gap:24px;flex-wrap:wrap}
@@ -108,6 +114,10 @@ a:hover{text-decoration:underline}
 
 <!-- HERO -->
 <div class="page-hero">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-lang-en" onclick="setLegalLang('en')">EN</button>
+    <button class="lang-btn" id="btn-lang-de" onclick="setLegalLang('de')">DE</button>
+  </div>
   <div class="page-hero-inner">
     <div class="page-hero-label">Legal</div>
     <h1 class="page-hero-title">Legal Centre</h1>
@@ -163,6 +173,8 @@ a:hover{text-decoration:underline}
 
   <!-- CONTENT AREA -->
   <main>
+
+    <div class="draft-notice" id="draftNotice">⚠️ Diese deutsche Übersetzung wurde automatisch (KI-gestützt) erstellt und wurde noch nicht rechtlich geprüft. Bei Abweichungen ist die englische Fassung maßgeblich.</div>
 
     <!-- ══════════════════════════════════════════════════════════
          1. LEGAL NOTICE / IMPRINT
@@ -797,9 +809,13 @@ a:hover{text-decoration:underline}
 <script src="assets/footer.js"></script>
 
 <script>
+var currentLegalLang = 'en';
+var currentLegalSlug = 'imprint';
+
 // Load live content from API and update pane
 function fetchDocContent(slug) {
-  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/legal/' + slug)
+  var qs = currentLegalLang === 'de' ? '?lang=de' : '';
+  fetch('https://hansepay-deploy-production-328c.up.railway.app/api/legal/' + slug + qs)
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(doc){
       if (!doc) return;
@@ -813,11 +829,30 @@ function fetchDocContent(slug) {
       if (badgeEl && doc.badge) badgeEl.textContent = doc.badge;
       if (dateEl  && doc.effectiveLine) dateEl.innerHTML = doc.effectiveLine;
       if (bodyEl  && doc.body) bodyEl.innerHTML = doc.body;
+
+      var notice = document.getElementById('draftNotice');
+      if (notice) notice.classList.toggle('show', doc.lang === 'de' && !!doc.deIsDraft);
+
+      var deBtn = document.getElementById('btn-lang-de');
+      if (deBtn) deBtn.title = doc.hasGerman ? '' : 'German translation not yet available for this document';
     })
     .catch(function(){});
 }
 
+function setLegalLang(lang){
+  currentLegalLang = (lang === 'de') ? 'de' : 'en';
+  document.getElementById('btn-lang-en').classList.toggle('active', currentLegalLang === 'en');
+  document.getElementById('btn-lang-de').classList.toggle('active', currentLegalLang === 'de');
+  document.querySelectorAll('.doc-pane').forEach(function(pane){
+    var slug = pane.id.replace('doc-', '');
+    var dlBtn = pane.querySelector('.doc-dl-btn');
+    if (dlBtn) dlBtn.href = '/api/legal/' + slug + '/pdf' + (currentLegalLang === 'de' ? '?lang=de' : '');
+  });
+  fetchDocContent(currentLegalSlug);
+}
+
 function showDoc(id){
+  currentLegalSlug = id;
   fetchDocContent(id);
 
   // Hide all panes
@@ -848,6 +883,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   if(['imprint','terms','privacy','cookies','aml','complaints'].includes(hash)){
     showDoc(hash);
   } else {
+    currentLegalSlug = 'imprint';
     fetchDocContent('imprint');
   }
 });

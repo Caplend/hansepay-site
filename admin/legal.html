@@ -139,6 +139,12 @@ a{color:inherit;text-decoration:none}
             <input class="editor-title-input" id="edTitle" placeholder="Document title"/>
           </div>
           <div class="editor-actions">
+            <div class="lang-tabs" id="langTabs" style="display:flex;gap:2px;background:var(--n050,#EBF4FB);border:1px solid var(--n100,#C4DDEF);border-radius:8px;padding:3px">
+              <button class="lang-tab active" id="tabEn" onclick="switchEditLang('en')" style="padding:5px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;background:var(--n500,#1E4E80);color:#fff;cursor:pointer">EN</button>
+              <button class="lang-tab" id="tabDe" onclick="switchEditLang('de')" style="padding:5px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--ink3,#7A9AB0);cursor:pointer">DE</button>
+            </div>
+            <span class="draft-pill" id="draftPill" style="display:none;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:#FFF3E0;color:#8A5A00;border:1px solid #F5C77E;border-radius:100px;padding:4px 10px">Draft — not reviewed</span>
+            <button class="btn-pdf" id="btnMarkReviewed" onclick="markDeReviewed()" style="display:none">Mark German as reviewed</button>
             <span class="save-status" id="saveStatus"></span>
             <a class="btn-pdf" id="btnPdf" href="#" target="_blank" style="display:none">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -234,8 +240,16 @@ function loadDocList() {
   });
 }
 
+var currentEditLang = 'en';
+var lastDocMeta = {}; // hasGerman / deIsDraft from the last fetch, for the currently loaded slug
+
 function loadDoc(slug) {
   currentSlug = slug;
+  currentEditLang = 'en';
+  document.getElementById('tabEn').style.background = 'var(--n500,#1E4E80)';
+  document.getElementById('tabEn').style.color = '#fff';
+  document.getElementById('tabDe').style.background = 'transparent';
+  document.getElementById('tabDe').style.color = 'var(--ink3,#7A9AB0)';
   // Highlight active in list
   document.querySelectorAll('.doc-item').forEach(function(el){ el.classList.remove('active'); });
   var activeEl = document.getElementById('di-'+slug);
@@ -244,12 +258,22 @@ function loadDoc(slug) {
   document.getElementById('editorLoading').style.display = 'flex';
   document.getElementById('editorContent').style.display = 'none';
 
-  authFetch('/api/legal/'+slug).then(function(r){ return r.json(); }).then(function(doc){
-    document.getElementById('edBadgeLabel').textContent = doc.badge || doc.title;
-    document.getElementById('edTitle').value = doc.title || '';
-    document.getElementById('edBadge').value = doc.badge || '';
-    document.getElementById('edEffective').value = doc.effectiveLine || '';
-    document.getElementById('rteBody').innerHTML = doc.body || '';
+  fetchAndPopulate(slug, 'en');
+}
+
+function fetchAndPopulate(slug, lang) {
+  var qs = lang === 'de' ? '?lang=de' : '';
+  authFetch('/api/legal/'+slug+qs).then(function(r){ return r.json(); }).then(function(doc){
+    lastDocMeta = { hasGerman: !!doc.hasGerman, deIsDraft: !!doc.deIsDraft };
+    // Backend falls back to English when no German exists yet — for the DE
+    // tab specifically, show a blank editor instead of confusingly-labeled
+    // English text, so nobody accidentally saves English text as German.
+    var showEmpty = (lang === 'de' && !doc.hasGerman);
+    document.getElementById('edBadgeLabel').textContent = (doc.badge || doc.title) + (lang === 'de' ? ' (DE)' : '');
+    document.getElementById('edTitle').value = showEmpty ? '' : (doc.title || '');
+    document.getElementById('edBadge').value = showEmpty ? '' : (doc.badge || '');
+    document.getElementById('edEffective').value = showEmpty ? '' : (doc.effectiveLine || '');
+    document.getElementById('rteBody').innerHTML = showEmpty ? '' : (doc.body || '');
     var dt = doc.updatedAt ? new Date(doc.updatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     document.getElementById('updatedNote').textContent = dt ? 'Last saved '+dt+(doc.updatedBy?' by '+doc.updatedBy:'') : '';
     document.getElementById('saveStatus').textContent = '';
@@ -258,12 +282,44 @@ function loadDoc(slug) {
     // Show PDF preview button
     var pdfBtn = document.getElementById('btnPdf');
     if (pdfBtn) {
-      pdfBtn.href = '/api/legal/' + slug + '/pdf';
+      pdfBtn.href = '/api/legal/' + slug + '/pdf' + qs;
       pdfBtn.style.display = 'inline-flex';
     }
+    // Draft badge + review button — only meaningful on the DE tab
+    var pill = document.getElementById('draftPill');
+    var reviewBtn = document.getElementById('btnMarkReviewed');
+    var showDraftUi = (lang === 'de' && doc.hasGerman && doc.deIsDraft);
+    pill.style.display = showDraftUi ? 'inline-block' : 'none';
+    reviewBtn.style.display = showDraftUi ? 'inline-flex' : 'none';
   }).catch(function(){
     document.getElementById('editorLoading').textContent = 'Failed to load document.';
   });
+}
+
+function switchEditLang(lang) {
+  if (!currentSlug) return;
+  currentEditLang = lang;
+  var enOn = lang === 'en';
+  document.getElementById('tabEn').style.background = enOn ? 'var(--n500,#1E4E80)' : 'transparent';
+  document.getElementById('tabEn').style.color = enOn ? '#fff' : 'var(--ink3,#7A9AB0)';
+  document.getElementById('tabDe').style.background = enOn ? 'transparent' : 'var(--n500,#1E4E80)';
+  document.getElementById('tabDe').style.color = enOn ? 'var(--ink3,#7A9AB0)' : '#fff';
+  fetchAndPopulate(currentSlug, lang);
+}
+
+function markDeReviewed() {
+  if (!currentSlug) return;
+  var btn = document.getElementById('btnMarkReviewed');
+  btn.disabled = true;
+  authFetch('/api/legal/'+currentSlug+'/mark-de-reviewed', { method: 'PUT' })
+    .then(function(r){ if (!r.ok) throw new Error('Failed'); return r.json(); })
+    .then(function(){
+      HPAdmin.toast('Marked as reviewed ✓');
+      document.getElementById('draftPill').style.display = 'none';
+      btn.style.display = 'none';
+    })
+    .catch(function(){ HPAdmin.toast('Could not update review status', 'error'); })
+    .finally(function(){ btn.disabled = false; });
 }
 
 function saveDoc() {
@@ -273,12 +329,17 @@ function saveDoc() {
   btn.disabled = true;
   status.textContent = 'Saving…';
 
-  var payload = {
-    title: document.getElementById('edTitle').value.trim(),
-    badge: document.getElementById('edBadge').value.trim(),
-    effectiveLine: document.getElementById('edEffective').value.trim(),
-    body: document.getElementById('rteBody').innerHTML,
-  };
+  var title = document.getElementById('edTitle').value.trim();
+  var badge = document.getElementById('edBadge').value.trim();
+  var effectiveLine = document.getElementById('edEffective').value.trim();
+  var body = document.getElementById('rteBody').innerHTML;
+
+  // Editing the DE tab writes to the German fields (and clears the draft
+  // flag — a human just edited it, so it's no longer an unreviewed AI draft).
+  // Editing EN writes to the normal fields, untouched otherwise.
+  var payload = (currentEditLang === 'de')
+    ? { titleDe: title, badgeDe: badge, effectiveLineDe: effectiveLine, bodyDe: body, deIsDraft: false }
+    : { title: title, badge: badge, effectiveLine: effectiveLine, body: body };
 
   authFetch('/api/legal/'+currentSlug, {
     method: 'PUT',
@@ -292,7 +353,12 @@ function saveDoc() {
     setTimeout(function(){ status.textContent = ''; }, 3000);
     var dt = doc.updatedAt ? new Date(doc.updatedAt).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     document.getElementById('updatedNote').textContent = dt ? 'Last saved '+dt+(doc.updatedBy?' by '+doc.updatedBy:'') : '';
-    document.getElementById('edBadgeLabel').textContent = doc.badge || doc.title;
+    if (currentEditLang === 'de') {
+      document.getElementById('draftPill').style.display = 'none';
+      document.getElementById('btnMarkReviewed').style.display = 'none';
+    } else {
+      document.getElementById('edBadgeLabel').textContent = doc.badge || doc.title;
+    }
     // Refresh list metadata
     var item = document.getElementById('di-'+currentSlug);
     if (item) {

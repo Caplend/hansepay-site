@@ -197,6 +197,11 @@ CREATE TABLE IF NOT EXISTS legal_documents (
   badge           VARCHAR(128)  NULL,
   body            LONGTEXT      NULL,
   effective_line  VARCHAR(255)  NULL,
+  title_de        VARCHAR(255)  NULL,
+  badge_de        VARCHAR(128)  NULL,
+  body_de         LONGTEXT      NULL,
+  effective_line_de VARCHAR(255) NULL,
+  de_is_draft     TINYINT(1)    NOT NULL DEFAULT 1,
   updated_at      DATETIME(3)   NULL,
   updated_by      VARCHAR(255)  NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
