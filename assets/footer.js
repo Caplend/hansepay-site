@@ -69,6 +69,7 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
           <li><a class="footer-link" href="legal.html#terms">Terms of service</a></li>
           <li><a class="footer-link" href="legal.html#complaints">Complaints</a></li>
           <li><a class="footer-link" href="legal.html#cookies">Cookie policy</a></li>
+          <li><a class="footer-link" href="#" onclick="if(window.HPConsent){window.HPConsent.reopen();}return false;">Cookie settings</a></li>
           <li><a class="footer-link" href="legal.html#aml">AML &amp; Compliance</a></li>
         </ul>
       </div>

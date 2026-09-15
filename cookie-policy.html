@@ -108,8 +108,13 @@ footer{padding:32px clamp(20px,5vw,80px);border-top:1px solid rgba(11,25,41,.07)
       </tbody>
     </table>
 
+    <h3>2.3 Marketing and Targeting Cookies</h3>
+    <p>We do not currently use advertising or targeting cookies (for example, from Meta, LinkedIn, or Google Ads). If this changes in future, we will update this policy and request your consent before any such cookies are set.</p>
+
     <h2>3. Managing Your Cookie Preferences</h2>
-    <p>When you first visit our website, we present a cookie consent banner where you can accept all cookies or continue with only essential ones. You can also control cookies through your browser settings. Most browsers allow you to:</p>
+    <p>When you first visit our website, we present a cookie consent banner where you can accept all cookies or continue with only essential ones. You can change your choice at any time:</p>
+    <p><button id="btnManageCookies" onclick="if(window.HPConsent){window.HPConsent.reopen();}" style="padding:9px 18px;border-radius:100px;background:var(--n500);color:#fff;border:none;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer">Manage cookie preferences</button></p>
+    <p>You can also control cookies through your browser settings. Most browsers allow you to:</p>
     <ul>
       <li>View and delete cookies that have been set</li>
       <li>Block cookies from specific sites</li>
@@ -133,6 +138,7 @@ footer{padding:32px clamp(20px,5vw,80px);border-top:1px solid rgba(11,25,41,.07)
 
 <footer>&copy; 2026 HansePay &middot; Hamburg, Germany</footer>
 
+<script src="/assets/consent.js" defer></script>
 <script>
 // Refresh with the latest content from the Legal Centre CMS, so edits made
 // in the admin panel show up here without needing a code deploy. If the API
