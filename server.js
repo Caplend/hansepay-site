@@ -10,6 +10,7 @@ const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { 
 const db = require('./lib/db');
 const currenciesRepo = require('./lib/repositories/currencies');
 const legalRepo = require('./lib/repositories/legalDocuments');
+const legalGermanSeed = require('./lib/legalGermanSeed');
 const seoRepo = require('./lib/repositories/pageSeo');
 const settingsRepo = require('./lib/repositories/settings');
 const emailSettingsRepo = require('./lib/repositories/emailSettings');
@@ -3404,31 +3405,60 @@ app.patch('/api/bookings/:id/assign', authenticateToken, async (req, res) => {
 // GET /api/legal — public, returns all docs (slug, title, badge, effectiveLine, updatedAt only — no body)
 app.get('/api/legal', async (req, res) => {
   const docs = await legalRepo.list();
-  res.json(docs.map(({ body, ...rest }) => rest));
+  res.json(docs.map(({ body, bodyDe, ...rest }) => rest));
 });
 
-// GET /api/legal/:slug — public, returns single doc including body
+// GET /api/legal/:slug — public, returns single doc including body.
+// ?lang=de returns the German translation if one exists; always includes
+// hasGerman/deIsDraft so the frontend can show a language toggle and a
+// "draft — not legally reviewed" notice where relevant.
 app.get('/api/legal/:slug', async (req, res) => {
   const doc = await legalRepo.findBySlug(req.params.slug);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
-  res.json(doc);
+  const hasGerman = !!(doc.bodyDe && doc.bodyDe.trim());
+  const wantDe = req.query.lang === 'de' && hasGerman;
+  res.json({
+    slug: doc.slug,
+    title: wantDe ? (doc.titleDe || doc.title) : doc.title,
+    badge: wantDe ? (doc.badgeDe || doc.badge) : doc.badge,
+    body: wantDe ? doc.bodyDe : doc.body,
+    effectiveLine: wantDe ? (doc.effectiveLineDe || doc.effectiveLine) : doc.effectiveLine,
+    lang: wantDe ? 'de' : 'en',
+    hasGerman,
+    deIsDraft: doc.deIsDraft,
+    updatedAt: doc.updatedAt,
+    updatedBy: doc.updatedBy,
+  });
 });
 
 // PUT /api/legal/:slug — requires admin or compliance role
 app.put('/api/legal/:slug', authenticateToken, requireLegal, async (req, res) => {
-  const { title, badge, effectiveLine, body } = req.body;
-  const updated = await legalRepo.update(req.params.slug, { title, badge, effectiveLine, body }, req.user.name || req.user.email);
+  const { title, badge, effectiveLine, body, titleDe, badgeDe, effectiveLineDe, bodyDe, deIsDraft } = req.body;
+  const updated = await legalRepo.update(req.params.slug, { title, badge, effectiveLine, body, titleDe, badgeDe, effectiveLineDe, bodyDe, deIsDraft }, req.user.name || req.user.email);
   if (!updated) return res.status(404).json({ error: 'Document not found' });
   res.json(updated);
 });
 
-// GET /api/legal/:slug/pdf — public, streams a branded PDF of the document
+// PUT /api/legal/:slug/mark-de-reviewed — one-click way for the legal team
+// to confirm a German translation has been checked, clearing the draft flag.
+app.put('/api/legal/:slug/mark-de-reviewed', authenticateToken, requireLegal, async (req, res) => {
+  const updated = await legalRepo.update(req.params.slug, { deIsDraft: false }, req.user.name || req.user.email);
+  if (!updated) return res.status(404).json({ error: 'Document not found' });
+  res.json(updated);
+});
+
+// GET /api/legal/:slug/pdf — public, streams a branded PDF of the document. ?lang=de for German if available.
 app.get('/api/legal/:slug/pdf', async (req, res) => {
   if (!legalPdf) return res.status(503).json({ error: 'PDF service unavailable' });
   const doc = await legalRepo.findBySlug(req.params.slug);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
+  const hasGerman = !!(doc.bodyDe && doc.bodyDe.trim());
+  const wantDe = req.query.lang === 'de' && hasGerman;
+  const pdfDoc = wantDe
+    ? { ...doc, title: doc.titleDe || doc.title, badge: doc.badgeDe || doc.badge, body: doc.bodyDe, effectiveLine: doc.effectiveLineDe || doc.effectiveLine }
+    : doc;
   try {
-    legalPdf.generateLegalPdf(doc, res);
+    legalPdf.generateLegalPdf(pdfDoc, res);
   } catch (err) {
     console.error('[legal-pdf] generation error:', err);
     if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
@@ -3985,4 +4015,19 @@ db.assertConnected()
 // was missed by a restart), then hourly. checkFollowUpsDue() itself is a
 // same-day no-op once it has already run, so hourly polling is safe.
 setTimeout(checkFollowUpsDue, 30 * 1000);
+
+// One-time-per-gap seed: fills in AI-drafted German translations for any
+// legal document that doesn't have one yet. Never touches a document that
+// already has German text (i.e. once the legal team reviews/edits it here,
+// this seed leaves it alone forever).
+setTimeout(async () => {
+  for (const [slug, data] of Object.entries(legalGermanSeed)) {
+    try {
+      const seeded = await legalRepo.seedGermanIfMissing(slug, data);
+      if (seeded) console.log(`[legal-de-seed] filled in draft German translation for "${slug}"`);
+    } catch (err) {
+      console.error(`[legal-de-seed] error seeding "${slug}":`, err.message);
+    }
+  }
+}, 5 * 1000);
 setInterval(checkFollowUpsDue, 60 * 60 * 1000);

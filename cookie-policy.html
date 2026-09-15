@@ -23,9 +23,15 @@ html,body{font-family:var(--font-ui);font-size:15px;color:var(--ink);background:
 a{color:var(--n400);text-decoration:none}
 a:hover{text-decoration:underline}
 
-.top{padding:24px clamp(20px,5vw,80px);border-bottom:1px solid rgba(11,25,41,.07);display:flex;align-items:center;justify-content:space-between}
+.top{padding:24px clamp(20px,5vw,80px);border-bottom:1px solid rgba(11,25,41,.07);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .top-logo{font-family:var(--font-logo);font-size:18px;color:var(--n800)}
 .top-back{font-size:13px;color:var(--ink3);display:inline-flex;align-items:center;gap:6px}
+.top-right{display:flex;align-items:center;gap:14px}
+.lang-toggle{display:flex;align-items:center;gap:2px;background:var(--n050);border:1px solid var(--n100);border-radius:var(--r-md);padding:3px}
+.lang-btn{padding:5px 14px;border-radius:var(--r-sm);border:none;font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;background:transparent;color:var(--ink3)}
+.lang-btn.active{background:var(--n500);color:#fff}
+.draft-notice{background:#FFF3E0;border:1px solid #F5C77E;border-radius:var(--r-md);padding:12px 16px;margin-bottom:24px;font-size:13px;color:#8A5A00;display:none}
+.draft-notice.show{display:block}
 
 .wrap{max-width:760px;margin:0 auto;padding:52px 20px 96px}
 
@@ -60,10 +66,17 @@ footer{padding:32px clamp(20px,5vw,80px);border-top:1px solid rgba(11,25,41,.07)
 
 <div class="top">
   <div class="top-logo">HansePay</div>
-  <a class="top-back" href="/">← Back to hansepay.de</a>
+  <div class="top-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btn-lang-en" onclick="setDocLang('en')">EN</button>
+      <button class="lang-btn" id="btn-lang-de" onclick="setDocLang('de')">DE</button>
+    </div>
+    <a class="top-back" href="/">← Back to hansepay.de</a>
+  </div>
 </div>
 
 <div class="wrap">
+  <div class="draft-notice" id="draftNotice">⚠️ Diese deutsche Übersetzung wurde automatisch (KI-gestützt) erstellt und wurde noch nicht rechtlich geprüft. Bei Abweichungen ist die englische Fassung maßgeblich.</div>
   <div class="doc-header">
     <div class="doc-badge" id="docBadge">Cookie Policy</div>
     <h1 class="doc-title" id="docTitle">Cookie Policy</h1>
@@ -140,19 +153,36 @@ footer{padding:32px clamp(20px,5vw,80px);border-top:1px solid rgba(11,25,41,.07)
 
 <script src="/assets/consent.js" defer></script>
 <script>
+var currentDocLang = 'en';
+
 // Refresh with the latest content from the Legal Centre CMS, so edits made
 // in the admin panel show up here without needing a code deploy. If the API
 // is unreachable, the static content above (last known-good copy) stays.
-fetch('/api/legal/cookies')
-  .then(function(r){ return r.ok ? r.json() : null; })
-  .then(function(doc){
-    if (!doc) return;
-    if (doc.title) document.getElementById('docTitle').textContent = doc.title;
-    if (doc.badge) document.getElementById('docBadge').textContent = doc.badge;
-    if (doc.effectiveLine) document.getElementById('docDate').innerHTML = doc.effectiveLine;
-    if (doc.body) document.getElementById('docBody').innerHTML = doc.body;
-  })
-  .catch(function(){});
+function loadDoc(){
+  var qs = currentDocLang === 'de' ? '?lang=de' : '';
+  fetch('/api/legal/cookies' + qs)
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(doc){
+      if (!doc) return;
+      if (doc.title) document.getElementById('docTitle').textContent = doc.title;
+      if (doc.badge) document.getElementById('docBadge').textContent = doc.badge;
+      if (doc.effectiveLine) document.getElementById('docDate').innerHTML = doc.effectiveLine;
+      if (doc.body) document.getElementById('docBody').innerHTML = doc.body;
+      document.getElementById('draftNotice').classList.toggle('show', doc.lang === 'de' && !!doc.deIsDraft);
+    })
+    .catch(function(){});
+}
+
+function setDocLang(lang){
+  currentDocLang = (lang === 'de') ? 'de' : 'en';
+  document.getElementById('btn-lang-en').classList.toggle('active', currentDocLang === 'en');
+  document.getElementById('btn-lang-de').classList.toggle('active', currentDocLang === 'de');
+  var dlBtn = document.querySelector('.doc-dl-btn');
+  if (dlBtn) dlBtn.href = '/api/legal/cookies/pdf' + (currentDocLang === 'de' ? '?lang=de' : '');
+  loadDoc();
+}
+
+loadDoc();
 </script>
 
 </body>
