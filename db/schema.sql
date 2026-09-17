@@ -272,12 +272,20 @@ CREATE TABLE IF NOT EXISTS analytics_events (
   type        VARCHAR(64)   NOT NULL DEFAULT 'pageview',
   page        VARCHAR(512)  NOT NULL DEFAULT '/',
   referrer    VARCHAR(512)  NULL,
+  referrer_domain VARCHAR(255) NULL,
+  country     VARCHAR(4)    NULL,
+  country_name VARCHAR(128) NULL,
+  city        VARCHAR(128)  NULL,
+  utm_source  VARCHAR(128)  NULL,
+  utm_medium  VARCHAR(128)  NULL,
+  utm_campaign VARCHAR(128) NULL,
   data        JSON          NULL,
   ts          DATETIME(3)   NOT NULL,
   KEY idx_analytics_type (type),
   KEY idx_analytics_ts (ts),
   KEY idx_analytics_page (page(191)),
-  KEY idx_analytics_type_ts (type, ts)
+  KEY idx_analytics_type_ts (type, ts),
+  KEY idx_analytics_country (country)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 14. email_settings (single-row singleton)
