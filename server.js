@@ -10,6 +10,7 @@ const legalPdf = (() => { try { return require('./lib/legal-pdf'); } catch(e) { 
 const db = require('./lib/db');
 const currenciesRepo = require('./lib/repositories/currencies');
 const legalRepo = require('./lib/repositories/legalDocuments');
+const automationRulesRepo = require('./lib/repositories/automationRules');
 const legalGermanSeed = require('./lib/legalGermanSeed');
 const seoRepo = require('./lib/repositories/pageSeo');
 const settingsRepo = require('./lib/repositories/settings');
@@ -1919,6 +1920,9 @@ app.put('/api/customers/:id', authenticateToken, async (req, res) => {
     return saved;
   });
   res.json(await enrichCustomer(updated));
+  if (req.body.stage && req.body.stage !== prevStage) {
+    triggerStageEnterRules(updated, req.body.stage).catch(err => console.error('[automation] trigger error:', err.message));
+  }
 });
 
 app.delete('/api/customers/:id', authenticateToken, requireAdmin, async (req, res) => {
@@ -2006,7 +2010,247 @@ async function callClaude(apiKey, prompt, maxTokens = 1500) {
   throw new Error('Could not parse JSON from Claude response:\n' + raw.slice(0, 300));
 }
 
-// ─── AI: Lead generation ─────────────────────────────────────────────────────
+// Like callClaude but returns the raw text response instead of parsing JSON —
+// used for free-text generations (relationship summaries, Ask CRM answers).
+async function callClaudeText(apiKey, prompt, maxTokens = 600) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!resp.ok) throw Object.assign(new Error('Claude API ' + resp.status), { status: resp.status });
+  const data = await resp.json();
+  return (data.content?.[0]?.text || '').trim();
+}
+
+// ─── AI: Relationship summary ────────────────────────────────────────────────
+
+// POST /api/customers/:id/summarize
+// Synthesizes stage, notes, recent activities and open tasks into a short
+// (2-4 sentence) plain-English status + suggested next step. This is about
+// the RELATIONSHIP as recorded inside the CRM — distinct from /analyze,
+// which researches the company externally via web search.
+app.post('/api/customers/:id/summarize', authenticateToken, async (req, res) => {
+  const user   = await usersRepo.findById(req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const customer = await customersRepo.findById(req.params.id);
+  if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+  const [allActivities, tasks] = await Promise.all([
+    activitiesRepo.forCustomer(customer.id),
+    tasksRepo.forCustomer(customer.id),
+  ]);
+  const activities = allActivities.slice(0, 12);
+  const openTasks = tasks.filter(t => !t.done);
+  const doneTasks = tasks.filter(t => t.done).slice(0, 4);
+
+  const activityLines = activities.map(a =>
+    `- [${a.at ? a.at.slice(0, 10) : '?'}] (${a.type}) ${a.title}${a.body ? ': ' + String(a.body).slice(0, 200) : ''}`
+  ).join('\n') || '(no activity logged yet)';
+  const openTaskLines = openTasks.map(t => `- ${t.title}${t.dueDate ? ' (due ' + t.dueDate + ')' : ''}`).join('\n') || '(none)';
+  const doneTaskLines = doneTasks.map(t => `- ${t.title}`).join('\n') || '(none)';
+
+  const prompt = `You are a sales assistant writing a brief internal status note for a CRM. Based ONLY on the data below, write a status summary for this customer.
+
+Customer: ${customer.company || (customer.firstName + ' ' + customer.lastName)}
+Stage: ${customer.stage}
+Owner: ${customer.owner || 'unassigned'}
+Est. deal value: €${customer.estValueEur || 0}
+Last contact: ${customer.lastContactAt ? customer.lastContactAt.slice(0, 10) : 'never'}
+Next follow-up: ${customer.nextFollowUpAt ? customer.nextFollowUpAt.slice(0, 10) : 'not scheduled'}
+Notes field: ${customer.notes ? String(customer.notes).slice(0, 500) : '(empty)'}
+
+Recent activity (most recent first):
+${activityLines}
+
+Open tasks:
+${openTaskLines}
+
+Recently completed tasks:
+${doneTaskLines}
+
+Write 2-4 sentences in plain English: (1) where things currently stand, (2) any risk or momentum you notice (e.g. gone quiet, strong engagement, stuck in a stage), and (3) a concrete suggested next step. Be specific and reference actual details above — do not invent anything not stated. No preamble, no markdown, just the summary text.`;
+
+  try {
+    const summary = await callClaudeText(apiKey, prompt, 400);
+    const now = new Date();
+    await customersRepo.update(customer.id, { aiSummary: summary, aiSummaryAt: now.toISOString() });
+    res.json({ aiSummary: summary, aiSummaryAt: now.toISOString() });
+  } catch (err) {
+    console.error('[summarize] error:', err.message);
+    res.status(502).json({ error: 'Could not generate summary: ' + err.message });
+  }
+});
+
+// ─── Automation rules ─────────────────────────────────────────────────────────
+
+app.get('/api/automation-rules', authenticateToken, async (req, res) => {
+  res.json(await automationRulesRepo.list());
+});
+
+app.post('/api/automation-rules', authenticateToken, async (req, res) => {
+  const { name, triggerType, stage, staleDays, actionType, actionTaskTitle, actionMessage, enabled } = req.body;
+  if (!name || !triggerType || !stage || !actionType) {
+    return res.status(400).json({ error: 'name, triggerType, stage and actionType are required.' });
+  }
+  if (!['stage_stale', 'stage_enter'].includes(triggerType)) return res.status(400).json({ error: 'Invalid triggerType.' });
+  if (!['create_task', 'notify'].includes(actionType)) return res.status(400).json({ error: 'Invalid actionType.' });
+  if (triggerType === 'stage_stale' && (!staleDays || staleDays < 1)) {
+    return res.status(400).json({ error: 'staleDays must be a positive number for a stage_stale rule.' });
+  }
+  if (actionType === 'create_task' && !actionTaskTitle) return res.status(400).json({ error: 'actionTaskTitle is required for a create_task action.' });
+  if (actionType === 'notify' && !actionMessage) return res.status(400).json({ error: 'actionMessage is required for a notify action.' });
+
+  const rule = await automationRulesRepo.create(
+    { name, triggerType, stage, staleDays, actionType, actionTaskTitle, actionMessage, enabled }, req.user.name || req.user.email
+  );
+  res.status(201).json(rule);
+});
+
+app.put('/api/automation-rules/:id', authenticateToken, async (req, res) => {
+  const updated = await automationRulesRepo.update(req.params.id, req.body, req.user.name || req.user.email);
+  if (!updated) return res.status(404).json({ error: 'Rule not found' });
+  res.json(updated);
+});
+
+app.delete('/api/automation-rules/:id', authenticateToken, requireAdmin, async (req, res) => {
+  await automationRulesRepo.remove(req.params.id);
+  res.json({ success: true });
+});
+
+// Runs one rule's action against one customer, with dedupe logging.
+async function executeRuleAction(rule, customer) {
+  if (rule.actionType === 'create_task') {
+    // Skip if this exact task is already open for the customer, so re-runs
+    // (or overlapping triggers) don't pile up duplicate tasks.
+    const existingTasks = await tasksRepo.forCustomer(customer.id);
+    const alreadyOpen = existingTasks.some(t => !t.done && t.title === rule.actionTaskTitle);
+    if (!alreadyOpen) {
+      await tasksRepo.create({
+        id: 'task_' + uuidv4().replace(/-/g, '').substring(0, 10),
+        customerId: customer.id,
+        title: rule.actionTaskTitle,
+        dueDate: new Date().toISOString().slice(0, 10),
+        createdBy: `Automation: ${rule.name}`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  } else if (rule.actionType === 'notify') {
+    await notificationsRepo.create({
+      id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
+      type: 'automation',
+      title: `Automation: ${rule.name}`,
+      body: `${customer.company || customer.firstName + ' ' + customer.lastName}: ${rule.actionMessage}`,
+      link: `/hansepay/admin/crm.html?customer=${customer.id}`,
+      createdAt: new Date().toISOString(),
+    });
+  }
+  await automationRulesRepo.logRun(rule.id, customer.id);
+  await logActivity({ customerId: customer.id, type: 'note', title: `Automation triggered: ${rule.name}`, by: 'Automation' });
+}
+
+// Periodic check for "stage_stale" rules — a customer has sat in a given
+// stage for N+ days. Runs hourly alongside the follow-up reminder check.
+async function checkAutomationRules() {
+  try {
+    const rules = await automationRulesRepo.listEnabled();
+    const staleRules = rules.filter(r => r.triggerType === 'stage_stale');
+    if (!staleRules.length) return;
+    const allCustomers = await customersRepo.list({});
+    for (const rule of staleRules) {
+      const cutoff = Date.now() - rule.staleDays * 24 * 60 * 60 * 1000;
+      const candidates = allCustomers.filter(c => c.stage === rule.stage
+        && new Date(c.updatedAt || c.createdAt).getTime() <= cutoff);
+      for (const c of candidates) {
+        // Don't re-fire this rule for the same customer within the stale
+        // window itself, so it triggers roughly once per staleDays period.
+        const already = await automationRulesRepo.hasRecentRun(rule.id, c.id, rule.staleDays);
+        if (already) continue;
+        try { await executeRuleAction(rule, c); }
+        catch (err) { console.error(`[automation] rule "${rule.name}" failed for customer ${c.id}:`, err.message); }
+      }
+    }
+  } catch (err) {
+    console.error('[automation] checkAutomationRules error:', err.message);
+  }
+}
+
+// Called right after a customer's stage changes — fires any matching
+// "stage_enter" rules immediately rather than waiting for the hourly poll.
+async function triggerStageEnterRules(customer, newStage) {
+  try {
+    const rules = await automationRulesRepo.listEnabled();
+    const matching = rules.filter(r => r.triggerType === 'stage_enter' && r.stage === newStage);
+    for (const rule of matching) {
+      try { await executeRuleAction(rule, customer); }
+      catch (err) { console.error(`[automation] stage_enter rule "${rule.name}" failed for customer ${customer.id}:`, err.message); }
+    }
+  } catch (err) {
+    console.error('[automation] triggerStageEnterRules error:', err.message);
+  }
+}
+
+// ─── Ask CRM (natural-language query over customer data) ─────────────────────
+
+app.post('/api/crm/ask', authenticateToken, async (req, res) => {
+  const question = (req.body.question || '').trim();
+  if (!question) return res.status(400).json({ error: 'question is required.' });
+
+  const user   = await usersRepo.findById(req.user.id);
+  const apiKey = user?.claudeApiKey || process.env.CLAUDE_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'No Claude API key configured. Add your key in Settings → AI Integration.' });
+
+  const customers = await customersRepo.list({});
+  // Cap the snapshot so this stays fast and fits comfortably in context even
+  // with a large customer base — most-recently-updated customers first.
+  const snapshot = customers
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 400)
+    .map(c => ({
+      id: c.id,
+      company: c.company || `${c.firstName} ${c.lastName}`.trim(),
+      stage: c.stage,
+      status: c.status,
+      owner: c.owner,
+      industry: c.industry,
+      country: c.country,
+      estValueEur: c.estValueEur,
+      lastContactAt: c.lastContactAt ? c.lastContactAt.slice(0, 10) : null,
+      nextFollowUpAt: c.nextFollowUpAt ? c.nextFollowUpAt.slice(0, 10) : null,
+      notes: c.notes ? String(c.notes).slice(0, 200) : '',
+    }));
+
+  const prompt = `You are a CRM assistant. Below is a JSON snapshot of the ${snapshot.length} most recently updated customers in a sales CRM (of ${customers.length} total). Answer the user's question using ONLY this data — never invent a company or fact not present here. If the answer requires data not included in this snapshot, say so plainly.
+
+Data:
+${JSON.stringify(snapshot)}
+
+User's question: "${question}"
+
+Respond in plain English, concise and directly useful to a sales rep skimming on their phone. If your answer refers to specific customers, list their exact "company" values so they're easy to spot. No markdown headers, a short list is fine if it helps. Then on a new final line, output exactly: IDS: followed by a comma-separated list of the "id" values of every customer you mentioned (or IDS: none if you mentioned none).`;
+
+  try {
+    const raw = await callClaudeText(apiKey, prompt, 700);
+    const idsMatch = raw.match(/IDS:\s*(.*)$/i);
+    const ids = idsMatch && idsMatch[1].trim().toLowerCase() !== 'none'
+      ? idsMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    const answer = idsMatch ? raw.slice(0, idsMatch.index).trim() : raw.trim();
+    const mentioned = snapshot.filter(c => ids.includes(c.id)).map(c => ({ id: c.id, company: c.company, stage: c.stage }));
+    res.json({ answer, customers: mentioned, snapshotSize: snapshot.length, totalCustomers: customers.length });
+  } catch (err) {
+    console.error('[crm-ask] error:', err.message);
+    res.status(502).json({ error: 'Could not answer: ' + err.message });
+  }
+});
+
+
 
 // POST /api/customers/generate-leads
 // Takes criteria, searches the web (if Tavily configured), asks Claude to
@@ -4032,3 +4276,5 @@ setTimeout(async () => {
   }
 }, 5 * 1000);
 setInterval(checkFollowUpsDue, 60 * 60 * 1000);
+setTimeout(checkAutomationRules, 45 * 1000);
+setInterval(checkAutomationRules, 60 * 60 * 1000);
