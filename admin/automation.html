@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Automation — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .page-desc{font-size:.875rem;color:var(--ink3);margin-bottom:22px;max-width:640px}
+  .rules-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .rule-card{border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;background:#fff;display:flex;align-items:flex-start;gap:16px}
+  .rule-card.disabled{opacity:.55}
+  .rule-main{flex:1;min-width:0}
+  .rule-name{font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .rule-desc{font-size:.8125rem;color:var(--ink2);line-height:1.55}
+  .rule-desc b{color:var(--ink)}
+  .rule-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .switch{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0}
+  .switch input{opacity:0;width:0;height:0}
+  .switch-slider{position:absolute;cursor:pointer;inset:0;background:#d1d9e0;border-radius:21px;transition:.2s}
+  .switch-slider:before{position:absolute;content:"";height:15px;width:15px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch input:checked + .switch-slider{background:var(--n500)}
+  .switch input:checked + .switch-slider:before{transform:translateX(17px)}
+  .btn-icon-del{background:none;border:none;color:var(--ink3);cursor:pointer;padding:6px;border-radius:6px;display:flex}
+  .btn-icon-del:hover{background:var(--badbg,#fee2e2);color:var(--bad,#dc2626)}
+  .empty-rules{text-align:center;padding:48px 24px;color:var(--ink3);font-size:.875rem;border:1.5px dashed rgba(11,25,41,.12);border-radius:var(--r-lg)}
+
+  .rule-form-overlay{display:none;position:fixed;inset:0;background:rgba(6,13,26,.45);z-index:700;align-items:center;justify-content:center;padding:20px}
+  .rule-form-overlay.open{display:flex}
+  .rule-form-box{background:#fff;border-radius:var(--r-lg);width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:26px 28px;box-shadow:0 20px 60px rgba(6,13,26,.25)}
+  .rule-form-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:400;color:var(--n800);margin-bottom:18px}
+  .rf-field{margin-bottom:14px}
+  .rf-field label{font-size:.75rem;font-weight:600;color:var(--ink3);margin-bottom:5px;display:block}
+  .rf-field input, .rf-field select, .rf-field textarea{width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;color:var(--ink);background:#fff}
+  .rf-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .trigger-toggle{display:flex;gap:8px;margin-bottom:14px}
+  .trigger-opt{flex:1;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);padding:10px;text-align:center;cursor:pointer;font-size:.8125rem;font-weight:600;color:var(--ink2)}
+  .trigger-opt.active{border-color:var(--n500);background:var(--n050);color:var(--n600)}
+  .action-toggle{display:flex;gap:8px;margin-bottom:14px}
+  .action-opt{flex:1;border:1.5px solid rgba(11,25,41,.12);border-radius:var(--r-md);padding:10px;text-align:center;cursor:pointer;font-size:.8125rem;font-weight:600;color:var(--ink2)}
+  .action-opt.active{border-color:var(--n500);background:var(--n050);color:var(--n600)}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Automation</div>
+  </div>
+
+  <div class="content">
+    <p class="page-desc">Automatically create tasks or send notifications when a customer's stage changes, or when they've sat in a stage without movement for too long. Checked hourly for time-based rules, instantly for stage-change rules.</p>
+
+    <div class="rules-toolbar">
+      <div class="muted" style="font-size:.8125rem" id="rulesCount">Loading…</div>
+      <button class="btn btn-primary" onclick="openRuleForm()">+ New rule</button>
+    </div>
+
+    <div id="rulesList"><div class="muted">Loading rules…</div></div>
+  </div>
+</main>
+
+<!-- New/edit rule form -->
+<div class="rule-form-overlay" id="ruleFormOverlay" onclick="if(event.target===this)closeRuleForm()">
+  <div class="rule-form-box">
+    <div class="rule-form-title" id="ruleFormTitle">New Automation Rule</div>
+
+    <div class="rf-field">
+      <label>Rule name</label>
+      <input id="rf-name" placeholder="e.g. Nudge stale proposals">
+    </div>
+
+    <div class="rf-field">
+      <label>Trigger</label>
+      <div class="trigger-toggle">
+        <div class="trigger-opt active" id="trig-stage_stale" onclick="setTrigger('stage_stale')">Stuck in a stage</div>
+        <div class="trigger-opt" id="trig-stage_enter" onclick="setTrigger('stage_enter')">Enters a stage</div>
+      </div>
+    </div>
+
+    <div class="rf-field">
+      <label id="rf-stage-label">Stage</label>
+      <select id="rf-stage">
+        <option value="lead">Lead</option>
+        <option value="qualified">Qualified</option>
+        <option value="proposal">Proposal</option>
+        <option value="won">Won</option>
+        <option value="lost">Lost</option>
+      </select>
+    </div>
+
+    <div class="rf-field" id="rf-staledays-field">
+      <label>After how many days with no movement?</label>
+      <input id="rf-staledays" type="number" min="1" value="7">
+    </div>
+
+    <div class="rf-field">
+      <label>Action</label>
+      <div class="action-toggle">
+        <div class="action-opt active" id="act-create_task" onclick="setAction('create_task')">Create task</div>
+        <div class="action-opt" id="act-notify" onclick="setAction('notify')">Send notification</div>
+      </div>
+    </div>
+
+    <div class="rf-field" id="rf-tasktitle-field">
+      <label>Task title</label>
+      <input id="rf-tasktitle" placeholder="e.g. Check in — proposal has gone quiet">
+    </div>
+
+    <div class="rf-field" id="rf-message-field" style="display:none">
+      <label>Notification message</label>
+      <input id="rf-message" placeholder="e.g. This deal just closed — say congrats!">
+    </div>
+
+    <div class="rf-actions">
+      <button class="btn btn-ghost" onclick="closeRuleForm()">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-rule" onclick="saveRule()">Save rule</button>
+    </div>
+  </div>
+</div>
+
+<script src="components.js"></script>
+<script>
+HPAdmin.renderSidebar('crm');
+var H = window.HPAdmin;
+var A = H.authFetch, esc = H.escapeHtml;
+
+var STAGE_LABELS = { lead:'Lead', qualified:'Qualified', proposal:'Proposal', won:'Won', lost:'Lost' };
+var rules = [];
+var editingRuleId = null;
+var currentTrigger = 'stage_stale';
+var currentAction = 'create_task';
+
+function loadRules(){
+  A('/api/automation-rules').then(function(r){return r.json();}).then(function(data){
+    rules = data || [];
+    renderRules();
+  }).catch(function(){
+    document.getElementById('rulesList').innerHTML = '<div class="empty-rules">Could not load rules.</div>';
+  });
+}
+
+function describeRule(r){
+  var stageLabel = '<b>' + esc(STAGE_LABELS[r.stage] || r.stage) + '</b>';
+  var trigger = r.triggerType === 'stage_stale'
+    ? 'When a customer stays in ' + stageLabel + ' for <b>' + r.staleDays + '+ days</b> without an update'
+    : 'When a customer\'s stage changes to ' + stageLabel;
+  var action = r.actionType === 'create_task'
+    ? 'create the task: <b>"' + esc(r.actionTaskTitle) + '"</b>'
+    : 'send a notification: <b>"' + esc(r.actionMessage) + '"</b>';
+  return trigger + ' → ' + action + '.';
+}
+
+function renderRules(){
+  document.getElementById('rulesCount').textContent = rules.length + ' rule' + (rules.length===1?'':'s') + ' · ' + rules.filter(function(r){return r.enabled;}).length + ' active';
+  var list = document.getElementById('rulesList');
+  if(!rules.length){
+    list.innerHTML = '<div class="empty-rules">No automation rules yet. Click "New rule" to create your first one — for example, a task that gets created automatically whenever a proposal goes quiet for two weeks.</div>';
+    return;
+  }
+  list.innerHTML = rules.map(function(r){
+    return '<div class="rule-card' + (r.enabled?'':' disabled') + '">' +
+      '<div class="rule-main">' +
+        '<div class="rule-name">' + esc(r.name) + '</div>' +
+        '<div class="rule-desc">' + describeRule(r) + '</div>' +
+      '</div>' +
+      '<div class="rule-actions">' +
+        '<label class="switch"><input type="checkbox" ' + (r.enabled?'checked':'') + ' onchange="toggleRule(\'' + r.id + '\', this.checked)"><span class="switch-slider"></span></label>' +
+        '<button class="btn-icon-del" title="Delete rule" onclick="deleteRule(\'' + r.id + '\')">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleRule(id, enabled){
+  A('/api/automation-rules/'+id, { method:'PUT', body: JSON.stringify({ enabled: enabled }) })
+    .then(function(r){ return r.json(); })
+    .then(function(updated){
+      var idx = rules.findIndex(function(r){return r.id===id;});
+      if(idx!==-1) rules[idx] = updated;
+      renderRules();
+      H.toast(enabled ? 'Rule enabled' : 'Rule paused');
+    })
+    .catch(function(){ H.toast('Could not update rule', 'error'); loadRules(); });
+}
+
+function deleteRule(id){
+  if(!confirm('Delete this automation rule? This cannot be undone.')) return;
+  A('/api/automation-rules/'+id, { method:'DELETE' })
+    .then(function(){ rules = rules.filter(function(r){return r.id!==id;}); renderRules(); H.toast('Rule deleted'); })
+    .catch(function(){ H.toast('Could not delete rule', 'error'); });
+}
+
+function setTrigger(t){
+  currentTrigger = t;
+  document.getElementById('trig-stage_stale').classList.toggle('active', t==='stage_stale');
+  document.getElementById('trig-stage_enter').classList.toggle('active', t==='stage_enter');
+  document.getElementById('rf-staledays-field').style.display = t==='stage_stale' ? 'block' : 'none';
+  document.getElementById('rf-stage-label').textContent = t==='stage_stale' ? 'Stage' : 'Stage they enter';
+}
+
+function setAction(a){
+  currentAction = a;
+  document.getElementById('act-create_task').classList.toggle('active', a==='create_task');
+  document.getElementById('act-notify').classList.toggle('active', a==='notify');
+  document.getElementById('rf-tasktitle-field').style.display = a==='create_task' ? 'block' : 'none';
+  document.getElementById('rf-message-field').style.display = a==='notify' ? 'block' : 'none';
+}
+
+function openRuleForm(rule){
+  editingRuleId = rule ? rule.id : null;
+  document.getElementById('ruleFormTitle').textContent = rule ? 'Edit Automation Rule' : 'New Automation Rule';
+  document.getElementById('rf-name').value = rule ? rule.name : '';
+  document.getElementById('rf-stage').value = rule ? rule.stage : 'proposal';
+  document.getElementById('rf-staledays').value = rule ? (rule.staleDays || 7) : 7;
+  document.getElementById('rf-tasktitle').value = rule && rule.actionTaskTitle ? rule.actionTaskTitle : '';
+  document.getElementById('rf-message').value = rule && rule.actionMessage ? rule.actionMessage : '';
+  setTrigger(rule ? rule.triggerType : 'stage_stale');
+  setAction(rule ? rule.actionType : 'create_task');
+  document.getElementById('ruleFormOverlay').classList.add('open');
+}
+
+function closeRuleForm(){
+  document.getElementById('ruleFormOverlay').classList.remove('open');
+}
+
+function saveRule(){
+  var name = document.getElementById('rf-name').value.trim();
+  if(!name){ H.toast('Please name this rule', 'error'); return; }
+  var stage = document.getElementById('rf-stage').value;
+  var staleDays = parseInt(document.getElementById('rf-staledays').value, 10) || 7;
+  var actionTaskTitle = document.getElementById('rf-tasktitle').value.trim();
+  var actionMessage = document.getElementById('rf-message').value.trim();
+  if(currentAction === 'create_task' && !actionTaskTitle){ H.toast('Please enter a task title', 'error'); return; }
+  if(currentAction === 'notify' && !actionMessage){ H.toast('Please enter a notification message', 'error'); return; }
+
+  var payload = {
+    name: name, triggerType: currentTrigger, stage: stage,
+    staleDays: currentTrigger === 'stage_stale' ? staleDays : null,
+    actionType: currentAction,
+    actionTaskTitle: currentAction === 'create_task' ? actionTaskTitle : null,
+    actionMessage: currentAction === 'notify' ? actionMessage : null,
+  };
+
+  var btn = document.getElementById('btn-save-rule');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  var url = editingRuleId ? '/api/automation-rules/'+editingRuleId : '/api/automation-rules';
+  var method = editingRuleId ? 'PUT' : 'POST';
+
+  A(url, { method: method, body: JSON.stringify(payload) })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(!res.ok){ H.toast(res.data.error || 'Could not save rule', 'error'); return; }
+      closeRuleForm();
+      H.toast('Rule saved ✓');
+      loadRules();
+    })
+    .catch(function(){ H.toast('Could not save rule', 'error'); })
+    .finally(function(){ btn.disabled = false; btn.textContent = 'Save rule'; });
+}
+
+loadRules();
+</script>
+</body>
+</html>

@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS customers (
   analysis_conf     JSON          NULL,
   analysis_sources  JSON          NULL,
   analyzed_at       DATETIME(3)   NULL,
+  ai_summary        TEXT          NULL,
+  ai_summary_at     DATETIME(3)   NULL,
   created_at        DATETIME(3)   NOT NULL,
   updated_at        DATETIME(3)   NOT NULL,
   KEY idx_customers_stage (stage),
@@ -359,4 +361,32 @@ CREATE TABLE IF NOT EXISTS tasks (
   KEY idx_tasks_customer (customer_id),
   KEY idx_tasks_due_date (due_date, done),
   CONSTRAINT fk_tasks_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 21. automation_rules — stage-based / time-based CRM automation
+CREATE TABLE IF NOT EXISTS automation_rules (
+  id                VARCHAR(32)   NOT NULL PRIMARY KEY,
+  name              VARCHAR(255)  NOT NULL DEFAULT '',
+  enabled           TINYINT(1)    NOT NULL DEFAULT 1,
+  trigger_type      ENUM('stage_stale','stage_enter') NOT NULL,
+  stage             ENUM('lead','qualified','proposal','won','lost') NOT NULL,
+  stale_days        INT           NULL,
+  action_type       ENUM('create_task','notify') NOT NULL,
+  action_task_title VARCHAR(500)  NULL,
+  action_message    VARCHAR(500)  NULL,
+  created_by        VARCHAR(255)  NULL,
+  created_at        DATETIME(3)   NOT NULL,
+  updated_at        DATETIME(3)   NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 22. automation_rule_runs — dedupe log so a rule doesn't fire on the same
+-- customer repeatedly (one row per rule+customer firing)
+CREATE TABLE IF NOT EXISTS automation_rule_runs (
+  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
+  rule_id      VARCHAR(32)   NOT NULL,
+  customer_id  VARCHAR(32)   NOT NULL,
+  ran_at       DATETIME(3)   NOT NULL,
+  KEY idx_rule_runs_lookup (rule_id, customer_id),
+  CONSTRAINT fk_rule_runs_rule FOREIGN KEY (rule_id) REFERENCES automation_rules(id) ON DELETE CASCADE,
+  CONSTRAINT fk_rule_runs_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
