@@ -2857,6 +2857,26 @@ img.hp-cine,.hp-cine>img{
     }
   })();
 
+  // Pageview tracking (first-party; server derives country from IP, never
+  // stores the raw IP). Fires on every page that loads nav.js.
+  (function () {
+    try {
+      var params = new URLSearchParams(location.search);
+      fetch('/api/analytics/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page: location.pathname,
+          referrer: document.referrer || '',
+          utmSource: params.get('utm_source') || undefined,
+          utmMedium: params.get('utm_medium') || undefined,
+          utmCampaign: params.get('utm_campaign') || undefined,
+        }),
+        keepalive: true,
+      });
+    } catch (e) {}
+  })();
+
   // Load the cookie-consent / analytics gate from the same /assets/ folder
   (function () {
     try {

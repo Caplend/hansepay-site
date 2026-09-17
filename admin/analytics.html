@@ -358,6 +358,15 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .insights-grid { grid-template-columns: 1fr; } }
+.section-lead { font-size: 0.8125rem; color: var(--ink3); margin: -6px 0 16px; max-width: 640px; }
+.flag-em { font-size: 1.05rem; margin-right: 6px; }
 .table-card {
   background: #fff;
   border-radius: var(--r-lg);
@@ -589,6 +598,71 @@ a { color: inherit; text-decoration: none; }
       <canvas id="traffic-chart" height="80"></canvas>
     </div>
 
+    <!-- Visitor Insights: where outreach opportunities are coming from -->
+    <div class="chart-card-title" style="margin-bottom:2px">Visitor Insights</div>
+    <p class="section-lead">Where your traffic is actually coming from — check this before an outreach push to see which regions and sources are worth focusing on. <span id="geo-coverage-note"></span></p>
+
+    <div class="insights-grid">
+
+      <!-- Top Countries -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Top Countries</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th>Country</th>
+              <th style="text-align:right;">Visits</th>
+            </tr>
+          </thead>
+          <tbody id="top-countries-body">
+            <tr><td colspan="3" class="loading-cell">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Referrers -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Top Referrers</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th>Source</th>
+              <th style="text-align:right;">Visits</th>
+            </tr>
+          </thead>
+          <tbody id="top-referrers-body">
+            <tr><td colspan="3" class="loading-cell">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Campaign Sources (UTM) -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <span class="table-card-title">Top Campaign Sources</span>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th>utm_source</th>
+              <th style="text-align:right;">Visits</th>
+            </tr>
+          </thead>
+          <tbody id="top-utm-body">
+            <tr><td colspan="3" class="loading-cell">No campaign links tracked yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
     <!-- Bottom 2-col grid -->
     <div class="bottom-grid">
 
@@ -811,6 +885,61 @@ authFetch('/api/analytics/summary')
         }
       }
     });
+
+    // ── Visitor Insights ──
+    var COUNTRY_FLAGS = {
+      DE:'🇩🇪',AT:'🇦🇹',CH:'🇨🇭',US:'🇺🇸',GB:'🇬🇧',FR:'🇫🇷',NL:'🇳🇱',BE:'🇧🇪',ES:'🇪🇸',IT:'🇮🇹',
+      PL:'🇵🇱',SE:'🇸🇪',NO:'🇳🇴',DK:'🇩🇰',FI:'🇫🇮',IE:'🇮🇪',PT:'🇵🇹',CZ:'🇨🇿',HU:'🇭🇺',RO:'🇷🇴',
+      LV:'🇱🇻',LT:'🇱🇹',EE:'🇪🇪',CA:'🇨🇦',AU:'🇦🇺',IN:'🇮🇳',SG:'🇸🇬',AE:'🇦🇪',TR:'🇹🇷',BR:'🇧🇷',
+      MX:'🇲🇽',JP:'🇯🇵',CN:'🇨🇳',KR:'🇰🇷',ZA:'🇿🇦',NG:'🇳🇬',KE:'🇰🇪',HK:'🇭🇰',
+    };
+
+    var topCountries = data.topCountries || [];
+    var countriesBody = document.getElementById('top-countries-body');
+    if (!topCountries.length) {
+      countriesBody.innerHTML = '<tr><td colspan="3" class="loading-cell">No geo-tagged visits yet.</td></tr>';
+    } else {
+      countriesBody.innerHTML = topCountries.map(function(c, i) {
+        var flag = COUNTRY_FLAGS[c.country] || '🏳️';
+        return '<tr>' +
+          '<td class="rank-cell">' + (i + 1) + '</td>' +
+          '<td><span class="flag-em">' + flag + '</span>' + c.countryName + '</td>' +
+          '<td class="count-cell">' + formatNumber(c.count) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+    var coverageNote = document.getElementById('geo-coverage-note');
+    if (coverageNote) {
+      coverageNote.textContent = topCountries.length ? '(' + (data.geoTaggedShare || 0) + '% of visits have a detected country)' : '';
+    }
+
+    var topReferrers = data.topReferrers || [];
+    var referrersBody = document.getElementById('top-referrers-body');
+    if (!topReferrers.length) {
+      referrersBody.innerHTML = '<tr><td colspan="3" class="loading-cell">No referrer data yet.</td></tr>';
+    } else {
+      referrersBody.innerHTML = topReferrers.map(function(r, i) {
+        return '<tr>' +
+          '<td class="rank-cell">' + (i + 1) + '</td>' +
+          '<td class="path-cell" title="' + r.domain + '">' + r.domain + '</td>' +
+          '<td class="count-cell">' + formatNumber(r.count) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    var topUtm = data.topUtmSources || [];
+    var utmBody = document.getElementById('top-utm-body');
+    if (!topUtm.length) {
+      utmBody.innerHTML = '<tr><td colspan="3" class="loading-cell">No campaign links tracked yet — add ?utm_source=... to a link you share to start tracking it.</td></tr>';
+    } else {
+      utmBody.innerHTML = topUtm.map(function(u, i) {
+        return '<tr>' +
+          '<td class="rank-cell">' + (i + 1) + '</td>' +
+          '<td class="path-cell" title="' + u.source + '">' + u.source + '</td>' +
+          '<td class="count-cell">' + formatNumber(u.count) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
 
     // Top Pages table
     var viewsByPage = data.viewsByPage || {};

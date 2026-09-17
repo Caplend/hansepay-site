@@ -530,6 +530,25 @@ function closeBooking() {
 document.getElementById('hp-bm-overlay').addEventListener('click', function(e) { if (e.target === this) closeBooking(); });
 document.getElementById('hp-bm-close-btn').addEventListener('click', closeBooking);
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeWaitlist(); closeBooking(); } });
+
+// ── Pageview tracking (first-party; server derives country from IP, never stores the raw IP) ──
+(function () {
+  try {
+    var params = new URLSearchParams(location.search);
+    fetch('/api/analytics/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page: location.pathname,
+        referrer: document.referrer || '',
+        utmSource: params.get('utm_source') || undefined,
+        utmMedium: params.get('utm_medium') || undefined,
+        utmCampaign: params.get('utm_campaign') || undefined,
+      }),
+      keepalive: true,
+    });
+  } catch (e) {}
+})();
 </script>
 <script defer src="/assets/consent.js"></script>
 </body>

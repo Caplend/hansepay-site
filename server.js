@@ -1188,20 +1188,76 @@ STEP 2 — Write the full article body in Markdown immediately after the closing
   }
 });
 
+// ─── Geo-IP lookup (best-effort, in-memory cached) ────────────────────────────
+// Uses ip-api.com's free tier (no key required, ~45 req/min, plenty for this
+// traffic level). Never blocks or fails the caller — on any error/timeout we
+// just skip the country/city fields. We only ever look up the IP transiently
+// to derive a country/city; the raw IP itself is never stored in the DB.
+const geoIpCache = new Map(); // ip -> { country, countryName, city, cachedAt }
+const GEO_CACHE_MAX = 5000;
+const GEO_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
+function clientIp(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (xff) return String(xff).split(',')[0].trim();
+  return req.socket?.remoteAddress || '';
+}
+
+async function lookupGeoIp(ip) {
+  if (!ip || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) return null;
+  const cached = geoIpCache.get(ip);
+  if (cached && Date.now() - cached.cachedAt < GEO_CACHE_TTL_MS) return cached;
+  try {
+    const resp = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode,country,city`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (data.status !== 'success') return null;
+    const result = { country: data.countryCode || null, countryName: data.country || null, city: data.city || null, cachedAt: Date.now() };
+    if (geoIpCache.size >= GEO_CACHE_MAX) geoIpCache.delete(geoIpCache.keys().next().value); // evict oldest
+    geoIpCache.set(ip, result);
+    return result;
+  } catch (err) {
+    return null; // fail-open — geo enrichment is a nice-to-have, never a blocker
+  }
+}
+
+function domainFromReferrer(referrer) {
+  if (!referrer) return null;
+  try { return new URL(referrer).hostname.replace(/^www\./, ''); } catch (e) { return null; }
+}
+
 // ─── Analytics routes ─────────────────────────────────────────────────────────
 
 // Legacy pageview endpoint (kept for backwards compat)
 app.post('/api/analytics/pageview', async (req, res) => {
-  const { page, referrer } = req.body;
-  await analyticsRepo.create({ type: 'pageview', page: page || '/', referrer: referrer || '' });
-  res.json({ success: true });
+  const { page, referrer, utmSource, utmMedium, utmCampaign } = req.body;
+  res.json({ success: true }); // respond immediately — geo lookup below shouldn't add latency to the caller
+  try {
+    const geo = await lookupGeoIp(clientIp(req));
+    await analyticsRepo.create({
+      type: 'pageview', page: page || '/', referrer: referrer || '',
+      referrerDomain: domainFromReferrer(referrer),
+      country: geo?.country, countryName: geo?.countryName, city: geo?.city,
+      utmSource, utmMedium, utmCampaign,
+    });
+  } catch (err) { console.error('[analytics] pageview error:', err.message); }
 });
 
 // Generic event tracking (pageview, booking_modal_open, booking_submitted, etc.)
 app.post('/api/analytics/event', async (req, res) => {
-  const { event, page, data } = req.body;
-  await analyticsRepo.create({ type: event || 'pageview', page: page || '/', data: data || {} });
+  const { event, page, data, referrer, utmSource, utmMedium, utmCampaign } = req.body;
   res.json({ success: true });
+  try {
+    const geo = await lookupGeoIp(clientIp(req));
+    await analyticsRepo.create({
+      type: event || 'pageview', page: page || '/', referrer: referrer || '',
+      referrerDomain: domainFromReferrer(referrer),
+      country: geo?.country, countryName: geo?.countryName, city: geo?.city,
+      utmSource, utmMedium, utmCampaign, data: data || {},
+    });
+  } catch (err) { console.error('[analytics] event error:', err.message); }
 });
 
 app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
@@ -1258,6 +1314,45 @@ app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
     .slice(0, 5)
     .map(p => ({ id: p.id, title: p.title, slug: p.slug, viewCount: p.viewCount || p.views || 0 }));
 
+  // ── Visitor insights: where traffic is actually coming from ──
+  // Only counts events that got a successful geo lookup (older records before
+  // this feature shipped, or lookups that failed, are simply excluded here).
+  const geoTagged = pageviews.filter(a => a.country);
+  const countryCounts = {};
+  geoTagged.forEach(a => {
+    const key = a.country;
+    if (!countryCounts[key]) countryCounts[key] = { country: a.country, countryName: a.countryName || a.country, count: 0 };
+    countryCounts[key].count++;
+  });
+  const topCountries = Object.values(countryCounts).sort((a, b) => b.count - a.count).slice(0, 20);
+
+  const referrerCounts = {};
+  pageviews.forEach(a => {
+    const key = a.referrerDomain || (a.referrer ? null : 'Direct / no referrer');
+    if (!key) return; // has a referrer but we couldn't parse a domain — skip rather than mislabel
+    referrerCounts[key] = (referrerCounts[key] || 0) + 1;
+  });
+  const topReferrers = Object.entries(referrerCounts).map(([domain, count]) => ({ domain, count })).sort((a, b) => b.count - a.count).slice(0, 15);
+
+  const utmSourceCounts = {};
+  pageviews.forEach(a => {
+    if (!a.utmSource) return;
+    utmSourceCounts[a.utmSource] = (utmSourceCounts[a.utmSource] || 0) + 1;
+  });
+  const topUtmSources = Object.entries(utmSourceCounts).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count).slice(0, 15);
+
+  // Cities within the single most common country, for a bit more specificity
+  // without producing a huge, sparsely-populated global city table.
+  let topCities = [];
+  if (topCountries.length) {
+    const topCountryCode = topCountries[0].country;
+    const cityCounts = {};
+    geoTagged.filter(a => a.country === topCountryCode && a.city).forEach(a => {
+      cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+    });
+    topCities = Object.entries(cityCounts).map(([city, count]) => ({ city, count })).sort((a, b) => b.count - a.count).slice(0, 10);
+  }
+
   res.json({
     totalPageviews,
     postsPublished,
@@ -1271,6 +1366,11 @@ app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
     viewsLast30Days,
     topPosts,
     eventCounts,
+    topCountries,
+    topCountryCities: topCities,
+    topReferrers,
+    topUtmSources,
+    geoTaggedShare: totalPageviews ? Math.round((geoTagged.length / totalPageviews) * 100) : 0,
   });
 });
 
