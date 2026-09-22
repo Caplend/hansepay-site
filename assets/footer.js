@@ -35,42 +35,42 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
   <div class="container">
     <div class="footer-grid">
       <div>
-        <div class="footer-logo"><img src="assets/hansepay-wordmark-white.svg" alt="HansePay" /></div>
+        <div class="footer-logo"><img src="/assets/hansepay-wordmark-white.svg" alt="HansePay" /></div>
         <p class="footer-tagline">Bridging markets.</p>
         <p class="footer-legal">&#169; 2026 Caplend Technologies GmbH<br>HansePay is a brand of Caplend Technologies GmbH</p>
       </div>
       <div>
         <div class="footer-col-title">Platform</div>
         <ul class="footer-links">
-          <li><a class="footer-link" href="platform.html">Overview</a></li>
-          <li><a class="footer-link" href="platform-technology.html">Technology</a></li>
-          <li><a class="footer-link" href="tools-calculator.html">FX Savings Calculator</a></li>
-          <li><a class="footer-link" href="tools-iban.html">IBAN Verifier</a></li>
-          <li><a class="footer-link" href="tools-converter.html">Currency Converter</a></li>
+          <li><a class="footer-link" href="/platform.html">Overview</a></li>
+          <li><a class="footer-link" href="/platform-technology.html">Technology</a></li>
+          <li><a class="footer-link" href="/tools-calculator.html">FX Savings Calculator</a></li>
+          <li><a class="footer-link" href="/tools-iban.html">IBAN Verifier</a></li>
+          <li><a class="footer-link" href="/tools-converter.html">Currency Converter</a></li>
         </ul>
       </div>
       <div>
         <div class="footer-col-title">Company</div>
         <ul class="footer-links">
-          <li><a class="footer-link" href="about-vision.html">Vision &amp; Mission</a></li>
-          <li><a class="footer-link" href="about-team.html">Team &amp; History</a></li>
-          <li><a class="footer-link" href="about-licenses.html">Licenses</a></li>
-          <li><a class="footer-link" href="insights-stories.html">Customer stories</a></li>
-          <li><a class="footer-link" href="insights-market.html">Market insights</a></li>
-          <li><a class="footer-link" href="events.html">Events</a></li>
+          <li><a class="footer-link" href="/about-vision.html">Vision &amp; Mission</a></li>
+          <li><a class="footer-link" href="/about-team.html">Team &amp; History</a></li>
+          <li><a class="footer-link" href="/about-licenses.html">Licenses</a></li>
+          <li><a class="footer-link" href="/insights-stories.html">Customer stories</a></li>
+          <li><a class="footer-link" href="/insights-market.html">Market insights</a></li>
+          <li><a class="footer-link" href="/events.html">Events</a></li>
         </ul>
       </div>
       <div>
         <div class="footer-col-title">Legal</div>
         <ul class="footer-links">
-          <li><a class="footer-link" href="legal.html" style="color:rgba(255,255,255,.7);font-weight:500">Legal centre</a></li>
-          <li><a class="footer-link" href="legal.html#imprint">Imprint</a></li>
-          <li><a class="footer-link" href="legal.html#privacy">Privacy policy</a></li>
-          <li><a class="footer-link" href="legal.html#terms">Terms of service</a></li>
-          <li><a class="footer-link" href="legal.html#complaints">Complaints</a></li>
-          <li><a class="footer-link" href="legal.html#cookies">Cookie policy</a></li>
+          <li><a class="footer-link" href="/legal.html" style="color:rgba(255,255,255,.7);font-weight:500">Legal centre</a></li>
+          <li><a class="footer-link" href="/legal.html#imprint">Imprint</a></li>
+          <li><a class="footer-link" href="/legal.html#privacy">Privacy policy</a></li>
+          <li><a class="footer-link" href="/legal.html#terms">Terms of service</a></li>
+          <li><a class="footer-link" href="/legal.html#complaints">Complaints</a></li>
+          <li><a class="footer-link" href="/legal.html#cookies">Cookie policy</a></li>
           <li><a class="footer-link" href="#" onclick="if(window.HPConsent){window.HPConsent.reopen();}return false;">Cookie settings</a></li>
-          <li><a class="footer-link" href="legal.html#aml">AML &amp; Compliance</a></li>
+          <li><a class="footer-link" href="/legal.html#aml">AML &amp; Compliance</a></li>
         </ul>
       </div>
     </div>
