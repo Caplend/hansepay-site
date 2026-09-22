@@ -113,9 +113,9 @@ img.hp-cine,.hp-cine>img{
   var NAV_HTML = `
 <nav id="main-nav">
   <div class="nav-inner">
-    <a href="index.html" class="nav-logo">
-      <img src="assets/hansepay-wordmark-white.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-white" />
-      <img src="assets/hansepay-wordmark-navy.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-navy" />
+    <a href="/index.html" class="nav-logo">
+      <img src="/assets/hansepay-wordmark-white.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-white" />
+      <img src="/assets/hansepay-wordmark-navy.svg" alt="HansePay" class="nav-logo-mark nav-logo-mark-navy" />
     </a>
     <ul class="nav-links">
 
@@ -127,11 +127,11 @@ img.hp-cine,.hp-cine>img{
         <div class="nav-dropdown">
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.platform">Platform</span>
-            <a href="platform.html" class="nav-dd-link">
+            <a href="/platform.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.overview">Overview</div><div class="nav-dd-sub" data-i18n="nav.platform.overview.sub">See the full platform at a glance</div></div>
             </a>
-            <a href="platform-technology.html" class="nav-dd-link">
+            <a href="/platform-technology.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.platform.tech">Technology</div><div class="nav-dd-sub" data-i18n="nav.platform.tech.sub">The infrastructure behind every transfer</div></div>
             </a>
@@ -148,15 +148,15 @@ img.hp-cine,.hp-cine>img{
         <div class="nav-dropdown" style="width:300px">
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.solutions.by-industry">By Industry</span>
-            <a href="solutions-ecommerce.html" class="nav-dd-link">
+            <a href="/solutions-ecommerce.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</div><div class="nav-dd-sub" data-i18n="nav.solutions.ecom.sub">Supplier payments, bulk FX, emerging markets</div></div>
             </a>
-            <a href="solutions-manufacturing.html" class="nav-dd-link">
+            <a href="/solutions-manufacturing.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</div><div class="nav-dd-sub" data-i18n="nav.solutions.mfg.sub">Industrial FX, big-ticket execution, supply chain</div></div>
             </a>
-            <a href="solutions-logistics.html" class="nav-dd-link">
+            <a href="/solutions-logistics.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.log">Logistics &amp; Freight</div><div class="nav-dd-sub" data-i18n="nav.solutions.log.sub">Same-day execution, agent networks, maritime</div></div>
             </a>
@@ -164,11 +164,11 @@ img.hp-cine,.hp-cine>img{
           <div class="nav-dropdown-sep"></div>
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.solutions.by-size">By Business Size</span>
-            <a href="solutions-corporate.html" class="nav-dd-link">
+            <a href="/solutions-corporate.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.corp">Mid &amp; Large Business</div><div class="nav-dd-sub" data-i18n="nav.solutions.corp.sub">Institutional pricing, named expert, &gt;€2M</div></div>
             </a>
-            <a href="solutions-sme.html" class="nav-dd-link">
+            <a href="/solutions-sme.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.solutions.sme">Small Business</div><div class="nav-dd-sub" data-i18n="nav.solutions.sme.sub">No minimum volume, same-day, interbank rates</div></div>
             </a>
@@ -184,15 +184,15 @@ img.hp-cine,.hp-cine>img{
         <div class="nav-dropdown" style="width:270px">
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.about.label">About HansePay</span>
-            <a href="about-vision.html" class="nav-dd-link">
+            <a href="/about-vision.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.vision">Vision &amp; Mission</div><div class="nav-dd-sub" data-i18n="nav.about.vision.sub">Why we built HansePay</div></div>
             </a>
-            <a href="about-team.html" class="nav-dd-link">
+            <a href="/about-team.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.team">Team &amp; History</div><div class="nav-dd-sub" data-i18n="nav.about.team.sub">Founders, advisors, offices &amp; milestones</div></div>
             </a>
-            <a href="about-licenses.html" class="nav-dd-link">
+            <a href="/about-licenses.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.about.licenses">Licenses</div><div class="nav-dd-sub" data-i18n="nav.about.licenses.sub">MiCAR, BaFin, GDPR, ISO 27001</div></div>
             </a>
@@ -208,15 +208,15 @@ img.hp-cine,.hp-cine>img{
         <div class="nav-dropdown" style="width:270px">
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.insights">Insights</span>
-            <a href="insights-stories.html" class="nav-dd-link">
+            <a href="/insights-stories.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.stories">Customer stories</div><div class="nav-dd-sub" data-i18n="nav.insights.stories.sub">Real customers. Real results.</div></div>
             </a>
-            <a href="insights-market.html" class="nav-dd-link">
+            <a href="/insights-market.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.market">Market insights</div><div class="nav-dd-sub" data-i18n="nav.insights.market.sub">Currency analysis, weekly</div></div>
             </a>
-            <a href="events.html" class="nav-dd-link">
+            <a href="/events.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.insights.events">Events</div><div class="nav-dd-sub" data-i18n="nav.insights.events.sub">Where to find us this season</div></div>
             </a>
@@ -224,15 +224,15 @@ img.hp-cine,.hp-cine>img{
           <div class="nav-dropdown-sep"></div>
           <div class="nav-dropdown-section">
             <span class="nav-dropdown-label" data-i18n="nav.tools.label">Free tools</span>
-            <a href="tools-calculator.html" class="nav-dd-link">
+            <a href="/tools-calculator.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.calc">FX Savings Calculator</div><div class="nav-dd-sub" data-i18n="nav.tools.calc.sub">Estimate your annual saving</div></div>
             </a>
-            <a href="tools-converter.html" class="nav-dd-link">
+            <a href="/tools-converter.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.conv">Currency Converter</div><div class="nav-dd-sub" data-i18n="nav.tools.conv.sub">Live mid-market rates</div></div>
             </a>
-            <a href="tools-iban.html" class="nav-dd-link">
+            <a href="/tools-iban.html" class="nav-dd-link">
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.tools.iban">IBAN Verifier</div><div class="nav-dd-sub" data-i18n="nav.tools.iban.sub">Validate format and bank details</div></div>
             </a>
@@ -274,27 +274,27 @@ img.hp-cine,.hp-cine>img{
   </div>
 </div>
 <div class="mobile-menu" id="mobile-menu">
-  <a class="mobile-menu-link" href="index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
-  <a class="mobile-menu-link" href="platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
-  <a class="mobile-menu-sub" href="platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
+  <a class="mobile-menu-link" href="/index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
+  <a class="mobile-menu-link" href="/platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
+  <a class="mobile-menu-sub" href="/platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
 
-  <a class="mobile-menu-link" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions">Solutions</a>
-  <a class="mobile-menu-sub" href="solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</a>
-  <a class="mobile-menu-sub" href="solutions-manufacturing.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</a>
-  <a class="mobile-menu-sub" href="solutions-logistics.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.log">Logistics &amp; Freight</a>
-  <a class="mobile-menu-sub" href="solutions-corporate.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.corp">Mid &amp; Large Business</a>
-  <a class="mobile-menu-sub" href="solutions-sme.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.sme">Small Business</a>
-  <a class="mobile-menu-link" href="about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about">About</a>
-  <a class="mobile-menu-sub" href="about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about.vision">Vision &amp; Mission</a>
-  <a class="mobile-menu-sub" href="about-team.html" onclick="closeMobileMenu()" data-i18n="nav.about.team">Team &amp; History</a>
-  <a class="mobile-menu-sub" href="about-licenses.html" onclick="closeMobileMenu()" data-i18n="nav.about.licenses">Licenses</a>
-  <a class="mobile-menu-link" href="insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights">Insights</a>
-  <a class="mobile-menu-sub" href="insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights.stories">Customer stories</a>
-  <a class="mobile-menu-sub" href="insights-market.html" onclick="closeMobileMenu()" data-i18n="nav.insights.market">Market insights</a>
-  <a class="mobile-menu-sub" href="events.html" onclick="closeMobileMenu()" data-i18n="nav.insights.events">Events</a>
-  <a class="mobile-menu-sub" href="tools-calculator.html" onclick="closeMobileMenu()" data-i18n="nav.tools.calc">FX Savings Calculator</a>
-  <a class="mobile-menu-sub" href="tools-converter.html" onclick="closeMobileMenu()" data-i18n="nav.tools.conv">Currency Converter</a>
-  <a class="mobile-menu-sub" href="tools-iban.html" onclick="closeMobileMenu()" data-i18n="nav.tools.iban">IBAN Verifier</a>
+  <a class="mobile-menu-link" href="/solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions">Solutions</a>
+  <a class="mobile-menu-sub" href="/solutions-ecommerce.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.ecom">E-Commerce &amp; Retail</a>
+  <a class="mobile-menu-sub" href="/solutions-manufacturing.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.mfg">Import &amp; Manufacturing</a>
+  <a class="mobile-menu-sub" href="/solutions-logistics.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.log">Logistics &amp; Freight</a>
+  <a class="mobile-menu-sub" href="/solutions-corporate.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.corp">Mid &amp; Large Business</a>
+  <a class="mobile-menu-sub" href="/solutions-sme.html" onclick="closeMobileMenu()" data-i18n="nav.solutions.sme">Small Business</a>
+  <a class="mobile-menu-link" href="/about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about">About</a>
+  <a class="mobile-menu-sub" href="/about-vision.html" onclick="closeMobileMenu()" data-i18n="nav.about.vision">Vision &amp; Mission</a>
+  <a class="mobile-menu-sub" href="/about-team.html" onclick="closeMobileMenu()" data-i18n="nav.about.team">Team &amp; History</a>
+  <a class="mobile-menu-sub" href="/about-licenses.html" onclick="closeMobileMenu()" data-i18n="nav.about.licenses">Licenses</a>
+  <a class="mobile-menu-link" href="/insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights">Insights</a>
+  <a class="mobile-menu-sub" href="/insights-stories.html" onclick="closeMobileMenu()" data-i18n="nav.insights.stories">Customer stories</a>
+  <a class="mobile-menu-sub" href="/insights-market.html" onclick="closeMobileMenu()" data-i18n="nav.insights.market">Market insights</a>
+  <a class="mobile-menu-sub" href="/events.html" onclick="closeMobileMenu()" data-i18n="nav.insights.events">Events</a>
+  <a class="mobile-menu-sub" href="/tools-calculator.html" onclick="closeMobileMenu()" data-i18n="nav.tools.calc">FX Savings Calculator</a>
+  <a class="mobile-menu-sub" href="/tools-converter.html" onclick="closeMobileMenu()" data-i18n="nav.tools.conv">Currency Converter</a>
+  <a class="mobile-menu-sub" href="/tools-iban.html" onclick="closeMobileMenu()" data-i18n="nav.tools.iban">IBAN Verifier</a>
   <a href="/onboarding.html" class="btn btn-primary mobile-menu-cta" onclick="closeMobileMenu()" data-i18n="nav.cta">Open an account</a>
   <div class="mobile-lang-toggle">
     <button class="mobile-lang-btn active" id="mob-btn-de" onclick="HP.setLang('de')">DE</button>
@@ -513,8 +513,8 @@ img.hp-cine,.hp-cine>img{
         '<div class="hp-bm-panel">' +
           // Left branding panel
           '<div class="hp-bm-left">' +
-            '<a class="hp-bm-left-logo" href="index.html">' +
-              '<img src="assets/hansepay-wordmark-white.svg" alt="HansePay"/>' +
+            '<a class="hp-bm-left-logo" href="/index.html">' +
+              '<img src="/assets/hansepay-wordmark-white.svg" alt="HansePay"/>' +
             '</a>' +
             '<button class="hp-bm-close-mobile" id="hp-bm-close-mobile" aria-label="Close">' + closeIconSvg + '</button>' +
             '<div class="hp-bm-left-body">' +
@@ -597,7 +597,7 @@ img.hp-cine,.hp-cine>img{
 
   // Intercept ALL clicks on links pointing to booking.html
   document.addEventListener('click', function(e){
-    var link = e.target.closest('a[href="booking.html"], a[href*="booking.html"]');
+    var link = e.target.closest('a[href="/booking.html"], a[href*="booking.html"]');
     if (!link) return;
     if (window.location.pathname.endsWith('booking.html')) return;
     e.preventDefault();
