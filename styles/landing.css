@@ -1,0 +1,107 @@
+/* ════════════════════════════════════════════════════════════════
+   HansePay Landing Pages — Shared Components
+   Loaded after tokens.css. Every page cluster (Korridore, Währungen,
+   Vergleich, Lösungen, Wissen) reuses these — cluster-specific CSS
+   should only add small variations, never redefine these classes.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Buttons (identical to the live site) ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--r-pill);font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s ease;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--n500);color:#fff}
+.btn-primary:hover{background:var(--n600)}
+.btn-ghost-white{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.32)}
+.btn-ghost-white:hover{background:rgba(255,255,255,.08)}
+.btn-ghost-navy{background:transparent;color:var(--n600);border:1.5px solid rgba(11,25,41,.20)}
+.btn-ghost-navy:hover{background:var(--n050)}
+.btn:disabled{opacity:.55;cursor:default}
+
+/* ── Page hero — compact dark banner, every landing page opens with this ── */
+.lp-hero{position:relative;background:var(--n900);padding:132px clamp(24px,5vw,88px) 64px;overflow:hidden}
+.lp-hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at top right,rgba(30,78,128,.35),transparent 60%)}
+.lp-hero-inner{max-width:920px;margin:0 auto;position:relative;z-index:1}
+.lp-hero-chip{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:var(--r-pill);background:rgba(141,189,230,.10);border:1px solid rgba(141,189,230,.18);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--n200);margin-bottom:24px}
+.lp-hero-chip-dot{width:5px;height:5px;border-radius:50%;background:var(--n300)}
+.lp-hero-h1{font-family:var(--font-display);font-size:clamp(34px,4.4vw,54px);font-weight:400;line-height:1.08;letter-spacing:-.02em;color:#fff;margin-bottom:18px}
+.lp-hero-h1 em{font-style:italic;color:var(--n200)}
+.lp-hero-sub{font-size:clamp(15px,1.3vw,17px);font-weight:300;color:rgba(255,255,255,.62);line-height:1.7;max-width:600px;margin-bottom:32px}
+.lp-hero-actions{display:flex;flex-wrap:wrap;gap:12px}
+@media(max-width:600px){.lp-hero-actions{flex-direction:column;align-items:flex-start}.lp-hero-actions .btn{width:100%;justify-content:center}}
+
+/* ── Content sections ── */
+.lp-section{padding:64px clamp(24px,5vw,88px)}
+.lp-section-narrow{max-width:760px;margin:0 auto}
+.lp-section-wide{max-width:1040px;margin:0 auto}
+.lp-section-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--n400);margin-bottom:12px}
+.lp-h2{font-family:var(--font-display);font-size:clamp(26px,3vw,36px);font-weight:400;color:var(--n800);margin-bottom:16px;letter-spacing:-.01em}
+.lp-body{font-size:15.5px;color:var(--ink2);line-height:1.75;margin-bottom:16px}
+.lp-section-alt{background:var(--n050)}
+
+/* ── Stat grid (corridor / currency data points) ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;margin:28px 0}
+.stat-card{background:#fff;border:1px solid rgba(11,25,41,.08);border-radius:var(--r-lg);padding:20px}
+.stat-value{font-family:var(--font-display);font-size:28px;color:var(--n700);margin-bottom:4px}
+.stat-label{font-size:12.5px;color:var(--ink3)}
+
+/* ── Savings calculator widget ── */
+.calc-widget{background:#fff;border:1px solid rgba(11,25,41,.09);border-radius:20px;box-shadow:0 20px 60px rgba(6,13,26,.08);overflow:hidden;max-width:640px;margin:0 auto}
+.calc-head{background:linear-gradient(135deg,var(--n900),var(--n600));padding:24px 28px}
+.calc-head-title{font-family:var(--font-display);font-size:20px;color:#fff;font-weight:400}
+.calc-head-sub{font-size:12.5px;color:rgba(255,255,255,.55);margin-top:4px}
+.calc-body{padding:26px 28px}
+.calc-field{margin-bottom:16px}
+.calc-field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:6px}
+.calc-field input,.calc-field select{width:100%;padding:11px 14px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:var(--font-ui);font-size:15px;color:var(--ink);background:#fff}
+.calc-field input:focus,.calc-field select:focus{outline:none;border-color:var(--n400)}
+.calc-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.calc-submit{width:100%;justify-content:center;margin-top:6px}
+.calc-result{display:none;padding:26px 28px;border-top:1px solid rgba(11,25,41,.07);background:var(--n050)}
+.calc-result.show{display:block}
+.calc-result-headline{font-size:13px;color:var(--ink2);margin-bottom:6px}
+.calc-result-amount{font-family:var(--font-display);font-size:38px;color:var(--success);margin-bottom:4px}
+.calc-result-sub{font-size:12.5px;color:var(--ink3);margin-bottom:20px}
+.calc-breakdown{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;font-size:13.5px}
+.calc-breakdown-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(11,25,41,.06)}
+.calc-breakdown-row.total{font-weight:700;color:var(--ink);border-bottom:none;padding-top:10px;border-top:1.5px solid rgba(11,25,41,.14)}
+.calc-gate{background:#fff;border:1.5px dashed rgba(30,78,128,.25);border-radius:var(--r-md);padding:16px 18px;margin-top:4px}
+.calc-gate-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px}
+.calc-gate-row{display:flex;gap:8px}
+.calc-gate-row input{flex:1}
+.calc-disclaimer{font-size:11px;color:var(--ink3);margin-top:16px;line-height:1.5}
+
+/* ── Comparison table (Vergleich cluster) ── */
+.cmp-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}
+.cmp-table th{background:var(--n050);padding:12px 16px;text-align:left;font-weight:700;color:var(--n800);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid rgba(11,25,41,.1)}
+.cmp-table td{padding:12px 16px;border-bottom:1px solid rgba(11,25,41,.06);color:var(--ink2)}
+.cmp-table td.hp-col{background:rgba(30,78,128,.04);font-weight:600;color:var(--n700)}
+.cmp-check{color:var(--success)}
+.cmp-cross{color:var(--danger)}
+
+/* ── Honesty box — required on every comparison page (§ 6 UWG) ── */
+.honesty-box{background:var(--off);border-left:3px solid var(--gold);border-radius:0 var(--r-md) var(--r-md) 0;padding:22px 26px;margin:32px 0}
+.honesty-box-title{font-size:14px;font-weight:700;color:var(--n800);margin-bottom:8px}
+.honesty-box p{font-size:14px;color:var(--ink2);line-height:1.7}
+
+/* ── CTA banner (footer-of-content section) ── */
+.cta-banner{background:var(--n900);padding:56px clamp(24px,5vw,88px);text-align:center}
+.cta-banner-h{font-family:var(--font-display);font-size:clamp(24px,3vw,32px);color:#fff;margin-bottom:12px}
+.cta-banner-sub{font-size:14.5px;color:rgba(255,255,255,.55);margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto}
+.cta-banner-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* ── Waitlist widget ── */
+.wl-widget{background:#fff;border:1px solid rgba(11,25,41,.09);border-radius:var(--r-lg);padding:24px 26px;max-width:440px;margin:0 auto}
+.wl-row{display:flex;gap:8px}
+.wl-row input{flex:1;padding:11px 14px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:var(--font-ui);font-size:14px}
+.wl-position{display:none;text-align:center;padding:8px 0}
+.wl-position.show{display:block}
+.wl-position-num{font-family:var(--font-display);font-size:34px;color:var(--n600)}
+.wl-referral{font-size:12.5px;color:var(--ink3);margin-top:10px}
+.wl-referral code{background:var(--n050);padding:2px 8px;border-radius:6px;color:var(--n600);font-weight:600}
+
+/* ── Small print / disclaimer strip ── */
+.lp-disclaimer-strip{font-size:11.5px;color:var(--ink3);text-align:center;padding:16px clamp(24px,5vw,88px);border-top:1px solid rgba(11,25,41,.06)}
+
+@media(max-width:640px){
+  .calc-row{grid-template-columns:1fr}
+  .cta-banner-actions{flex-direction:column;align-items:center}
+  .cta-banner-actions .btn{width:100%;max-width:280px;justify-content:center}
+}
