@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zahlungen nach China — Kosten senken mit HansePay</title>
-<meta name="description" content="Grenzüberschreitende Zahlungen nach China zum echten Interbankenkurs, ohne versteckte Aufschläge. Ersparnis in 30 Sekunden berechnen." />
+<title>Zahlungen nach China: CNY oder USD zahlen? — HansePay</title>
+<meta name="description" content="China ist Deutschlands wichtigster Handelspartner. Was Zahlungen an chinesische Lieferanten kosten, wann CNY günstiger ist als USD und wie lange sie dauern." />
 <link rel="canonical" href="https://www.hansepay.de/zahlungen/china" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/tokens.css" />
 <link rel="stylesheet" href="/styles/landing.css" />
+<style>
+.faq-item{border-bottom:1px solid rgba(11,25,41,.08);padding:16px 0}
+.faq-item summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:15px;list-style:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::before{content:'+ ';color:var(--n400);font-weight:700}
+.faq-item[open] summary::before{content:'– '}
+.faq-answer{font-size:14.5px;color:var(--ink2);line-height:1.7;margin-top:10px;padding-left:18px}
+.source-block{background:var(--n050);border-left:3px solid var(--n300);padding:18px 22px;border-radius:0 var(--r-md) var(--r-md) 0;margin-bottom:28px}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,8 +26,35 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "[PLATZHALTER: häufige Frage zum China-Korridor]",
-      "acceptedAnswer": { "@type": "Answer", "text": "[PLATZHALTER: Antwort — Inhalt kommt aus Notion-Freigabe]" }
+      "name": "Ist es günstiger, in CNY statt in USD zu bezahlen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Meistens ja, weil eine Umrechnungsstufe entfällt und Ihr Lieferant keinen Währungspuffer einpreisen muss. Verhandeln Sie den Preis in CNY neu — der Nachlass ist der eigentliche Gewinn, nicht die gesparte Gebühr."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was ist der Unterschied zwischen CNY und CNH?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "CNY ist der Kurs im chinesischen Festlandmarkt, CNH der offshore gehandelte Kurs. Sie liegen nah beieinander, weichen aber ab. Entscheidend ist, dass Ihnen offengelegt wird, welcher Kurs Ihrer Abrechnung zugrunde liegt."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie lange dauert eine Zahlung nach China?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Über klassische Korrespondenzbankwege zwei bis fünf Werktage. Bei uns ist der nächste Werktag der Regelfall, in vielen Fällen ist taggleiche Abwicklung möglich."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Braucht mein Lieferant besondere Angaben, damit die Zahlung gutgeschrieben wird?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Der Empfängername muss exakt mit dem Kontonamen übereinstimmen, und Rechnungs- bzw. Vertragsnummer gehören in den Verwendungszweck. Abweichungen sind der häufigste Grund für Rückfragen und Verzögerungen."
+      }
     }
   ]
 }
@@ -26,7 +62,6 @@
 </head>
 <body>
 
-<!-- Shared site nav — same component the live marketing site uses -->
 <script src="/assets/nav.js"></script>
 
 <section class="lp-hero">
@@ -35,12 +70,8 @@
       <span class="lp-hero-chip-dot"></span>
       Zahlungskorridor · Deutschland → China
     </div>
-    <h1 class="lp-hero-h1">Zahlungen nach China, <em>ohne den Aufschlag Ihrer Bank.</em></h1>
-    <p class="lp-hero-sub">
-      [PLATZHALTER: Korridor-spezifischer Intro-Text — 2–3 Sätze, Inhalt kommt aus der
-      Notion-Freigabe. Sollte den CNY-Korridor konkret ansprechen: typisches Volumen,
-      typische Zahlungsanlässe (Import, Dienstleistungen, Gehälter etc.).]
-    </p>
+    <h1 class="lp-hero-h1">Zahlungen nach <em>China</em> — CNY oder USD?</h1>
+    <div class="lp-hero-sub">China war 2025 mit 251,8 Milliarden Euro Außenhandelsumsatz erneut Deutschlands wichtigster Handelspartner; die Importe stiegen auf 170,6 Milliarden Euro. Die meisten dieser Rechnungen werden in US-Dollar bezahlt — und das ist in vielen Fällen die teurere von zwei Möglichkeiten.</div>
     <div class="lp-hero-actions">
       <a href="#hp-calc" class="btn btn-primary" data-track="hero_primary">Ersparnis berechnen</a>
       <a href="/gespraech/?landing_page=zahlungen/china&cluster=korridor" class="btn btn-ghost-white" data-track="hero_secondary">Gespräch buchen</a>
@@ -50,11 +81,11 @@
 
 <section class="lp-section">
   <div class="lp-section-wide">
-    <div class="lp-section-label">Der CNY-Korridor auf einen Blick</div>
+    <div class="lp-section-label">China-Korridor auf einen Blick</div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-value">[X] %</div><div class="stat-label">[PLATZHALTER: durchschnittlicher Bank-Aufschlag CNY]</div></div>
-      <div class="stat-card"><div class="stat-value">[X] Tage</div><div class="stat-label">[PLATZHALTER: typische Laufzeit per SWIFT]</div></div>
-      <div class="stat-card"><div class="stat-value">[X]</div><div class="stat-label">[PLATZHALTER: Korrespondenzbanken im Standardweg]</div></div>
+      <div class="stat-card"><div class="stat-value">251,8 Mrd. €</div><div class="stat-label">Außenhandel 2025</div></div>
+      <div class="stat-card"><div class="stat-value">170,6 Mrd. €</div><div class="stat-label">deutsche Importe (+8,8 %)</div></div>
+      <div class="stat-card"><div class="stat-value">2 Umrechnungen</div><div class="stat-label">bei Zahlung in USD</div></div>
     </div>
   </div>
 </section>
@@ -63,17 +94,11 @@
   <div class="lp-section-wide">
     <div class="lp-section-label">Rechner</div>
     <h2 class="lp-h2" style="text-align:center;margin-bottom:32px">Was Sie mit HansePay sparen</h2>
-
-    <!--
-      Calculator widget. data-markup is the assumed "other provider" markup
-      for THIS corridor — replace with the real Notion figure per corridor.
-      HANSEPAY_MARKUP itself (the 0.4% placeholder) lives centrally in
-      /assets/calculator.js and must be replaced there before go-live.
-    -->
     <div id="hp-calc"
          data-currency="CNY"
          data-country="China"
-         data-markup="0.024"
+         data-markup="0.025"
+         data-volume-default="3000000"
          data-cluster="korridor"
          data-landing-page="zahlungen/china"></div>
   </div>
@@ -81,15 +106,41 @@
 
 <section class="lp-section">
   <div class="lp-section-narrow">
-    <div class="lp-section-label">Wie es funktioniert</div>
-    <h2 class="lp-h2">[PLATZHALTER: Abschnittsüberschrift]</h2>
-    <p class="lp-body">
-      [PLATZHALTER: Erklärender Textblock — wie HansePay den CNY-Korridor abwickelt,
-      Regulierung (Atrya Technologies SIA, Aufsicht Latvijas Banka, EU-Passporting nach
-      Deutschland), Bearbeitungszeit, unterstützte Zahlungsarten. Rechtlicher Wortlaut
-      zu Lizenz/Aufsicht muss vor Livegang durch Legal freigegeben sein — siehe
-      README.md, offene Freigaben.]
-    </p>
+    <h2 class="lp-h2">Der doppelte Wechselkurs: das teuerste Missverständnis im China-Einkauf</h2>
+    <p class="lp-body">Wenn Sie Ihren chinesischen Lieferanten in US-Dollar bezahlen, wird zweimal umgerechnet: Sie tauschen Euro in Dollar, Ihr Lieferant tauscht Dollar in Renminbi. Beide Male verdient eine Bank am Kurs. Und weil Ihr Lieferant sein Währungsrisiko nicht selbst tragen will, ist ein Puffer bereits im Stückpreis enthalten — Sie zahlen ihn mit, ohne ihn je zu sehen.</p>
+    <p class="lp-body">Die Gegenprobe ist einfach: Fragen Sie nach dem Preis bei Zahlung in CNY. In vielen Fällen liegt er zwei bis drei Prozent unter dem Dollarpreis, weil der Puffer entfällt. Diese Differenz ist größer als fast jede Gebühr, über die Sie mit Ihrer Bank verhandeln könnten.</p>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic">Quelle: Statistisches Bundesamt, Pressemitteilung Nr. 056 vom Februar 2026.</p>
+
+    <h2 class="lp-h2">Onshore und Offshore — warum es zwei Kurse für dieselbe Währung gibt</h2>
+    <p class="lp-body">Der Renminbi wird in zwei Märkten gehandelt: onshore im chinesischen Festland (CNY) und offshore, überwiegend in Hongkong (CNH). Die Kurse laufen dicht beieinander, sind aber nicht identisch. Für Sie ist relevant, welcher der beiden Ihrer Abrechnung zugrunde liegt und ob die Differenz an Sie weitergegeben oder einbehalten wird.</p>
+    <p class="lp-body">Wir weisen den verwendeten Referenzkurs auf jeder Abrechnung aus. Das klingt nach einer Kleinigkeit — bei 3 Millionen Euro Einkaufsvolumen sind zehn Basispunkte Unterschied 3.000 Euro im Jahr.</p>
+
+    <h2 class="lp-h2">Zahlungsziele, Anzahlungen und der Cashflow-Effekt</h2>
+    <p class="lp-body">Im China-Einkauf sind 30 Prozent Anzahlung bei Auftrag und 70 Prozent gegen Kopie des Konnossements üblich. Das bedeutet: Sie gehen zweimal je Bestellung durch den Zahlungsprozess, und bei jeder Zahlung fallen Gebühren und Kursaufschlag erneut an. Wer 60 Bestellungen im Jahr macht, hat 120 Zahlungsvorgänge — das ist der Hebel, den viele unterschätzen.</p>
+
+  </div>
+</section>
+
+<section class="lp-section lp-section-alt">
+  <div class="lp-section-narrow">
+    <div class="lp-section-label">Häufige Fragen</div>
+    <h2 class="lp-h2">Was Unternehmen uns zu China fragen</h2>
+      <details class="faq-item">
+        <summary>Ist es günstiger, in CNY statt in USD zu bezahlen?</summary>
+        <div class="faq-answer">Meistens ja, weil eine Umrechnungsstufe entfällt und Ihr Lieferant keinen Währungspuffer einpreisen muss. Verhandeln Sie den Preis in CNY neu — der Nachlass ist der eigentliche Gewinn, nicht die gesparte Gebühr.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Was ist der Unterschied zwischen CNY und CNH?</summary>
+        <div class="faq-answer">CNY ist der Kurs im chinesischen Festlandmarkt, CNH der offshore gehandelte Kurs. Sie liegen nah beieinander, weichen aber ab. Entscheidend ist, dass Ihnen offengelegt wird, welcher Kurs Ihrer Abrechnung zugrunde liegt.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Wie lange dauert eine Zahlung nach China?</summary>
+        <div class="faq-answer">Über klassische Korrespondenzbankwege zwei bis fünf Werktage. Bei uns ist der nächste Werktag der Regelfall, in vielen Fällen ist taggleiche Abwicklung möglich.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Braucht mein Lieferant besondere Angaben, damit die Zahlung gutgeschrieben wird?</summary>
+        <div class="faq-answer">Der Empfängername muss exakt mit dem Kontonamen übereinstimmen, und Rechnungs- bzw. Vertragsnummer gehören in den Verwendungszweck. Abweichungen sind der häufigste Grund für Rückfragen und Verzögerungen.</div>
+      </details>
   </div>
 </section>
 
@@ -106,10 +157,16 @@
   Alle Berechnungen auf dieser Seite sind Schätzungen auf Basis marktüblicher Konditionen und kein verbindliches Angebot.
 </div>
 
-<!-- Shared site footer -->
-<script src="/assets/footer.js"></script>
+<!--
+  Weiterführende interne Links (aus Notion) — noch nicht als Links gerendert,
+  da die Zielseiten teils noch nicht existieren. Sobald gebaut, hier verlinken:
+  - /waehrungen/eur-cny/
+  - /loesungen/elektronik-handel/
+  - /loesungen/e-commerce-haendler/
+  - /wissen/interbanken-wechselkurs/
+-->
 
-<!-- Landing-page functionality -->
+<script src="/assets/footer.js"></script>
 <script src="/assets/tracking.js"></script>
 <script src="/assets/calculator.js"></script>
 

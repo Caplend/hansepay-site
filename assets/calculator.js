@@ -67,6 +67,7 @@
     var markup     = parseFloat(mount.dataset.markup) || 0.03;
     var cluster    = mount.dataset.cluster || '';
     var landingPage = mount.dataset.landingPage || location.pathname.replace(/^\//, '');
+    var volumeDefault = mount.dataset.volumeDefault || '';
 
     mount.innerHTML =
       '<div class="calc-widget">' +
@@ -99,6 +100,9 @@
       '</div>';
 
     liveFormatDeNumber(qs('#hpc-volume', mount));
+    if (volumeDefault) {
+      qs('#hpc-volume', mount).value = new Intl.NumberFormat('de-DE').format(parseFloat(volumeDefault));
+    }
 
     var lastResult = null;
 

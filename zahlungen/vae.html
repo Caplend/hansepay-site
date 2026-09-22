@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zahlungen in die VAE — Kosten senken mit HansePay</title>
-<meta name="description" content="Grenzüberschreitende Zahlungen in die VAE zum echten Interbankenkurs, ohne versteckte Aufschläge. Ersparnis in 30 Sekunden berechnen." />
+<title>Zahlungen in die VAE: AED ist fest — die Gebühr nicht — HansePay</title>
+<meta name="description" content="Der Dirham ist fest an den US-Dollar gekoppelt. Trotzdem berechnen Banken bei Zahlungen nach Dubai volle Kursaufschläge. Was das kostet und wie Sie es prüfen." />
 <link rel="canonical" href="https://www.hansepay.de/zahlungen/vae" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/tokens.css" />
 <link rel="stylesheet" href="/styles/landing.css" />
+<style>
+.faq-item{border-bottom:1px solid rgba(11,25,41,.08);padding:16px 0}
+.faq-item summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:15px;list-style:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::before{content:'+ ';color:var(--n400);font-weight:700}
+.faq-item[open] summary::before{content:'– '}
+.faq-answer{font-size:14.5px;color:var(--ink2);line-height:1.7;margin-top:10px;padding-left:18px}
+.source-block{background:var(--n050);border-left:3px solid var(--n300);padding:18px 22px;border-radius:0 var(--r-md) var(--r-md) 0;margin-bottom:28px}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,8 +26,35 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "[PLATZHALTER: häufige Frage zum die VAE-Korridor]",
-      "acceptedAnswer": { "@type": "Answer", "text": "[PLATZHALTER: Antwort — Inhalt kommt aus Notion-Freigabe]" }
+      "name": "Warum berechnet meine Bank einen Aufschlag, wenn der Kurs fest ist?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Weil der Aufschlag nicht das Risiko bepreist, sondern die Marge ist. Bei einer gekoppelten Währung ist er besonders gut nachrechenbar — und besonders schwer zu rechtfertigen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Sollen wir in AED oder in USD zahlen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Bei fester Kopplung macht es wirtschaftlich kaum einen Unterschied. Entscheidend ist, wie viele Umrechnungsstufen auf dem Weg liegen und welche Marge jede davon nimmt."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie lange dauert eine Zahlung nach Dubai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In der Regel ein bis zwei Werktage. Verzögerungen kommen fast immer aus Compliance-Rückfragen, nicht aus der technischen Abwicklung."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Was verzögert Zahlungen an Freizonen-Gesellschaften?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Abweichungen zwischen Rechnungssteller, Warenlieferant und Kontoinhaber. Wenn die drei nicht identisch sind, gehört die Erklärung in die Zahlung — nicht in die spätere Rückfrage."
+      }
     }
   ]
 }
@@ -26,21 +62,16 @@
 </head>
 <body>
 
-<!-- Shared site nav — same component the live marketing site uses -->
 <script src="/assets/nav.js"></script>
 
 <section class="lp-hero">
   <div class="lp-hero-inner">
     <div class="lp-hero-chip">
       <span class="lp-hero-chip-dot"></span>
-      Zahlungskorridor · Deutschland → die VAE
+      Zahlungskorridor · Deutschland → VAE
     </div>
-    <h1 class="lp-hero-h1">Zahlungen in die VAE, <em>ohne den Aufschlag Ihrer Bank.</em></h1>
-    <p class="lp-hero-sub">
-      [PLATZHALTER: Korridor-spezifischer Intro-Text — 2–3 Sätze, Inhalt kommt aus der
-      Notion-Freigabe. Sollte den AED-Korridor konkret ansprechen: typisches Volumen,
-      typische Zahlungsanlässe (Import, Dienstleistungen, Gehälter etc.).]
-    </p>
+    <h1 class="lp-hero-h1">Zahlungen in die <em>Vereinigten Arabischen Emirate</em></h1>
+    <div class="lp-hero-sub">Dubai ist für viele deutsche Mittelständler die Drehscheibe ins Asien- und Afrikageschäft: Handelsgesellschaft in der Freizone, Ware aus Asien, Rechnung in Dirham oder Dollar. Die Besonderheit dieses Korridors ist, dass der Wechselkurs faktisch feststeht — und Ihre Bank trotzdem so abrechnet, als wäre er ein Risiko.</div>
     <div class="lp-hero-actions">
       <a href="#hp-calc" class="btn btn-primary" data-track="hero_primary">Ersparnis berechnen</a>
       <a href="/gespraech/?landing_page=zahlungen/vae&cluster=korridor" class="btn btn-ghost-white" data-track="hero_secondary">Gespräch buchen</a>
@@ -50,11 +81,11 @@
 
 <section class="lp-section">
   <div class="lp-section-wide">
-    <div class="lp-section-label">Der AED-Korridor auf einen Blick</div>
+    <div class="lp-section-label">VAE-Korridor auf einen Blick</div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-value">[X] %</div><div class="stat-label">[PLATZHALTER: durchschnittlicher Bank-Aufschlag AED]</div></div>
-      <div class="stat-card"><div class="stat-value">[X] Tage</div><div class="stat-label">[PLATZHALTER: typische Laufzeit per SWIFT]</div></div>
-      <div class="stat-card"><div class="stat-value">[X]</div><div class="stat-label">[PLATZHALTER: Korrespondenzbanken im Standardweg]</div></div>
+      <div class="stat-card"><div class="stat-value">3,6725 AED</div><div class="stat-label">je USD (feste Kopplung)</div></div>
+      <div class="stat-card"><div class="stat-value">0 %</div><div class="stat-label">Wechselkursrisiko AED/USD</div></div>
+      <div class="stat-card"><div class="stat-value">volle Marge</div><div class="stat-label">was Banken trotzdem häufig berechnen</div></div>
     </div>
   </div>
 </section>
@@ -63,17 +94,11 @@
   <div class="lp-section-wide">
     <div class="lp-section-label">Rechner</div>
     <h2 class="lp-h2" style="text-align:center;margin-bottom:32px">Was Sie mit HansePay sparen</h2>
-
-    <!--
-      Calculator widget. data-markup is the assumed "other provider" markup
-      for THIS corridor — replace with the real Notion figure per corridor.
-      HANSEPAY_MARKUP itself (the 0.4% placeholder) lives centrally in
-      /assets/calculator.js and must be replaced there before go-live.
-    -->
     <div id="hp-calc"
          data-currency="AED"
          data-country="VAE"
          data-markup="0.022"
+         data-volume-default="1500000"
          data-cluster="korridor"
          data-landing-page="zahlungen/vae"></div>
   </div>
@@ -81,15 +106,37 @@
 
 <section class="lp-section">
   <div class="lp-section-narrow">
-    <div class="lp-section-label">Wie es funktioniert</div>
-    <h2 class="lp-h2">[PLATZHALTER: Abschnittsüberschrift]</h2>
-    <p class="lp-body">
-      [PLATZHALTER: Erklärender Textblock — wie HansePay den AED-Korridor abwickelt,
-      Regulierung (Atrya Technologies SIA, Aufsicht Latvijas Banka, EU-Passporting nach
-      Deutschland), Bearbeitungszeit, unterstützte Zahlungsarten. Rechtlicher Wortlaut
-      zu Lizenz/Aufsicht muss vor Livegang durch Legal freigegeben sein — siehe
-      README.md, offene Freigaben.]
-    </p>
+    <h2 class="lp-h2">Ein fester Kurs ist kein Argument für eine variable Marge</h2>
+    <p class="lp-body">Der Dirham ist seit Jahrzehnten fest an den US-Dollar gebunden. Eine Bank, die AED handelt, trägt gegenüber dem Dollar praktisch kein Kursrisiko. Der übliche Aufschlag auf den Kurs wird aber genauso berechnet wie bei einer frei schwankenden Währung — er bezahlt hier kein Risiko, sondern schlicht Ihre Unkenntnis über die Kopplung.</p>
+    <p class="lp-body">Prüfen Sie es an Ihrem letzten Beleg: Rechnen Sie Ihren EUR-Betrag über den öffentlichen EUR/USD-Kurs in Dollar und dann mit 3,6725 in Dirham um. Die Differenz zum tatsächlich gutgeschriebenen AED-Betrag ist die Marge. Das ist die einzige Rechnung dieser Art, die Sie ohne Marktdaten selbst nachvollziehen können.</p>
+
+    <h2 class="lp-h2">Freizonen-Gesellschaften, Zwischenhändler und die Compliance-Frage</h2>
+    <p class="lp-body">Zahlungen an Freizonen-Gesellschaften lösen bei deutschen Banken regelmäßig Rückfragen aus — vor allem, wenn die Rechnung von einer anderen Gesellschaft kommt als der Warenlieferant. Das ist kein Vorwurf, sondern Standard in der Geldwäscheprävention. Nur dauert die Klärung bei einer Hausbank oft Tage, weil sie über drei Abteilungen läuft.</p>
+    <p class="lp-body">Wir klären solche Konstellationen einmal im Onboarding — Struktur, wirtschaftlich Berechtigte, typische Zahlungswege — und danach laufen die Zahlungen durch, statt bei jeder Transaktion neu geprüft zu werden.</p>
+
+  </div>
+</section>
+
+<section class="lp-section lp-section-alt">
+  <div class="lp-section-narrow">
+    <div class="lp-section-label">Häufige Fragen</div>
+    <h2 class="lp-h2">Was Unternehmen uns zu VAE fragen</h2>
+      <details class="faq-item">
+        <summary>Warum berechnet meine Bank einen Aufschlag, wenn der Kurs fest ist?</summary>
+        <div class="faq-answer">Weil der Aufschlag nicht das Risiko bepreist, sondern die Marge ist. Bei einer gekoppelten Währung ist er besonders gut nachrechenbar — und besonders schwer zu rechtfertigen.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Sollen wir in AED oder in USD zahlen?</summary>
+        <div class="faq-answer">Bei fester Kopplung macht es wirtschaftlich kaum einen Unterschied. Entscheidend ist, wie viele Umrechnungsstufen auf dem Weg liegen und welche Marge jede davon nimmt.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Wie lange dauert eine Zahlung nach Dubai?</summary>
+        <div class="faq-answer">In der Regel ein bis zwei Werktage. Verzögerungen kommen fast immer aus Compliance-Rückfragen, nicht aus der technischen Abwicklung.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Was verzögert Zahlungen an Freizonen-Gesellschaften?</summary>
+        <div class="faq-answer">Abweichungen zwischen Rechnungssteller, Warenlieferant und Kontoinhaber. Wenn die drei nicht identisch sind, gehört die Erklärung in die Zahlung — nicht in die spätere Rückfrage.</div>
+      </details>
   </div>
 </section>
 
@@ -106,10 +153,16 @@
   Alle Berechnungen auf dieser Seite sind Schätzungen auf Basis marktüblicher Konditionen und kein verbindliches Angebot.
 </div>
 
-<!-- Shared site footer -->
-<script src="/assets/footer.js"></script>
+<!--
+  Weiterführende interne Links (aus Notion) — noch nicht als Links gerendert,
+  da die Zielseiten teils noch nicht existieren. Sobald gebaut, hier verlinken:
+  - /waehrungen/eur-aed/
+  - /loesungen/logistik-spedition/
+  - /wissen/kyb-onboarding/
+  - /zahlungen/indien/
+-->
 
-<!-- Landing-page functionality -->
+<script src="/assets/footer.js"></script>
 <script src="/assets/tracking.js"></script>
 <script src="/assets/calculator.js"></script>
 
