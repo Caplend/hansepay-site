@@ -663,6 +663,27 @@ a { color: inherit; text-decoration: none; }
 
     </div>
 
+    <!-- Landing Pages Performance: per-page growth metrics from the Notion ops spec -->
+    <div class="chart-card-title" style="margin-bottom:2px">Landing Pages Performance</div>
+    <p class="section-lead">Per-page funnel for the programmatic landing pages — calculator confirm rate is the quality signal to watch (target &gt;25%); a dropping avg. saving potential means the wrong companies are arriving.</p>
+    <div class="table-card" style="margin-bottom:20px">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th style="text-align:right;">Rechner</th>
+            <th style="text-align:right;">Bestätigt</th>
+            <th style="text-align:right;">⌀ Ersparnis</th>
+            <th style="text-align:right;">Warteliste</th>
+            <th style="text-align:right;">Referral %</th>
+          </tr>
+        </thead>
+        <tbody id="landing-pages-body">
+          <tr><td colspan="6" class="loading-cell">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Bottom 2-col grid -->
     <div class="bottom-grid">
 
@@ -985,6 +1006,34 @@ authFetch('/api/analytics/summary')
   })
   .catch(function(err) {
     console.error('Analytics fetch error', err);
+  });
+
+// Load landing pages performance (separate endpoint — per-page growth funnel)
+authFetch('/api/analytics/landing-pages')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var rows = (data && data.rows) || [];
+    var tbody = document.getElementById('landing-pages-body');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No landing page activity yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function(r) {
+      var pageLabel = r.landingPage.replace(/\/$/, '');
+      return '<tr>' +
+        '<td class="path-cell" title="' + pageLabel + '">' + pageLabel + '</td>' +
+        '<td class="count-cell">' + formatNumber(r.calcSubmissions) + '</td>' +
+        '<td class="count-cell">' + r.calcConfirmRate + '%</td>' +
+        '<td class="count-cell">€' + formatNumber(r.avgSavingPotential) + '</td>' +
+        '<td class="count-cell">' + formatNumber(r.waitlistSignups) + '</td>' +
+        '<td class="count-cell">' + r.waitlistReferralRate + '%</td>' +
+      '</tr>';
+    }).join('');
+  })
+  .catch(function(err) {
+    console.error('Landing pages analytics fetch error', err);
+    var tbody = document.getElementById('landing-pages-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Could not load.</td></tr>';
   });
 </script>
 </body>

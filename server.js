@@ -199,7 +199,7 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   // Skip: API, admin panel, static assets, uploads, and legal pages
   const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/', '/styles/',
-                        '/zahlungen/', '/hansepay/zahlungen/',
+                        '/zahlungen/', '/hansepay/zahlungen/', '/datenschutz/', '/hansepay/datenschutz/',
                         '/internal-416309417146/', '/hansepay/internal-416309417146/',
                         '/internal-716596047071/', '/hansepay/internal-716596047071/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
@@ -1264,6 +1264,50 @@ app.post('/api/analytics/event', async (req, res) => {
     });
   } catch (err) { console.error('[analytics] event error:', err.message); }
 });
+
+// GET /api/analytics/landing-pages — per-page rollup for the growth dashboard:
+// visits, calculator submissions + confirm rate, waitlist signups + referral
+// rate, and average saving potential (a quality signal per the ops doc).
+app.get('/api/analytics/landing-pages', authenticateToken, async (req, res) => {
+  const [pageviews, calcSummary, waitlistSummary] = await Promise.all([
+    analyticsRepo.listAll(),
+    calculatorLeadsRepo.summaryByLandingPage(),
+    waitlistRepo.summaryByLandingPage(),
+  ]);
+
+  const visitsByPage = {};
+  const bookCallsByPage = {};
+  pageviews.forEach(e => {
+    if (e.type === 'pageview' && e.page) visitsByPage[e.page] = (visitsByPage[e.page] || 0) + 1;
+    if (e.type === 'book_call' && e.data && e.data.landing_page) {
+      bookCallsByPage[e.data.landing_page] = (bookCallsByPage[e.data.landing_page] || 0) + 1;
+    }
+  });
+
+  const allPages = new Set([
+    ...calcSummary.map(c => c.landingPage),
+    ...waitlistSummary.map(w => w.landingPage),
+  ]);
+
+  const rows = Array.from(allPages).map(page => {
+    const calc = calcSummary.find(c => c.landingPage === page) || {};
+    const wl = waitlistSummary.find(w => w.landingPage === page) || {};
+    return {
+      landingPage: page,
+      visits: visitsByPage['/' + page] || visitsByPage[page] || 0,
+      calcSubmissions: calc.submissions || 0,
+      calcConfirmRate: calc.confirmRate || 0,
+      avgSavingPotential: calc.avgSaving || 0,
+      founderOutboundCount: calc.founderOutboundCount || 0,
+      waitlistSignups: wl.signups || 0,
+      waitlistReferralRate: wl.referralRate || 0,
+      bookedCalls: bookCallsByPage[page] || 0,
+    };
+  }).sort((a, b) => (b.calcSubmissions + b.waitlistSignups) - (a.calcSubmissions + a.waitlistSignups));
+
+  res.json({ rows });
+});
+
 
 app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
   const analytics  = await analyticsRepo.listAll();
