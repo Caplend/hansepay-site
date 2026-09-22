@@ -30,6 +30,29 @@
   function fmtEUR(n) {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
   }
+  // Accepts German-formatted input ("1.200.000", "1.200.000,50", or plain
+  // "1200000") and returns a JS number. Strips thousands separators (.),
+  // then turns the decimal comma into a period for parseFloat.
+  function parseDeNumber(str) {
+    if (!str) return NaN;
+    var cleaned = String(str).trim().replace(/\./g, '').replace(',', '.');
+    return parseFloat(cleaned);
+  }
+  // Live thousands-separator formatting as the user types, German style.
+  // Only touches the integer part — a typed comma + digits (decimals) is
+  // left alone so the user can keep typing fractional cents naturally.
+  function liveFormatDeNumber(input) {
+    input.addEventListener('input', function () {
+      var caretFromEnd = input.value.length - input.selectionStart;
+      var raw = input.value.replace(/[^0-9,]/g, '');
+      var parts = raw.split(',');
+      var intPart = parts[0].replace(/^0+(?=\d)/, '');
+      var formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      input.value = parts.length > 1 ? formattedInt + ',' + parts[1] : formattedInt;
+      var pos = Math.max(0, input.value.length - caretFromEnd);
+      input.setSelectionRange(pos, pos);
+    });
+  }
   function track(event, data) {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(Object.assign({ event: event }, data || {}));
@@ -53,8 +76,8 @@
         '</div>' +
         '<div class="calc-body">' +
           '<div class="calc-row">' +
-            '<div class="calc-field"><label>Jahresvolumen (EUR)</label><input type="number" id="hpc-volume" min="0" step="1000" placeholder="z. B. 1200000" inputmode="numeric"></div>' +
-            '<div class="calc-field"><label>Zahlungen pro Jahr</label><input type="number" id="hpc-count" min="1" step="1" placeholder="z. B. 48" inputmode="numeric"></div>' +
+            '<div class="calc-field"><label>Jahresvolumen (EUR)</label><input type="text" id="hpc-volume" placeholder="z. B. 1.200.000" inputmode="decimal"></div>' +
+            '<div class="calc-field"><label>Zahlungen pro Jahr</label><input type="text" id="hpc-count" placeholder="z. B. 48" inputmode="numeric"></div>' +
           '</div>' +
           '<button class="btn btn-primary calc-submit" id="hpc-submit">Jetzt berechnen</button>' +
         '</div>' +
@@ -75,11 +98,13 @@
         '</div>' +
       '</div>';
 
+    liveFormatDeNumber(qs('#hpc-volume', mount));
+
     var lastResult = null;
 
     function calculate() {
-      var volume = parseFloat(qs('#hpc-volume', mount).value) || 0;
-      var count  = parseInt(qs('#hpc-count', mount).value, 10) || 0;
+      var volume = parseDeNumber(qs('#hpc-volume', mount).value) || 0;
+      var count  = parseInt(qs('#hpc-count', mount).value.replace(/\D/g, ''), 10) || 0;
       if (volume <= 0 || count <= 0) return;
 
       var fxMarkupCost   = volume * markup;
