@@ -27,6 +27,10 @@ const transactionsRepo = require('./lib/repositories/transactions');
 const analyticsRepo = require('./lib/repositories/analyticsEvents');
 const waitlistRepo = require('./lib/repositories/waitlist');
 const notificationsRepo = require('./lib/repositories/notifications');
+const calculatorLeadsRepo = require('./lib/repositories/calculatorLeads');
+const { isFreemailer } = require('./lib/freemailers');
+const { checkRateLimit } = require('./lib/rate-limit');
+const calculatorPdf = (() => { try { return require('./lib/calculator-pdf'); } catch(e) { console.error('[calculator-pdf] module load failed:', e.message); return null; } })();
 const tasksRepo = require('./lib/repositories/tasks');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -3859,21 +3863,196 @@ app.get('/api/email/otp/verify', (req, res) => {
   res.json({ valid: true });
 });
 
-// ─── Waitlist — public capture on the coming-soon page ───────────────────────
+// ─── Savings calculator — public lead capture on the landing pages ───────────
 
-// POST /api/waitlist — public. Body: { email, name?, lang? }. Idempotent by email.
+// Lead-routing thresholds (annual saving, EUR). Agreed 2026-09-22:
+// >15k → Founder-Outbound (instant notification); 5k–15k → Nurture;
+// everything else (including the un-specced 2k–5k band) → Newsletter.
+function calculatorTier(saving) {
+  if (saving > 15000) return 'founder-outbound';
+  if (saving >= 5000) return 'nurture';
+  return 'newsletter';
+}
+
+const CALC_BASE_FEE = 25;       // € per payment
+const CALC_CORR_BANK_FEE = 40;  // € per payment
+const HANSEPAY_MARKUP = 0.004;  // ⚠️ PLACEHOLDER — replace with the real condition before go-live.
+                                 // Must match HANSEPAY_MARKUP in hansepay-landing-pages/assets/calculator.js
+                                 // (that copy drives the instant on-page result; this one is what actually
+                                 // gets stored/routed) — update BOTH or the on-page number and the emailed
+                                 // PDF will disagree.
+
+// POST /api/lead/calculator — public. Re-derives the result server-side from
+// {volume, count, markup} rather than trusting the client's numbers, so a
+// spoofed `saving` can't be used to fake a route to Founder-Outbound.
+app.post('/api/lead/calculator', async (req, res) => {
+  const ip = clientIp(req);
+  const { blocked } = checkRateLimit('calc:' + ip, 5, 60 * 60 * 1000);
+  if (blocked) return res.status(429).json({ error: 'Too many submissions. Please try again later.' });
+
+  const { email, result, attribution } = req.body || {};
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+  const volume = parseFloat(result && result.volume);
+  const count = parseInt(result && result.count, 10);
+  const markup = parseFloat(result && result.markup);
+  if (!(volume > 0) || !(count > 0) || !(markup >= 0)) {
+    return res.status(400).json({ error: 'Invalid calculation input.' });
+  }
+
+  const fxMarkupCost = volume * markup;
+  const baseFees = CALC_BASE_FEE * count;
+  const corrBankFees = CALC_CORR_BANK_FEE * count;
+  const currentCost = Math.round(fxMarkupCost + baseFees + corrBankFees);
+  const hansepayCost = Math.round(volume * HANSEPAY_MARKUP);
+  const saving = Math.max(0, currentCost - hansepayCost);
+  const tier = calculatorTier(saving);
+  const verified = !isFreemailer(email);
+  const attr = attribution || {};
+
+  try {
+    let customer = await customersRepo.findByEmail(email.toLowerCase().trim());
+    const notesLines = [
+      `Rechner-Anfrage (${attr.landing_page || 'unbekannte Seite'})`,
+      `Volumen: €${volume.toLocaleString('de-DE')} · ${count} Zahlungen/Jahr · Aufschlag ${(markup*100).toFixed(2)}%`,
+      `Aktuelle Kosten (geschätzt): €${currentCost.toLocaleString('de-DE')} · HansePay: €${hansepayCost.toLocaleString('de-DE')} · Ersparnis: €${saving.toLocaleString('de-DE')}`,
+    ].join('\n');
+
+    if (!customer) {
+      customer = await customersRepo.create({
+        email: email.toLowerCase().trim(),
+        company: attr.company || '',
+        country: result.country || '',
+        currencyPairs: result.currency || '',
+        source: 'calculator',
+        tags: [tier, verified ? 'company-verified' : 'not-company-verified'],
+        estValueEur: saving,
+        notes: notesLines,
+        stage: 'lead',
+      });
+    }
+
+    const lead = await calculatorLeadsRepo.create({
+      customerId: customer.id, email: email.toLowerCase().trim(), currency: result.currency,
+      country: result.country, volume, count, markup, currentCost, hansepayCost, saving, tier,
+      companyVerified: verified, landingPage: attr.landing_page, cluster: attr.cluster,
+      utmSource: attr.utm_source, utmMedium: attr.utm_medium, utmCampaign: attr.utm_campaign, ref: attr.ref,
+    });
+
+    if (tier === 'founder-outbound') {
+      await notificationsRepo.create({
+        id: 'notif_' + uuidv4().replace(/-/g, '').substring(0, 10),
+        type: 'hot-lead',
+        title: `🔥 Hoher Ersparnispotenzial-Lead: €${saving.toLocaleString('de-DE')}/Jahr`,
+        body: `${email} · ${result.country || ''} · ${attr.landing_page || ''}`,
+        link: `/hansepay/admin/crm.html?customer=${customer.id}`,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    if (mailer) {
+      const confirmUrl = `${req.protocol}://${req.get('host')}/api/lead/calculator/confirm/${lead.confirmToken}`;
+      const mail = mailer.renderCalculatorConfirmEmail({ toEmail: email, result: { saving }, confirmUrl, lang: 'de' });
+      mailer.sendMail(mail).catch(err => console.error('[lead/calculator] confirm email failed:', err.message));
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[lead/calculator] error:', err.message);
+    res.status(500).json({ error: 'Could not save. Please try again.' });
+  }
+});
+
+// GET /api/lead/calculator/confirm/:token — double opt-in confirmation.
+// Marks confirmed, emails the PDF link, and shows a simple thank-you page.
+app.get('/api/lead/calculator/confirm/:token', async (req, res) => {
+  const lead = await calculatorLeadsRepo.confirmByToken(req.params.token);
+  if (!lead) return res.status(404).send('<h1>Link ungültig oder abgelaufen.</h1>');
+
+  if (mailer) {
+    const pdfUrl = `${req.protocol}://${req.get('host')}/api/lead/calculator/${lead.id}/pdf`;
+    const mail = mailer.renderCalculatorPdfReadyEmail({ toEmail: lead.email, result: { saving: lead.saving }, pdfUrl, lang: 'de' });
+    mailer.sendMail(mail).catch(err => console.error('[lead/calculator] pdf-ready email failed:', err.message));
+  }
+
+  res.send(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Bestätigt — HansePay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>body{font-family:-apple-system,sans-serif;background:#F5F1EA;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
+    .box{background:#fff;border-radius:16px;padding:40px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(6,13,26,.12)}
+    h1{font-size:20px;color:#0B1929}p{color:#3D5A73;font-size:14px;line-height:1.6}
+    a{display:inline-block;margin-top:16px;background:#0B1929;color:#fff;text-decoration:none;padding:12px 26px;border-radius:100px;font-size:14px;font-weight:600}</style>
+    </head><body><div class="box"><h1>E-Mail bestätigt ✓</h1>
+    <p>Wir haben Ihnen die vollständige Aufschlüsselung als PDF per E-Mail gesendet.</p>
+    <a href="/api/lead/calculator/${lead.id}/pdf">PDF direkt herunterladen</a>
+    </div></body></html>`);
+});
+
+// GET /api/lead/calculator/:id/pdf — only servable once the lead has confirmed.
+app.get('/api/lead/calculator/:id/pdf', async (req, res) => {
+  if (!calculatorPdf) return res.status(503).json({ error: 'PDF service unavailable' });
+  const lead = await calculatorLeadsRepo.findById(req.params.id);
+  if (!lead) return res.status(404).json({ error: 'Not found' });
+  if (!lead.confirmedAt) return res.status(403).json({ error: 'Please confirm your email first.' });
+  try {
+    calculatorPdf.generateCalculatorPdf(lead, res);
+    calculatorLeadsRepo.markPdfSent(lead.id).catch(() => {});
+  } catch (err) {
+    console.error('[lead/calculator/pdf] error:', err.message);
+    if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
+  }
+});
+
+// ─── Waitlist — public capture on the coming-soon page AND the landing pages ─
+
+// POST /api/waitlist — public. Body: { email, name?, company?, lang?, ref?,
+// landing_page?, utm_source?, utm_medium?, utm_campaign? }. Idempotent by
+// email. Position is assigned immediately; referral credit only applies once
+// the REFERRED signup double-opt-in confirms (see /confirm/:token below).
 app.post('/api/waitlist', async (req, res) => {
-  const { email, name, lang } = req.body || {};
+  const ip = clientIp(req);
+  const { blocked } = checkRateLimit('waitlist:' + ip, 5, 60 * 60 * 1000);
+  if (blocked) return res.status(429).json({ error: 'Too many submissions. Please try again later.' });
+
+  const { email, name, company, lang, ref, landing_page, utm_source, utm_medium, utm_campaign } = req.body || {};
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Valid email is required' });
   }
   try {
-    await waitlistRepo.upsert({ email, name, lang, source: 'coming-soon' });
-    res.json({ ok: true });
+    const entry = await waitlistRepo.upsert({
+      email, name, company, lang, source: landing_page ? 'landing-page' : 'coming-soon',
+      referredBy: ref || undefined, landingPage: landing_page, utmSource: utm_source,
+      utmMedium: utm_medium, utmCampaign: utm_campaign, companyVerified: !isFreemailer(email),
+    });
+
+    if (mailer && !entry.confirmedAt) {
+      const confirmUrl = `${req.protocol}://${req.get('host')}/api/waitlist/confirm/${entry.confirmToken}`;
+      const mail = mailer.renderWaitlistConfirmEmail({
+        toEmail: email, position: entry.displayPosition, referralCode: entry.referralCode, confirmUrl, lang: lang === 'en' ? 'en' : 'de',
+      });
+      mailer.sendMail(mail).catch(err => console.error('[waitlist] confirm email failed:', err.message));
+    }
+
+    res.json({ position: entry.displayPosition, referral_code: entry.referralCode, referrals: entry.referralCredits });
   } catch (err) {
     console.error('[waitlist] save error:', err.message);
     res.status(500).json({ error: 'Could not save. Please try again.' });
   }
+});
+
+// GET /api/waitlist/confirm/:token — double opt-in. If this signup was
+// referred, credits the referrer 25 spots forward (never before this point).
+app.get('/api/waitlist/confirm/:token', async (req, res) => {
+  const result = await waitlistRepo.confirmByToken(req.params.token);
+  if (!result) return res.status(404).send('<h1>Link ungültig oder abgelaufen.</h1>');
+  res.send(`<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Bestätigt — HansePay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>body{font-family:-apple-system,sans-serif;background:#F5F1EA;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
+    .box{background:#fff;border-radius:16px;padding:40px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(6,13,26,.12)}
+    h1{font-size:20px;color:#0B1929}p{color:#3D5A73;font-size:14px;line-height:1.6}</style>
+    </head><body><div class="box"><h1>Platz gesichert ✓</h1>
+    <p>Sie sind jetzt auf Platz #${result.entry.displayPosition} der Warteliste. Wir melden uns, sobald es losgeht.</p>
+    </div></body></html>`);
 });
 
 // GET /api/waitlist — admin only, list all entries
