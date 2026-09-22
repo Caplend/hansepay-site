@@ -311,15 +311,63 @@ CREATE TABLE IF NOT EXISTS email_templates (
 -- 16. waitlist — public "join the waitlist" capture on the coming-soon page.
 -- Emailed in bulk once the product launches; notified_at tracks whether that's happened.
 CREATE TABLE IF NOT EXISTS waitlist (
-  id           VARCHAR(32)   NOT NULL PRIMARY KEY,
-  email        VARCHAR(255)  NOT NULL,
-  name         VARCHAR(255)  NULL,
-  lang         VARCHAR(8)    NOT NULL DEFAULT 'en',
-  source       VARCHAR(64)   NOT NULL DEFAULT 'coming-soon',
-  created_at   DATETIME(3)   NOT NULL,
-  notified_at  DATETIME(3)   NULL,
+  id                VARCHAR(32)   NOT NULL PRIMARY KEY,
+  email             VARCHAR(255)  NOT NULL,
+  name              VARCHAR(255)  NULL,
+  company           VARCHAR(255)  NULL,
+  lang              VARCHAR(8)    NOT NULL DEFAULT 'en',
+  source            VARCHAR(64)   NOT NULL DEFAULT 'coming-soon',
+  position          INT           NULL,
+  referral_code     VARCHAR(8)    NULL,
+  referred_by       VARCHAR(8)    NULL,
+  referral_credits  INT           NOT NULL DEFAULT 0,
+  landing_page      VARCHAR(255)  NULL,
+  utm_source        VARCHAR(128)  NULL,
+  utm_medium        VARCHAR(128)  NULL,
+  utm_campaign      VARCHAR(128)  NULL,
+  calculator_result JSON          NULL,
+  company_verified  TINYINT(1)    NOT NULL DEFAULT 1,
+  confirm_token     VARCHAR(64)   NULL,
+  confirmed_at      DATETIME(3)   NULL,
+  created_at        DATETIME(3)   NOT NULL,
+  notified_at       DATETIME(3)   NULL,
   UNIQUE KEY uq_waitlist_email (email),
-  KEY idx_waitlist_created_at (created_at)
+  UNIQUE KEY uq_waitlist_referral_code (referral_code),
+  KEY idx_waitlist_created_at (created_at),
+  KEY idx_waitlist_referred_by (referred_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 23. calculator_leads — every savings-calculator submission, independent of
+-- whether the CRM customer record created alongside it later closes. Tracks
+-- the double-opt-in / PDF-delivery lifecycle for this specific form.
+CREATE TABLE IF NOT EXISTS calculator_leads (
+  id              VARCHAR(32)   NOT NULL PRIMARY KEY,
+  customer_id     VARCHAR(32)   NULL,
+  email           VARCHAR(255)  NOT NULL,
+  currency        VARCHAR(8)    NULL,
+  country         VARCHAR(128)  NULL,
+  volume          DECIMAL(14,2) NOT NULL DEFAULT 0,
+  payment_count   INT           NOT NULL DEFAULT 0,
+  markup          DECIMAL(6,4)  NOT NULL DEFAULT 0,
+  current_cost    DECIMAL(14,2) NOT NULL DEFAULT 0,
+  hansepay_cost   DECIMAL(14,2) NOT NULL DEFAULT 0,
+  saving          DECIMAL(14,2) NOT NULL DEFAULT 0,
+  tier            ENUM('founder-outbound','nurture','newsletter') NOT NULL,
+  company_verified TINYINT(1)   NOT NULL DEFAULT 1,
+  landing_page    VARCHAR(255)  NULL,
+  cluster         VARCHAR(64)   NULL,
+  utm_source      VARCHAR(128)  NULL,
+  utm_medium      VARCHAR(128)  NULL,
+  utm_campaign    VARCHAR(128)  NULL,
+  ref             VARCHAR(8)    NULL,
+  confirm_token   VARCHAR(64)   NULL,
+  confirmed_at    DATETIME(3)   NULL,
+  pdf_sent_at     DATETIME(3)   NULL,
+  created_at      DATETIME(3)   NOT NULL,
+  KEY idx_calc_leads_email (email),
+  KEY idx_calc_leads_customer (customer_id),
+  KEY idx_calc_leads_created (created_at),
+  CONSTRAINT fk_calc_leads_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 18. content_drafts (AI-generated landing-page copy from the Content Engine)
