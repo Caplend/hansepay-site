@@ -31,6 +31,8 @@ const calculatorLeadsRepo = require('./lib/repositories/calculatorLeads');
 const { isFreemailer } = require('./lib/freemailers');
 const { checkRateLimit } = require('./lib/rate-limit');
 const calculatorPdf = (() => { try { return require('./lib/calculator-pdf'); } catch(e) { console.error('[calculator-pdf] module load failed:', e.message); return null; } })();
+const benchmarkReportPdf = (() => { try { return require('./lib/benchmark-report-pdf'); } catch(e) { console.error('[benchmark-report-pdf] module load failed:', e.message); return null; } })();
+const { BENCHMARK_REPORTS } = require('./lib/benchmark-report-data');
 const tasksRepo = require('./lib/repositories/tasks');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -4045,6 +4047,21 @@ app.get('/api/lead/calculator/:id/pdf', async (req, res) => {
   } catch (err) {
     console.error('[lead/calculator/pdf] error:', err.message);
     if (!res.headersSent) res.status(500).json({ error: 'PDF generation failed' });
+  }
+});
+
+// GET /zahlungen/:slug/benchmark-report.pdf — PUBLIC, no auth, no email gate.
+// Citable reference document per corridor; every page links back to the
+// source landing page so citations convert instead of dead-ending in a PDF.
+app.get('/zahlungen/:slug/benchmark-report.pdf', (req, res) => {
+  if (!benchmarkReportPdf) return res.status(503).send('PDF service unavailable');
+  const report = BENCHMARK_REPORTS[req.params.slug];
+  if (!report) return res.status(404).send('Not found');
+  try {
+    benchmarkReportPdf.generateBenchmarkReportPdf(report, res);
+  } catch (err) {
+    console.error('[benchmark-report-pdf] error:', err.message);
+    if (!res.headersSent) res.status(500).send('PDF generation failed');
   }
 });
 
