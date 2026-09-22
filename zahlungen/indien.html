@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zahlungen nach Indien — Kosten senken mit HansePay</title>
-<meta name="description" content="Grenzüberschreitende Zahlungen nach Indien zum echten Interbankenkurs, ohne versteckte Aufschläge. Ersparnis in 30 Sekunden berechnen." />
+<title>Zahlungen nach Indien: Kosten, Dauer, Unterlagen — HansePay</title>
+<meta name="description" content="Was deutsche Unternehmen bei Zahlungen an indische Lieferanten wirklich zahlen — Wechselkurs-Aufschlag, Fremdspesen, Laufzeit. Mit Ersparnisrechner für EUR/INR." />
 <link rel="canonical" href="https://www.hansepay.de/zahlungen/indien" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/tokens.css" />
 <link rel="stylesheet" href="/styles/landing.css" />
+<style>
+.faq-item{border-bottom:1px solid rgba(11,25,41,.08);padding:16px 0}
+.faq-item summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:15px;list-style:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::before{content:'+ ';color:var(--n400);font-weight:700}
+.faq-item[open] summary::before{content:'– '}
+.faq-answer{font-size:14.5px;color:var(--ink2);line-height:1.7;margin-top:10px;padding-left:18px}
+.source-block{background:var(--n050);border-left:3px solid var(--n300);padding:18px 22px;border-radius:0 var(--r-md) var(--r-md) 0;margin-bottom:28px}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,8 +26,35 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "[PLATZHALTER: häufige Frage zum Indien-Korridor]",
-      "acceptedAnswer": { "@type": "Answer", "text": "[PLATZHALTER: Antwort — Inhalt kommt aus Notion-Freigabe]" }
+      "name": "Kann ich meinen indischen Lieferanten direkt in Rupien bezahlen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja — die Umrechnung findet dann bei Gutschrift in Indien statt. Für Sie hat das den Vorteil, dass der Betrag in INR feststeht und Ihr Lieferant keinen eigenen Währungspuffer in den Preis einrechnen muss. Viele Einkäufer holen sich auf diesem Weg zwei bis drei Prozent Nachlass auf den Warenpreis."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie lange dauert eine Zahlung nach Indien?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Über klassische SWIFT-Wege in der Regel zwei bis fünf Werktage, bei zusätzlichen Compliance-Prüfungen auch länger. Über HansePay ist Same-Day- oder Next-Day-Abwicklung der Regelfall."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Warum weicht der Kurs meiner Bank vom Kurs bei Google ab?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Google zeigt den Interbanken-Kurs — den Preis, zu dem Banken untereinander handeln. Ihre Bank rechnet mit einem Aufschlag darauf. Dieser Aufschlag ist die eigentliche Gebühr und wird selten separat ausgewiesen."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Brauche ich für Zahlungen nach Indien besondere Unterlagen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Auf deutscher Seite reichen Rechnung und Vertragsbezug. Die Dokumentationspflicht liegt bei der Empfängerbank in Indien, die den Zahlungszweck zuordnen muss. Wir prüfen den Verwendungszweck vor dem Versand mit Ihnen durch."
+      }
     }
   ]
 }
@@ -26,7 +62,6 @@
 </head>
 <body>
 
-<!-- Shared site nav — same component the live marketing site uses -->
 <script src="/assets/nav.js"></script>
 
 <section class="lp-hero">
@@ -35,12 +70,8 @@
       <span class="lp-hero-chip-dot"></span>
       Zahlungskorridor · Deutschland → Indien
     </div>
-    <h1 class="lp-hero-h1">Zahlungen nach Indien, <em>ohne den Aufschlag Ihrer Bank.</em></h1>
-    <p class="lp-hero-sub">
-      [PLATZHALTER: Korridor-spezifischer Intro-Text — 2–3 Sätze, Inhalt kommt aus der
-      Notion-Freigabe. Sollte den INR-Korridor konkret ansprechen: typisches Volumen,
-      typische Zahlungsanlässe (Import, Dienstleistungen, Gehälter etc.).]
-    </p>
+    <h1 class="lp-hero-h1">Zahlungen nach <em>Indien</em> — für deutsche Unternehmen</h1>
+    <div class="lp-hero-sub">Der deutsch-indische Warenhandel lag 2025 bei 35,4 Milliarden US-Dollar, die deutschen Importe aus Indien wuchsen um 12,5 Prozent. Bezahlt wird dieser Handel überwiegend über Korrespondenzbanken — und genau dort entsteht der Teil der Kosten, den keine Rechnung ausweist.</div>
     <div class="lp-hero-actions">
       <a href="#hp-calc" class="btn btn-primary" data-track="hero_primary">Ersparnis berechnen</a>
       <a href="/gespraech/?landing_page=zahlungen/indien&cluster=korridor" class="btn btn-ghost-white" data-track="hero_secondary">Gespräch buchen</a>
@@ -50,11 +81,11 @@
 
 <section class="lp-section">
   <div class="lp-section-wide">
-    <div class="lp-section-label">Der INR-Korridor auf einen Blick</div>
+    <div class="lp-section-label">Indien-Korridor auf einen Blick</div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-value">[X] %</div><div class="stat-label">[PLATZHALTER: durchschnittlicher Bank-Aufschlag INR]</div></div>
-      <div class="stat-card"><div class="stat-value">[X] Tage</div><div class="stat-label">[PLATZHALTER: typische Laufzeit per SWIFT]</div></div>
-      <div class="stat-card"><div class="stat-value">[X]</div><div class="stat-label">[PLATZHALTER: Korrespondenzbanken im Standardweg]</div></div>
+      <div class="stat-card"><div class="stat-value">35,4 Mrd. USD</div><div class="stat-label">deutsch-indischer Warenhandel 2025</div></div>
+      <div class="stat-card"><div class="stat-value">+12,5 %</div><div class="stat-label">Wachstum deutscher Importe</div></div>
+      <div class="stat-card"><div class="stat-value">2–5 Werktage</div><div class="stat-label">übliche SWIFT-Laufzeit</div></div>
     </div>
   </div>
 </section>
@@ -63,17 +94,11 @@
   <div class="lp-section-wide">
     <div class="lp-section-label">Rechner</div>
     <h2 class="lp-h2" style="text-align:center;margin-bottom:32px">Was Sie mit HansePay sparen</h2>
-
-    <!--
-      Calculator widget. data-markup is the assumed "other provider" markup
-      for THIS corridor — replace with the real Notion figure per corridor.
-      HANSEPAY_MARKUP itself (the 0.4% placeholder) lives centrally in
-      /assets/calculator.js and must be replaced there before go-live.
-    -->
     <div id="hp-calc"
          data-currency="INR"
          data-country="Indien"
          data-markup="0.028"
+         data-volume-default="1200000"
          data-cluster="korridor"
          data-landing-page="zahlungen/indien"></div>
   </div>
@@ -81,15 +106,42 @@
 
 <section class="lp-section">
   <div class="lp-section-narrow">
-    <div class="lp-section-label">Wie es funktioniert</div>
-    <h2 class="lp-h2">[PLATZHALTER: Abschnittsüberschrift]</h2>
-    <p class="lp-body">
-      [PLATZHALTER: Erklärender Textblock — wie HansePay den INR-Korridor abwickelt,
-      Regulierung (Atrya Technologies SIA, Aufsicht Latvijas Banka, EU-Passporting nach
-      Deutschland), Bearbeitungszeit, unterstützte Zahlungsarten. Rechtlicher Wortlaut
-      zu Lizenz/Aufsicht muss vor Livegang durch Legal freigegeben sein — siehe
-      README.md, offene Freigaben.]
-    </p>
+    <h2 class="lp-h2">Warum Zahlungen nach Indien teurer sind, als die Gebührenaufstellung zeigt</h2>
+    <p class="lp-body">Die Indische Rupie ist keine frei handelbare Währung. Eine Zahlung aus Deutschland wird deshalb praktisch immer im Land konvertiert: Ihr Geld geht als Euro oder US-Dollar auf die Reise, mindestens eine Korrespondenzbank ist beteiligt, und die Bank Ihres Lieferanten bestimmt den Kurs, zu dem daraus Rupien werden. Der Aufschlag auf diesen Kurs steht auf keinem Beleg — er ist bereits im Kurs enthalten.</p>
+    <p class="lp-body">Dazu kommen Positionen, die Sie sehen: Grundgebühren zwischen 5 und 50 Euro je nach Bank und Kontomodell sowie 10 bis 30 Euro je zwischengeschalteter Korrespondenzbank. Die eigentliche Größenordnung liegt aber im Kurs: Wechselkursaufschläge können zwischen 0,5 und 5 Prozent des überwiesenen Betrags ausmachen. Bei 1,2 Millionen Euro Jahresvolumen ist das der Unterschied zwischen 6.000 und 60.000 Euro.</p>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic">Quellen: GTAI, Außenhandel Indien–Deutschland 2025; Exiap, SWIFT-Gebührenvergleich 2026.</p>
+
+    <h2 class="lp-h2">Was die Bank Ihres Lieferanten in Indien verlangt</h2>
+    <p class="lp-body">Indische Empfängerbanken sind verpflichtet, jeder eingehenden Auslandszahlung einen wirtschaftlichen Zweck zuzuordnen. In der Praxis heißt das: Rechnung und Vertragsbezug müssen zur Zahlung passen, und der Verwendungszweck muss so formuliert sein, dass die Bank ihn einem Zahlungsgrund zuordnen kann. Ist das nicht der Fall, wird die Gutschrift nicht abgelehnt, sondern liegen gelassen — Ihr Lieferant bekommt einen Rückfragezettel, und Sie erfahren davon erst, wenn die Ware nicht rausgeht.</p>
+    <p class="lp-body">Drei Dinge verhindern das zuverlässig: die Rechnungsnummer im Verwendungszweck statt einer internen Bestellnummer, ein Empfängername, der exakt dem Kontonamen entspricht, und eine IBAN- bzw. IFSC-Prüfung vor dem Absenden statt danach.</p>
+
+    <h2 class="lp-h2">Wie HansePay diesen Korridor abwickelt</h2>
+    <p class="lp-body">Wir stellen den Kurs, zu dem umgerechnet wird, vor der Freigabe offen dar — nicht als „Kurs inklusive Marge", sondern als Referenzkurs plus separat ausgewiesene Gebühr. Same-Day- und Next-Day-Abwicklung nach Asien ist möglich, Standardfall ist der nächste Werktag.</p>
+    <p class="lp-body">Ab einem Jahresvolumen von etwa zwei Millionen Euro arbeiten wir mit individuell verhandelten Konditionen; darunter gilt ein fester Satz ohne Mindestvolumen. Ihr Ansprechpartner ist ein Zahlungs-Experte mit Korridor-Erfahrung, kein Ticketsystem.</p>
+
+  </div>
+</section>
+
+<section class="lp-section lp-section-alt">
+  <div class="lp-section-narrow">
+    <div class="lp-section-label">Häufige Fragen</div>
+    <h2 class="lp-h2">Was Unternehmen uns zu Indien fragen</h2>
+      <details class="faq-item">
+        <summary>Kann ich meinen indischen Lieferanten direkt in Rupien bezahlen?</summary>
+        <div class="faq-answer">Ja — die Umrechnung findet dann bei Gutschrift in Indien statt. Für Sie hat das den Vorteil, dass der Betrag in INR feststeht und Ihr Lieferant keinen eigenen Währungspuffer in den Preis einrechnen muss. Viele Einkäufer holen sich auf diesem Weg zwei bis drei Prozent Nachlass auf den Warenpreis.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Wie lange dauert eine Zahlung nach Indien?</summary>
+        <div class="faq-answer">Über klassische SWIFT-Wege in der Regel zwei bis fünf Werktage, bei zusätzlichen Compliance-Prüfungen auch länger. Über HansePay ist Same-Day- oder Next-Day-Abwicklung der Regelfall.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Warum weicht der Kurs meiner Bank vom Kurs bei Google ab?</summary>
+        <div class="faq-answer">Google zeigt den Interbanken-Kurs — den Preis, zu dem Banken untereinander handeln. Ihre Bank rechnet mit einem Aufschlag darauf. Dieser Aufschlag ist die eigentliche Gebühr und wird selten separat ausgewiesen.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Brauche ich für Zahlungen nach Indien besondere Unterlagen?</summary>
+        <div class="faq-answer">Auf deutscher Seite reichen Rechnung und Vertragsbezug. Die Dokumentationspflicht liegt bei der Empfängerbank in Indien, die den Zahlungszweck zuordnen muss. Wir prüfen den Verwendungszweck vor dem Versand mit Ihnen durch.</div>
+      </details>
   </div>
 </section>
 
@@ -106,10 +158,16 @@
   Alle Berechnungen auf dieser Seite sind Schätzungen auf Basis marktüblicher Konditionen und kein verbindliches Angebot.
 </div>
 
-<!-- Shared site footer -->
-<script src="/assets/footer.js"></script>
+<!--
+  Weiterführende interne Links (aus Notion) — noch nicht als Links gerendert,
+  da die Zielseiten teils noch nicht existieren. Sobald gebaut, hier verlinken:
+  - /waehrungen/eur-inr/
+  - /loesungen/textilimport/
+  - /loesungen/pharma-wirkstoffe/
+  - /vergleich/hansepay-vs-hausbank/
+-->
 
-<!-- Landing-page functionality -->
+<script src="/assets/footer.js"></script>
 <script src="/assets/tracking.js"></script>
 <script src="/assets/calculator.js"></script>
 

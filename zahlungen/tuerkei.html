@@ -3,13 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Zahlungen in die Türkei — Kosten senken mit HansePay</title>
-<meta name="description" content="Grenzüberschreitende Zahlungen in die Türkei zum echten Interbankenkurs, ohne versteckte Aufschläge. Ersparnis in 30 Sekunden berechnen." />
+<title>Zahlungen in die Türkei: Kurs, Kosten, Timing — HansePay</title>
+<meta name="description" content="Bei Zahlungen an türkische Lieferanten entscheidet das Timing mit: Was der Kursaufschlag kostet, warum Zahlungsziele in Lira riskant sind und wie Sie gegensteuern." />
 <link rel="canonical" href="https://www.hansepay.de/zahlungen/tuerkei" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/styles/tokens.css" />
 <link rel="stylesheet" href="/styles/landing.css" />
+<style>
+.faq-item{border-bottom:1px solid rgba(11,25,41,.08);padding:16px 0}
+.faq-item summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:15px;list-style:none}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::before{content:'+ ';color:var(--n400);font-weight:700}
+.faq-item[open] summary::before{content:'– '}
+.faq-answer{font-size:14.5px;color:var(--ink2);line-height:1.7;margin-top:10px;padding-left:18px}
+.source-block{background:var(--n050);border-left:3px solid var(--n300);padding:18px 22px;border-radius:0 var(--r-md) var(--r-md) 0;margin-bottom:28px}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -17,8 +26,35 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "[PLATZHALTER: häufige Frage zum Türkei-Korridor]",
-      "acceptedAnswer": { "@type": "Answer", "text": "[PLATZHALTER: Antwort — Inhalt kommt aus Notion-Freigabe]" }
+      "name": "Sollen wir in Euro oder in Lira fakturieren lassen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In Euro ist bequemer, kostet aber den Risikoaufschlag des Lieferanten. In Lira ist günstiger, wenn Sie den Kurs bei Auftragserteilung festschreiben. Ohne Festschreibung ist es eine Wette."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Kann ich den Kurs für eine künftige Zahlung fixieren?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Ja, das ist Standard im Firmenkundengeschäft. Wichtig ist, dass Laufzeit und Betrag zum tatsächlichen Zahlungsziel passen — sonst tauschen Sie ein Risiko gegen ein anderes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie schnell ist eine Zahlung in die Türkei?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Über gängige Wege ein bis drei Werktage, abhängig von Compliance-Prüfungen bei der Empfängerbank."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Worauf achtet die türkische Empfängerbank?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Auf Übereinstimmung von Empfängername und Kontoinhaber sowie auf einen nachvollziehbaren Zahlungsgrund mit Rechnungsbezug. Abkürzungen im Firmennamen sind der häufigste Stolperstein."
+      }
     }
   ]
 }
@@ -26,7 +62,6 @@
 </head>
 <body>
 
-<!-- Shared site nav — same component the live marketing site uses -->
 <script src="/assets/nav.js"></script>
 
 <section class="lp-hero">
@@ -35,12 +70,8 @@
       <span class="lp-hero-chip-dot"></span>
       Zahlungskorridor · Deutschland → Türkei
     </div>
-    <h1 class="lp-hero-h1">Zahlungen in die Türkei, <em>ohne den Aufschlag Ihrer Bank.</em></h1>
-    <p class="lp-hero-sub">
-      [PLATZHALTER: Korridor-spezifischer Intro-Text — 2–3 Sätze, Inhalt kommt aus der
-      Notion-Freigabe. Sollte den TRY-Korridor konkret ansprechen: typisches Volumen,
-      typische Zahlungsanlässe (Import, Dienstleistungen, Gehälter etc.).]
-    </p>
+    <h1 class="lp-hero-h1">Zahlungen in die <em>Türkei</em> — wenn der Kurs das Zahlungsziel überholt</h1>
+    <div class="lp-hero-sub">Die Türkei ist für deutsche Textil-, Automotive- und Lebensmittelimporteure der nächstgelegene Beschaffungsmarkt außerhalb der EU. Der Zahlungsverkehr dorthin ist technisch unkompliziert — und trotzdem der Korridor, in dem Unternehmen am häufigsten Geld verlieren, ohne dass jemand einen Fehler gemacht hat.</div>
     <div class="lp-hero-actions">
       <a href="#hp-calc" class="btn btn-primary" data-track="hero_primary">Ersparnis berechnen</a>
       <a href="/gespraech/?landing_page=zahlungen/tuerkei&cluster=korridor" class="btn btn-ghost-white" data-track="hero_secondary">Gespräch buchen</a>
@@ -50,11 +81,11 @@
 
 <section class="lp-section">
   <div class="lp-section-wide">
-    <div class="lp-section-label">Der TRY-Korridor auf einen Blick</div>
+    <div class="lp-section-label">Türkei-Korridor auf einen Blick</div>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-value">[X] %</div><div class="stat-label">[PLATZHALTER: durchschnittlicher Bank-Aufschlag TRY]</div></div>
-      <div class="stat-card"><div class="stat-value">[X] Tage</div><div class="stat-label">[PLATZHALTER: typische Laufzeit per SWIFT]</div></div>
-      <div class="stat-card"><div class="stat-value">[X]</div><div class="stat-label">[PLATZHALTER: Korrespondenzbanken im Standardweg]</div></div>
+      <div class="stat-card"><div class="stat-value">60 Tage</div><div class="stat-label">typisches Zahlungsziel</div></div>
+      <div class="stat-card"><div class="stat-value">5–50 €</div><div class="stat-label">Grundgebühr je Überweisung</div></div>
+      <div class="stat-card"><div class="stat-value">TRY</div><div class="stat-label">hohe Kursbewegung im Zahlungsziel</div></div>
     </div>
   </div>
 </section>
@@ -63,17 +94,11 @@
   <div class="lp-section-wide">
     <div class="lp-section-label">Rechner</div>
     <h2 class="lp-h2" style="text-align:center;margin-bottom:32px">Was Sie mit HansePay sparen</h2>
-
-    <!--
-      Calculator widget. data-markup is the assumed "other provider" markup
-      for THIS corridor — replace with the real Notion figure per corridor.
-      HANSEPAY_MARKUP itself (the 0.4% placeholder) lives centrally in
-      /assets/calculator.js and must be replaced there before go-live.
-    -->
     <div id="hp-calc"
          data-currency="TRY"
          data-country="Türkei"
-         data-markup="0.035"
+         data-markup="0.03"
+         data-volume-default="900000"
          data-cluster="korridor"
          data-landing-page="zahlungen/tuerkei"></div>
   </div>
@@ -81,15 +106,37 @@
 
 <section class="lp-section">
   <div class="lp-section-narrow">
-    <div class="lp-section-label">Wie es funktioniert</div>
-    <h2 class="lp-h2">[PLATZHALTER: Abschnittsüberschrift]</h2>
-    <p class="lp-body">
-      [PLATZHALTER: Erklärender Textblock — wie HansePay den TRY-Korridor abwickelt,
-      Regulierung (Atrya Technologies SIA, Aufsicht Latvijas Banka, EU-Passporting nach
-      Deutschland), Bearbeitungszeit, unterstützte Zahlungsarten. Rechtlicher Wortlaut
-      zu Lizenz/Aufsicht muss vor Livegang durch Legal freigegeben sein — siehe
-      README.md, offene Freigaben.]
-    </p>
+    <h2 class="lp-h2">Warum 60 Tage Zahlungsziel in der Türkei ein Währungsgeschäft sind</h2>
+    <p class="lp-body">Wenn Sie heute in Türkischer Lira fakturiert bekommen und in 60 Tagen zahlen, haben Sie eine Währungsposition eröffnet — ohne es zu wollen und ohne sie zu bewerten. Bewegt sich der Kurs zu Ihren Gunsten, freut sich niemand, weil es niemand misst. Bewegt er sich dagegen, wird es als „Wechselkursverlust" in der Buchhaltung verbucht und als Pech abgehakt.</p>
+    <p class="lp-body">Der saubere Weg ist, die Entscheidung bewusst zu treffen: entweder in Euro fakturieren lassen (dann trägt der Lieferant das Risiko und preist es ein) oder in Lira fakturieren und den Kurs bei Auftragserteilung festschreiben. Beides ist legitim. Nur das Nichtentscheiden ist teuer.</p>
+
+    <h2 class="lp-h2">Was eine Zahlung in die Türkei tatsächlich kostet</h2>
+    <p class="lp-body">Sichtbar: eine Grundgebühr zwischen 5 und 50 Euro sowie Fremdspesen der beteiligten Banken. Unsichtbar: der Aufschlag auf den Wechselkurs, der zwischen 0,5 und 5 Prozent liegen kann. Bei einem Jahresvolumen von 900.000 Euro ist der Unterschied zwischen einem und drei Prozent gleich 18.000 Euro — das entspricht einer halben Stelle im Einkauf.</p>
+    <p style="font-size:12.5px;color:var(--ink3);font-style:italic">Quelle: Exiap, SWIFT-Gebührenvergleich 2026.</p>
+
+  </div>
+</section>
+
+<section class="lp-section lp-section-alt">
+  <div class="lp-section-narrow">
+    <div class="lp-section-label">Häufige Fragen</div>
+    <h2 class="lp-h2">Was Unternehmen uns zu Türkei fragen</h2>
+      <details class="faq-item">
+        <summary>Sollen wir in Euro oder in Lira fakturieren lassen?</summary>
+        <div class="faq-answer">In Euro ist bequemer, kostet aber den Risikoaufschlag des Lieferanten. In Lira ist günstiger, wenn Sie den Kurs bei Auftragserteilung festschreiben. Ohne Festschreibung ist es eine Wette.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Kann ich den Kurs für eine künftige Zahlung fixieren?</summary>
+        <div class="faq-answer">Ja, das ist Standard im Firmenkundengeschäft. Wichtig ist, dass Laufzeit und Betrag zum tatsächlichen Zahlungsziel passen — sonst tauschen Sie ein Risiko gegen ein anderes.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Wie schnell ist eine Zahlung in die Türkei?</summary>
+        <div class="faq-answer">Über gängige Wege ein bis drei Werktage, abhängig von Compliance-Prüfungen bei der Empfängerbank.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Worauf achtet die türkische Empfängerbank?</summary>
+        <div class="faq-answer">Auf Übereinstimmung von Empfängername und Kontoinhaber sowie auf einen nachvollziehbaren Zahlungsgrund mit Rechnungsbezug. Abkürzungen im Firmennamen sind der häufigste Stolperstein.</div>
+      </details>
   </div>
 </section>
 
@@ -106,10 +153,16 @@
   Alle Berechnungen auf dieser Seite sind Schätzungen auf Basis marktüblicher Konditionen und kein verbindliches Angebot.
 </div>
 
-<!-- Shared site footer -->
-<script src="/assets/footer.js"></script>
+<!--
+  Weiterführende interne Links (aus Notion) — noch nicht als Links gerendert,
+  da die Zielseiten teils noch nicht existieren. Sobald gebaut, hier verlinken:
+  - /waehrungen/eur-try/
+  - /loesungen/textilimport/
+  - /wissen/waehrungsabsicherung-grundlagen/
+  - /loesungen/lebensmittel-import/
+-->
 
-<!-- Landing-page functionality -->
+<script src="/assets/footer.js"></script>
 <script src="/assets/tracking.js"></script>
 <script src="/assets/calculator.js"></script>
 
