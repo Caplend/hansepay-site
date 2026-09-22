@@ -1,3 +1,5 @@
 User-agent: *
 Disallow: /internal-374861029347/
 Allow: /
+
+Sitemap: https://www.hansepay.de/sitemap.xml
