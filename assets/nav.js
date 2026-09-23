@@ -140,6 +140,11 @@ img.hp-cine,.hp-cine>img{
         </div>
       </li>
 
+      <!-- Payment Corridors -->
+      <li class="nav-item">
+        <a href="/zahlungen/" class="nav-link" style="text-decoration:none" data-i18n="nav.corridors">Payment Corridors</a>
+      </li>
+
       <!-- Solutions -->
       <li class="nav-item">
         <span class="nav-link"><span data-i18n="nav.solutions">Solutions</span>
@@ -275,6 +280,7 @@ img.hp-cine,.hp-cine>img{
 </div>
 <div class="mobile-menu" id="mobile-menu">
   <a class="mobile-menu-link" href="/index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
+  <a class="mobile-menu-link" href="/zahlungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors">Payment Corridors</a>
   <a class="mobile-menu-link" href="/platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
   <a class="mobile-menu-sub" href="/platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
 
@@ -609,7 +615,7 @@ img.hp-cine,.hp-cine>img{
   var HP_DICT = {
     en: {
       // Nav
-      'nav.home':'Home','nav.platform':'Platform','nav.solutions':'Solutions',
+      'nav.home':'Home','nav.platform':'Platform','nav.solutions':'Solutions','nav.corridors':'Payment Corridors',
       'nav.signin':'Sign in',
       'signin.title':'Sign in to your account','signin.sub':'Access your HansePay dashboard.',
       'signin.soon.title':'Customer portal launching soon',
@@ -1165,7 +1171,7 @@ img.hp-cine,.hp-cine>img{
     },
     de: {
       // Nav
-      'nav.home':'Startseite','nav.platform':'Plattform','nav.solutions':'Lösungen',
+      'nav.home':'Startseite','nav.platform':'Plattform','nav.solutions':'Lösungen','nav.corridors':'Zahlungskorridore',
       'nav.signin':'Anmelden',
       'signin.title':'In Ihr Konto einloggen','signin.sub':'Zugang zu Ihrem HansePay-Dashboard.',
       'signin.soon.title':'Kundenportal in Kürze verfügbar',
