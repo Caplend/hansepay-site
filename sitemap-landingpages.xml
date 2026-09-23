@@ -13,4 +13,15 @@
   <url><loc>https://www.hansepay.de/zahlungen/suedkorea/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.hansepay.de/zahlungen/marokko/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.hansepay.de/zahlungen/tunesien/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-inr/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-cny/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-usd/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-jpy/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-vnd/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-aed/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-try/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-thb/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-mad/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/waehrungen/eur-tnd/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>

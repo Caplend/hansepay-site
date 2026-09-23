@@ -202,7 +202,7 @@ app.use(async (req, res, next) => {
   // Skip: API, admin panel, static assets, uploads, and legal pages
   const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/', '/styles/',
                         '/zahlungen/', '/hansepay/zahlungen/', '/datenschutz/', '/hansepay/datenschutz/',
-                        '/gespraech/', '/hansepay/gespraech/',
+                        '/gespraech/', '/hansepay/gespraech/', '/waehrungen/', '/hansepay/waehrungen/',
                         '/internal-416309417146/', '/hansepay/internal-416309417146/',
                         '/internal-716596047071/', '/hansepay/internal-716596047071/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
