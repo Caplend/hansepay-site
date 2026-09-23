@@ -265,6 +265,21 @@ app.get('/google3b985f4905aea611.html', (req, res) => {
   res.send('google-site-verification: google3b985f4905aea611.html');
 });
 
+// Redirect-stub pages (thin pages whose only job is to bounce the visitor
+// elsewhere) must never be cached by an intermediary CDN — a stale cached
+// response (e.g. cached before the file existed, or a coming-soon-gated
+// response cached from before launch) would silently strand visitors with
+// no way to know a fresher version exists. Explicit no-store overrides any
+// default CDN caching heuristic for these specific paths.
+const REDIRECT_STUB_PREFIXES = ['/gespraech/', '/hansepay/gespraech/', '/datenschutz/', '/hansepay/datenschutz/',
+                                 '/privacy.html', '/hansepay/privacy.html', '/terms.html', '/hansepay/terms.html'];
+app.use((req, res, next) => {
+  if (REDIRECT_STUB_PREFIXES.some(p => req.path.startsWith(p))) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  }
+  next();
+});
+
 // Static files — files live at repo root in hansepay-deploy
 // extensions:['html'] lets /page resolve to page.html on disk, so clean URLs
 // (the redirect above) actually have something to land on.
