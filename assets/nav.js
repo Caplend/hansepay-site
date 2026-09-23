@@ -159,6 +159,10 @@ img.hp-cine,.hp-cine>img{
               <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M7 7l-4 5 4 5M17 7l4 5-4 5"/></svg></div>
               <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.corridors.compare">Compare Providers</div><div class="nav-dd-sub" data-i18n="nav.corridors.compare.sub">HansePay vs. Wise, banks &amp; more</div></div>
             </a>
+            <a href="/loesungen/" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M13 21V11l6 4v6M9 9v.01M9 12v.01M9 15v.01"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.corridors.industries">By Industry</div><div class="nav-dd-sub" data-i18n="nav.corridors.industries.sub">Textiles, machinery, travel &amp; more</div></div>
+            </a>
           </div>
         </div>
       </li>
@@ -301,6 +305,7 @@ img.hp-cine,.hp-cine>img{
   <a class="mobile-menu-link" href="/zahlungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors.countries">By Country</a>
   <a class="mobile-menu-sub" href="/waehrungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors.pairs">By Currency Pair</a>
   <a class="mobile-menu-sub" href="/vergleich/" onclick="closeMobileMenu()" data-i18n="nav.corridors.compare">Compare Providers</a>
+  <a class="mobile-menu-sub" href="/loesungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors.industries">By Industry</a>
   <a class="mobile-menu-link" href="/platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
   <a class="mobile-menu-sub" href="/platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
 
@@ -639,6 +644,7 @@ img.hp-cine,.hp-cine>img{
       'nav.corridors.countries':'By Country','nav.corridors.countries.sub':'India, China, Vietnam & more',
       'nav.corridors.pairs':'By Currency Pair','nav.corridors.pairs.sub':'EUR/USD, EUR/INR & more',
       'nav.corridors.compare':'Compare Providers','nav.corridors.compare.sub':'HansePay vs. Wise, banks & more',
+      'nav.corridors.industries':'By Industry','nav.corridors.industries.sub':'Textiles, machinery, travel & more',
       'nav.signin':'Sign in',
       'signin.title':'Sign in to your account','signin.sub':'Access your HansePay dashboard.',
       'signin.soon.title':'Customer portal launching soon',
@@ -1198,6 +1204,7 @@ img.hp-cine,.hp-cine>img{
       'nav.corridors.countries':'Nach Land','nav.corridors.countries.sub':'Indien, China, Vietnam & mehr',
       'nav.corridors.pairs':'Nach Währungspaar','nav.corridors.pairs.sub':'EUR/USD, EUR/INR & mehr',
       'nav.corridors.compare':'Anbieter vergleichen','nav.corridors.compare.sub':'HansePay vs. Wise, Banken & mehr',
+      'nav.corridors.industries':'Nach Branche','nav.corridors.industries.sub':'Textil, Maschinenbau, Reisebranche & mehr',
       'nav.signin':'Anmelden',
       'signin.title':'In Ihr Konto einloggen','signin.sub':'Zugang zu Ihrem HansePay-Dashboard.',
       'signin.soon.title':'Kundenportal in Kürze verfügbar',
