@@ -286,11 +286,10 @@ a{color:inherit;text-decoration:none}
   // Fetch live rate
   function fetchRate(){
     if(from===to){ rate=1; updatedAt=new Date(); updateDisplay(); return; }
-    fetch('https://api.frankfurter.app/latest?from='+from+'&to='+to)
+    fetch('/api/fx/rate?from='+from+'&to='+to)
       .then(function(r){return r.json();})
       .then(function(d){
-        var v=d&&d.rates&&d.rates[to];
-        if(typeof v==='number'){rate=v;updatedAt=new Date();}
+        if(typeof d.rate==='number'){rate=d.rate;updatedAt=new Date();}
         updateDisplay();
       })
       .catch(function(){updateDisplay();});
@@ -316,13 +315,11 @@ a{color:inherit;text-decoration:none}
     if(from===to){series=makeFallback(days);drawChart();return;}
     var end=new Date(), start=new Date();
     start.setDate(start.getDate()-days);
-    fetch('https://api.frankfurter.app/'+isoDate(start)+'..'+isoDate(end)+'?from='+from+'&to='+to)
+    fetch('/api/fx/series?from='+from+'&to='+to+'&days='+days)
       .then(function(r){return r.json();})
       .then(function(d){
-        if(d&&d.rates&&typeof d.rates==='object'){
-          var arr=Object.entries(d.rates).map(function(e){return{date:e[0],r:e[1][to]};})
-            .filter(function(x){return typeof x.r==='number';})
-            .sort(function(a,b){return a.date<b.date?-1:1;});
+        if(d&&Array.isArray(d.series)&&d.series.length){
+          var arr=d.series.map(function(e){return{date:e.date,r:e.rate};});
           series=range==='1Y'?arr.filter(function(_,i){return i%5===0;}):arr;
         } else {series=makeFallback(days);}
         drawChart();
