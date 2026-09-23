@@ -505,6 +505,64 @@ function requireApiKey(req, res, next) {
 }
 
 // ─── Health / debug route (public) ───────────────────────────────────────────
+// ─── FX rate proxy (for tools-converter.html) ─────────────────────────────────
+// Server-side proxy to Frankfurter's v2 API (api.frankfurter.dev — the current,
+// non-deprecated endpoint; the old api.frankfurter.app v1 host still works but
+// is legacy). Proxying server-side avoids relying on the visitor's browser
+// successfully reaching a third-party host directly, and lets us cache.
+const _fxCache = new Map(); // key -> { data, cachedAt }
+const FX_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — ECB rates only update once/day anyway
+
+async function fxCachedFetch(key, url) {
+  const cached = _fxCache.get(key);
+  if (cached && Date.now() - cached.cachedAt < FX_CACHE_TTL_MS) return cached.data;
+  const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  if (!resp.ok) throw new Error(`Frankfurter ${resp.status}`);
+  const data = await resp.json();
+  _fxCache.set(key, { data, cachedAt: Date.now() });
+  return data;
+}
+
+app.get('/api/fx/rate', async (req, res) => {
+  const from = (req.query.from || 'EUR').toUpperCase();
+  const to = (req.query.to || 'USD').toUpperCase();
+  if (from === to) return res.json({ rate: 1, date: new Date().toISOString().slice(0, 10) });
+  try {
+    const data = await fxCachedFetch(`rate:${from}:${to}`, `https://api.frankfurter.dev/v2/latest?base=${from}&symbols=${to}`);
+    const rate = data?.rates?.[to];
+    if (typeof rate !== 'number') return res.status(502).json({ error: 'Rate unavailable for that pair' });
+    res.json({ rate, date: data.date });
+  } catch (err) {
+    console.error('[fx/rate] error:', err.message);
+    res.status(502).json({ error: 'Could not fetch live rate' });
+  }
+});
+
+app.get('/api/fx/series', async (req, res) => {
+  const from = (req.query.from || 'EUR').toUpperCase();
+  const to = (req.query.to || 'USD').toUpperCase();
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+  if (from === to) return res.json({ series: [] });
+  const end = new Date();
+  const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+  const isoDate = d => d.toISOString().slice(0, 10);
+  try {
+    const data = await fxCachedFetch(
+      `series:${from}:${to}:${days}`,
+      `https://api.frankfurter.dev/v2/${isoDate(start)}..${isoDate(end)}?base=${from}&symbols=${to}`
+    );
+    const rates = data?.rates || {};
+    const series = Object.entries(rates)
+      .map(([date, byQuote]) => ({ date, rate: byQuote?.[to] }))
+      .filter(p => typeof p.rate === 'number')
+      .sort((a, b) => a.date < b.date ? -1 : 1);
+    res.json({ series });
+  } catch (err) {
+    console.error('[fx/series] error:', err.message);
+    res.status(502).json({ error: 'Could not fetch rate history' });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   let files = [];
   try { files = fs.readdirSync(DATA_DIR).map(f => {
