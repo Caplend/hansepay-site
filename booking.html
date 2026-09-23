@@ -911,6 +911,7 @@ function validateForm(){
     banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
     banner.classList.remove('visible');
+    var qp = new URLSearchParams(window.location.search);
     state.lead = {
       firstName:   document.getElementById('firstName').value.trim(),
       lastName:    document.getElementById('lastName').value.trim(),
@@ -922,6 +923,8 @@ function validateForm(){
       companySize: document.getElementById('companySize').value,
       notes:       document.getElementById('notes').value.trim(),
       lang:        bkLang,
+      landingPage: qp.get('landing_page') || undefined,
+      cluster:     qp.get('cluster') || undefined,
     };
   }
   return ok;
