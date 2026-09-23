@@ -24,4 +24,13 @@
   <url><loc>https://www.hansepay.de/waehrungen/eur-thb/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.hansepay.de/waehrungen/eur-mad/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.hansepay.de/waehrungen/eur-tnd/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-wise-business/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-revolut-business/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-hausbank/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-deutsche-bank/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-commerzbank/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-ebury/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/hansepay-vs-payoneer/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.hansepay.de/vergleich/wise-business-vs-revolut-business/</loc><changefreq>monthly</changefreq><priority>0.75</priority></url>
 </urlset>
