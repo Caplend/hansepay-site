@@ -140,9 +140,27 @@ img.hp-cine,.hp-cine>img{
         </div>
       </li>
 
-      <!-- Payment Corridors -->
+      <!-- Payment Corridors / Compare -->
       <li class="nav-item">
-        <a href="/zahlungen/" class="nav-link" style="text-decoration:none" data-i18n="nav.corridors">Payment Corridors</a>
+        <span class="nav-link"><span data-i18n="nav.corridors">Payment Corridors</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+        <div class="nav-dropdown" style="width:260px">
+          <div class="nav-dropdown-section">
+            <a href="/zahlungen/" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.corridors.countries">By Country</div><div class="nav-dd-sub" data-i18n="nav.corridors.countries.sub">India, China, Vietnam &amp; more</div></div>
+            </a>
+            <a href="/waehrungen/" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.corridors.pairs">By Currency Pair</div><div class="nav-dd-sub" data-i18n="nav.corridors.pairs.sub">EUR/USD, EUR/INR &amp; more</div></div>
+            </a>
+            <a href="/vergleich/" class="nav-dd-link">
+              <div class="nav-dd-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M7 7l-4 5 4 5M17 7l4 5-4 5"/></svg></div>
+              <div class="nav-dd-text"><div class="nav-dd-title" data-i18n="nav.corridors.compare">Compare Providers</div><div class="nav-dd-sub" data-i18n="nav.corridors.compare.sub">HansePay vs. Wise, banks &amp; more</div></div>
+            </a>
+          </div>
+        </div>
       </li>
 
       <!-- Solutions -->
@@ -280,7 +298,9 @@ img.hp-cine,.hp-cine>img{
 </div>
 <div class="mobile-menu" id="mobile-menu">
   <a class="mobile-menu-link" href="/index.html" onclick="closeMobileMenu()" data-i18n="nav.home">Home</a>
-  <a class="mobile-menu-link" href="/zahlungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors">Payment Corridors</a>
+  <a class="mobile-menu-link" href="/zahlungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors.countries">By Country</a>
+  <a class="mobile-menu-sub" href="/waehrungen/" onclick="closeMobileMenu()" data-i18n="nav.corridors.pairs">By Currency Pair</a>
+  <a class="mobile-menu-sub" href="/vergleich/" onclick="closeMobileMenu()" data-i18n="nav.corridors.compare">Compare Providers</a>
   <a class="mobile-menu-link" href="/platform.html" onclick="closeMobileMenu()" data-i18n="nav.platform">Platform</a>
   <a class="mobile-menu-sub" href="/platform-technology.html" onclick="closeMobileMenu()" data-i18n="nav.platform.tech">Technology</a>
 
@@ -616,6 +636,9 @@ img.hp-cine,.hp-cine>img{
     en: {
       // Nav
       'nav.home':'Home','nav.platform':'Platform','nav.solutions':'Solutions','nav.corridors':'Payment Corridors',
+      'nav.corridors.countries':'By Country','nav.corridors.countries.sub':'India, China, Vietnam & more',
+      'nav.corridors.pairs':'By Currency Pair','nav.corridors.pairs.sub':'EUR/USD, EUR/INR & more',
+      'nav.corridors.compare':'Compare Providers','nav.corridors.compare.sub':'HansePay vs. Wise, banks & more',
       'nav.signin':'Sign in',
       'signin.title':'Sign in to your account','signin.sub':'Access your HansePay dashboard.',
       'signin.soon.title':'Customer portal launching soon',
@@ -1172,6 +1195,9 @@ img.hp-cine,.hp-cine>img{
     de: {
       // Nav
       'nav.home':'Startseite','nav.platform':'Plattform','nav.solutions':'Lösungen','nav.corridors':'Zahlungskorridore',
+      'nav.corridors.countries':'Nach Land','nav.corridors.countries.sub':'Indien, China, Vietnam & mehr',
+      'nav.corridors.pairs':'Nach Währungspaar','nav.corridors.pairs.sub':'EUR/USD, EUR/INR & mehr',
+      'nav.corridors.compare':'Anbieter vergleichen','nav.corridors.compare.sub':'HansePay vs. Wise, Banken & mehr',
       'nav.signin':'Anmelden',
       'signin.title':'In Ihr Konto einloggen','signin.sub':'Zugang zu Ihrem HansePay-Dashboard.',
       'signin.soon.title':'Kundenportal in Kürze verfügbar',
