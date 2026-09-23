@@ -203,6 +203,7 @@ app.use(async (req, res, next) => {
   const skipPrefixes = ['/api/', '/hansepay/admin/', '/admin/', '/uploads/', '/assets/', '/styles/',
                         '/zahlungen/', '/hansepay/zahlungen/', '/datenschutz/', '/hansepay/datenschutz/',
                         '/gespraech/', '/hansepay/gespraech/', '/waehrungen/', '/hansepay/waehrungen/',
+                        '/vergleich/', '/hansepay/vergleich/',
                         '/internal-416309417146/', '/hansepay/internal-416309417146/',
                         '/internal-716596047071/', '/hansepay/internal-716596047071/'];
   const skipExact = ['/imprint.html', '/cookie-policy.html', '/coming-soon.html',
