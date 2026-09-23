@@ -521,10 +521,12 @@ function requireApiKey(req, res, next) {
 
 // ─── Health / debug route (public) ───────────────────────────────────────────
 // ─── FX rate proxy (for tools-converter.html) ─────────────────────────────────
-// Server-side proxy to Frankfurter's v2 API (api.frankfurter.dev — the current,
-// non-deprecated endpoint; the old api.frankfurter.app v1 host still works but
-// is legacy). Proxying server-side avoids relying on the visitor's browser
-// successfully reaching a third-party host directly, and lets us cache.
+// Server-side proxy to Frankfurter's v1 API (api.frankfurter.app). v1 is
+// deprecated in favour of v2 (api.frankfurter.dev) but Frankfurter's own docs
+// confirm it "remains available indefinitely" — used here because its
+// response shape ({rates:{TO:value}}) is verified and matches what this code
+// expects; v2 restructured its endpoints (e.g. path-based /v2/rate/X/Y) and
+// wasn't reliably returning data through the previous v2 URL used here.
 const _fxCache = new Map(); // key -> { data, cachedAt }
 const FX_CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — ECB rates only update once/day anyway
 
@@ -543,7 +545,7 @@ app.get('/api/fx/rate', async (req, res) => {
   const to = (req.query.to || 'USD').toUpperCase();
   if (from === to) return res.json({ rate: 1, date: new Date().toISOString().slice(0, 10) });
   try {
-    const data = await fxCachedFetch(`rate:${from}:${to}`, `https://api.frankfurter.dev/v2/latest?base=${from}&symbols=${to}`);
+    const data = await fxCachedFetch(`rate:${from}:${to}`, `https://api.frankfurter.app/latest?from=${from}&to=${to}`);
     const rate = data?.rates?.[to];
     if (typeof rate !== 'number') return res.status(502).json({ error: 'Rate unavailable for that pair' });
     res.json({ rate, date: data.date });
@@ -564,7 +566,7 @@ app.get('/api/fx/series', async (req, res) => {
   try {
     const data = await fxCachedFetch(
       `series:${from}:${to}:${days}`,
-      `https://api.frankfurter.dev/v2/${isoDate(start)}..${isoDate(end)}?base=${from}&symbols=${to}`
+      `https://api.frankfurter.app/${isoDate(start)}..${isoDate(end)}?from=${from}&to=${to}`
     );
     const rates = data?.rates || {};
     const series = Object.entries(rates)
