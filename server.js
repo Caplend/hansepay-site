@@ -11,6 +11,9 @@ const db = require('./lib/db');
 const currenciesRepo = require('./lib/repositories/currencies');
 const legalRepo = require('./lib/repositories/legalDocuments');
 const automationRulesRepo = require('./lib/repositories/automationRules');
+const eventLeadsRepo = require('./lib/repositories/eventLeads');
+const { scoreAttendee, draftMessage } = require('./lib/icp-scoring');
+const XLSX = require('xlsx');
 const legalGermanSeed = require('./lib/legalGermanSeed');
 const seoRepo = require('./lib/repositories/pageSeo');
 const settingsRepo = require('./lib/repositories/settings');
@@ -128,6 +131,16 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
     else cb(new Error('Only image files allowed'));
+  }
+});
+
+// Event attendee list uploads (xlsx/csv) — parsed in memory, never written to disk
+const uploadSpreadsheet = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB max
+  fileFilter: (req, file, cb) => {
+    const ok = /\.(xlsx|xls|csv)$/i.test(file.originalname);
+    if (ok) cb(null, true); else cb(new Error('Only .xlsx, .xls, or .csv files allowed'));
   }
 });
 
@@ -2350,6 +2363,133 @@ app.put('/api/automation-rules/:id', authenticateToken, async (req, res) => {
 app.delete('/api/automation-rules/:id', authenticateToken, requireAdmin, async (req, res) => {
   await automationRulesRepo.remove(req.params.id);
   res.json({ success: true });
+});
+
+// ─── Event Outreach (conference/trade-show attendee lists → ICP-scored leads) ─
+
+// Column-name matching is tolerant of the common export variants (Brella and
+// similar event platforms) — case-insensitive, several aliases per field.
+const EVENT_COL_ALIASES = {
+  firstName: ['first name', 'firstname', 'vorname'],
+  lastName: ['last name', 'lastname', 'nachname'],
+  title: ['title', 'job title', 'position'],
+  company: ['company', 'organisation', 'organization', 'firma'],
+  ticketType: ['ticket type', 'tickettype', 'ticket'],
+  linkedin: ['linkedin', 'linkedin url', 'linkedin profile'],
+  website: ['company website', 'website'],
+  oneLiner: ['company one-liner', 'one-liner', 'company description', 'description'],
+  hq: ['hq', 'headquarters', 'country'],
+  headcount: ['headcount', 'company size', 'employees'],
+  pitch: ['pitch / intro', 'pitch', 'intro'],
+  notes: ['notes', 'note'],
+};
+function buildColumnMap(headerRow) {
+  const normalized = headerRow.map(h => String(h || '').trim().toLowerCase());
+  const map = {};
+  for (const [field, aliases] of Object.entries(EVENT_COL_ALIASES)) {
+    const idx = normalized.findIndex(h => aliases.includes(h));
+    if (idx !== -1) map[field] = idx;
+  }
+  return map;
+}
+
+app.post('/api/events/upload', authenticateToken, uploadSpreadsheet.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const eventName = (req.body.eventName || '').trim();
+  if (!eventName) return res.status(400).json({ error: 'eventName is required' });
+
+  try {
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    if (rows.length < 2) return res.status(400).json({ error: 'Sheet has no data rows' });
+
+    const colMap = buildColumnMap(rows[0]);
+    if (colMap.firstName === undefined || colMap.company === undefined) {
+      return res.status(400).json({ error: 'Could not find "First name" and "Company" columns — check the file headers.' });
+    }
+
+    const get = (row, field) => (colMap[field] !== undefined ? String(row[colMap[field]] ?? '').trim() : '');
+
+    const leads = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const firstName = get(row, 'firstName');
+      if (!firstName) continue; // skip blank rows
+      const attendee = {
+        firstName, lastName: get(row, 'lastName'), title: get(row, 'title'), company: get(row, 'company'),
+        ticketType: get(row, 'ticketType'), linkedin: get(row, 'linkedin'), website: get(row, 'website'),
+        oneLiner: get(row, 'oneLiner'), hq: get(row, 'hq'), headcount: get(row, 'headcount'),
+        pitch: get(row, 'pitch'), notes: get(row, 'notes'),
+      };
+      const { score, tier, reasoning } = scoreAttendee(attendee);
+      const linkedinSearchUrl = 'https://www.linkedin.com/search/results/people/?keywords=' +
+        encodeURIComponent(`${attendee.firstName} ${attendee.lastName} ${attendee.company}`);
+      leads.push({
+        firstName: attendee.firstName, lastName: attendee.lastName, company: attendee.company,
+        title: attendee.title, oneLiner: attendee.oneLiner, website: attendee.website, hq: attendee.hq,
+        headcount: attendee.headcount, linkedin: attendee.linkedin, linkedinSearchUrl,
+        icpScore: score, icpTier: tier, icpReasoning: reasoning,
+        draftMessage: score > 0 ? draftMessage(attendee) : null,
+      });
+    }
+
+    const imp = await eventLeadsRepo.createImportWithLeads({ eventName, importedBy: req.user.name || req.user.email, leads });
+    res.status(201).json(imp);
+  } catch (err) {
+    console.error('[events/upload] error:', err.message);
+    res.status(500).json({ error: 'Could not process file: ' + err.message });
+  }
+});
+
+app.get('/api/events', authenticateToken, async (req, res) => {
+  res.json(await eventLeadsRepo.listImports());
+});
+
+app.get('/api/events/:id/queue', authenticateToken, async (req, res) => {
+  const imp = await eventLeadsRepo.findImportById(req.params.id);
+  if (!imp) return res.status(404).json({ error: 'Event import not found' });
+  const leads = await eventLeadsRepo.listLeadsForImport(req.params.id);
+  res.json({ import: imp, leads });
+});
+
+app.delete('/api/events/:id', authenticateToken, requireAdmin, async (req, res) => {
+  await eventLeadsRepo.deleteImport(req.params.id);
+  res.json({ success: true });
+});
+
+// POST /api/events/leads/:id/status — mark sent/skipped. On "sent", also
+// creates (or reuses) a CRM customer record tagged with the event name, so
+// the lead flows into the same pipeline sales already works.
+app.post('/api/events/leads/:id/status', authenticateToken, async (req, res) => {
+  const { status } = req.body;
+  if (!['sent', 'skipped', 'pending'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+
+  const lead = await eventLeadsRepo.findLeadById(req.params.id);
+  if (!lead) return res.status(404).json({ error: 'Lead not found' });
+
+  let customerId = lead.createdCustomerId;
+  if (status === 'sent' && !customerId) {
+    const imp = await eventLeadsRepo.findImportById(lead.eventImportId);
+    const notesLines = [
+      `Event: ${imp ? imp.eventName : 'unbekannt'}`,
+      lead.oneLiner ? `Firma: ${lead.oneLiner}` : null,
+      `ICP: Tier ${lead.icpTier || '—'} (${lead.icpScore}p) — ${lead.icpReasoning || ''}`,
+    ].filter(Boolean).join('\n');
+    try {
+      const customer = await customersRepo.create({
+        firstName: lead.firstName || '', lastName: lead.lastName || '', company: lead.company || '',
+        country: lead.hq || '', source: 'event', tags: [imp ? imp.eventName : 'event', lead.icpTier ? `tier-${lead.icpTier.toLowerCase()}` : undefined].filter(Boolean),
+        notes: notesLines, stage: 'lead',
+      });
+      customerId = customer.id;
+    } catch (err) {
+      console.error('[events/leads/status] customer create failed:', err.message);
+    }
+  }
+
+  const updated = await eventLeadsRepo.updateLeadStatus(req.params.id, status, customerId);
+  res.json(updated);
 });
 
 // Runs one rule's action against one customer, with dedupe logging.

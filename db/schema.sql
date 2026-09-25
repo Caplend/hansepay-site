@@ -446,3 +446,48 @@ CREATE TABLE IF NOT EXISTS automation_rule_runs (
   CONSTRAINT fk_rule_runs_rule FOREIGN KEY (rule_id) REFERENCES automation_rules(id) ON DELETE CASCADE,
   CONSTRAINT fk_rule_runs_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 23. event_imports — one row per uploaded conference/event attendee list
+-- (e.g. Bits & Pretzels 2026). Runs the ICP scorer over every row on upload.
+CREATE TABLE IF NOT EXISTS event_imports (
+  id            VARCHAR(32)   NOT NULL PRIMARY KEY,
+  event_name    VARCHAR(255)  NOT NULL,
+  imported_by   VARCHAR(255)  NULL,
+  total_rows    INT           NOT NULL DEFAULT 0,
+  scored_rows   INT           NOT NULL DEFAULT 0,
+  tier_a_count  INT           NOT NULL DEFAULT 0,
+  tier_b_count  INT           NOT NULL DEFAULT 0,
+  excluded_count INT          NOT NULL DEFAULT 0,
+  created_at    DATETIME(3)   NOT NULL,
+  KEY idx_event_imports_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 24. event_leads — one row per scored attendee within an import. Reused
+-- across future events (Bits & Pretzels was the first, not the last).
+CREATE TABLE IF NOT EXISTS event_leads (
+  id                  VARCHAR(32)   NOT NULL PRIMARY KEY,
+  event_import_id     VARCHAR(32)   NOT NULL,
+  first_name          VARCHAR(255)  NULL,
+  last_name           VARCHAR(255)  NULL,
+  company             VARCHAR(255)  NULL,
+  title               VARCHAR(500)  NULL,
+  one_liner           TEXT          NULL,
+  website             VARCHAR(500)  NULL,
+  hq                  VARCHAR(255)  NULL,
+  headcount           VARCHAR(64)   NULL,
+  linkedin            VARCHAR(500)  NULL,
+  linkedin_search_url VARCHAR(1000) NULL,
+  icp_score           INT           NOT NULL DEFAULT 0,
+  icp_tier            VARCHAR(4)    NULL,
+  icp_reasoning       TEXT          NULL,
+  draft_message       TEXT          NULL,
+  status              ENUM('pending','sent','skipped') NOT NULL DEFAULT 'pending',
+  status_at           DATETIME(3)   NULL,
+  created_customer_id VARCHAR(32)   NULL,
+  created_at          DATETIME(3)   NOT NULL,
+  KEY idx_event_leads_import (event_import_id),
+  KEY idx_event_leads_status (event_import_id, status),
+  KEY idx_event_leads_score (event_import_id, icp_score),
+  CONSTRAINT fk_event_leads_import FOREIGN KEY (event_import_id) REFERENCES event_imports(id) ON DELETE CASCADE,
+  CONSTRAINT fk_event_leads_customer FOREIGN KEY (created_customer_id) REFERENCES customers(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
