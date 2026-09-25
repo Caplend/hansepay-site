@@ -483,6 +483,7 @@ CREATE TABLE IF NOT EXISTS event_leads (
   draft_message       TEXT          NULL,
   status              ENUM('pending','sent','skipped') NOT NULL DEFAULT 'pending',
   status_at           DATETIME(3)   NULL,
+  notes               TEXT          NULL,
   created_customer_id VARCHAR(32)   NULL,
   created_at          DATETIME(3)   NOT NULL,
   KEY idx_event_leads_import (event_import_id),
