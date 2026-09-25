@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Event Outreach — HansePay Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="admin.css" />
+<style>
+  .page-desc{font-size:.875rem;color:var(--ink3);margin-bottom:22px;max-width:680px}
+
+  /* Upload card */
+  .upload-card{border:1.5px dashed rgba(11,25,41,.18);border-radius:var(--r-lg);padding:24px;margin-bottom:28px;background:var(--n050)}
+  .upload-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+  .upload-field{flex:1;min-width:200px}
+  .upload-field label{font-size:.75rem;font-weight:600;color:var(--ink3);margin-bottom:5px;display:block}
+  .upload-field input[type="text"]{width:100%;padding:9px 12px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem}
+  .file-input-wrap{flex:1;min-width:200px}
+  .upload-status{margin-top:12px;font-size:.8125rem}
+
+  /* Event list */
+  .event-card{border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s}
+  .event-card:hover{border-color:var(--n400)}
+  .event-name{font-size:.9375rem;font-weight:600;color:var(--ink)}
+  .event-meta{font-size:.75rem;color:var(--ink3);margin-top:4px}
+  .event-stats{display:flex;gap:14px;font-size:.75rem;color:var(--ink2)}
+  .event-stats b{color:var(--n600)}
+
+  /* Queue view */
+  .queue-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .back-link{font-size:.8125rem;color:var(--n500);cursor:pointer;font-weight:600}
+  .progress-bar{height:6px;background:rgba(11,25,41,.08);border-radius:100px;overflow:hidden;margin-bottom:20px}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--n400),#16a34a);border-radius:100px;transition:width .3s}
+
+  .filters{display:flex;gap:8px;margin-bottom:20px}
+  .filter-btn{font-size:.75rem;font-weight:600;padding:6px 14px;border-radius:100px;border:1.5px solid rgba(11,25,41,.14);background:#fff;color:var(--ink2);cursor:pointer}
+  .filter-btn.active{background:var(--n500);border-color:var(--n500);color:#fff}
+
+  .lead-card{background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:24px;max-width:640px}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .contact-name{font-size:1.15rem;font-weight:700;margin:0 0 2px}
+  .contact-title{font-size:.8125rem;color:var(--ink2);margin:0}
+  .tier-badge{font-size:.6875rem;font-weight:700;padding:4px 10px;border-radius:100px;white-space:nowrap;margin-left:10px}
+  .tier-a{background:#D4F4DD;color:#166534}
+  .tier-b{background:#FFF3CD;color:#92400e}
+  .company-desc{font-size:.8125rem;color:var(--ink2);line-height:1.55;margin-bottom:12px;padding:10px 12px;background:var(--n050);border-left:3px solid var(--n300);border-radius:0 8px 8px 0}
+  .meta-row{display:flex;gap:12px;font-size:.6875rem;color:var(--ink3);margin-bottom:14px;flex-wrap:wrap}
+  .reasoning{font-size:.75rem;color:var(--ink3);background:#F5F1EA;border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5}
+  .msg-label{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:6px}
+  textarea.msg-box{width:100%;min-height:140px;padding:12px 14px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.875rem;line-height:1.6;color:var(--ink);resize:vertical;margin-bottom:14px}
+  .actions-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .actions-row .btn{flex:1;min-width:120px;text-align:center}
+  .btn-linkedin{background:#0A66C2!important;color:#fff!important;border-color:#0A66C2!important}
+  .btn-linkedin-search{background:#EBF4FB!important;color:#0A66C2!important;border-color:#0A66C2!important}
+  .nav-row{display:flex;gap:10px;margin-top:16px}
+  .btn-skip{flex:1}
+  .btn-sent{flex:2;background:#16a34a!important;color:#fff!important;border-color:#16a34a!important}
+  .done-screen{text-align:center;padding:60px 20px}
+  .stats-strip{display:flex;justify-content:center;gap:20px;margin-top:20px;font-size:.8125rem;color:var(--ink3)}
+  .stats-strip b{color:var(--ink)}
+  .empty-state{text-align:center;padding:48px 24px;color:var(--ink3);font-size:.875rem;border:1.5px dashed rgba(11,25,41,.12);border-radius:var(--r-lg)}
+</style>
+</head>
+<body>
+<div id="hp-sidebar"></div>
+
+<main class="main">
+  <div class="topbar"><div class="page-title">Event Outreach</div></div>
+
+  <div class="content">
+    <p class="page-desc">Teilnehmerliste einer Konferenz oder Messe hochladen — wird automatisch gegen die ICP-Kriterien (Dokument 0) gescored. Als "gesendet" markierte Kontakte landen automatisch als Lead im CRM.</p>
+
+    <div id="uploadSection" class="upload-card">
+      <div class="upload-row">
+        <div class="upload-field">
+          <label>Event-Name</label>
+          <input type="text" id="eventNameInput" placeholder="z. B. Bits &amp; Pretzels 2027">
+        </div>
+        <div class="file-input-wrap">
+          <label style="font-size:.75rem;font-weight:600;color:var(--ink3);margin-bottom:5px;display:block">Teilnehmerliste (.xlsx, .csv)</label>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        </div>
+        <button class="btn btn-primary" id="uploadBtn">Hochladen &amp; Scoren</button>
+      </div>
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+
+    <div id="listView">
+      <div class="muted" style="font-size:.8125rem;margin-bottom:14px" id="eventsCount">Loading…</div>
+      <div id="eventsList"></div>
+    </div>
+
+    <div id="queueView" style="display:none"></div>
+
+  </div>
+</main>
+
+<script src="components.js"></script>
+<script>
+HPAdmin.renderSidebar('crm');
+var H = window.HPAdmin;
+var A = H.authFetch, esc = H.escapeHtml;
+
+var state = { view: 'list', currentImportId: null, leads: [], filter: 'all', queueIndex: {} };
+
+function loadEvents(){
+  A('/api/events').then(function(r){return r.json();}).then(function(events){
+    document.getElementById('eventsCount').textContent = events.length + ' Event' + (events.length===1?'':'s') + ' importiert';
+    var list = document.getElementById('eventsList');
+    if(!events.length){
+      list.innerHTML = '<div class="empty-state">Noch keine Teilnehmerliste hochgeladen — oben starten.</div>';
+      return;
+    }
+    list.innerHTML = events.map(function(e){
+      var date = new Date(e.createdAt).toLocaleDateString('de-DE', {day:'numeric',month:'short',year:'numeric'});
+      return '<div class="event-card" onclick="openQueue(\'' + e.id + '\')">' +
+        '<div><div class="event-name">' + esc(e.eventName) + '</div>' +
+        '<div class="event-meta">' + date + ' · ' + e.totalRows + ' Teilnehmer importiert · von ' + esc(e.importedBy||'—') + '</div></div>' +
+        '<div class="event-stats"><span><b>' + e.tierACount + '</b> Tier A</span><span><b>' + e.tierBCount + '</b> Tier B</span><span><b>' + e.scoredRows + '</b> mit Signal</span></div>' +
+      '</div>';
+    }).join('');
+  });
+}
+
+document.getElementById('uploadBtn').addEventListener('click', function(){
+  var eventName = document.getElementById('eventNameInput').value.trim();
+  var fileInput = document.getElementById('fileInput');
+  var statusEl = document.getElementById('uploadStatus');
+  if(!eventName){ H.toast('Bitte Event-Namen eingeben', 'error'); return; }
+  if(!fileInput.files.length){ H.toast('Bitte eine Datei auswählen', 'error'); return; }
+
+  var fd = new FormData();
+  fd.append('eventName', eventName);
+  fd.append('file', fileInput.files[0]);
+
+  var btn = document.getElementById('uploadBtn');
+  btn.disabled = true; btn.textContent = 'Wird verarbeitet…';
+  statusEl.textContent = 'Datei wird hochgeladen und gescored — das kann bei großen Listen einen Moment dauern…';
+  statusEl.style.color = 'var(--ink3)';
+
+  fetch('/api/events/upload', { method:'POST', headers: { 'Authorization': 'Bearer ' + localStorage.getItem('hp_token') }, body: fd })
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, data:d}; }); })
+    .then(function(res){
+      if(!res.ok){ statusEl.textContent = res.data.error || 'Fehler beim Verarbeiten'; statusEl.style.color = '#dc2626'; return; }
+      statusEl.textContent = '✓ ' + res.data.totalRows + ' Teilnehmer importiert, ' + res.data.scoredRows + ' mit ICP-Signal (' + res.data.tierACount + ' Tier A, ' + res.data.tierBCount + ' Tier B).';
+      statusEl.style.color = '#16a34a';
+      document.getElementById('eventNameInput').value = '';
+      fileInput.value = '';
+      loadEvents();
+    })
+    .catch(function(){ statusEl.textContent = 'Fehler beim Verarbeiten'; statusEl.style.color = '#dc2626'; })
+    .finally(function(){ btn.disabled = false; btn.textContent = 'Hochladen & Scoren'; });
+});
+
+window.openQueue = function(importId){
+  state.currentImportId = importId;
+  A('/api/events/' + importId + '/queue').then(function(r){return r.json();}).then(function(data){
+    state.leads = data.leads;
+    state.eventName = data.import.eventName;
+    state.filter = 'all';
+    document.getElementById('listView').style.display = 'none';
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('queueView').style.display = 'block';
+    renderQueue();
+  });
+};
+
+function backToList(){
+  document.getElementById('listView').style.display = 'block';
+  document.getElementById('uploadSection').style.display = 'block';
+  document.getElementById('queueView').style.display = 'none';
+  loadEvents();
+}
+
+function getFiltered(){
+  if(state.filter==='A') return state.leads.filter(function(l){return l.icpTier==='A';});
+  if(state.filter==='B') return state.leads.filter(function(l){return l.icpTier==='B';});
+  return state.leads;
+}
+function getPending(){ return getFiltered().filter(function(l){return l.status==='pending';}); }
+
+function renderQueue(){
+  var all = getFiltered();
+  var pending = getPending();
+  var doneCount = all.length - pending.length;
+  var pct = all.length ? Math.round((doneCount/all.length)*100) : 0;
+
+  var sentCount = state.leads.filter(function(l){return l.status==='sent';}).length;
+  var skippedCount = state.leads.filter(function(l){return l.status==='skipped';}).length;
+
+  var tierACount = state.leads.filter(function(l){return l.icpTier==='A';}).length;
+  var tierBCount = state.leads.filter(function(l){return l.icpTier==='B';}).length;
+
+  var html = '<div class="queue-header">' +
+    '<div><h2 style="font-family:Playfair Display,serif;font-weight:400;font-size:1.15rem;margin:0">' + esc(state.eventName) + '</h2></div>' +
+    '<span class="back-link" onclick="backToList()">← Zurück zur Liste</span></div>' +
+    '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="filters">' +
+      '<button class="filter-btn' + (state.filter==='all'?' active':'') + '" onclick="setFilter(\'all\')">Alle (' + state.leads.length + ')</button>' +
+      '<button class="filter-btn' + (state.filter==='A'?' active':'') + '" onclick="setFilter(\'A\')">Tier A (' + tierACount + ')</button>' +
+      '<button class="filter-btn' + (state.filter==='B'?' active':'') + '" onclick="setFilter(\'B\')">Tier B (' + tierBCount + ')</button>' +
+    '</div>';
+
+  if(!pending.length){
+    html += '<div class="done-screen"><h2 style="font-family:Playfair Display,serif;font-weight:400">Fertig! 🎉</h2><p class="muted">Alle Kontakte in dieser Ansicht sind bearbeitet.</p></div>';
+  } else {
+    var c = pending[0];
+    var tierClass = c.icpTier==='A' ? 'tier-a' : 'tier-b';
+    var oneLinerHtml = c.oneLiner ? '<div class="company-desc">🏢 ' + esc(c.oneLiner) + '</div>' : '';
+    var metaBits = [];
+    if(c.hq) metaBits.push('📍 ' + esc(c.hq));
+    if(c.headcount) metaBits.push('👥 ' + esc(c.headcount));
+    var metaHtml = metaBits.length ? '<div class="meta-row">' + metaBits.map(function(b){return '<span>'+b+'</span>';}).join('') + '</div>' : '';
+    var linkedinBtn = c.linkedin
+      ? '<a class="btn btn-linkedin" href="' + esc(c.linkedin) + '" target="_blank" rel="noopener">LinkedIn öffnen ↗</a>'
+      : '<a class="btn btn-linkedin-search" href="' + esc(c.linkedinSearchUrl) + '" target="_blank" rel="noopener">🔍 Auf LinkedIn suchen ↗</a>';
+    var websiteBtn = c.website ? '<a class="btn btn-ghost" href="' + esc(c.website.indexOf('http')===0?c.website:'https://'+c.website) + '" target="_blank" rel="noopener">Website ↗</a>' : '';
+
+    html += '<div class="lead-card">' +
+      '<div class="card-top"><div><p class="contact-name">' + esc(c.firstName+' '+c.lastName) + '</p>' +
+      '<p class="contact-title">' + esc(c.title||'') + ' · ' + esc(c.company||'') + '</p></div>' +
+      '<span class="tier-badge ' + tierClass + '">Tier ' + esc(c.icpTier) + ' · ' + c.icpScore + 'p</span></div>' +
+      oneLinerHtml + metaHtml +
+      '<div class="reasoning">🎯 ' + esc(c.icpReasoning||'') + '</div>' +
+      '<div class="msg-label">Nachricht (bearbeitbar)</div>' +
+      '<textarea class="msg-box" id="msgBox">' + esc(c.draftMessage||'') + '</textarea>' +
+      '<div class="actions-row">' + linkedinBtn + websiteBtn + '<button class="btn btn-ghost" id="copyBtn">Kopieren</button></div>' +
+      '<div class="nav-row"><button class="btn btn-ghost btn-skip" onclick="markStatus(\'' + c.id + '\',\'skipped\')">Überspringen</button>' +
+      '<button class="btn btn-sent" onclick="markStatus(\'' + c.id + '\',\'sent\')">✓ Gesendet — weiter (Lead im CRM)</button></div>' +
+    '</div>';
+  }
+
+  html += '<div class="stats-strip"><span><b>' + sentCount + '</b> gesendet</span><span><b>' + skippedCount + '</b> übersprungen</span><span><b>' + pending.length + '</b> übrig</span></div>';
+
+  document.getElementById('queueView').innerHTML = html;
+
+  var copyBtn = document.getElementById('copyBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', function(){
+      navigator.clipboard.writeText(document.getElementById('msgBox').value).then(function(){
+        copyBtn.textContent = 'Kopiert ✓';
+        setTimeout(function(){ copyBtn.textContent = 'Kopieren'; }, 1800);
+      });
+    });
+  }
+}
+
+window.setFilter = function(f){ state.filter = f; renderQueue(); };
+
+window.markStatus = function(leadId, status){
+  A('/api/events/leads/' + leadId + '/status', { method:'POST', body: JSON.stringify({status: status}) })
+    .then(function(r){return r.json();})
+    .then(function(updated){
+      var lead = state.leads.find(function(l){return l.id===leadId;});
+      if(lead) lead.status = updated.status;
+      renderQueue();
+      if(status==='sent') H.toast('Als Lead im CRM angelegt ✓');
+    })
+    .catch(function(){ H.toast('Konnte Status nicht speichern', 'error'); });
+};
+
+loadEvents();
+</script>
+</body>
+</html>

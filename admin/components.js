@@ -117,6 +117,7 @@
         { key: 'sales',   label: 'Sales Pipeline', href: '/hansepay/admin/sales.html',   icon: 'pipeline', roles: ['admin','editor'] },
         { key: 'enrich',  label: 'Enrichment',     href: '/hansepay/admin/enrich.html',  icon: 'sparkle',  roles: ['admin','editor'] },
         { key: 'automation', label: 'Automation',  href: '/hansepay/admin/automation.html', icon: 'sparkle', roles: ['admin','editor'] },
+        { key: 'events', label: 'Event Outreach',  href: '/hansepay/admin/events.html', icon: 'users', roles: ['admin','editor'] },
       ]
     },
     { sec: 'Marketing', roles: ['admin','editor'] },
