@@ -220,7 +220,9 @@ function renderQueue(){
 
   var html = '<div class="queue-header">' +
     '<div><h2 style="font-family:Playfair Display,serif;font-weight:400;font-size:1.15rem;margin:0">' + esc(state.eventName) + '</h2></div>' +
-    '<span class="back-link" onclick="backToList()">← Zurück zur Liste</span></div>' +
+    '<div style="display:flex;gap:14px;align-items:center">' +
+    '<span class="back-link" onclick="regenerateMessages()" style="color:var(--ink3)">Nachrichten neu generieren</span>' +
+    '<span class="back-link" onclick="backToList()">← Zurück zur Liste</span></div></div>' +
     '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
     '<div class="filters">' +
       '<button class="filter-btn' + (state.tierFilter==='all'?' active':'') + '" onclick="setTierFilter(\'all\')">Alle Tiers (' + state.leads.length + ')</button>' +
@@ -321,6 +323,17 @@ function renderQueue(){
 
 window.setTierFilter = function(f){ state.tierFilter = f; state.index = 0; renderQueue(); };
 window.setTab = function(t){ state.tab = t; state.index = 0; renderQueue(); };
+
+window.regenerateMessages = function(){
+  if(!confirm('Nachrichtentext für alle ' + state.leads.length + ' Kontakte neu generieren? Status und Notizen bleiben erhalten.')) return;
+  A('/api/events/' + state.currentImportId + '/regenerate-messages', { method:'POST' })
+    .then(function(r){return r.json();})
+    .then(function(){
+      H.toast('Nachrichten aktualisiert ✓');
+      openQueue(state.currentImportId);
+    })
+    .catch(function(){ H.toast('Konnte Nachrichten nicht aktualisieren', 'error'); });
+};
 
 window.markStatus = function(leadId, status){
   A('/api/events/leads/' + leadId + '/status', { method:'POST', body: JSON.stringify({status: status}) })

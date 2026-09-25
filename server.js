@@ -2430,7 +2430,7 @@ app.post('/api/events/upload', authenticateToken, uploadSpreadsheet.single('file
         title: attendee.title, oneLiner: attendee.oneLiner, website: attendee.website, hq: attendee.hq,
         headcount: attendee.headcount, linkedin: attendee.linkedin, linkedinSearchUrl,
         icpScore: score, icpTier: tier, icpReasoning: reasoning,
-        draftMessage: score > 0 ? draftMessage(attendee) : null,
+        draftMessage: score > 0 ? draftMessage(attendee, eventName) : null,
       });
     }
 
@@ -2497,6 +2497,21 @@ app.post('/api/events/leads/:id/notes', authenticateToken, async (req, res) => {
   if (!lead) return res.status(404).json({ error: 'Lead not found' });
   const updated = await eventLeadsRepo.updateLeadNotes(req.params.id, req.body.notes || '');
   res.json(updated);
+});
+
+// POST /api/events/:id/regenerate-messages — re-runs the current message
+// template over every lead in this import. Only touches draft_message —
+// status, notes, and any CRM link are left exactly as they are, so this is
+// safe to run after the template changes without losing progress.
+app.post('/api/events/:id/regenerate-messages', authenticateToken, async (req, res) => {
+  const imp = await eventLeadsRepo.findImportById(req.params.id);
+  if (!imp) return res.status(404).json({ error: 'Event import not found' });
+  const leads = await eventLeadsRepo.listLeadsForImport(req.params.id);
+  for (const lead of leads) {
+    const newMessage = draftMessage({ firstName: lead.firstName }, imp.eventName);
+    await eventLeadsRepo.updateLeadMessage(lead.id, newMessage);
+  }
+  res.json({ updated: leads.length });
 });
 
 // Runs one rule's action against one customer, with dedupe logging.
