@@ -33,9 +33,28 @@
   .progress-bar{height:6px;background:rgba(11,25,41,.08);border-radius:100px;overflow:hidden;margin-bottom:20px}
   .progress-fill{height:100%;background:linear-gradient(90deg,var(--n400),#16a34a);border-radius:100px;transition:width .3s}
 
-  .filters{display:flex;gap:8px;margin-bottom:20px}
+  .filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
   .filter-btn{font-size:.75rem;font-weight:600;padding:6px 14px;border-radius:100px;border:1.5px solid rgba(11,25,41,.14);background:#fff;color:var(--ink2);cursor:pointer}
   .filter-btn.active{background:var(--n500);border-color:var(--n500);color:#fff}
+
+  .tabs{display:flex;gap:4px;border-bottom:1.5px solid rgba(11,25,41,.08);margin-bottom:18px}
+  .tab-btn{font-size:.8125rem;font-weight:600;padding:9px 16px;border:none;background:none;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px}
+  .tab-btn.active{color:var(--n600);border-bottom-color:var(--n500)}
+  .tab-btn .count{color:var(--ink3);font-weight:500}
+
+  .nav-arrows{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:14px}
+  .nav-arrow-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(11,25,41,.14);background:#fff;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem}
+  .nav-arrow-btn:disabled{opacity:.35;cursor:default}
+  .nav-position{font-size:.8125rem;color:var(--ink3);min-width:70px;text-align:center}
+
+  .status-pill{font-size:.6875rem;font-weight:700;padding:4px 10px;border-radius:100px;white-space:nowrap}
+  .status-sent{background:#D4F4DD;color:#166534}
+  .status-skipped{background:#F1F1EF;color:var(--ink3)}
+  .status-pending{background:#DBEAFE;color:#1e40af}
+
+  .notes-label{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin:14px 0 6px}
+  textarea.notes-box{width:100%;min-height:60px;padding:10px 12px;border:1.5px solid rgba(11,25,41,.14);border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.8125rem;color:var(--ink);resize:vertical;margin-bottom:10px}
+  .undo-btn{background:#fff;border:1.5px solid rgba(11,25,41,.14);color:var(--ink2)}
 
   .lead-card{background:#fff;border:1px solid rgba(11,25,41,.1);border-radius:var(--r-lg);padding:24px;max-width:640px}
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
@@ -102,7 +121,7 @@ HPAdmin.renderSidebar('crm');
 var H = window.HPAdmin;
 var A = H.authFetch, esc = H.escapeHtml;
 
-var state = { view: 'list', currentImportId: null, leads: [], filter: 'all', queueIndex: {} };
+var state = { view: 'list', currentImportId: null, leads: [], tierFilter: 'all', tab: 'pending', index: 0 };
 
 function loadEvents(){
   A('/api/events').then(function(r){return r.json();}).then(function(events){
@@ -158,7 +177,9 @@ window.openQueue = function(importId){
   A('/api/events/' + importId + '/queue').then(function(r){return r.json();}).then(function(data){
     state.leads = data.leads;
     state.eventName = data.import.eventName;
-    state.filter = 'all';
+    state.tierFilter = 'all';
+    state.tab = 'pending';
+    state.index = 0;
     document.getElementById('listView').style.display = 'none';
     document.getElementById('uploadSection').style.display = 'none';
     document.getElementById('queueView').style.display = 'block';
@@ -173,65 +194,99 @@ function backToList(){
   loadEvents();
 }
 
-function getFiltered(){
-  if(state.filter==='A') return state.leads.filter(function(l){return l.icpTier==='A';});
-  if(state.filter==='B') return state.leads.filter(function(l){return l.icpTier==='B';});
+function getTierFiltered(){
+  if(state.tierFilter==='A') return state.leads.filter(function(l){return l.icpTier==='A';});
+  if(state.tierFilter==='B') return state.leads.filter(function(l){return l.icpTier==='B';});
   return state.leads;
 }
-function getPending(){ return getFiltered().filter(function(l){return l.status==='pending';}); }
+function getTabList(){
+  var tf = getTierFiltered();
+  if(state.tab==='all') return tf;
+  return tf.filter(function(l){return l.status===state.tab;});
+}
 
 function renderQueue(){
-  var all = getFiltered();
-  var pending = getPending();
-  var doneCount = all.length - pending.length;
-  var pct = all.length ? Math.round((doneCount/all.length)*100) : 0;
-
-  var sentCount = state.leads.filter(function(l){return l.status==='sent';}).length;
-  var skippedCount = state.leads.filter(function(l){return l.status==='skipped';}).length;
-
+  var tierFiltered = getTierFiltered();
   var tierACount = state.leads.filter(function(l){return l.icpTier==='A';}).length;
   var tierBCount = state.leads.filter(function(l){return l.icpTier==='B';}).length;
+  var pendingCount = tierFiltered.filter(function(l){return l.status==='pending';}).length;
+  var sentCount = tierFiltered.filter(function(l){return l.status==='sent';}).length;
+  var skippedCount = tierFiltered.filter(function(l){return l.status==='skipped';}).length;
+  var doneCount = sentCount + skippedCount;
+  var pct = tierFiltered.length ? Math.round((doneCount/tierFiltered.length)*100) : 0;
+
+  var list = getTabList();
+  if(state.index >= list.length) state.index = Math.max(0, list.length - 1);
 
   var html = '<div class="queue-header">' +
     '<div><h2 style="font-family:Playfair Display,serif;font-weight:400;font-size:1.15rem;margin:0">' + esc(state.eventName) + '</h2></div>' +
     '<span class="back-link" onclick="backToList()">← Zurück zur Liste</span></div>' +
     '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
     '<div class="filters">' +
-      '<button class="filter-btn' + (state.filter==='all'?' active':'') + '" onclick="setFilter(\'all\')">Alle (' + state.leads.length + ')</button>' +
-      '<button class="filter-btn' + (state.filter==='A'?' active':'') + '" onclick="setFilter(\'A\')">Tier A (' + tierACount + ')</button>' +
-      '<button class="filter-btn' + (state.filter==='B'?' active':'') + '" onclick="setFilter(\'B\')">Tier B (' + tierBCount + ')</button>' +
+      '<button class="filter-btn' + (state.tierFilter==='all'?' active':'') + '" onclick="setTierFilter(\'all\')">Alle Tiers (' + state.leads.length + ')</button>' +
+      '<button class="filter-btn' + (state.tierFilter==='A'?' active':'') + '" onclick="setTierFilter(\'A\')">Tier A (' + tierACount + ')</button>' +
+      '<button class="filter-btn' + (state.tierFilter==='B'?' active':'') + '" onclick="setTierFilter(\'B\')">Tier B (' + tierBCount + ')</button>' +
+    '</div>' +
+    '<div class="tabs">' +
+      '<button class="tab-btn' + (state.tab==='pending'?' active':'') + '" onclick="setTab(\'pending\')">Offen <span class="count">(' + pendingCount + ')</span></button>' +
+      '<button class="tab-btn' + (state.tab==='sent'?' active':'') + '" onclick="setTab(\'sent\')">Gesendet <span class="count">(' + sentCount + ')</span></button>' +
+      '<button class="tab-btn' + (state.tab==='skipped'?' active':'') + '" onclick="setTab(\'skipped\')">Übersprungen <span class="count">(' + skippedCount + ')</span></button>' +
+      '<button class="tab-btn' + (state.tab==='all'?' active':'') + '" onclick="setTab(\'all\')">Alle <span class="count">(' + tierFiltered.length + ')</span></button>' +
     '</div>';
 
-  if(!pending.length){
-    html += '<div class="done-screen"><h2 style="font-family:Playfair Display,serif;font-weight:400">Fertig! 🎉</h2><p class="muted">Alle Kontakte in dieser Ansicht sind bearbeitet.</p></div>';
-  } else {
-    var c = pending[0];
-    var tierClass = c.icpTier==='A' ? 'tier-a' : 'tier-b';
-    var oneLinerHtml = c.oneLiner ? '<div class="company-desc">🏢 ' + esc(c.oneLiner) + '</div>' : '';
-    var metaBits = [];
-    if(c.hq) metaBits.push('📍 ' + esc(c.hq));
-    if(c.headcount) metaBits.push('👥 ' + esc(c.headcount));
-    var metaHtml = metaBits.length ? '<div class="meta-row">' + metaBits.map(function(b){return '<span>'+b+'</span>';}).join('') + '</div>' : '';
-    var linkedinBtn = c.linkedin
-      ? '<a class="btn btn-linkedin" href="' + esc(c.linkedin) + '" target="_blank" rel="noopener">LinkedIn öffnen ↗</a>'
-      : '<a class="btn btn-linkedin-search" href="' + esc(c.linkedinSearchUrl) + '" target="_blank" rel="noopener">🔍 Auf LinkedIn suchen ↗</a>';
-    var websiteBtn = c.website ? '<a class="btn btn-ghost" href="' + esc(c.website.indexOf('http')===0?c.website:'https://'+c.website) + '" target="_blank" rel="noopener">Website ↗</a>' : '';
-
-    html += '<div class="lead-card">' +
-      '<div class="card-top"><div><p class="contact-name">' + esc(c.firstName+' '+c.lastName) + '</p>' +
-      '<p class="contact-title">' + esc(c.title||'') + ' · ' + esc(c.company||'') + '</p></div>' +
-      '<span class="tier-badge ' + tierClass + '">Tier ' + esc(c.icpTier) + ' · ' + c.icpScore + 'p</span></div>' +
-      oneLinerHtml + metaHtml +
-      '<div class="reasoning">🎯 ' + esc(c.icpReasoning||'') + '</div>' +
-      '<div class="msg-label">Nachricht (bearbeitbar)</div>' +
-      '<textarea class="msg-box" id="msgBox">' + esc(c.draftMessage||'') + '</textarea>' +
-      '<div class="actions-row">' + linkedinBtn + websiteBtn + '<button class="btn btn-ghost" id="copyBtn">Kopieren</button></div>' +
-      '<div class="nav-row"><button class="btn btn-ghost btn-skip" onclick="markStatus(\'' + c.id + '\',\'skipped\')">Überspringen</button>' +
-      '<button class="btn btn-sent" onclick="markStatus(\'' + c.id + '\',\'sent\')">✓ Gesendet — weiter (Lead im CRM)</button></div>' +
-    '</div>';
+  if(!list.length){
+    var emptyMsg = state.tab==='pending' ? 'Alle Kontakte in dieser Ansicht sind bearbeitet. 🎉'
+      : state.tab==='sent' ? 'Noch niemand als gesendet markiert.'
+      : state.tab==='skipped' ? 'Noch niemand übersprungen.' : 'Keine Kontakte in dieser Ansicht.';
+    html += '<div class="done-screen"><h2 style="font-family:Playfair Display,serif;font-weight:400">' + (state.tab==='pending' ? 'Fertig!' : '—') + '</h2><p class="muted">' + emptyMsg + '</p></div>';
+    document.getElementById('queueView').innerHTML = html;
+    return;
   }
 
-  html += '<div class="stats-strip"><span><b>' + sentCount + '</b> gesendet</span><span><b>' + skippedCount + '</b> übersprungen</span><span><b>' + pending.length + '</b> übrig</span></div>';
+  html += '<div class="nav-arrows">' +
+    '<button class="nav-arrow-btn" id="prevBtn" ' + (state.index<=0?'disabled':'') + '>←</button>' +
+    '<span class="nav-position">' + (state.index+1) + ' / ' + list.length + '</span>' +
+    '<button class="nav-arrow-btn" id="nextBtn" ' + (state.index>=list.length-1?'disabled':'') + '>→</button>' +
+  '</div>';
+
+  var c = list[state.index];
+  var tierClass = c.icpTier==='A' ? 'tier-a' : 'tier-b';
+  var oneLinerHtml = c.oneLiner ? '<div class="company-desc">🏢 ' + esc(c.oneLiner) + '</div>' : '';
+  var metaBits = [];
+  if(c.hq) metaBits.push('📍 ' + esc(c.hq));
+  if(c.headcount) metaBits.push('👥 ' + esc(c.headcount));
+  var metaHtml = metaBits.length ? '<div class="meta-row">' + metaBits.map(function(b){return '<span>'+b+'</span>';}).join('') + '</div>' : '';
+  var linkedinBtn = c.linkedin
+    ? '<a class="btn btn-linkedin" href="' + esc(c.linkedin) + '" target="_blank" rel="noopener">LinkedIn öffnen ↗</a>'
+    : '<a class="btn btn-linkedin-search" href="' + esc(c.linkedinSearchUrl) + '" target="_blank" rel="noopener">🔍 Auf LinkedIn suchen ↗</a>';
+  var websiteBtn = c.website ? '<a class="btn btn-ghost" href="' + esc(c.website.indexOf('http')===0?c.website:'https://'+c.website) + '" target="_blank" rel="noopener">Website ↗</a>' : '';
+
+  var statusPillMap = { pending:'Offen', sent:'Gesendet', skipped:'Übersprungen' };
+  var statusPill = '<span class="status-pill status-' + c.status + '">' + statusPillMap[c.status] + (c.statusAt ? ' · ' + new Date(c.statusAt).toLocaleDateString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '') + '</span>';
+
+  var actionButtons;
+  if(c.status === 'pending'){
+    actionButtons = '<div class="nav-row"><button class="btn btn-ghost btn-skip" onclick="markStatus(\'' + c.id + '\',\'skipped\')">Überspringen</button>' +
+      '<button class="btn btn-sent" onclick="markStatus(\'' + c.id + '\',\'sent\')">✓ Gesendet — Lead im CRM anlegen</button></div>';
+  } else {
+    var crmLink = c.createdCustomerId ? '<a class="btn btn-ghost" href="crm.html?customer=' + c.createdCustomerId + '" target="_blank">Im CRM ansehen ↗</a>' : '';
+    actionButtons = '<div class="nav-row">' + crmLink + '<button class="btn undo-btn" onclick="markStatus(\'' + c.id + '\',\'pending\')">↺ Zurück zu Offen</button></div>';
+  }
+
+  html += '<div class="lead-card">' +
+    '<div class="card-top"><div><p class="contact-name">' + esc(c.firstName+' '+c.lastName) + '</p>' +
+    '<p class="contact-title">' + esc(c.title||'') + ' · ' + esc(c.company||'') + '</p></div>' +
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="tier-badge ' + tierClass + '">Tier ' + esc(c.icpTier) + ' · ' + c.icpScore + 'p</span>' + statusPill + '</div></div>' +
+    oneLinerHtml + metaHtml +
+    '<div class="reasoning">🎯 ' + esc(c.icpReasoning||'') + '</div>' +
+    '<div class="msg-label">Nachricht (bearbeitbar)</div>' +
+    '<textarea class="msg-box" id="msgBox">' + esc(c.draftMessage||'') + '</textarea>' +
+    '<div class="actions-row">' + linkedinBtn + websiteBtn + '<button class="btn btn-ghost" id="copyBtn">Kopieren</button></div>' +
+    '<div class="notes-label">Notiz (z. B. Gesprächsergebnis)</div>' +
+    '<textarea class="notes-box" id="notesBox" placeholder="z. B. angerufen, kein Interesse aktuell — in 3 Monaten nochmal">' + esc(c.notes||'') + '</textarea>' +
+    '<button class="btn btn-ghost" id="saveNotesBtn" style="margin-bottom:14px">Notiz speichern</button>' +
+    actionButtons +
+  '</div>';
 
   document.getElementById('queueView').innerHTML = html;
 
@@ -244,21 +299,46 @@ function renderQueue(){
       });
     });
   }
+  var prevBtn = document.getElementById('prevBtn');
+  if(prevBtn) prevBtn.addEventListener('click', function(){ if(state.index>0){ state.index--; renderQueue(); } });
+  var nextBtn = document.getElementById('nextBtn');
+  if(nextBtn) nextBtn.addEventListener('click', function(){ if(state.index<list.length-1){ state.index++; renderQueue(); } });
+  var saveNotesBtn = document.getElementById('saveNotesBtn');
+  if(saveNotesBtn){
+    saveNotesBtn.addEventListener('click', function(){
+      var notesVal = document.getElementById('notesBox').value;
+      A('/api/events/leads/' + c.id + '/notes', { method:'POST', body: JSON.stringify({notes: notesVal}) })
+        .then(function(r){return r.json();})
+        .then(function(updated){
+          var lead = state.leads.find(function(l){return l.id===c.id;});
+          if(lead) lead.notes = updated.notes;
+          H.toast('Notiz gespeichert ✓');
+        })
+        .catch(function(){ H.toast('Konnte Notiz nicht speichern', 'error'); });
+    });
+  }
 }
 
-window.setFilter = function(f){ state.filter = f; renderQueue(); };
+window.setTierFilter = function(f){ state.tierFilter = f; state.index = 0; renderQueue(); };
+window.setTab = function(t){ state.tab = t; state.index = 0; renderQueue(); };
 
 window.markStatus = function(leadId, status){
   A('/api/events/leads/' + leadId + '/status', { method:'POST', body: JSON.stringify({status: status}) })
     .then(function(r){return r.json();})
     .then(function(updated){
       var lead = state.leads.find(function(l){return l.id===leadId;});
-      if(lead) lead.status = updated.status;
+      if(lead){ lead.status = updated.status; lead.statusAt = updated.statusAt; lead.createdCustomerId = updated.createdCustomerId; }
+      // After acting on the current card, jump to the next pending one automatically
+      // (only when working the pending tab — other tabs stay put so review flows aren't disrupted).
+      if(state.tab === 'pending') { /* index naturally points at the next item since this one leaves the list */ }
+      else if(state.index > 0) state.index--;
       renderQueue();
       if(status==='sent') H.toast('Als Lead im CRM angelegt ✓');
+      else if(status==='pending') H.toast('Zurück zu Offen gesetzt');
     })
     .catch(function(){ H.toast('Konnte Status nicht speichern', 'error'); });
 };
+
 
 loadEvents();
 </script>

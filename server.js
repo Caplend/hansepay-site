@@ -2492,6 +2492,13 @@ app.post('/api/events/leads/:id/status', authenticateToken, async (req, res) => 
   res.json(updated);
 });
 
+app.post('/api/events/leads/:id/notes', authenticateToken, async (req, res) => {
+  const lead = await eventLeadsRepo.findLeadById(req.params.id);
+  if (!lead) return res.status(404).json({ error: 'Lead not found' });
+  const updated = await eventLeadsRepo.updateLeadNotes(req.params.id, req.body.notes || '');
+  res.json(updated);
+});
+
 // Runs one rule's action against one customer, with dedupe logging.
 async function executeRuleAction(rule, customer) {
   if (rule.actionType === 'create_task') {
