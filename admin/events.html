@@ -262,6 +262,7 @@ function renderQueue(){
     ? '<a class="btn btn-linkedin" href="' + esc(c.linkedin) + '" target="_blank" rel="noopener">LinkedIn öffnen ↗</a>'
     : '<a class="btn btn-linkedin-search" href="' + esc(c.linkedinSearchUrl) + '" target="_blank" rel="noopener">🔍 Auf LinkedIn suchen ↗</a>';
   var websiteBtn = c.website ? '<a class="btn btn-ghost" href="' + esc(c.website.indexOf('http')===0?c.website:'https://'+c.website) + '" target="_blank" rel="noopener">Website ↗</a>' : '';
+  var brellaBtn = '<a class="btn btn-ghost" href="https://bitsandpretzels.brella.io/events/bitsandpretzels2026/networking" target="_blank" rel="noopener">🎪 Auf Brella suchen ↗</a>';
 
   var statusPillMap = { pending:'Offen', sent:'Gesendet', skipped:'Übersprungen' };
   var statusPill = '<span class="status-pill status-' + c.status + '">' + statusPillMap[c.status] + (c.statusAt ? ' · ' + new Date(c.statusAt).toLocaleDateString('de-DE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '') + '</span>';
@@ -283,7 +284,7 @@ function renderQueue(){
     '<div class="reasoning">🎯 ' + esc(c.icpReasoning||'') + '</div>' +
     '<div class="msg-label">Nachricht (bearbeitbar)</div>' +
     '<textarea class="msg-box" id="msgBox">' + esc(c.draftMessage||'') + '</textarea>' +
-    '<div class="actions-row">' + linkedinBtn + websiteBtn + '<button class="btn btn-ghost" id="copyBtn">Kopieren</button></div>' +
+    '<div class="actions-row">' + linkedinBtn + brellaBtn + websiteBtn + '<button class="btn btn-ghost" id="copyBtn">Kopieren</button></div>' +
     '<div class="notes-label">Notiz (z. B. Gesprächsergebnis)</div>' +
     '<textarea class="notes-box" id="notesBox" placeholder="z. B. angerufen, kein Interesse aktuell — in 3 Monaten nochmal">' + esc(c.notes||'') + '</textarea>' +
     '<button class="btn btn-ghost" id="saveNotesBtn" style="margin-bottom:14px">Notiz speichern</button>' +

@@ -853,7 +853,7 @@ app.post('/api/social/generate', authenticateToken, async (req, res) => {
   const channels = (Array.isArray(req.body.channels) ? req.body.channels : SOCIAL_CHANNELS).filter(c => SOCIAL_CHANNELS.includes(c));
   const tone = String(req.body.tone || '').trim();
 
-  const prompt = `You are the social media voice of HansePay, a European FX / cross-border payments company (a brand of Caplend Technologies GmbH, Hamburg; MiCAR-authorised, BaFin-supervised).
+  const prompt = `You are the social media voice of HansePay, a European FX / cross-border payments company (a brand of Caplend Technologies GmbH, Hamburg; operated by Atrya Technologies SIA, MiCAR-authorised and supervised by Latvijas Banka, the Bank of Latvia).
 
 Brand voice: precise, authoritative, considered, institutional, understated, continental. No hype words ("revolutionary", "game-changing", "disrupt"), no startup-cute tone, no exclamation-heavy copy. Use exact numbers where relevant. Confident, not loud.
 

@@ -76,10 +76,10 @@ footer{background:#060D1A;padding:96px 0 48px;border-top:1px solid rgba(255,255,
     </div>
     <div class="footer-hr"></div>
     <div class="footer-bottom">
-      <span class="footer-copy">HansePay &middot; Hamburg, Germany &middot; Regulated by BaFin</span>
+      <span class="footer-copy">HansePay &middot; Hamburg, Germany &middot; MiCAR-authorised</span>
       <span class="bafin-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        BaFin-regulated &middot; EU E-Money Institution
+        Supervised by Latvijas Banka &middot; MiCAR-authorised
       </span>
       <span class="footer-social">
         <a class="footer-social-link" href="https://www.linkedin.com/company/hansepay/" target="_blank" rel="noopener noreferrer">
