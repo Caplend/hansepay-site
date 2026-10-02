@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HansePay — Legal Centre</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<title>HansePay — Legal Centre</title><link rel="stylesheet" href="/assets/fonts.css" />
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -140,6 +137,7 @@ a:hover{text-decoration:underline}
     <option value="cookies">Cookie Policy</option>
     <option value="aml">AML &amp; Compliance</option>
     <option value="complaints">Complaints</option>
+    <option value="pricing">Pricing and Fees</option>
   </select>
 </div>
 
@@ -157,6 +155,7 @@ a:hover{text-decoration:underline}
         <li><a class="sidebar-link" onclick="showDoc('cookies')">Cookie Policy</a></li>
         <li><a class="sidebar-link" onclick="showDoc('aml')">AML &amp; Compliance</a></li>
         <li><a class="sidebar-link" onclick="showDoc('complaints')">Complaints</a></li>
+        <li><a class="sidebar-link" onclick="showDoc('pricing')">Pricing and Fees</a></li>
       </ul>
     </div>
     <div class="sidebar-section">
@@ -803,6 +802,60 @@ a:hover{text-decoration:underline}
       </div>
     </div>
 
+    <div class="doc-pane" id="doc-pricing">
+      <div class="doc-header">
+        <div class="doc-badge">Pricing, costs and fees policy — Article 66(4) MiCAR</div>
+        <h1 class="doc-title">Pricing and Fees</h1>
+        <p class="doc-date">Last updated: 2 October 2026</p>
+        <a class="doc-dl-btn" href="/api/legal/pricing/pdf" download>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+      </div>
+      <div class="doc-body">
+
+<table class="cookie-table">
+  <tbody>
+    <tr><td><strong>Provider</strong></td><td>Atrya Technologies SIA, trading as HansePay</td></tr>
+  </tbody>
+</table>
+
+<div class="info-box">
+  Our fees are set individually for each client, to reflect its needs. There is no onboarding fee and no custody fee, and all costs of our partners are included.
+</div>
+
+<h2>1. Pricing tailored to you</h2>
+<p>Every business uses cross-border payments differently. That is why our fees are set individually for each client, to reflect its needs: the expected monthly volume and the payment corridors used. Before you start, you receive your own Fee Schedule (Annex 3 to our Terms of Service) with the prices that apply to you. The principles below apply to all clients equally.</p>
+
+<h2>2. What we charge and what we do not</h2>
+<table class="cookie-table">
+  <thead><tr><th>Service</th><th>Fee</th></tr></thead>
+  <tbody>
+    <tr><td>Account opening (onboarding)</td><td>None</td></tr>
+    <tr><td>Custody of your e-money tokens</td><td>None (0% per year)</td></tr>
+    <tr><td>Conversion between e-money tokens</td><td>Individual markup on an independent reference rate, set out in your Fee Schedule and shown before you confirm</td></tr>
+    <tr><td>SEPA transfer</td><td>No transfer fee</td></tr>
+    <tr><td>Cross-border transfer (outside SEPA)</td><td>From EUR 5 per transfer, depending on the payment corridor</td></tr>
+    <tr><td>Inactive account (no activity for 12 months)</td><td>EUR 50 per month</td></tr>
+    <tr><td>Costs of our funding and payout partners</td><td>Included in our fees, no separate charges</td></tr>
+  </tbody>
+</table>
+
+<h2>3. How your individual prices are set</h2>
+<p><strong>3.1 Objective criteria:</strong> Your prices depend on your expected monthly volume and the payment corridors you use. Clients with comparable volumes and corridors receive comparable prices (non-discriminatory commercial policy, Article 77 MiCAR).</p>
+<p><strong>3.2 Reference rate and markup:</strong> Each conversion is priced on the basis of an independent reference rate that Atrya cannot alter. Atrya acts as your counterparty and adds the markup agreed in your Fee Schedule.</p>
+<p><strong>3.3 Before you confirm:</strong> The rate and the applicable fees are shown to you before you confirm a conversion. Quotes are time-limited.</p>
+<p><strong>3.4 Review:</strong> If your volume or corridors change significantly, you can ask us to review your Fee Schedule.</p>
+
+<h2>4. Changes to fees</h2>
+<p>We may change your Fee Schedule on at least 14 days' notice by durable medium. If you do not agree, you may close your account free of charge before the change takes effect.</p>
+
+<h2>5. Contact</h2>
+<p>For an individual offer or questions about pricing: <a href="mailto:support@hansepay.de">support@hansepay.de</a>.</p>
+
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -865,7 +918,7 @@ function showDoc(id){
 
   // Highlight nav link
   const links=document.querySelectorAll('.sidebar-link');
-  const docMap={imprint:0,terms:1,privacy:2,cookies:3,aml:4,complaints:5};
+  const docMap={imprint:0,terms:1,privacy:2,cookies:3,aml:4,complaints:5,pricing:6};
   const idx=docMap[id];
   if(idx!==undefined&&links[idx])links[idx].classList.add('active');
 
