@@ -1888,6 +1888,8 @@ img.hp-cine,.hp-cine>img{
       'platform.demo.h2.html':'HansePay <em style="font-style:italic;color:var(--n400)">in Aktion.</em>',
       'platform.demo.lede':'Klicken Sie sich durch die Plattform: grenzüberschreitende Zahlungen, KI-gestützte Rechnungserfassung, Kursfixierung und Transaktions-Tracking. Keine Anmeldung erforderlich.',
       'platform.demo.cta':'Tour starten',
+      'platform.demo.open':'Interaktive Demo öffnen ↗',
+      'platform.demo.openSub':'Öffnet auf app.supademo.com in einem neuen Tab — keine Daten werden vor dem Klick gesendet',
       'platform.onboard.eyebrow':'Onboarding',
       'platform.onboard.h2':'Konto in Minuten eröffnen.',
       'platform.onboard.lede':'KYC ist unkompliziert und für Unternehmen konzipiert. Nach der Verifizierung ist Ihr Konto live und bereit zur Einzahlung. Die regulierten Schienen sind bereits vor Ihrer ersten Euro-Überweisung vorhanden.',
@@ -2897,23 +2899,44 @@ img.hp-cine,.hp-cine>img{
   })();
 
   // Pageview tracking (first-party; server derives country from IP, never
-  // stores the raw IP). Fires on every page that loads nav.js.
+  // stores the raw IP). Only fires with Analytics consent (Cookie Policy
+  // § 4.2) — gated the same way as Google Analytics, not a separate
+  // "essential" exemption. Fires immediately if consent was already
+  // granted in an earlier session, or the moment the visitor grants it via
+  // the banner (hp:consentchange), but never before either happens.
   (function () {
-    try {
-      var params = new URLSearchParams(location.search);
-      fetch('/api/analytics/pageview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          page: location.pathname,
-          referrer: document.referrer || '',
-          utmSource: params.get('utm_source') || undefined,
-          utmMedium: params.get('utm_medium') || undefined,
-          utmCampaign: params.get('utm_campaign') || undefined,
-        }),
-        keepalive: true,
-      });
-    } catch (e) {}
+    var sent = false;
+    function sendPageview() {
+      if (sent) return;
+      sent = true;
+      try {
+        var params = new URLSearchParams(location.search);
+        fetch('/api/analytics/pageview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            page: location.pathname,
+            referrer: document.referrer || '',
+            utmSource: params.get('utm_source') || undefined,
+            utmMedium: params.get('utm_medium') || undefined,
+            utmCampaign: params.get('utm_campaign') || undefined,
+          }),
+          keepalive: true,
+        });
+      } catch (e) {}
+    }
+    function maybeSend() {
+      if (window.HPConsent && window.HPConsent.hasAnalyticsConsent()) sendPageview();
+    }
+    // consent.js loads asynchronously below — poll briefly until it's ready,
+    // since a cookie decision from an earlier session should fire right away.
+    var tries = 0;
+    var poll = setInterval(function () {
+      tries++;
+      if (window.HPConsent) { clearInterval(poll); maybeSend(); }
+      else if (tries > 40) { clearInterval(poll); } // ~10s, consent.js failed to load — give up quietly
+    }, 250);
+    window.addEventListener('hp:consentchange', maybeSend);
   })();
 
   // Load the cookie-consent / analytics gate from the same /assets/ folder
